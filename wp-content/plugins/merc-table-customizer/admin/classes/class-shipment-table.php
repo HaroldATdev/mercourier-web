@@ -32,6 +32,9 @@ class MERC_Shipment_Table {
 		remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_view_action_row',   10 );
 		remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_update_action_row', 10 );
 		remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_delete_action_row', 10 );
+		// Quitar columna "Container" del plugin wpcargo-shipment-container-add-ons
+		remove_action( 'wpcfe_shipment_table_header', 'wpcsc_shipment_container_table_header', 10 );
+		remove_action( 'wpcfe_shipment_table_data',   'wpcsc_shipment_container_table_data',   10 );
 	}
 
 	/* ── Header ──────────────────────────────────────────────────────── */
