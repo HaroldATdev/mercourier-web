@@ -62,6 +62,11 @@ class MERC_Shipment_Table {
 		      ?: get_post_meta( $shipment_id, 'wpcargo_calendarenvio', true )
 		      ?: date( 'd/m/Y', strtotime( get_post_field( 'post_date', $shipment_id ) ) );
 
+		$dt = DateTime::createFromFormat( 'j/n/Y', $fecha );
+		if ( $dt ) {
+			$fecha = $dt->format( 'd/m/Y' );
+		}
+
 		$tipo_html             = $this->render_tipo( get_post_meta( $shipment_id, 'tipo_envio', true ) );
 		$cambio_html           = $this->render_cambio( get_post_meta( $shipment_id, 'cambio_producto', true ) );
 		$motorizo_recojo_html  = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo',  true ) );
