@@ -1983,569 +1983,569 @@ function merc_ensure_unique_tracking_on_insert($data, $postarr) {
 // Ocultar secciones para clientes en formulario de crear envío
 // Ocultar secciones para clientes en formulario de crear envío
 // add_action('wp_footer', 'merc_ocultar_campos_clientes_crear_envio', 4); // MOVIDO AL PLUGIN merc-form-enhancements
-function merc_ocultar_campos_clientes_crear_envio() {
-    if ( ! is_user_logged_in() ) return;
+// function merc_ocultar_campos_clientes_crear_envio() {
+//     if ( ! is_user_logged_in() ) return;
     
-    $current_user = wp_get_current_user();
-    $es_cliente = in_array('wpcargo_client', $current_user->roles);
+//     $current_user = wp_get_current_user();
+//     $es_cliente = in_array('wpcargo_client', $current_user->roles);
     
-    // Solo ocultar si es cliente Y estamos en el formulario de crear envío
-    if ( $es_cliente && isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' ) {
-        ?>
-        <style>
-            /* Ocultar campos administrativos para clientes en crear envío */
-            #history_info,
-            .history_info,
-            [data-section="history_info"],
-            #assigned-driver-wrapper,
-            .assigned-driver-wrapper,
-            [data-section="assigned-driver-wrapper"] {
-                display: none !important;
-            }
-        </style>
-        <script>
-        jQuery(document).ready(function($){
-            // Fallback con JS en caso que no funcione CSS
-            $('#history_info, .history_info, #assigned-driver-wrapper, .assigned-driver-wrapper').hide();
+//     // Solo ocultar si es cliente Y estamos en el formulario de crear envío
+//     if ( $es_cliente && isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' ) {
+//         ?>
+//         <style>
+//             /* Ocultar campos administrativos para clientes en crear envío */
+//             #history_info,
+//             .history_info,
+//             [data-section="history_info"],
+//             #assigned-driver-wrapper,
+//             .assigned-driver-wrapper,
+//             [data-section="assigned-driver-wrapper"] {
+//                 display: none !important;
+//             }
+//         </style>
+//         <script>
+//         jQuery(document).ready(function($){
+//             // Fallback con JS en caso que no funcione CSS
+//             $('#history_info, .history_info, #assigned-driver-wrapper, .assigned-driver-wrapper').hide();
             
-            // Ocultar parent divs si es necesario
-            $('[data-section="history_info"], [data-section="assigned-driver-wrapper"]').hide();
-        });
-        </script>
-        <?php
-    }
-}
+//             // Ocultar parent divs si es necesario
+//             $('[data-section="history_info"], [data-section="assigned-driver-wrapper"]').hide();
+//         });
+//         </script>
+//         <?php
+//     }
+// }
 
 // Agregar campo oculto al formulario y validación de bloqueo
 // add_action('wp_footer', 'agregar_campo_tipo_envio_formulario', 5); // MOVIDO AL PLUGIN merc-form-enhancements
-function agregar_campo_tipo_envio_formulario() {
-    if(isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' && isset($_GET['type'])) {
-        $tipo = sanitize_text_field($_GET['type']);
+// function agregar_campo_tipo_envio_formulario() {
+//     if(isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' && isset($_GET['type'])) {
+//         $tipo = sanitize_text_field($_GET['type']);
         
-        // Validar bloqueo por tipo si es cliente
-        $current_user = wp_get_current_user();
-        $esta_bloqueado = false;
-        $mensaje_bloqueo = '';
-        $debug_info = '';
+//         // Validar bloqueo por tipo si es cliente
+//         $current_user = wp_get_current_user();
+//         $esta_bloqueado = false;
+//         $mensaje_bloqueo = '';
+//         $debug_info = '';
         
-        if (in_array('wpcargo_client', $current_user->roles)) {
-            // Log de debugging
-            $hora_actual = current_time('H:i');
-            $debug_info = "DEBUG: Usuario={$current_user->ID}, Tipo={$tipo}, Hora={$hora_actual}";
-            error_log("🔍 FRONTEND VALIDATION: {$debug_info}");
+//         if (in_array('wpcargo_client', $current_user->roles)) {
+//             // Log de debugging
+//             $hora_actual = current_time('H:i');
+//             $debug_info = "DEBUG: Usuario={$current_user->ID}, Tipo={$tipo}, Hora={$hora_actual}";
+//             error_log("🔍 FRONTEND VALIDATION: {$debug_info}");
             
-            $esta_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, $tipo);
-            error_log("🎯 RESULTADO BLOQUEO: " . ($esta_bloqueado ? "BLOQUEADO" : "PERMITIDO"));
+//             $esta_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, $tipo);
+//             error_log("🎯 RESULTADO BLOQUEO: " . ($esta_bloqueado ? "BLOQUEADO" : "PERMITIDO"));
             
-            if ($esta_bloqueado) {
-                $tipo_nombre = '';
-                $estado_fin = merc_get_estado_financiero($current_user->ID);
-                $cuenta_envios = merc_count_envios_del_tipo_hoy($current_user->ID, $tipo);
+//             if ($esta_bloqueado) {
+//                 $tipo_nombre = '';
+//                 $estado_fin = merc_get_estado_financiero($current_user->ID);
+//                 $cuenta_envios = merc_count_envios_del_tipo_hoy($current_user->ID, $tipo);
                 
-                if (stripos($tipo, 'emprendedor') !== false || $tipo === 'normal') {
-                    $tipo_nombre = 'MERC EMPRENDEDOR';
-                    $limite = '10:00 AM';
-                    if ($cuenta_envios == 0) {
-                        $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa pasaron las {$limite} sin envíos registrados de hoy.\n\nPuedes intentar mañana a partir de las 00:00.";
-                    } else {
-                        if ($estado_fin['estado'] === 'cliente_debe') {
-                            $mensaje_bloqueo = "Este tipo de envío está BLOQUEADO.\n\n🚫 Tienes una deuda pendiente con Mercourier.\n\nDebes liquidar tu deuda antes de crear envíos.";
-                        } elseif ($estado_fin['estado'] === 'merc_debe') {
-                            $now = merc_get_current_time();
-                            $mensaje_bloqueo = "Este tipo de envío está temporalmente BLOQUEADO.\n\n⏰ Se desbloqueará a las 19:30 (7:30 PM).\n\nEn ese momento podrás crear envíos para el día siguiente.";
-                        } else {
-                            $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa tienes envíos de hoy y pasaron las {$limite}.\n\nPuedes crear más envíos mañana.";
-                        }
-                    }
-                } elseif (stripos($tipo, 'agencia') !== false || $tipo === 'express') {
-                    $tipo_nombre = 'MERC AGENCIA';
-                    $limite_sin = '12:30 PM';
-                    $limite_con = '13:00 (1:00 PM)';
-                    if ($cuenta_envios == 0) {
-                        $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa pasaron las {$limite_sin} sin envíos registrados de hoy.\n\nPuedes intentar mañana a partir de las 00:00.";
-                    } else {
-                        if ($estado_fin['estado'] === 'cliente_debe') {
-                            $mensaje_bloqueo = "Este tipo de envío está BLOQUEADO.\n\n🚫 Tienes una deuda pendiente con Mercourier.\n\nDebes liquidar tu deuda antes de crear envíos.";
-                        } elseif ($estado_fin['estado'] === 'merc_debe') {
-                            $mensaje_bloqueo = "Este tipo de envío está temporalmente BLOQUEADO.\n\n⏰ Se desbloqueará a las 19:30 (7:30 PM).\n\nEn ese momento podrás crear envíos para el día siguiente.";
-                        } else {
-                            $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa tienes envíos de hoy y pasaron las {$limite_con}.\n\nPuedes crear más envíos mañana.";
-                        }
-                    }
-                } elseif (stripos($tipo, 'full') !== false || $tipo === 'full_fitment') {
-                    $tipo_nombre = 'MERC FULL FITMENT';
-                    $limite_sin = '11:30 AM';
-                    $limite_con = '12:15 PM';
-                    if ($cuenta_envios == 0) {
-                        $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa pasaron las {$limite_sin} sin envíos registrados de hoy.\n\nPuedes intentar mañana a partir de las 00:00.";
-                    } else {
-                        if ($estado_fin['estado'] === 'cliente_debe') {
-                            $mensaje_bloqueo = "Este tipo de envío está BLOQUEADO.\n\n🚫 Tienes una deuda pendiente con Mercourier.\n\nDebes liquidar tu deuda antes de crear envíos.";
-                        } elseif ($estado_fin['estado'] === 'merc_debe') {
-                            $mensaje_bloqueo = "Este tipo de envío está temporalmente BLOQUEADO.\n\n⏰ Se desbloqueará a las 19:30 (7:30 PM).\n\nEn ese momento podrás crear envíos para el día siguiente.";
-                        } else {
-                            $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa tienes envíos de hoy y pasaron las {$limite_con}.\n\nPuedes crear más envíos mañana.";
-                        }
-                    }
-                }
-            }
-        }
-        ?>
-        <script>
-        jQuery(document).ready(function($){
-            var tipoBloqueado = <?php echo $esta_bloqueado ? 'true' : 'false'; ?>;
-            var mensajeBloqueo = <?php echo json_encode($mensaje_bloqueo); ?>;
-            var debugInfo = <?php echo json_encode($debug_info); ?>;
+//                 if (stripos($tipo, 'emprendedor') !== false || $tipo === 'normal') {
+//                     $tipo_nombre = 'MERC EMPRENDEDOR';
+//                     $limite = '10:00 AM';
+//                     if ($cuenta_envios == 0) {
+//                         $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa pasaron las {$limite} sin envíos registrados de hoy.\n\nPuedes intentar mañana a partir de las 00:00.";
+//                     } else {
+//                         if ($estado_fin['estado'] === 'cliente_debe') {
+//                             $mensaje_bloqueo = "Este tipo de envío está BLOQUEADO.\n\n🚫 Tienes una deuda pendiente con Mercourier.\n\nDebes liquidar tu deuda antes de crear envíos.";
+//                         } elseif ($estado_fin['estado'] === 'merc_debe') {
+//                             $now = merc_get_current_time();
+//                             $mensaje_bloqueo = "Este tipo de envío está temporalmente BLOQUEADO.\n\n⏰ Se desbloqueará a las 19:30 (7:30 PM).\n\nEn ese momento podrás crear envíos para el día siguiente.";
+//                         } else {
+//                             $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa tienes envíos de hoy y pasaron las {$limite}.\n\nPuedes crear más envíos mañana.";
+//                         }
+//                     }
+//                 } elseif (stripos($tipo, 'agencia') !== false || $tipo === 'express') {
+//                     $tipo_nombre = 'MERC AGENCIA';
+//                     $limite_sin = '12:30 PM';
+//                     $limite_con = '13:00 (1:00 PM)';
+//                     if ($cuenta_envios == 0) {
+//                         $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa pasaron las {$limite_sin} sin envíos registrados de hoy.\n\nPuedes intentar mañana a partir de las 00:00.";
+//                     } else {
+//                         if ($estado_fin['estado'] === 'cliente_debe') {
+//                             $mensaje_bloqueo = "Este tipo de envío está BLOQUEADO.\n\n🚫 Tienes una deuda pendiente con Mercourier.\n\nDebes liquidar tu deuda antes de crear envíos.";
+//                         } elseif ($estado_fin['estado'] === 'merc_debe') {
+//                             $mensaje_bloqueo = "Este tipo de envío está temporalmente BLOQUEADO.\n\n⏰ Se desbloqueará a las 19:30 (7:30 PM).\n\nEn ese momento podrás crear envíos para el día siguiente.";
+//                         } else {
+//                             $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa tienes envíos de hoy y pasaron las {$limite_con}.\n\nPuedes crear más envíos mañana.";
+//                         }
+//                     }
+//                 } elseif (stripos($tipo, 'full') !== false || $tipo === 'full_fitment') {
+//                     $tipo_nombre = 'MERC FULL FITMENT';
+//                     $limite_sin = '11:30 AM';
+//                     $limite_con = '12:15 PM';
+//                     if ($cuenta_envios == 0) {
+//                         $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa pasaron las {$limite_sin} sin envíos registrados de hoy.\n\nPuedes intentar mañana a partir de las 00:00.";
+//                     } else {
+//                         if ($estado_fin['estado'] === 'cliente_debe') {
+//                             $mensaje_bloqueo = "Este tipo de envío está BLOQUEADO.\n\n🚫 Tienes una deuda pendiente con Mercourier.\n\nDebes liquidar tu deuda antes de crear envíos.";
+//                         } elseif ($estado_fin['estado'] === 'merc_debe') {
+//                             $mensaje_bloqueo = "Este tipo de envío está temporalmente BLOQUEADO.\n\n⏰ Se desbloqueará a las 19:30 (7:30 PM).\n\nEn ese momento podrás crear envíos para el día siguiente.";
+//                         } else {
+//                             $mensaje_bloqueo = "Este tipo de envío está bloqueado.\n\nYa tienes envíos de hoy y pasaron las {$limite_con}.\n\nPuedes crear más envíos mañana.";
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         ?>
+//         <script>
+//         jQuery(document).ready(function($){
+//             var tipoBloqueado = <?php echo $esta_bloqueado ? 'true' : 'false'; ?>;
+//             var mensajeBloqueo = <?php echo json_encode($mensaje_bloqueo); ?>;
+//             var debugInfo = <?php echo json_encode($debug_info); ?>;
             
-            console.log('🔍 VALIDACIÓN BLOQUEO:', debugInfo);
-            console.log('🎯 ¿Bloqueado?:', tipoBloqueado);
+//             console.log('🔍 VALIDACIÓN BLOQUEO:', debugInfo);
+//             console.log('🎯 ¿Bloqueado?:', tipoBloqueado);
             
-            function agregarCampoTipo() {
-                var form = $('form');
+//             function agregarCampoTipo() {
+//                 var form = $('form');
                 
-                if(form.length > 0 && $('#tipo_envio_hidden').length === 0) {
-                    form.append('<input type="hidden" name="tipo_envio" id="tipo_envio_hidden" value="<?php echo esc_js($tipo); ?>">');
-                    console.log('✅ Tipo de envío agregado:', '<?php echo esc_js($tipo); ?>');
-                    return true;
-                }
-                return false;
-            }
+//                 if(form.length > 0 && $('#tipo_envio_hidden').length === 0) {
+//                     form.append('<input type="hidden" name="tipo_envio" id="tipo_envio_hidden" value="<?php echo esc_js($tipo); ?>">');
+//                     console.log('✅ Tipo de envío agregado:', '<?php echo esc_js($tipo); ?>');
+//                     return true;
+//                 }
+//                 return false;
+//             }
             
-            setTimeout(agregarCampoTipo, 1500);
+//             setTimeout(agregarCampoTipo, 1500);
             
-            var intentos = 0;
-            var intervalo = setInterval(function(){
-                intentos++;
-                if(agregarCampoTipo() || intentos >= 20) {
-                    clearInterval(intervalo);
-                }
-            }, 500);
+//             var intentos = 0;
+//             var intervalo = setInterval(function(){
+//                 intentos++;
+//                 if(agregarCampoTipo() || intentos >= 20) {
+//                     clearInterval(intervalo);
+//                 }
+//             }, 500);
             
-            // Validar bloqueo al enviar el formulario
-            if (tipoBloqueado) {
-                console.log('🔴 APLICANDO BLOQUEO AL FORMULARIO');
+//             // Validar bloqueo al enviar el formulario
+//             if (tipoBloqueado) {
+//                 console.log('🔴 APLICANDO BLOQUEO AL FORMULARIO');
                 
-                $('form').on('submit', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    alert('🔒 TIPO DE ENVÍO BLOQUEADO\n\n' + mensajeBloqueo);
-                    return false;
-                });
+//                 $('form').on('submit', function(e) {
+//                     e.preventDefault();
+//                     e.stopPropagation();
+//                     alert('🔒 TIPO DE ENVÍO BLOQUEADO\n\n' + mensajeBloqueo);
+//                     return false;
+//                 });
                 
-                // Deshabilitar botón de enviar
-                setTimeout(function() {
-                    var $submitButtons = $('button[type="submit"], input[type="submit"]');
-                    $submitButtons.prop('disabled', true).css({
-                        'opacity': '0.5',
-                        'cursor': 'not-allowed',
-                        'pointer-events': 'none'
-                    }).attr('title', 'Este tipo de envío está bloqueado');
+//                 // Deshabilitar botón de enviar
+//                 setTimeout(function() {
+//                     var $submitButtons = $('button[type="submit"], input[type="submit"]');
+//                     $submitButtons.prop('disabled', true).css({
+//                         'opacity': '0.5',
+//                         'cursor': 'not-allowed',
+//                         'pointer-events': 'none'
+//                     }).attr('title', 'Este tipo de envío está bloqueado');
                     
-                    console.log('🔒 Botones deshabilitados:', $submitButtons.length);
-                }, 2000);
+//                     console.log('🔒 Botones deshabilitados:', $submitButtons.length);
+//                 }, 2000);
                 
-                // Mostrar banner de advertencia
-                setTimeout(function() {
-                    $('body').prepend('<div style="position: fixed; top: 0; left: 0; right: 0; background: #f44336; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold;">🔒 ESTE TIPO DE ENVÍO ESTÁ BLOQUEADO - NO PUEDES CREAR ENVÍOS</div>');
-                }, 1000);
-            } else {
-                console.log('✅ ENVÍO PERMITIDO - No se aplica bloqueo');
-            }
-        });
-        </script>
-        <?php
-    }
-}
+//                 // Mostrar banner de advertencia
+//                 setTimeout(function() {
+//                     $('body').prepend('<div style="position: fixed; top: 0; left: 0; right: 0; background: #f44336; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold;">🔒 ESTE TIPO DE ENVÍO ESTÁ BLOQUEADO - NO PUEDES CREAR ENVÍOS</div>');
+//                 }, 1000);
+//             } else {
+//                 console.log('✅ ENVÍO PERMITIDO - No se aplica bloqueo');
+//             }
+//         });
+//         </script>
+//         <?php
+//     }
+// }
 
 // AUTOCOMPLETAR REMITENTE
-function autocompletar_campos_formulario() {
-    if (isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add') {
-        $user = wp_get_current_user();
+// function autocompletar_campos_formulario() {
+//     if (isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add') {
+//         $user = wp_get_current_user();
         
-        // Obtener datos del usuario
-        $first_name = get_user_meta($user->ID, 'first_name', true);
-        $last_name = get_user_meta($user->ID, 'last_name', true);
-        $nombre_completo = trim($first_name . ' ' . $last_name);
-        $telefono = get_user_meta($user->ID, 'phone', true);
-        $distrito = get_user_meta($user->ID, 'distrito', true);
-        $direccion = get_user_meta($user->ID, 'billing_address_1', true);
-        $email = get_user_meta($user->ID, 'billing_email', true);
-        if(empty($email)) $email = $user->user_email;
-        $empresa = get_user_meta($user->ID, 'billing_company', true);
-        $link_maps_remitente = get_user_meta($user->ID, 'link_maps_remitente', true);
+//         // Obtener datos del usuario
+//         $first_name = get_user_meta($user->ID, 'first_name', true);
+//         $last_name = get_user_meta($user->ID, 'last_name', true);
+//         $nombre_completo = trim($first_name . ' ' . $last_name);
+//         $telefono = get_user_meta($user->ID, 'phone', true);
+//         $distrito = get_user_meta($user->ID, 'distrito', true);
+//         $direccion = get_user_meta($user->ID, 'billing_address_1', true);
+//         $email = get_user_meta($user->ID, 'billing_email', true);
+//         if(empty($email)) $email = $user->user_email;
+//         $empresa = get_user_meta($user->ID, 'billing_company', true);
+//         $link_maps_remitente = get_user_meta($user->ID, 'link_maps_remitente', true);
         
-        ?>
-        <script>
-            console.log('=== AUTOCOMPLETAR REMITENTE ===');
+//         ?>
+//         <script>
+//             console.log('=== AUTOCOMPLETAR REMITENTE ===');
             
-            // Datos del usuario
-            var userData = {
-                nombre: '<?php echo esc_js($nombre_completo); ?>',
-                telefono: '<?php echo esc_js($telefono); ?>',
-                distrito: '<?php echo esc_js($distrito); ?>',
-                direccion: '<?php echo esc_js($direccion); ?>',
-                email: '<?php echo esc_js($email); ?>',
-                empresa: '<?php echo esc_js($empresa); ?>',
-                link_maps: '<?php echo esc_js($link_maps_remitente); ?>'
-            };
+//             // Datos del usuario
+//             var userData = {
+//                 nombre: '<?php echo esc_js($nombre_completo); ?>',
+//                 telefono: '<?php echo esc_js($telefono); ?>',
+//                 distrito: '<?php echo esc_js($distrito); ?>',
+//                 direccion: '<?php echo esc_js($direccion); ?>',
+//                 email: '<?php echo esc_js($email); ?>',
+//                 empresa: '<?php echo esc_js($empresa); ?>',
+//                 link_maps: '<?php echo esc_js($link_maps_remitente); ?>'
+//             };
             
-            console.log('Datos del usuario:', userData);
+//             console.log('Datos del usuario:', userData);
 
-            // Función para autocompletar
-            function autocompletarRemitente() {
-                console.log('🔄 Autocompletando campos...');
+//             // Función para autocompletar
+//             function autocompletarRemitente() {
+//                 console.log('🔄 Autocompletando campos...');
                 
-                // Mapeo exacto de campos
-                var campos = {
-                    nombre: document.querySelector('[name="wpcargo_shipper_name"]'),
-                    telefono: document.querySelector('[name="wpcargo_shipper_phone"]'),
-                    distrito: document.querySelector('[name="wpcargo_distrito_recojo"]'),
-                    direccion: document.querySelector('[name="wpcargo_shipper_address"]'),
-                    email: document.querySelector('[name="wpcargo_shipper_email"]'),
-                    empresa: document.querySelector('[name="wpcargo_tiendaname"]'),
-                    link_maps: document.querySelector('[name="link_maps_remitente"]')
-                };
+//                 // Mapeo exacto de campos
+//                 var campos = {
+//                     nombre: document.querySelector('[name="wpcargo_shipper_name"]'),
+//                     telefono: document.querySelector('[name="wpcargo_shipper_phone"]'),
+//                     distrito: document.querySelector('[name="wpcargo_distrito_recojo"]'),
+//                     direccion: document.querySelector('[name="wpcargo_shipper_address"]'),
+//                     email: document.querySelector('[name="wpcargo_shipper_email"]'),
+//                     empresa: document.querySelector('[name="wpcargo_tiendaname"]'),
+//                     link_maps: document.querySelector('[name="link_maps_remitente"]')
+//                 };
                 
-                var autocompletados = 0;
+//                 var autocompletados = 0;
                 
-                // Autocompletar nombre
-                if (campos.nombre && userData.nombre) {
-                    campos.nombre.value = userData.nombre;
-                    triggerChange(campos.nombre);
-                    autocompletados++;
-                    console.log('✅ Nombre');
-                }
+//                 // Autocompletar nombre
+//                 if (campos.nombre && userData.nombre) {
+//                     campos.nombre.value = userData.nombre;
+//                     triggerChange(campos.nombre);
+//                     autocompletados++;
+//                     console.log('✅ Nombre');
+//                 }
                 
-                // Autocompletar teléfono
-                if (campos.telefono && userData.telefono) {
-                    campos.telefono.value = userData.telefono;
-                    triggerChange(campos.telefono);
-                    autocompletados++;
-                    console.log('✅ Teléfono');
-                }
+//                 // Autocompletar teléfono
+//                 if (campos.telefono && userData.telefono) {
+//                     campos.telefono.value = userData.telefono;
+//                     triggerChange(campos.telefono);
+//                     autocompletados++;
+//                     console.log('✅ Teléfono');
+//                 }
                 
-                // Autocompletar distrito
-                if (campos.distrito && userData.distrito) {
-                    var options = campos.distrito.options;
-                    for (var i = 0; i < options.length; i++) {
-                        if (options[i].value === userData.distrito || 
-                            options[i].text.trim() === userData.distrito) {
-                            campos.distrito.selectedIndex = i;
-                            triggerChange(campos.distrito);
-                            autocompletados++;
-                            console.log('✅ Distrito:', userData.distrito);
-                            break;
-                        }
-                    }
-                }
+//                 // Autocompletar distrito
+//                 if (campos.distrito && userData.distrito) {
+//                     var options = campos.distrito.options;
+//                     for (var i = 0; i < options.length; i++) {
+//                         if (options[i].value === userData.distrito || 
+//                             options[i].text.trim() === userData.distrito) {
+//                             campos.distrito.selectedIndex = i;
+//                             triggerChange(campos.distrito);
+//                             autocompletados++;
+//                             console.log('✅ Distrito:', userData.distrito);
+//                             break;
+//                         }
+//                     }
+//                 }
                 
-                // Autocompletar dirección
-                if (campos.direccion && userData.direccion) {
-                    campos.direccion.value = userData.direccion;
-                    triggerChange(campos.direccion);
-                    autocompletados++;
-                    console.log('✅ Dirección');
-                }
+//                 // Autocompletar dirección
+//                 if (campos.direccion && userData.direccion) {
+//                     campos.direccion.value = userData.direccion;
+//                     triggerChange(campos.direccion);
+//                     autocompletados++;
+//                     console.log('✅ Dirección');
+//                 }
                 
-                // Autocompletar email
-                if (campos.email && userData.email) {
-                    campos.email.value = userData.email;
-                    triggerChange(campos.email);
-                    autocompletados++;
-                    console.log('✅ Email');
-                }
+//                 // Autocompletar email
+//                 if (campos.email && userData.email) {
+//                     campos.email.value = userData.email;
+//                     triggerChange(campos.email);
+//                     autocompletados++;
+//                     console.log('✅ Email');
+//                 }
                 
-                // Autocompletar empresa/tienda
-                if (campos.empresa && userData.empresa) {
-                    campos.empresa.value = userData.empresa;
-                    triggerChange(campos.empresa);
-                    autocompletados++;
-                    console.log('✅ Empresa/Tienda');
-                }
+//                 // Autocompletar empresa/tienda
+//                 if (campos.empresa && userData.empresa) {
+//                     campos.empresa.value = userData.empresa;
+//                     triggerChange(campos.empresa);
+//                     autocompletados++;
+//                     console.log('✅ Empresa/Tienda');
+//                 }
                 
-                // Autocompletar link maps remitente
-                if (campos.link_maps && userData.link_maps) {
-                    campos.link_maps.value = userData.link_maps;
-                    triggerChange(campos.link_maps);
-                    autocompletados++;
-                    console.log('✅ Link Google Maps');
-                }
+//                 // Autocompletar link maps remitente
+//                 if (campos.link_maps && userData.link_maps) {
+//                     campos.link_maps.value = userData.link_maps;
+//                     triggerChange(campos.link_maps);
+//                     autocompletados++;
+//                     console.log('✅ Link Google Maps');
+//                 }
                 
-                if (autocompletados > 0) {
-                    console.log('🎉 Autocompletados:', autocompletados, 'campos');
-                    return true;
-                }
+//                 if (autocompletados > 0) {
+//                     console.log('🎉 Autocompletados:', autocompletados, 'campos');
+//                     return true;
+//                 }
                 
-                return false;
-            }
+//                 return false;
+//             }
             
-            function triggerChange(element) {
-                if (!element) return;
+//             function triggerChange(element) {
+//                 if (!element) return;
                 
-                var event = new Event('change', { bubbles: true });
-                element.dispatchEvent(event);
+//                 var event = new Event('change', { bubbles: true });
+//                 element.dispatchEvent(event);
                 
-                if (typeof jQuery !== 'undefined') {
-                    jQuery(element).trigger('change');
-                }
-            }
+//                 if (typeof jQuery !== 'undefined') {
+//                     jQuery(element).trigger('change');
+//                 }
+//             }
             
-            // Eliminar campo ubicación si existe
-            function eliminarCampoUbicacion() {
-                var ubicacion = document.querySelector('#location, input[name="location"]');
-                if (ubicacion) {
-                    ubicacion.closest('.form-group, .col-md-12, .col-md-6, div[class*="col"]').remove();
-                    console.log('✂️ Campo ubicación eliminado');
-                }
-            }
+//             // Eliminar campo ubicación si existe
+//             function eliminarCampoUbicacion() {
+//                 var ubicacion = document.querySelector('#location, input[name="location"]');
+//                 if (ubicacion) {
+//                     ubicacion.closest('.form-group, .col-md-12, .col-md-6, div[class*="col"]').remove();
+//                     console.log('✂️ Campo ubicación eliminado');
+//                 }
+//             }
             
-            // Cambiar estado a RECEPCIONADO si es MERC AGENCIA
-            var urlParams = new URLSearchParams(window.location.search);
-            var type = urlParams.get('type');
+//             // Cambiar estado a RECEPCIONADO si es MERC AGENCIA
+//             var urlParams = new URLSearchParams(window.location.search);
+//             var type = urlParams.get('type');
             
-            function cambiarEstadoRecepcionado() {
-                // Buscar el select de estado con múltiples estrategias
-                var estadoSelect = document.querySelector('select.merc-estado-select, select[name="merc-estado-select"], select#merc-estado-select, select[name="status"], select[name="wpcargo_status"], select[name*="estado"], select[name*="status"]');
+//             function cambiarEstadoRecepcionado() {
+//                 // Buscar el select de estado con múltiples estrategias
+//                 var estadoSelect = document.querySelector('select.merc-estado-select, select[name="merc-estado-select"], select#merc-estado-select, select[name="status"], select[name="wpcargo_status"], select[name*="estado"], select[name*="status"]');
                 
-                if (!estadoSelect) {
-                    // Si no lo encontró, buscar todos los selects y filtrar por opciones
-                    var allSelects = document.querySelectorAll('select');
-                    for (var j = 0; j < allSelects.length; j++) {
-                        var options = allSelects[j].options;
-                        for (var k = 0; k < options.length; k++) {
-                            if (options[k].text.toUpperCase().includes('RECEPCIONADO')) {
-                                estadoSelect = allSelects[j];
-                                break;
-                            }
-                        }
-                        if (estadoSelect) break;
-                    }
-                }
+//                 if (!estadoSelect) {
+//                     // Si no lo encontró, buscar todos los selects y filtrar por opciones
+//                     var allSelects = document.querySelectorAll('select');
+//                     for (var j = 0; j < allSelects.length; j++) {
+//                         var options = allSelects[j].options;
+//                         for (var k = 0; k < options.length; k++) {
+//                             if (options[k].text.toUpperCase().includes('RECEPCIONADO')) {
+//                                 estadoSelect = allSelects[j];
+//                                 break;
+//                             }
+//                         }
+//                         if (estadoSelect) break;
+//                     }
+//                 }
                 
-                if (!estadoSelect) {
-                    console.log('⚠️ Campo estado no encontrado. Selectores buscados: merc-estado-select, status, wpcargo_status');
-                    return false;
-                }
+//                 if (!estadoSelect) {
+//                     console.log('⚠️ Campo estado no encontrado. Selectores buscados: merc-estado-select, status, wpcargo_status');
+//                     return false;
+//                 }
                 
-                var options = estadoSelect.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (options[i].text.trim().toUpperCase() === 'RECEPCIONADO' || 
-                        options[i].value.trim().toUpperCase() === 'RECEPCIONADO') {
-                        estadoSelect.selectedIndex = i;
-                        triggerChange(estadoSelect);
-                        console.log('✅ Estado cambiado a RECEPCIONADO');
-                        return true;
-                    }
-                }
+//                 var options = estadoSelect.options;
+//                 for (var i = 0; i < options.length; i++) {
+//                     if (options[i].text.trim().toUpperCase() === 'RECEPCIONADO' || 
+//                         options[i].value.trim().toUpperCase() === 'RECEPCIONADO') {
+//                         estadoSelect.selectedIndex = i;
+//                         triggerChange(estadoSelect);
+//                         console.log('✅ Estado cambiado a RECEPCIONADO');
+//                         return true;
+//                     }
+//                 }
                 
-                return false;
-            }
+//                 return false;
+//             }
             
-            // Ejecutar autocompletado
-            setTimeout(function() {
-                eliminarCampoUbicacion();
-                autocompletarRemitente();
+//             // Ejecutar autocompletado
+//             setTimeout(function() {
+//                 eliminarCampoUbicacion();
+//                 autocompletarRemitente();
                 
-                // Si es express, cambiar estado
-                if (type === 'express') {
-                    console.log('🔹 Tipo: MERC AGENCIA - Cambiando estado...');
-                    setTimeout(cambiarEstadoRecepcionado, 500);
-                    setTimeout(cambiarEstadoRecepcionado, 1000);
-                    setTimeout(cambiarEstadoRecepcionado, 1500);
-                }
-            }, 1000);
+//                 // Si es express, cambiar estado
+//                 if (type === 'express') {
+//                     console.log('🔹 Tipo: MERC AGENCIA - Cambiando estado...');
+//                     setTimeout(cambiarEstadoRecepcionado, 500);
+//                     setTimeout(cambiarEstadoRecepcionado, 1000);
+//                     setTimeout(cambiarEstadoRecepcionado, 1500);
+//                 }
+//             }, 1000);
             
-            // Reintentar si es necesario
-            var intentos = 0;
-            var intervalo = setInterval(function() {
-                intentos++;
+//             // Reintentar si es necesario
+//             var intentos = 0;
+//             var intervalo = setInterval(function() {
+//                 intentos++;
                 
-                if (autocompletarRemitente()) {
-                    clearInterval(intervalo);
-                    console.log('✅ Autocompletado exitoso');
-                } else if (intentos >= 10) {
-                    clearInterval(intervalo);
-                    console.log('⏹️ Máximo de intentos alcanzado');
-                }
-            }, 800);
-        </script>
-        <?php
-    }
-}
+//                 if (autocompletarRemitente()) {
+//                     clearInterval(intervalo);
+//                     console.log('✅ Autocompletado exitoso');
+//                 } else if (intentos >= 10) {
+//                     clearInterval(intervalo);
+//                     console.log('⏹️ Máximo de intentos alcanzado');
+//                 }
+//             }, 800);
+//         </script>
+//         <?php
+//     }
+// }
 // add_action('wp_footer', 'autocompletar_campos_formulario'); // MOVIDO AL PLUGIN merc-form-enhancements
 
 // Filtrar visibilidad de opciones de estado según el tipo de envío (no afecta a motorizados)
-function merc_filter_statuses_by_tipo_envio() {
-    // Se inyecta en footer; el script decide si aplica según exista el select
-    $current_user = wp_get_current_user();
-    $is_driver = in_array('wpcargo_driver', (array) $current_user->roles);
+// function merc_filter_statuses_by_tipo_envio() {
+//     // Se inyecta en footer; el script decide si aplica según exista el select
+//     $current_user = wp_get_current_user();
+//     $is_driver = in_array('wpcargo_driver', (array) $current_user->roles);
 
-    ?>
-    <script>
-    (function(){
-        if (typeof document === 'undefined') return;
+//     ?>
+//     <script>
+//     (function(){
+//         if (typeof document === 'undefined') return;
 
-        var IS_DRIVER = <?php echo $is_driver ? 'true' : 'false'; ?>;
+//         var IS_DRIVER = <?php echo $is_driver ? 'true' : 'false'; ?>;
 
-        var STATUS_MAP = {
-            agencia: ['RECEPCIONADO','LISTO PARA SALIR','NO CONTESTA','EN RUTA','ENTREGADO','NO RECIBIDO','REPROGRAMADO','ANULADO'],
-            emprendedor: ['PENDIENTE','RECOGIDO','NO RECOGIDO','EN BASE MERCOURIER','LISTO PARA SALIR','NO CONTESTA','EN RUTA','ENTREGADO','REPROGRAMADO','NO RECIBIDO','ANULADO'],
-            fullfitment: ['RECEPCIONADO','LISTO PARA SALIR','NO CONTESTA','EN RUTA','ENTREGADO','NO RECIBIDO','REPROGRAMADO','ANULADO']
-        };
+//         var STATUS_MAP = {
+//             agencia: ['RECEPCIONADO','LISTO PARA SALIR','NO CONTESTA','EN RUTA','ENTREGADO','NO RECIBIDO','REPROGRAMADO','ANULADO'],
+//             emprendedor: ['PENDIENTE','RECOGIDO','NO RECOGIDO','EN BASE MERCOURIER','LISTO PARA SALIR','NO CONTESTA','EN RUTA','ENTREGADO','REPROGRAMADO','NO RECIBIDO','ANULADO'],
+//             fullfitment: ['RECEPCIONADO','LISTO PARA SALIR','NO CONTESTA','EN RUTA','ENTREGADO','NO RECIBIDO','REPROGRAMADO','ANULADO']
+//         };
 
-        function normalize(s){
-            if(!s) return '';
-            s = String(s).toLowerCase();
-            s = s.normalize('NFD').replace(/\p{Diacritic}/gu, '');
-            return s.replace(/[\s_\-]+/g,'');
-        }
+//         function normalize(s){
+//             if(!s) return '';
+//             s = String(s).toLowerCase();
+//             s = s.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+//             return s.replace(/[\s_\-]+/g,'');
+//         }
 
-        function detectGroup(tipo){
-            if(!tipo) return null;
+//         function detectGroup(tipo){
+//             if(!tipo) return null;
 
-            // Priorizar el valor del parámetro `type` exacto cuando venga (normal/express/full_fitment)
-            var raw = String(tipo).trim().toLowerCase();
-            if(raw === 'express') return 'agencia';
-            if(raw === 'normal') return 'emprendedor';
-            if(raw === 'full_fitment' || raw === 'full-fitment' || raw === 'fullfitment') return 'fullfitment';
+//             // Priorizar el valor del parámetro `type` exacto cuando venga (normal/express/full_fitment)
+//             var raw = String(tipo).trim().toLowerCase();
+//             if(raw === 'express') return 'agencia';
+//             if(raw === 'normal') return 'emprendedor';
+//             if(raw === 'full_fitment' || raw === 'full-fitment' || raw === 'fullfitment') return 'fullfitment';
 
-            // Fallback: buscar palabras dentro del valor (compatibilidad con 'tipo_envio' u otros formatos)
-            var t = normalize(tipo);
-            if(t.indexOf('express') !== -1 || t.indexOf('agencia') !== -1 || t.indexOf('mercagencia')!==-1) return 'agencia';
-            if(t.indexOf('emprendedor') !== -1 || t.indexOf('mercemprendedor')!==-1) return 'emprendedor';
-            if(t.indexOf('full') !== -1 || t.indexOf('fitment') !== -1 || t.indexOf('fullfitment')!==-1) return 'fullfitment';
-            return null;
-        }
+//             // Fallback: buscar palabras dentro del valor (compatibilidad con 'tipo_envio' u otros formatos)
+//             var t = normalize(tipo);
+//             if(t.indexOf('express') !== -1 || t.indexOf('agencia') !== -1 || t.indexOf('mercagencia')!==-1) return 'agencia';
+//             if(t.indexOf('emprendedor') !== -1 || t.indexOf('mercemprendedor')!==-1) return 'emprendedor';
+//             if(t.indexOf('full') !== -1 || t.indexOf('fitment') !== -1 || t.indexOf('fullfitment')!==-1) return 'fullfitment';
+//             return null;
+//         }
 
-        function buildLookup(arr){
-            var map = {};
-            arr.forEach(function(v){ map[normalize(v)] = true; });
-            return map;
-        }
+//         function buildLookup(arr){
+//             var map = {};
+//             arr.forEach(function(v){ map[normalize(v)] = true; });
+//             return map;
+//         }
 
-        function preserveOriginal(select){
-            if(!select) return;
-            if(!select.dataset.originalOptions){
-                var opts = [];
-                for(var i=0;i<select.options.length;i++){
-                    opts.push({v: select.options[i].value, t: select.options[i].text});
-                }
-                select.dataset.originalOptions = JSON.stringify(opts);
-            }
-        }
+//         function preserveOriginal(select){
+//             if(!select) return;
+//             if(!select.dataset.originalOptions){
+//                 var opts = [];
+//                 for(var i=0;i<select.options.length;i++){
+//                     opts.push({v: select.options[i].value, t: select.options[i].text});
+//                 }
+//                 select.dataset.originalOptions = JSON.stringify(opts);
+//             }
+//         }
 
-        function restoreAll(select){
-            if(!select || !select.dataset.originalOptions) return;
-            try{
-                var opts = JSON.parse(select.dataset.originalOptions);
-                select.innerHTML = '';
-                opts.forEach(function(o){
-                    var el = document.createElement('option'); el.value = o.v; el.text = o.t; select.appendChild(el);
-                });
-            }catch(e){ console.error(e); }
-        }
+//         function restoreAll(select){
+//             if(!select || !select.dataset.originalOptions) return;
+//             try{
+//                 var opts = JSON.parse(select.dataset.originalOptions);
+//                 select.innerHTML = '';
+//                 opts.forEach(function(o){
+//                     var el = document.createElement('option'); el.value = o.v; el.text = o.t; select.appendChild(el);
+//                 });
+//             }catch(e){ console.error(e); }
+//         }
 
-        function filterForGroup(select, group){
-            if(!select) return;
-            if(!group){ restoreAll(select); return; }
+//         function filterForGroup(select, group){
+//             if(!select) return;
+//             if(!group){ restoreAll(select); return; }
 
-            var allowed = STATUS_MAP[group] || [];
-            var lookup = buildLookup(allowed);
-            // Si es motorizado, conservar también las opciones actuales (pueden venir de otra lógica)
-            if (IS_DRIVER) {
-                for (var i = 0; i < select.options.length; i++) {
-                    var o = select.options[i];
-                    lookup[normalize(o.text || o.value)] = true;
-                }
-            }
+//             var allowed = STATUS_MAP[group] || [];
+//             var lookup = buildLookup(allowed);
+//             // Si es motorizado, conservar también las opciones actuales (pueden venir de otra lógica)
+//             if (IS_DRIVER) {
+//                 for (var i = 0; i < select.options.length; i++) {
+//                     var o = select.options[i];
+//                     lookup[normalize(o.text || o.value)] = true;
+//                 }
+//             }
 
-            // Preservar valor/texto seleccionado actual
-            var currentVal = select.value;
-            var currentText = (select.options[select.selectedIndex] && select.options[select.selectedIndex].text) ? select.options[select.selectedIndex].text : '';
+//             // Preservar valor/texto seleccionado actual
+//             var currentVal = select.value;
+//             var currentText = (select.options[select.selectedIndex] && select.options[select.selectedIndex].text) ? select.options[select.selectedIndex].text : '';
 
-            if(!select.dataset.originalOptions) preserveOriginal(select);
-            var original = JSON.parse(select.dataset.originalOptions || '[]');
-            var newOpts = [];
+//             if(!select.dataset.originalOptions) preserveOriginal(select);
+//             var original = JSON.parse(select.dataset.originalOptions || '[]');
+//             var newOpts = [];
 
-            original.forEach(function(o){
-                var key = normalize(o.t || o.v);
-                // Incluir si está permitido o si es la opción actualmente seleccionada (para no forzar cambio)
-                if( lookup[key] || (currentVal && String(o.v) === String(currentVal)) || (currentText && normalize(o.t) === normalize(currentText)) ) {
-                    newOpts.push(o);
-                }
-            });
+//             original.forEach(function(o){
+//                 var key = normalize(o.t || o.v);
+//                 // Incluir si está permitido o si es la opción actualmente seleccionada (para no forzar cambio)
+//                 if( lookup[key] || (currentVal && String(o.v) === String(currentVal)) || (currentText && normalize(o.t) === normalize(currentText)) ) {
+//                     newOpts.push(o);
+//                 }
+//             });
 
-            // Si no encontramos coincidencias, restaurar todo (evita dejar vacío)
-            if(newOpts.length === 0){ restoreAll(select); return; }
+//             // Si no encontramos coincidencias, restaurar todo (evita dejar vacío)
+//             if(newOpts.length === 0){ restoreAll(select); return; }
 
-            // Reconstruir opciones conservando la opción seleccionada si existía
-            select.innerHTML = '';
-            var selectedIndex = -1;
-            newOpts.forEach(function(o, idx){
-                var el = document.createElement('option');
-                el.value = o.v;
-                el.text = o.t;
-                select.appendChild(el);
-                if(currentVal && String(o.v) === String(currentVal)) selectedIndex = idx;
-                if(selectedIndex === -1 && currentText && normalize(o.t) === normalize(currentText)) selectedIndex = idx;
-            });
+//             // Reconstruir opciones conservando la opción seleccionada si existía
+//             select.innerHTML = '';
+//             var selectedIndex = -1;
+//             newOpts.forEach(function(o, idx){
+//                 var el = document.createElement('option');
+//                 el.value = o.v;
+//                 el.text = o.t;
+//                 select.appendChild(el);
+//                 if(currentVal && String(o.v) === String(currentVal)) selectedIndex = idx;
+//                 if(selectedIndex === -1 && currentText && normalize(o.t) === normalize(currentText)) selectedIndex = idx;
+//             });
 
-            // Restaurar selección si la opción se preservó; NO disparar evento change (evitar modal)
-            if(selectedIndex >= 0){
-                select.selectedIndex = selectedIndex;
-            }
-        }
+//             // Restaurar selección si la opción se preservó; NO disparar evento change (evitar modal)
+//             if(selectedIndex >= 0){
+//                 select.selectedIndex = selectedIndex;
+//             }
+//         }
 
-        function tryApply(){
-            var selects = Array.prototype.slice.call(document.querySelectorAll('select.merc-estado-select, select[name="merc-estado-select"], select#merc-estado-select, select[name="status"], select[name="wpcargo_status"]'));
-            if(!selects || selects.length === 0) return false;
+//         function tryApply(){
+//             var selects = Array.prototype.slice.call(document.querySelectorAll('select.merc-estado-select, select[name="merc-estado-select"], select#merc-estado-select, select[name="status"], select[name="wpcargo_status"]'));
+//             if(!selects || selects.length === 0) return false;
 
-            selects.forEach(function(statusSelect){
-                // Determinar tipo para este select: buscar td[data-tipo-envio] en la misma fila
-                var tipo = null;
-                try{
-                    var tr = statusSelect.closest('tr');
-                    if(tr){
-                        var tipoTd = tr.querySelector('[data-tipo-envio]');
-                        if(tipoTd) tipo = tipoTd.getAttribute('data-tipo-envio');
-                    }
-                }catch(e){ /* ignore */ }
+//             selects.forEach(function(statusSelect){
+//                 // Determinar tipo para este select: buscar td[data-tipo-envio] en la misma fila
+//                 var tipo = null;
+//                 try{
+//                     var tr = statusSelect.closest('tr');
+//                     if(tr){
+//                         var tipoTd = tr.querySelector('[data-tipo-envio]');
+//                         if(tipoTd) tipo = tipoTd.getAttribute('data-tipo-envio');
+//                     }
+//                 }catch(e){ /* ignore */ }
 
-                // Si no se encontró en la fila, buscar campo global oculto o querystring
-                if(!tipo){
-                    var tipoField = document.querySelector('[name="tipo_envio"]') || document.getElementById('tipo_envio_hidden');
-                    if(tipoField) tipo = tipoField.value || tipoField.textContent;
-                }
-                if(!tipo){
-                    var urlParams = new URLSearchParams(window.location.search);
-                    tipo = urlParams.get('type');
-                }
+//                 // Si no se encontró en la fila, buscar campo global oculto o querystring
+//                 if(!tipo){
+//                     var tipoField = document.querySelector('[name="tipo_envio"]') || document.getElementById('tipo_envio_hidden');
+//                     if(tipoField) tipo = tipoField.value || tipoField.textContent;
+//                 }
+//                 if(!tipo){
+//                     var urlParams = new URLSearchParams(window.location.search);
+//                     tipo = urlParams.get('type');
+//                 }
 
-                var group = detectGroup(tipo);
-                console.log('[merc_filter] row tipo=', tipo, ' -> group=', group);
-                filterForGroup(statusSelect, group);
-            });
+//                 var group = detectGroup(tipo);
+//                 console.log('[merc_filter] row tipo=', tipo, ' -> group=', group);
+//                 filterForGroup(statusSelect, group);
+//             });
 
-            return true;
-        }
+//             return true;
+//         }
 
-        // Ejecutar varias veces para asegurar que el DOM y select2 (si existe) cargen
-        var attempts = 0; var maxAttempts = 12;
-        var interval = setInterval(function(){ attempts++; if(tryApply() || attempts>=maxAttempts) clearInterval(interval); }, 500);
+//         // Ejecutar varias veces para asegurar que el DOM y select2 (si existe) cargen
+//         var attempts = 0; var maxAttempts = 12;
+//         var interval = setInterval(function(){ attempts++; if(tryApply() || attempts>=maxAttempts) clearInterval(interval); }, 500);
 
-        // Si existe un campo tipo editable, escuchar cambios y reaplicar filtros en todas las filas
-        document.addEventListener('change', function(e){
-            var t = e.target;
-            if(!t) return;
-            if(t.name === 'tipo_envio' || t.id === 'tipo_envio_hidden' || t.name === 'type'){
-                tryApply();
-            }
-        }, true);
+//         // Si existe un campo tipo editable, escuchar cambios y reaplicar filtros en todas las filas
+//         document.addEventListener('change', function(e){
+//             var t = e.target;
+//             if(!t) return;
+//             if(t.name === 'tipo_envio' || t.id === 'tipo_envio_hidden' || t.name === 'type'){
+//                 tryApply();
+//             }
+//         }, true);
 
-    })();
-    </script>
-    <?php
-}
+//     })();
+//     </script>
+//     <?php
+// }
 // add_action('wp_footer', 'merc_filter_statuses_by_tipo_envio', 6); // MOVIDO AL PLUGIN merc-form-enhancements
 
 // RENOMBRANDO CREATE SHIPMENT A "CREAR SERVICIO"
