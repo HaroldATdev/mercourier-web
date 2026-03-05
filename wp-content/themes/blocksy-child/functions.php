@@ -1982,7 +1982,7 @@ function merc_ensure_unique_tracking_on_insert($data, $postarr) {
 
 // Ocultar secciones para clientes en formulario de crear envío
 // Ocultar secciones para clientes en formulario de crear envío
-add_action('wp_footer', 'merc_ocultar_campos_clientes_crear_envio', 4);
+// add_action('wp_footer', 'merc_ocultar_campos_clientes_crear_envio', 4); // MOVIDO AL PLUGIN merc-form-enhancements
 function merc_ocultar_campos_clientes_crear_envio() {
     if ( ! is_user_logged_in() ) return;
     
@@ -2017,7 +2017,7 @@ function merc_ocultar_campos_clientes_crear_envio() {
 }
 
 // Agregar campo oculto al formulario y validación de bloqueo
-add_action('wp_footer', 'agregar_campo_tipo_envio_formulario', 5);
+// add_action('wp_footer', 'agregar_campo_tipo_envio_formulario', 5); // MOVIDO AL PLUGIN merc-form-enhancements
 function agregar_campo_tipo_envio_formulario() {
     if(isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' && isset($_GET['type'])) {
         $tipo = sanitize_text_field($_GET['type']);
@@ -2372,7 +2372,7 @@ function autocompletar_campos_formulario() {
         <?php
     }
 }
-add_action('wp_footer', 'autocompletar_campos_formulario');
+// add_action('wp_footer', 'autocompletar_campos_formulario'); // MOVIDO AL PLUGIN merc-form-enhancements
 
 // Filtrar visibilidad de opciones de estado según el tipo de envío (no afecta a motorizados)
 function merc_filter_statuses_by_tipo_envio() {
@@ -2546,7 +2546,7 @@ function merc_filter_statuses_by_tipo_envio() {
     </script>
     <?php
 }
-add_action('wp_footer', 'merc_filter_statuses_by_tipo_envio', 6);
+// add_action('wp_footer', 'merc_filter_statuses_by_tipo_envio', 6); // MOVIDO AL PLUGIN merc-form-enhancements
 
 // RENOMBRANDO CREATE SHIPMENT A "CREAR SERVICIO"
 function custom_rename_create_shipment_callback( $text ) {
