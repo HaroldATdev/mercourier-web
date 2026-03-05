@@ -40,7 +40,7 @@ class MERC_Shipment_Table {
 	/* ── Header ──────────────────────────────────────────────────────── */
 
 	public function custom_header(): void {
-		load_template( $this->tpl_path . 'table-header.tpl.php', false );
+		$this->render_tpl( 'table-header.tpl.php', [] );
 	}
 
 	/* ── Data ────────────────────────────────────────────────────────── */
@@ -67,11 +67,20 @@ class MERC_Shipment_Table {
 		$motorizo_recojo_html  = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo',  true ) );
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
-		load_template( $this->tpl_path . 'table-row.tpl.php', false, compact(
+		$this->render_tpl( 'table-row.tpl.php', compact(
 			'shipment_id', 'tienda_html', 'actions_html',
 			'distrito_recojo', 'distrito_destino', 'fecha',
 			'tipo_html', 'cambio_html', 'motorizo_recojo_html', 'motorizo_entrega_html'
 		) );
+	}
+
+	/* ── Template renderer ───────────────────────────────────────────── */
+
+	private function render_tpl( string $file, array $data ): void {
+		// extract() en este scope + include: el template accede a todas las variables.
+		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+		extract( $data );
+		include $this->tpl_path . $file;
 	}
 
 	/* ── Helpers de render ───────────────────────────────────────────── */
