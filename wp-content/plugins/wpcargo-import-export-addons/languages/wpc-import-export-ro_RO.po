@@ -1,0 +1,480 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WPCargo Import and Export Add-ons\n"
+"POT-Creation-Date: 2022-09-09 14:02+0800\n"
+"PO-Revision-Date: 2022-09-09 14:02+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ro_RO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n==0 || (n!=1 && n%100>=1 && n"
+"%100<=19) ? 1 : 2);\n"
+"X-Generator: Poedit 3.1.1\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: wpcargo-import-export-addons.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.min.js\n"
+
+#: includes/functions.php:126
+msgid "Pending"
+msgstr "În așteptare"
+
+#: includes/functions.php:134 includes/functions.php:316
+msgid "Shipper Name"
+msgstr "Numele expeditorului"
+
+#: includes/functions.php:171
+msgid "There is no error, the file uploaded with success."
+msgstr "Nu există nici o eroare, fișierul încărcat cu succes."
+
+#: includes/functions.php:172
+msgid "The uploaded file exceeds the upload_max_filesize directive in php.ini."
+msgstr "Fișierul încărcat depășește directiva upload_max_filesize în php.ini."
+
+#: includes/functions.php:173
+msgid ""
+"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in "
+"the HTML form."
+msgstr ""
+"Fișierul încărcat depășește MAX_FILE_SIZE directivă care a fost specificată "
+"în formularul HTML."
+
+#: includes/functions.php:174
+msgid "The uploaded file was only partially uploaded."
+msgstr "Fișierul încărcat a fost încărcat doar parțial."
+
+#: includes/functions.php:175
+msgid "No file was uploaded."
+msgstr "Nu a fost încărcat nici un fișier."
+
+#: includes/functions.php:176
+msgid "Missing a temporary folder."
+msgstr "Lipsește dosarul temporar."
+
+#: includes/functions.php:177
+msgid "Failed to write file to disk."
+msgstr "Nu s-a reușit scrierea fișierului pe disc."
+
+#: includes/functions.php:178
+msgid "A PHP extension stopped the file upload."
+msgstr "O extensie PHP a oprit încărcarea fișierului."
+
+#: includes/functions.php:321
+msgid "Shipper Phone Number"
+msgstr "Număr de telefon expeditor"
+
+#: includes/functions.php:326
+msgid "Shipper Address"
+msgstr "Adresa expeditorului"
+
+#: includes/functions.php:331
+msgid "Shipper Email"
+msgstr "E-mail expeditor"
+
+#: includes/functions.php:336
+msgid "Receiver Name"
+msgstr "Numele receptorului"
+
+#: includes/functions.php:341
+msgid "Receiver Phone Number"
+msgstr "Număr de telefon receptor"
+
+#: includes/functions.php:346
+msgid "Receiver Address"
+msgstr "Adresa destinatarului"
+
+#: includes/functions.php:351
+msgid "Receiver Email"
+msgstr "E-mail receptor"
+
+#: includes/functions.php:356
+msgid "Agent Name"
+msgstr "Nume agent"
+
+#: includes/functions.php:361
+msgid "Type of Shipment"
+msgstr "Tip de expediere"
+
+#: includes/functions.php:366
+msgid "Courier"
+msgstr "Curier"
+
+#: includes/functions.php:371
+msgid "Mode"
+msgstr "Mod"
+
+#: includes/functions.php:376
+msgid "Quantity"
+msgstr "Cantitate"
+
+#: includes/functions.php:381
+msgid "Total Freight"
+msgstr "Total mărfuri"
+
+#: includes/functions.php:386
+msgid "Carrier Reference No."
+msgstr "Nr. de referință al transportatorului"
+
+#: includes/functions.php:391
+msgid "Origin"
+msgstr "Origine"
+
+#: includes/functions.php:396
+msgid "Pickup Date"
+msgstr "Data preluării"
+
+#: includes/functions.php:401
+msgid "Comments"
+msgstr "Comentarii"
+
+#: includes/functions.php:406
+msgid "Weight"
+msgstr "Greutate"
+
+#: includes/functions.php:411
+msgid "Packages"
+msgstr "Abonamente"
+
+#: includes/functions.php:416
+msgid "Product"
+msgstr "Produs"
+
+#: includes/functions.php:421
+msgid "Payment Mode"
+msgstr "Metoda de plată"
+
+#: includes/functions.php:426
+msgid "Carrier"
+msgstr "Transportator"
+
+#: includes/functions.php:431
+msgid "Departure Time"
+msgstr "Ora de plecare"
+
+#: includes/functions.php:436
+msgid "Destination"
+msgstr "Destinație"
+
+#: includes/functions.php:441
+msgid "Pickup Time"
+msgstr "Ora preluării"
+
+#: includes/functions.php:446
+msgid "Expected Delivery Date"
+msgstr "Data estimată de livrare"
+
+#: includes/functions.php:453
+msgid "Package Details"
+msgstr "Detalii Pachet"
+
+#: includes/functions.php:458
+msgid "Shipment History"
+msgstr "Istoricul expedierilor"
+
+#: includes/functions.php:463
+msgid "Shipment Status"
+msgstr "Starea expedierii"
+
+#: includes/functions.php:490
+msgid "ShipmentID"
+msgstr "ID transport"
+
+#: includes/functions.php:495
+msgid "Shipment Title"
+msgstr "Titlu livrare"
+
+#: includes/functions.php:500 includes/lang.php:48
+msgid "Shipment Category ID"
+msgstr "ID-ul categoriei de expediere"
+
+#: includes/functions.php:505 includes/lang.php:45
+msgid "Assigned Client ID"
+msgstr "ID-ul de client atribuit"
+
+#: includes/hooks.php:44 includes/hooks.php:45 includes/hooks.php:51
+#: includes/hooks.php:52 templates/settings.tpl.php:1
+msgid "Import/Export Settings"
+msgstr "Setări import/export"
+
+#: includes/hooks.php:62 includes/lang.php:6
+msgid "Import/Export"
+msgstr "Import/Export"
+
+#: includes/hooks.php:68
+msgid "Settings"
+msgstr "Setări"
+
+#: includes/hooks.php:69
+msgid "License"
+msgstr "Licență"
+
+#: includes/hooks.php:81 templates/import.tpl.php:49
+msgid "Import Shipment"
+msgstr "Import livrare"
+
+#: includes/hooks.php:82 templates/export.tpl.php:87
+msgid "Export Shipment"
+msgstr "Export livrare"
+
+#: includes/hooks.php:181
+msgid "Category"
+msgstr "Categorie"
+
+#: includes/hooks.php:183
+msgid "-- Category --"
+msgstr "-- Categorie --"
+
+#: includes/hooks.php:197
+msgid "Tag"
+msgstr "Tag"
+
+#: includes/hooks.php:199
+msgid "-- Tag --"
+msgstr "-- Tag --"
+
+#: includes/lang.php:9
+msgid "Permission denied!"
+msgstr "Acces nepermis!"
+
+#: includes/lang.php:12
+msgid "No record found."
+msgstr "Nu s-a găsit nicio înregistrare."
+
+#: includes/lang.php:15
+msgid "Processing request"
+msgstr "Cerere de procesare"
+
+#: includes/lang.php:18
+msgid "Processing data for export completed. Please wait to downloading file."
+msgstr ""
+"Prelucrarea datelor pentru export a fost finalizată. Vă rugăm să așteptați "
+"să descărcați fișierul."
+
+#: includes/lang.php:21
+msgid "Processing data"
+msgstr "Prelucrarea datelor"
+
+#: includes/lang.php:24
+msgid "This process will take a while to complete due to number of records"
+msgstr ""
+"Acest proces va dura un timp pentru a finaliza din cauza numărului de "
+"înregistrări"
+
+#: includes/lang.php:28 includes/lang.php:30
+#, php-format
+msgid "Preparing %d record(s)"
+msgstr "Pregătirea înregistrărilor %d"
+
+#: includes/lang.php:33
+msgid "Import data completed"
+msgstr "Importul datelor finalizate"
+
+#: includes/lang.php:36
+msgid "Please wait to downloading file."
+msgstr "Vă rugăm să așteptați să descărcați fișierul."
+
+#: includes/lang.php:39
+msgid "Uploading file."
+msgstr "Încărcarea fișierului."
+
+#: includes/lang.php:42
+msgid "Date range required."
+msgstr "Intervalul de date necesar."
+
+#: includes/lang.php:51
+msgid "Shipment Number"
+msgstr "Numărul expedierii"
+
+#: includes/lang.php:54
+msgid "File type is not allowed, required .CSV file format."
+msgstr "Tipul de fișier nu este permis, necesar . Formatul de fișier CSV."
+
+#: includes/lang.php:57
+msgid ""
+"Error file header is required for data mapping. Please download import "
+"template."
+msgstr ""
+"Antetul fișierului de eroare este necesar pentru maparea datelor. Vă rugăm "
+"să descărcați șablonul de import."
+
+#: includes/lang.php:60
+msgid "Error file data to process, please check file header"
+msgstr ""
+"Datele fișierului de eroare de procesat, vă rugăm să verificați antetul "
+"fișierului"
+
+#: includes/lang.php:63
+msgid "Shipment number"
+msgstr "Numărul expedierii"
+
+#: includes/lang.php:63
+msgid "successfull saved"
+msgstr "salvat cu succes"
+
+#: includes/lang.php:66
+#, php-format
+msgid ""
+"Error:  No Import/Export page found for WPCargo Frontend Manager dashbaord. "
+"Please create page with a shortcode %s and set the template to WPCargo "
+"Dashbaord"
+msgstr ""
+"Eroare: Nu s-a găsit nicio pagină de import/export pentru dashbaord WPCargo "
+"Frontend Manager. Vă rugăm să creați o pagină cu un cod scurt %s și setați "
+"șablonul la WPCargo Dashbaord"
+
+#: includes/lang.php:69
+msgid "WPCargo Import and Export Add-ons License key is required."
+msgstr "WpCargo Import and Export Add-ons cheie de licență este necesară."
+
+#: includes/lang.php:69
+msgid "Activate License Key"
+msgstr "Activarea cheii de licență"
+
+#: templates/export.tpl.php:11
+msgid "Registered Shipper"
+msgstr "Expeditor înregistrat"
+
+#: templates/export.tpl.php:13
+msgid "-- Registered Shipper --"
+msgstr "-- Expeditor înregistrat --"
+
+#: templates/export.tpl.php:22
+msgid "Status"
+msgstr "Stare"
+
+#: templates/export.tpl.php:24
+msgid "-- Status --"
+msgstr "Status:"
+
+#: templates/export.tpl.php:35 templates/export.tpl.php:41
+msgid "YYYY-MM-DD"
+msgstr "YYYY-MM-DD"
+
+#: templates/export.tpl.php:36
+msgid "Start"
+msgstr "Start"
+
+#: templates/export.tpl.php:42
+msgid "End"
+msgstr "End"
+
+#: templates/export.tpl.php:52
+msgid "Available Fields"
+msgstr "Câmpuri disponibile"
+
+#: templates/export.tpl.php:72
+msgid "Selected Fields"
+msgstr "Câmpuri selectate"
+
+#: templates/import.tpl.php:30
+msgid "Import CSV File"
+msgstr "Import fișier CSV"
+
+#: templates/import.tpl.php:52
+msgid "Instructions on how to Import Shipment "
+msgstr "Instrucțiuni despre se importă expedierea "
+
+#: templates/import.tpl.php:54
+msgid "Download CSV template"
+msgstr "Descărcare șablon CSV"
+
+#: templates/import.tpl.php:54
+msgid "as template for Importing data."
+msgstr "ca șablon pentru Importul datelor."
+
+#: templates/import.tpl.php:55
+msgid ""
+"Delete Column(s) that are not needed, make sure no empty header column this "
+"cause data mapping error."
+msgstr ""
+"Ștergeți coloanele care nu sunt necesare, asigurați-vă că nu este necesară "
+"nicio coloană antet goală care să cauzeze eroare de mapare a datelor."
+
+#: templates/import.tpl.php:56
+msgid "Add Data to each Cell."
+msgstr "Adăugați date la fiecare celulă."
+
+#: templates/import.tpl.php:57
+msgid "Import CSV template."
+msgstr "Import șablon CSV."
+
+#: templates/navigation.php:3
+msgid "Export"
+msgstr "Exportă"
+
+#: templates/navigation.php:6
+msgid "Import"
+msgstr "Import"
+
+#: templates/restricted.tpl.php:4
+msgid "Sorry your are not allowed to access this page!"
+msgstr "Ne pare rău dumneavoastră nu au voie să acceseze această pagină!"
+
+#: templates/restricted.tpl.php:5
+msgid "Please contact administrator for your permission."
+msgstr "Vă rugăm să contactați administratorul pentru permisiunea dvs."
+
+#: templates/settings.tpl.php:9
+msgid "Email Notification upon Import?"
+msgstr "Notificare prin e-mail la import?"
+
+#: templates/settings.tpl.php:12
+msgid "Note: This will enable email notification upon importing data."
+msgstr ""
+"Notă: Acest lucru va permite notificarea prin e-mail la importul datelor."
+
+#: templates/settings.tpl.php:16
+msgid "Disabled in Frontend Manager Dashboard"
+msgstr "Dezactivat în tabloul de bord Frontend Manager"
+
+#: templates/settings.tpl.php:19
+msgid ""
+"Note: This will disable the Import/Export menu in the frontend manager "
+"dashboard."
+msgstr ""
+"Notă: Aceasta va dezactiva meniul Import/Export din tabloul de bord al "
+"managerului frontend."
+
+#: templates/settings.tpl.php:23
+msgid "Restrict user roles"
+msgstr "Restricționarea rolurilor de utilizator"
+
+#: templates/settings.tpl.php:34
+msgid ""
+"Note: This will restrict selected roles to access the Import/Export page in "
+"the frontend manager dashboard."
+msgstr ""
+"Notă: Acest lucru va restricționa rolurile selectate pentru a accesa pagina "
+"Import/Export din tabloul de bord al managerului de frontend."
+
+#: templates/settings.tpl.php:38
+msgid "Save Settings"
+msgstr "Salveaza setari"
+
+#. Plugin Name of the plugin/theme
+msgid "WPCargo Import and Export Add-ons"
+msgstr "Programe de completare WPCargo Import și export"
+
+#. Plugin URI of the plugin/theme
+#. Author URI of the plugin/theme
+msgid "http://www.wpcargo.com"
+msgstr "http://www.wpcargo.com"
+
+#. Description of the plugin/theme
+msgid ""
+"Allows you to Import/Export your shipments or to make backups. Requires "
+"WPCargo plugin to work."
+msgstr ""
+"Vă permite să importați/exportați expedierile sau să faceți copii de "
+"rezervă. Necesită WPCargo plug-in pentru a lucra."
+
+#. Author of the plugin/theme
+msgid "<a href=\"http://wptaskforce.com/\">WPTaskforce</a>"
+msgstr "<a href=\"http://wptaskforce.com/\">WPTaskForce</a>"

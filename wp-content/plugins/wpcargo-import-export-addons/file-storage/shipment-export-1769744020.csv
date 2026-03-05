@@ -1,0 +1,59 @@
+﻿ShipmentID(shipment_id),"Título del envío(shipment_title)","ID de categoría de envío(wpcargo_shipment_cat)","ID de cliente asignado(registered_shipper)","Nombre y Apellidos (Envía)(wpcargo_shipper_name)",Celular(wpcargo_shipper_phone),Dirección(wpcargo_shipper_address),"Nombre y Apellidos (Recibe)(wpcargo_receiver_name)",Celular(wpcargo_receiver_phone),"Modo de Pago(payment_wpcargo_mode_field)","Distrito de Destino(wpcargo_distrito_destino)",Fecha(wpcargo_pickup_date_picker),"Indicaciones para el Pedido(wpcargo_comments)","Distrito de Recojo(wpcargo_distrito_recojo)",Dirección(wpcargo_receiver_address),"Monto a cobrar al cliente(monto)","Link Google Maps(link_maps)","Nombre de la Marca(wpcargo_tiendaname)","Es cambio de producto(cambio_producto)","Link Google Maps(link_maps_remitente)","Número de contenedor(wpcsc_container)","Detalles del paquete(wpc-multiple-package)","Historial de envíos(wpcargo_shipments_update)","ES Shipment Status(wpcargo_status)"
+4804,MERC-000263,,"Nicol salas Polack",,,,"Raul Mendez",912335767,"NO COBRAR",Comas,29/01/2026,Fragil,,"Av. los Ángeles 519",0,https://maps.app.goo.gl/G6Cw3htdPKN39gCz5,Company,,,,,,PENDIENTE
+4805,MERC-000264,,"Nicol salas Polack",,,,"Martin Lopez",956013053,EFECTIVO,"Villa El Salvador",29/01/2026,Cajas,,"Av. Pachacútec 570",40,https://maps.app.goo.gl/G6Cw3htdPKN39gCz5,Company,,,,,,PENDIENTE
+4806,MERC-000265,,"Nicol salas Polack",,,,"Piero Sanchez",953172332,POS,"Santa Clara",29/01/2026,,,"El Sol Mz A",120,https://maps.app.goo.gl/G6Cw3htdPKN39gCz5,Company,,,,,,PENDIENTE
+4807,MERC-000265,,"Nicol salas Polack",,,,"Victor Jimenez",960232974,YAPE/PLIN,"La Perla",29/01/2026,,,"Av. Callao 722",50,https://maps.app.goo.gl/G6Cw3htdPKN39gCz5,Company,,,,,,PENDIENTE
+4803,MERC-000262,,"Cliente Prueba",,987654321,"Av Heroes del Alto Cenepa 354",Isushi,953172332,"NO COBRAR","Santiago de Surco",29/01/2026,,Comas,"Av. Caminos del Inca 1517",8.00,https://maps.app.goo.gl/m4W5EX2yHbZpxDFLA,Company,No,https://maps.app.goo.gl/quj85v5gG4bqyxdZ6?g_st=ic,"RUTA SUR 9 (SANTIAGO DE SURCO – SURQUILLO)","Cant.=1 | Tipo de pieza=Valija-Documentos | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+",,RECEPCIONADO
+4802,MERC-000261,,"Cliente Prueba",,987654321,"Av Heroes del Alto Cenepa 354","Liria Spa",931629529,EFECTIVO,Miraflores,29/01/2026,,Comas,"Ca. San Martín 461",50,https://maps.app.goo.gl/gAdRvhMFMNSdCRi56,Company,No,https://maps.app.goo.gl/quj85v5gG4bqyxdZ6?g_st=ic,"RUTA SUR 7 (CHORRILLOS – BARRANCO – MIRAFLORES)","Cant.=1 | Tipo de pieza=Ropa | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+",,RECEPCIONADO
+4801,MERC-000260,,"Cliente Prueba",,987654321,"Av Heroes del Alto Cenepa 354","Marco Antonio",912335767,EFECTIVO,"Los Olivos",29/01/2026,,Comas,"Mz. 201 Lt. 28. Asentamiento San Martín",100,https://maps.app.goo.gl/Vi54aYMCL8HxMwnZA,Company,No,https://maps.app.goo.gl/quj85v5gG4bqyxdZ6?g_st=ic,"RUTA NORTE 1 (CARABAYLLO – COMAS – INDEPENDENCIA)","Cant.=1 | Tipo de pieza=Utiles de Escritorio | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+",,PENDIENTE
+4716,MERC-000259,,"Nicol salas Polack",,999999999,"Av. Arequipa 2394",pepe,949748236,EFECTIVO,"San Martin de Porres",29/01/2026,,Lince,"san mrtin de porres 525",30,https://maps.app.goo.gl/1yo4zDAUCTRUTq7a9,"bazar vicenta",No,https://maps.app.goo.gl/5qYQPQiMe6dsT42M9,,"Cant.=1 | Tipo de pieza= | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+","Fecha=2026-01-29 | Hora=21:19:31 | Ubicación= | Estado=EN RUTA | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=21:18:31 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=21:02:10 | Ubicación= | Estado=REPROGRAMADO | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=21:02:10 | Ubicación= | Estado=REPROGRAMADO | Actualizado por=Sistema | Observaciones=Notificación enviada a Nicopolack708@gmail.com (Nicopolack708@gmail.com) 
+Fecha=2026-01-29 | Hora=20:48:05 | Ubicación= | Estado=EN RUTA | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:34:27 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:34:14 | Ubicación= | Estado=RECOGIDO | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:31:42 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:30:23 | Ubicación= | Estado=LISTO PARA SALIR | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:27:30 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:24:16 | Ubicación= | Estado=LISTO PARA SALIR | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=19:59:00 | Ubicación= | Estado=RECOGIDO | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=15:51 pm | Ubicación= | Estado=EN RUTA | Actualizado por=Martin Salas | Observaciones= 
+Fecha=2026-01-29 | Hora=15:07 pm | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones= 
+Fecha=2026-01-29 | Hora=16:21 pm | Ubicación= | Estado=EN RUTA | Actualizado por=Martin Salas | Observaciones= 
+Fecha=2026-01-29 16:22:15 |  |  | Estado=ENTREGADO |  |  
+",ENTREGADO
+4715,MERC-000258,,"Nicol salas Polack",,999999999,"Av. Arequipa 2394","adriano campos",949748236,POS,Carabayllo,29/01/2026,,Lince,"carabayllo 522",200,https://maps.app.goo.gl/uVjk47LrNThG9XFt5,"bazar vicenta",No,https://maps.app.goo.gl/5qYQPQiMe6dsT42M9,,"Cant.= | Tipo de pieza= | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+","Fecha=2026-01-29 | Hora=20:49:01 |  | Estado=EN RUTA | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:34:30 |  | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:34:17 |  | Estado=RECOGIDO | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:33:31 |  | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:32:30 |  | Estado=LISTO PARA SALIR | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:31:45 |  | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:24:19 |  | Estado=LISTO PARA SALIR | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:08:46 |  | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=19:59:08 |  | Estado=RECOGIDO | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 16:01:54 |  |  | Estado=ENTREGADO |  |  
+",ENTREGADO
+4696,MERC-000257,,"Nicol salas Polack",,999999999,"Av. Arequipa 2394",jonatha,973760431,YAPE/PLIN,"La Victoria",29/01/2026,"llamar por whstp",Lince,"londre 301",50,https://maps.app.goo.gl/qwK5pVqsisVdqmU37,"bazar vicenta",Sí,https://maps.app.goo.gl/5qYQPQiMe6dsT42M9,,"Cant.=1 | Tipo de pieza= | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+","Fecha=2026-01-29 | Hora=20:49:11 | Ubicación= | Estado=EN RUTA | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:34:34 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:34:21 | Ubicación= | Estado=RECOGIDO | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:31:49 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:24:24 | Ubicación= | Estado=LISTO PARA SALIR | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:19:00 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:18:52 | Ubicación= | Estado=RECOGIDO | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=20:12:00 | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=19:59:16 | Ubicación= | Estado=RECOGIDO | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+Fecha=2026-01-29 | Hora=15:51 pm | Ubicación= | Estado=EN RUTA | Actualizado por=Martin Salas | Observaciones= 
+Fecha=2026-01-29 | Hora=15:18 pm | Ubicación= | Estado=EN BASE MERCOURIER | Actualizado por=Martin Salas | Observaciones= 
+Fecha=2026-01-29 | Hora=15:52 pm | Ubicación= | Estado=EN RUTA | Actualizado por=Martin Salas | Observaciones= 
+Fecha=2026-01-29 15:58:27 |  |  | Estado=ENTREGADO |  |  
+",ENTREGADO
+4695,MERC-000256,,"Nicol salas Polack",,999999999,"Av. Arequipa 2394","yarot mendoza",922579515,EFECTIVO,Lince,29/01/2026,"perfumes delicados",Lince,"jose galvez 1980",100,"google.com/maps/place/Jr.+José+Gálvez+1980,+Lince+15046/@-12.075008,-77.0272533,14z/data=!4m6!3m5!1s0x9105c88a46c02f07:0x2b6be481f3552b29!8m2!3d-12.0836466!4d-77.0293549!16sg11c5f4r32y?entry=ttu&g_ep=EgoyMDI2MDEyNy4wIKXMDSoKLDEwMDc5MjA2OUgBUAM","bazar vicenta",Sí,https://maps.app.goo.gl/5qYQPQiMe6dsT42M9,,"Cant.=1 | Tipo de pieza= | Descripción= | Longitud(cm)=25 | Ancho(cm)=25 | Altura(cm)=25 | Peso (kg)=3 
+","Fecha=2026-01-29 | Hora=19:59:31 |  | Estado=NO RECOGIDO | Actualizado por=Khaled.daziel@gmail.com | Observaciones=Estado actualizado desde la tabla de pedidos 
+","NO RECOGIDO"

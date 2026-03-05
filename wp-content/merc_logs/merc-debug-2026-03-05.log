@@ -1,0 +1,269 @@
+[05-Mar-2026 18:58:07 UTC] 🔒 [PRE-INSERT] Verificando unicidad de tracking: MERC-000827
+[05-Mar-2026 18:58:07 UTC] ✅ [PRE-INSERT] Tracking único: MERC-000827
+[05-Mar-2026 18:58:07 UTC] ✅ Iniciando guardado de producto para envío #7261
+[05-Mar-2026 18:58:07 UTC]    📝 Tipo obtenido desde meta: 
+[05-Mar-2026 18:58:07 UTC] 📦 Datos recibidos - Producto ID: 0, Cantidad: 1, Tipo: '', Es Full Fitment: NO
+[05-Mar-2026 18:58:07 UTC] 🔍 ASIGNACIÓN ESTADO - Iniciando para envío #7261
+[05-Mar-2026 18:58:07 UTC] ❌ ASIGNACIÓN ESTADO - Tipo de envío vacío, abortando
+[05-Mar-2026 18:58:07 UTC] 🔍 Full Fitment verificación #7261 - Tipo: '' -> Es full fitment: NO
+[05-Mar-2026 18:58:07 UTC] ⏭️ Full Fitment #7261 - NO es full fitment, saltando
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === GUARDANDO DATOS FINANCIEROS - Envío #7261 ===
+[05-Mar-2026 18:58:07 UTC] ⚠️ [SAVE_FINANCIAL] wpcargo_costo_envio NO está en POST
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === FIN GUARDADO DATOS FINANCIEROS ===
+[05-Mar-2026 18:58:07 UTC] 🔍 [SAVE_FINANCIAL] Verificación inmediata - Costo envío en DB: 
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7261
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: NO DEFINIDO
+[05-Mar-2026 18:58:07 UTC] ❌ AUTO-ASIGNACIÓN - No se pudo determinar el distrito o tipo de contenedor (tipo_envio=), abortando
+[05-Mar-2026 18:58:07 UTC] 💾 [DUAL_MOTORIZADO_SAVE] Guardando motorizado dual para envío #7261
+[05-Mar-2026 18:58:07 UTC]    📬 POST keys disponibles: action, record
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_recojo NO está en POST
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_entrega NO está en POST
+[05-Mar-2026 18:58:07 UTC]    🔍 Estado actual del envío: ''
+[05-Mar-2026 18:58:07 UTC]    ⚠️  No hay wpcargo_motorizo_entrega para sincronizar
+[05-Mar-2026 18:58:07 UTC]    ✅ [DUAL_MOTORIZADO_SAVE] COMPLETADO
+[05-Mar-2026 18:58:07 UTC] 🔚 [FINAL_VERIFICATION] Envío #7261 | Tipo:  | Distrito:  | Costo FINAL: 
+[05-Mar-2026 18:58:07 UTC] ╔════════════════════════════════════════════════════════════╗
+[05-Mar-2026 18:58:07 UTC] ║ [MERC_CSV] STEP 1: NORMALIZAR TIPO DE ENVÍO - INICIO    ║
+[05-Mar-2026 18:58:07 UTC] ╚════════════════════════════════════════════════════════════╝
+[05-Mar-2026 18:58:07 UTC] 📦 Shipment ID: 7261
+[05-Mar-2026 18:58:07 UTC] 🔍 Tipo vacío en DB, buscando en CSV...
+[05-Mar-2026 18:58:07 UTC] ✅ Tipo encontrado en CSV (columna: wpcargo_service_id): agencia
+[05-Mar-2026 18:58:07 UTC] 🔤 Normalizado: "agencia" → "express"
+[05-Mar-2026 18:58:07 UTC] 💾 Metas guaradas - tipo_envio & wpcargo_type_of_shipment: express
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48097 post_id=7261 meta_key=wpcargo_status meta_value=RECEPCIONADO
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Llamando a merc_maybe_create_penalty_for_shipment para post_id=7261
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_ENTRY - merc_maybe_create_penalty_for_shipment post_id=7261 post_type=wpcargo_shipment
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_STATE - post_id=7261 estado_raw=RECEPCIONADO
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_ABORT - post_id=7261 estado no es NO RECOGIDO, abortando
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=7261
+[05-Mar-2026 18:58:07 UTC] MERC_NO_RECIBIDO_DEBUG - post_id=7261 estado=RECEPCIONADO NO es NO RECIBIDO
+[05-Mar-2026 18:58:07 UTC] ✅ Estado establecido a RECEPCIONADO para tipo EXPRESS
+[05-Mar-2026 18:58:07 UTC] ✅ [MERC_CSV] STEP 1: NORMALIZAR - COMPLETADO ✓
+[05-Mar-2026 18:58:07 UTC] 
+[05-Mar-2026 18:58:07 UTC] 🔒 [PRE-INSERT] Verificando unicidad de tracking: MERC-000828
+[05-Mar-2026 18:58:07 UTC] ✅ [PRE-INSERT] Tracking único: MERC-000828
+[05-Mar-2026 18:58:07 UTC] ✅ Iniciando guardado de producto para envío #7262
+[05-Mar-2026 18:58:07 UTC]    📝 Tipo obtenido desde meta: 
+[05-Mar-2026 18:58:07 UTC] 📦 Datos recibidos - Producto ID: 0, Cantidad: 1, Tipo: '', Es Full Fitment: NO
+[05-Mar-2026 18:58:07 UTC] 🔍 ASIGNACIÓN ESTADO - Iniciando para envío #7262
+[05-Mar-2026 18:58:07 UTC] ❌ ASIGNACIÓN ESTADO - Tipo de envío vacío, abortando
+[05-Mar-2026 18:58:07 UTC] 🔍 Full Fitment verificación #7262 - Tipo: '' -> Es full fitment: NO
+[05-Mar-2026 18:58:07 UTC] ⏭️ Full Fitment #7262 - NO es full fitment, saltando
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === GUARDANDO DATOS FINANCIEROS - Envío #7262 ===
+[05-Mar-2026 18:58:07 UTC] ⚠️ [SAVE_FINANCIAL] wpcargo_costo_envio NO está en POST
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === FIN GUARDADO DATOS FINANCIEROS ===
+[05-Mar-2026 18:58:07 UTC] 🔍 [SAVE_FINANCIAL] Verificación inmediata - Costo envío en DB: 
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48107 post_id=7261 meta_key=wpcargo_comments meta_value=
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7262
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: NO DEFINIDO
+[05-Mar-2026 18:58:07 UTC] ❌ AUTO-ASIGNACIÓN - No se pudo determinar el distrito o tipo de contenedor (tipo_envio=), abortando
+[05-Mar-2026 18:58:07 UTC] 💾 [DUAL_MOTORIZADO_SAVE] Guardando motorizado dual para envío #7262
+[05-Mar-2026 18:58:07 UTC]    📬 POST keys disponibles: action, record
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_recojo NO está en POST
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_entrega NO está en POST
+[05-Mar-2026 18:58:07 UTC]    🔍 Estado actual del envío: ''
+[05-Mar-2026 18:58:07 UTC]    ⚠️  No hay wpcargo_motorizo_entrega para sincronizar
+[05-Mar-2026 18:58:07 UTC]    ✅ [DUAL_MOTORIZADO_SAVE] COMPLETADO
+[05-Mar-2026 18:58:07 UTC] 🔚 [FINAL_VERIFICATION] Envío #7262 | Tipo:  | Distrito:  | Costo FINAL: 
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7261
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: express
+[05-Mar-2026 18:58:07 UTC] 🎯 AUTO-ASIGNACIÓN - AGENCIA/FULL detectado, distrito destino: Centro de Lima → contenedor de ENTREGA
+[05-Mar-2026 18:58:07 UTC]    ✅ Coincidencia por subcadena: 'CENTRO DE LIMA' encontrado en 'RUTA CENTRO 13 (LA VICTORIA – CENTRO DE LIMA)'
+[05-Mar-2026 18:58:07 UTC] ✅ Auto-asignación - Envío #7261: shipment_container_entrega #3730 asignado
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48107 post_id=7261 meta_key=wpcargo_comments meta_value=Fragil
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC]    ✅ Post type correcto: wpcargo_shipment
+[05-Mar-2026 18:58:07 UTC]    📦 Tipo de envío: express
+[05-Mar-2026 18:58:07 UTC]    ⏭️  Tipo de envío no es 'normal' (express), no asignar motorizado
+[05-Mar-2026 18:58:07 UTC] ═══════════════════════════════════════════════════════════════
+[05-Mar-2026 18:58:07 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 118 | Tipo: express | Ahora: 13:58
+[05-Mar-2026 18:58:07 UTC] Límites: SIN=12:30 | CON=13:00
+[05-Mar-2026 18:58:07 UTC] 📊 [CONTAR ENVÍOS] Cliente 118 | Tipo: express | Hoy: 2026-03-05 | Total: 26
+[05-Mar-2026 18:58:07 UTC] 📊 Envíos de tipo EXPRESS creados hoy: 26
+[05-Mar-2026 18:58:07 UTC] 📌 ESCENARIO 2: CON ENVÍOS (26)
+[05-Mar-2026 18:58:07 UTC]    Comparando: 13:58 vs 13:00
+[05-Mar-2026 18:58:07 UTC]    ⏰ YA PASÓ LA HORA LÍMITE (13:00)
+[05-Mar-2026 18:58:07 UTC]    💰 Estado financiero: balance_cero - Balance equilibrado
+[05-Mar-2026 18:58:07 UTC]    ✅ BALANCE CERO → PERMITIR CON FECHA MAÑANA
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48106 post_id=7261 meta_key=wpcargo_pickup_date_picker meta_value=06/03/2026
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC] ╔════════════════════════════════════════════════════════════╗
+[05-Mar-2026 18:58:07 UTC] ║ [MERC_CSV] STEP 1: NORMALIZAR TIPO DE ENVÍO - INICIO    ║
+[05-Mar-2026 18:58:07 UTC] ╚════════════════════════════════════════════════════════════╝
+[05-Mar-2026 18:58:07 UTC] 📦 Shipment ID: 7262
+[05-Mar-2026 18:58:07 UTC] 🔍 Tipo vacío en DB, buscando en CSV...
+[05-Mar-2026 18:58:07 UTC] ✅ Tipo encontrado en CSV (columna: wpcargo_service_id): emprendedor
+[05-Mar-2026 18:58:07 UTC] 🔤 Normalizado: "emprendedor" → "normal"
+[05-Mar-2026 18:58:07 UTC] 🔒 [PRE-INSERT] Verificando unicidad de tracking: MERC-000829
+[05-Mar-2026 18:58:07 UTC] ✅ [PRE-INSERT] Tracking único: MERC-000829
+[05-Mar-2026 18:58:07 UTC] 💾 Metas guaradas - tipo_envio & wpcargo_type_of_shipment: normal
+[05-Mar-2026 18:58:07 UTC] ✅ [MERC_CSV] STEP 1: NORMALIZAR - COMPLETADO ✓
+[05-Mar-2026 18:58:07 UTC] 
+[05-Mar-2026 18:58:07 UTC] ✅ Iniciando guardado de producto para envío #7263
+[05-Mar-2026 18:58:07 UTC]    📝 Tipo obtenido desde meta: 
+[05-Mar-2026 18:58:07 UTC] 📦 Datos recibidos - Producto ID: 0, Cantidad: 1, Tipo: '', Es Full Fitment: NO
+[05-Mar-2026 18:58:07 UTC] 🔍 ASIGNACIÓN ESTADO - Iniciando para envío #7263
+[05-Mar-2026 18:58:07 UTC] ❌ ASIGNACIÓN ESTADO - Tipo de envío vacío, abortando
+[05-Mar-2026 18:58:07 UTC] 🔍 Full Fitment verificación #7263 - Tipo: '' -> Es full fitment: NO
+[05-Mar-2026 18:58:07 UTC] ⏭️ Full Fitment #7263 - NO es full fitment, saltando
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === GUARDANDO DATOS FINANCIEROS - Envío #7263 ===
+[05-Mar-2026 18:58:07 UTC] ⚠️ [SAVE_FINANCIAL] wpcargo_costo_envio NO está en POST
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === FIN GUARDADO DATOS FINANCIEROS ===
+[05-Mar-2026 18:58:07 UTC] 🔍 [SAVE_FINANCIAL] Verificación inmediata - Costo envío en DB: 
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7263
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: NO DEFINIDO
+[05-Mar-2026 18:58:07 UTC] ❌ AUTO-ASIGNACIÓN - No se pudo determinar el distrito o tipo de contenedor (tipo_envio=), abortando
+[05-Mar-2026 18:58:07 UTC] 💾 [DUAL_MOTORIZADO_SAVE] Guardando motorizado dual para envío #7263
+[05-Mar-2026 18:58:07 UTC]    📬 POST keys disponibles: action, record
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_recojo NO está en POST
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_entrega NO está en POST
+[05-Mar-2026 18:58:07 UTC]    🔍 Estado actual del envío: ''
+[05-Mar-2026 18:58:07 UTC]    ⚠️  No hay wpcargo_motorizo_entrega para sincronizar
+[05-Mar-2026 18:58:07 UTC]    ✅ [DUAL_MOTORIZADO_SAVE] COMPLETADO
+[05-Mar-2026 18:58:07 UTC] 🔚 [FINAL_VERIFICATION] Envío #7263 | Tipo:  | Distrito:  | Costo FINAL: 
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48139 post_id=7262 meta_key=wpcargo_comments meta_value=
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7262
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: normal
+[05-Mar-2026 18:58:07 UTC] 🎯 AUTO-ASIGNACIÓN - EMPRENDEDOR detectado, distrito recojo: Puente Piedra → contenedor de RECOJO
+[05-Mar-2026 18:58:07 UTC]    ✅ Coincidencia por subcadena: 'PUENTE PIEDRA' encontrado en 'RUTA NORTE 2 (PUENTE PIEDRA – LOS OLIVOS)'
+[05-Mar-2026 18:58:07 UTC] ╔════════════════════════════════════════════════════════════╗
+[05-Mar-2026 18:58:07 UTC] ║ [MERC_CSV] STEP 1: NORMALIZAR TIPO DE ENVÍO - INICIO    ║
+[05-Mar-2026 18:58:07 UTC] ╚════════════════════════════════════════════════════════════╝
+[05-Mar-2026 18:58:07 UTC] 📦 Shipment ID: 7263
+[05-Mar-2026 18:58:07 UTC] 🔍 Tipo vacío en DB, buscando en CSV...
+[05-Mar-2026 18:58:07 UTC] ✅ Tipo encontrado en CSV (columna: wpcargo_service_id): emprendedor
+[05-Mar-2026 18:58:07 UTC] 🔤 Normalizado: "emprendedor" → "normal"
+[05-Mar-2026 18:58:07 UTC] ✅ Auto-asignación - Envío #7262: shipment_container_recojo #3707 asignado
+[05-Mar-2026 18:58:07 UTC] 📍 Auto-asignación EMPRENDEDOR - Validando contenedores para RECOJO y ENTREGA...
+[05-Mar-2026 18:58:07 UTC] 📍 Auto-asignación EMPRENDEDOR - Asignando contenedor de ENTREGA para: Lima Cercado
+[05-Mar-2026 18:58:07 UTC] ✅ Auto-asignación EMPRENDEDOR - Envío #7262: shipment_container_entrega #3722 asignado para entrega en Lima Cercado
+[05-Mar-2026 18:58:07 UTC] 🔍 VERIFICACIÓN - shipment_container_entrega para envío #7262: ✅ Encontrado en BD: 3722
+[05-Mar-2026 18:58:07 UTC] 💾 Metas guaradas - tipo_envio & wpcargo_type_of_shipment: normal
+[05-Mar-2026 18:58:07 UTC] ✅ [MERC_CSV] STEP 1: NORMALIZAR - COMPLETADO ✓
+[05-Mar-2026 18:58:07 UTC] 
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48139 post_id=7262 meta_key=wpcargo_comments meta_value=Cajas
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48119 post_id=7262 meta_key=wpcargo_cobrado_por_motorizado meta_value=100
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC]    ✅ Post type correcto: wpcargo_shipment
+[05-Mar-2026 18:58:07 UTC]    📦 Tipo de envío: normal
+[05-Mar-2026 18:58:07 UTC]    ✅ Tipo apropiado para auto-asignación
+[05-Mar-2026 18:58:07 UTC]    👤 Usuario (registered_shipper): 118
+[05-Mar-2026 18:58:07 UTC]    🔍 Motorizado default para usuario #118: VACÍO
+[05-Mar-2026 18:58:07 UTC]    ℹ️ Usuario #118 NO tiene motorizado default configurado
+[05-Mar-2026 18:58:07 UTC] ═══════════════════════════════════════════════════════════════
+[05-Mar-2026 18:58:07 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 118 | Tipo: normal | Ahora: 13:58
+[05-Mar-2026 18:58:07 UTC] Límites: SIN=10:00 | CON=10:00
+[05-Mar-2026 18:58:07 UTC] 📊 [CONTAR ENVÍOS] Cliente 118 | Tipo: normal | Hoy: 2026-03-05 | Total: 27
+[05-Mar-2026 18:58:07 UTC] 📊 Envíos de tipo NORMAL creados hoy: 27
+[05-Mar-2026 18:58:07 UTC] 📌 ESCENARIO 2: CON ENVÍOS (27)
+[05-Mar-2026 18:58:07 UTC]    Comparando: 13:58 vs 10:00
+[05-Mar-2026 18:58:07 UTC]    ⏰ YA PASÓ LA HORA LÍMITE (10:00)
+[05-Mar-2026 18:58:07 UTC]    💰 Estado financiero: balance_cero - Balance equilibrado
+[05-Mar-2026 18:58:07 UTC]    ✅ BALANCE CERO → PERMITIR CON FECHA MAÑANA
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48138 post_id=7262 meta_key=wpcargo_pickup_date_picker meta_value=06/03/2026
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7263
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: normal
+[05-Mar-2026 18:58:07 UTC] 🎯 AUTO-ASIGNACIÓN - EMPRENDEDOR detectado, distrito recojo: Puente Piedra → contenedor de RECOJO
+[05-Mar-2026 18:58:07 UTC]    ✅ Coincidencia por subcadena: 'PUENTE PIEDRA' encontrado en 'RUTA NORTE 2 (PUENTE PIEDRA – LOS OLIVOS)'
+[05-Mar-2026 18:58:07 UTC] ✅ Auto-asignación - Envío #7263: shipment_container_recojo #3707 asignado
+[05-Mar-2026 18:58:07 UTC] 📍 Auto-asignación EMPRENDEDOR - Validando contenedores para RECOJO y ENTREGA...
+[05-Mar-2026 18:58:07 UTC] 📍 Auto-asignación EMPRENDEDOR - Asignando contenedor de ENTREGA para: La Perla
+[05-Mar-2026 18:58:07 UTC] ✅ Auto-asignación EMPRENDEDOR - Envío #7263: shipment_container_entrega #3723 asignado para entrega en La Perla
+[05-Mar-2026 18:58:07 UTC] 🔍 VERIFICACIÓN - shipment_container_entrega para envío #7263: ✅ Encontrado en BD: 3723
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48149 post_id=7263 meta_key=wpcargo_cobrado_por_motorizado meta_value=50
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC]    ✅ Post type correcto: wpcargo_shipment
+[05-Mar-2026 18:58:07 UTC]    📦 Tipo de envío: normal
+[05-Mar-2026 18:58:07 UTC]    ✅ Tipo apropiado para auto-asignación
+[05-Mar-2026 18:58:07 UTC]    👤 Usuario (registered_shipper): 118
+[05-Mar-2026 18:58:07 UTC]    🔍 Motorizado default para usuario #118: VACÍO
+[05-Mar-2026 18:58:07 UTC]    ℹ️ Usuario #118 NO tiene motorizado default configurado
+[05-Mar-2026 18:58:07 UTC] ═══════════════════════════════════════════════════════════════
+[05-Mar-2026 18:58:07 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 118 | Tipo: normal | Ahora: 13:58
+[05-Mar-2026 18:58:07 UTC] Límites: SIN=10:00 | CON=10:00
+[05-Mar-2026 18:58:07 UTC] 📊 [CONTAR ENVÍOS] Cliente 118 | Tipo: normal | Hoy: 2026-03-05 | Total: 27
+[05-Mar-2026 18:58:07 UTC] 📊 Envíos de tipo NORMAL creados hoy: 27
+[05-Mar-2026 18:58:07 UTC] 📌 ESCENARIO 2: CON ENVÍOS (27)
+[05-Mar-2026 18:58:07 UTC]    Comparando: 13:58 vs 10:00
+[05-Mar-2026 18:58:07 UTC]    ⏰ YA PASÓ LA HORA LÍMITE (10:00)
+[05-Mar-2026 18:58:07 UTC]    💰 Estado financiero: balance_cero - Balance equilibrado
+[05-Mar-2026 18:58:07 UTC]    ✅ BALANCE CERO → PERMITIR CON FECHA MAÑANA
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - meta_id=48167 post_id=7263 meta_key=wpcargo_pickup_date_picker meta_value=06/03/2026
+[05-Mar-2026 18:58:07 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:07 UTC] 🔒 [PRE-INSERT] Verificando unicidad de tracking: MERC-000830
+[05-Mar-2026 18:58:07 UTC] ✅ [PRE-INSERT] Tracking único: MERC-000830
+[05-Mar-2026 18:58:07 UTC] ✅ Iniciando guardado de producto para envío #7264
+[05-Mar-2026 18:58:07 UTC]    📝 Tipo obtenido desde meta: 
+[05-Mar-2026 18:58:07 UTC] 📦 Datos recibidos - Producto ID: 0, Cantidad: 1, Tipo: '', Es Full Fitment: NO
+[05-Mar-2026 18:58:07 UTC] 🔍 ASIGNACIÓN ESTADO - Iniciando para envío #7264
+[05-Mar-2026 18:58:07 UTC] ❌ ASIGNACIÓN ESTADO - Tipo de envío vacío, abortando
+[05-Mar-2026 18:58:07 UTC] 🔍 Full Fitment verificación #7264 - Tipo: '' -> Es full fitment: NO
+[05-Mar-2026 18:58:07 UTC] ⏭️ Full Fitment #7264 - NO es full fitment, saltando
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === GUARDANDO DATOS FINANCIEROS - Envío #7264 ===
+[05-Mar-2026 18:58:07 UTC] ⚠️ [SAVE_FINANCIAL] wpcargo_costo_envio NO está en POST
+[05-Mar-2026 18:58:07 UTC] 💰 [SAVE_FINANCIAL] === FIN GUARDADO DATOS FINANCIEROS ===
+[05-Mar-2026 18:58:07 UTC] 🔍 [SAVE_FINANCIAL] Verificación inmediata - Costo envío en DB: 
+[05-Mar-2026 18:58:07 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7264
+[05-Mar-2026 18:58:07 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: NO DEFINIDO
+[05-Mar-2026 18:58:07 UTC] ❌ AUTO-ASIGNACIÓN - No se pudo determinar el distrito o tipo de contenedor (tipo_envio=), abortando
+[05-Mar-2026 18:58:07 UTC] 💾 [DUAL_MOTORIZADO_SAVE] Guardando motorizado dual para envío #7264
+[05-Mar-2026 18:58:07 UTC]    📬 POST keys disponibles: action, record
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_recojo NO está en POST
+[05-Mar-2026 18:58:07 UTC]    ⚠️  wpcargo_motorizo_entrega NO está en POST
+[05-Mar-2026 18:58:07 UTC]    🔍 Estado actual del envío: ''
+[05-Mar-2026 18:58:07 UTC]    ⚠️  No hay wpcargo_motorizo_entrega para sincronizar
+[05-Mar-2026 18:58:07 UTC]    ✅ [DUAL_MOTORIZADO_SAVE] COMPLETADO
+[05-Mar-2026 18:58:07 UTC] 🔚 [FINAL_VERIFICATION] Envío #7264 | Tipo:  | Distrito:  | Costo FINAL: 
+[05-Mar-2026 18:58:08 UTC] ╔════════════════════════════════════════════════════════════╗
+[05-Mar-2026 18:58:08 UTC] ║ [MERC_CSV] STEP 1: NORMALIZAR TIPO DE ENVÍO - INICIO    ║
+[05-Mar-2026 18:58:08 UTC] ╚════════════════════════════════════════════════════════════╝
+[05-Mar-2026 18:58:08 UTC] 📦 Shipment ID: 7264
+[05-Mar-2026 18:58:08 UTC] 🔍 Tipo vacío en DB, buscando en CSV...
+[05-Mar-2026 18:58:08 UTC] ✅ Tipo encontrado en CSV (columna: wpcargo_service_id): agencia
+[05-Mar-2026 18:58:08 UTC] 🔤 Normalizado: "agencia" → "express"
+[05-Mar-2026 18:58:08 UTC] 💾 Metas guaradas - tipo_envio & wpcargo_type_of_shipment: express
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - meta_id=48198 post_id=7264 meta_key=wpcargo_status meta_value=RECEPCIONADO
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - Llamando a merc_maybe_create_penalty_for_shipment para post_id=7264
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_ENTRY - merc_maybe_create_penalty_for_shipment post_id=7264 post_type=wpcargo_shipment
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_STATE - post_id=7264 estado_raw=RECEPCIONADO
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_ABORT - post_id=7264 estado no es NO RECOGIDO, abortando
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=7264
+[05-Mar-2026 18:58:08 UTC] MERC_NO_RECIBIDO_DEBUG - post_id=7264 estado=RECEPCIONADO NO es NO RECIBIDO
+[05-Mar-2026 18:58:08 UTC] ✅ Estado establecido a RECEPCIONADO para tipo EXPRESS
+[05-Mar-2026 18:58:08 UTC] ✅ [MERC_CSV] STEP 1: NORMALIZAR - COMPLETADO ✓
+[05-Mar-2026 18:58:08 UTC] 
+[05-Mar-2026 18:58:08 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7264
+[05-Mar-2026 18:58:08 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: express
+[05-Mar-2026 18:58:08 UTC] 🎯 AUTO-ASIGNACIÓN - AGENCIA/FULL detectado, distrito destino: Santa Clara → contenedor de ENTREGA
+[05-Mar-2026 18:58:08 UTC]    ✅ Coincidencia por subcadena: 'SANTA CLARA' encontrado en 'RUTA ESTE 10 (HUAYCAN – GLORIA GRANDE – PARIACHI – SANTA CLARA – ATE – SALAMANCA – VITARTE – SANTA ANITA – HUACHIPA)'
+[05-Mar-2026 18:58:08 UTC] ✅ Auto-asignación - Envío #7264: shipment_container_entrega #3728 asignado
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - meta_id=48194 post_id=7264 meta_key=wpcargo_cobrado_por_motorizado meta_value=120
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 18:58:08 UTC]    ✅ Post type correcto: wpcargo_shipment
+[05-Mar-2026 18:58:08 UTC]    📦 Tipo de envío: express
+[05-Mar-2026 18:58:08 UTC]    ⏭️  Tipo de envío no es 'normal' (express), no asignar motorizado
+[05-Mar-2026 18:58:08 UTC] ═══════════════════════════════════════════════════════════════
+[05-Mar-2026 18:58:08 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 118 | Tipo: express | Ahora: 13:58
+[05-Mar-2026 18:58:08 UTC] Límites: SIN=12:30 | CON=13:00
+[05-Mar-2026 18:58:08 UTC] 📊 [CONTAR ENVÍOS] Cliente 118 | Tipo: express | Hoy: 2026-03-05 | Total: 28
+[05-Mar-2026 18:58:08 UTC] 📊 Envíos de tipo EXPRESS creados hoy: 28
+[05-Mar-2026 18:58:08 UTC] 📌 ESCENARIO 2: CON ENVÍOS (28)
+[05-Mar-2026 18:58:08 UTC]    Comparando: 13:58 vs 13:00
+[05-Mar-2026 18:58:08 UTC]    ⏰ YA PASÓ LA HORA LÍMITE (13:00)
+[05-Mar-2026 18:58:08 UTC]    💰 Estado financiero: balance_cero - Balance equilibrado
+[05-Mar-2026 18:58:08 UTC]    ✅ BALANCE CERO → PERMITIR CON FECHA MAÑANA
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - meta_id=48207 post_id=7264 meta_key=wpcargo_pickup_date_picker meta_value=06/03/2026
+[05-Mar-2026 18:58:08 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[05-Mar-2026 19:35:51 UTC] 
+════════════════════════════════════════════════════════════
+[05-Mar-2026 19:35:51 UTC] 🧹 [LIMPIEZA DIARIA] Eliminando merc_motorizo_recojo_default de todos los usuarios
+[05-Mar-2026 19:35:51 UTC] ════════════════════════════════════════════════════════════
+[05-Mar-2026 19:35:51 UTC] 📊 Usuarios con motorizado_recojo_default: 0
+[05-Mar-2026 19:35:51 UTC] 🔄 Total usuarios limpios: 0
+[05-Mar-2026 19:35:51 UTC] ✅ [LIMPIEZA DIARIA COMPLETADA] Próxima ejecución en 24 horas
+[05-Mar-2026 19:35:51 UTC] ════════════════════════════════════════════════════════════
+

@@ -1,0 +1,481 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WPCargo Import and Export Add-ons\n"
+"POT-Creation-Date: 2022-09-09 14:00+0800\n"
+"PO-Revision-Date: 2022-09-09 14:01+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: wpcargo-import-export-addons.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.min.js\n"
+
+#: includes/functions.php:126
+msgid "Pending"
+msgstr "En attente"
+
+#: includes/functions.php:134 includes/functions.php:316
+msgid "Shipper Name"
+msgstr "Nom de l'expéditeur"
+
+#: includes/functions.php:171
+msgid "There is no error, the file uploaded with success."
+msgstr "Il n’y a aucune erreur, le fichier a bien été téléversé."
+
+#: includes/functions.php:172
+msgid "The uploaded file exceeds the upload_max_filesize directive in php.ini."
+msgstr ""
+"Le fichier téléchargé excède la taille maximale de la directive "
+"upload_max_filesize dans php.ini"
+
+#: includes/functions.php:173
+msgid ""
+"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in "
+"the HTML form."
+msgstr ""
+"Le fichier téléchargé dépasse la directive MAX_FILE_SIZE spécifiée dans le "
+"formulaire HTML."
+
+#: includes/functions.php:174
+msgid "The uploaded file was only partially uploaded."
+msgstr "Le fichier téléchargé n'a été que partiellement téléchargé."
+
+#: includes/functions.php:175
+msgid "No file was uploaded."
+msgstr "Aucun fichier téléchargé."
+
+#: includes/functions.php:176
+msgid "Missing a temporary folder."
+msgstr "Il manque un répertoire temporaire."
+
+#: includes/functions.php:177
+msgid "Failed to write file to disk."
+msgstr "Impossible d'écrire le fichier sur le disque."
+
+#: includes/functions.php:178
+msgid "A PHP extension stopped the file upload."
+msgstr "Une extension de PHP a arrêté le téléversement du fichier."
+
+#: includes/functions.php:321
+msgid "Shipper Phone Number"
+msgstr "Numéro de téléphone expéditeur"
+
+#: includes/functions.php:326
+msgid "Shipper Address"
+msgstr "Adresse de l'expéditeur"
+
+#: includes/functions.php:331
+msgid "Shipper Email"
+msgstr "Expéditeur Email"
+
+#: includes/functions.php:336
+msgid "Receiver Name"
+msgstr "Nom du destinataire"
+
+#: includes/functions.php:341
+msgid "Receiver Phone Number"
+msgstr "Numéro de téléphone récepteur"
+
+#: includes/functions.php:346
+msgid "Receiver Address"
+msgstr "Adresse du destinataire"
+
+#: includes/functions.php:351
+msgid "Receiver Email"
+msgstr "Courriel du destinataire"
+
+#: includes/functions.php:356
+msgid "Agent Name"
+msgstr "Nom de l’agent"
+
+#: includes/functions.php:361
+msgid "Type of Shipment"
+msgstr "Type d'expédition"
+
+#: includes/functions.php:366
+msgid "Courier"
+msgstr "Courier"
+
+#: includes/functions.php:371
+msgid "Mode"
+msgstr "Mode"
+
+#: includes/functions.php:376
+msgid "Quantity"
+msgstr "Quantité"
+
+#: includes/functions.php:381
+msgid "Total Freight"
+msgstr "Total du fret"
+
+#: includes/functions.php:386
+msgid "Carrier Reference No."
+msgstr "Numéro de référence du transporteur."
+
+#: includes/functions.php:391
+msgid "Origin"
+msgstr "Origine :"
+
+#: includes/functions.php:396
+msgid "Pickup Date"
+msgstr "Date de retrait"
+
+#: includes/functions.php:401
+msgid "Comments"
+msgstr "Commentaires"
+
+#: includes/functions.php:406
+msgid "Weight"
+msgstr "Poids"
+
+#: includes/functions.php:411
+msgid "Packages"
+msgstr "Forfaits"
+
+#: includes/functions.php:416
+msgid "Product"
+msgstr "Produit"
+
+#: includes/functions.php:421
+msgid "Payment Mode"
+msgstr "Mode de paiement"
+
+#: includes/functions.php:426
+msgid "Carrier"
+msgstr "Transporteur"
+
+#: includes/functions.php:431
+msgid "Departure Time"
+msgstr "Heure de départ"
+
+#: includes/functions.php:436
+msgid "Destination"
+msgstr "Destination"
+
+#: includes/functions.php:441
+msgid "Pickup Time"
+msgstr "Heure de retrait"
+
+#: includes/functions.php:446
+msgid "Expected Delivery Date"
+msgstr "Date de livraison souhaitée"
+
+#: includes/functions.php:453
+msgid "Package Details"
+msgstr "Détails du forfait"
+
+#: includes/functions.php:458
+msgid "Shipment History"
+msgstr "Historique des expéditions"
+
+#: includes/functions.php:463
+msgid "Shipment Status"
+msgstr "Etat de l'expédition"
+
+#: includes/functions.php:490
+msgid "ShipmentID"
+msgstr "ShipmentID (en)"
+
+#: includes/functions.php:495
+msgid "Shipment Title"
+msgstr "Titre de l’expédition"
+
+#: includes/functions.php:500 includes/lang.php:48
+msgid "Shipment Category ID"
+msgstr "ID de catégorie d’expédition"
+
+#: includes/functions.php:505 includes/lang.php:45
+msgid "Assigned Client ID"
+msgstr "ID client attribué"
+
+#: includes/hooks.php:44 includes/hooks.php:45 includes/hooks.php:51
+#: includes/hooks.php:52 templates/settings.tpl.php:1
+msgid "Import/Export Settings"
+msgstr "Paramètres Importer/Exporter"
+
+#: includes/hooks.php:62 includes/lang.php:6
+msgid "Import/Export"
+msgstr "Importer/Exporter"
+
+#: includes/hooks.php:68
+msgid "Settings"
+msgstr "Paramètres"
+
+#: includes/hooks.php:69
+msgid "License"
+msgstr "Licence"
+
+#: includes/hooks.php:81 templates/import.tpl.php:49
+msgid "Import Shipment"
+msgstr "Expédition à l’importation"
+
+#: includes/hooks.php:82 templates/export.tpl.php:87
+msgid "Export Shipment"
+msgstr "Expédition à l’exportation"
+
+#: includes/hooks.php:181
+msgid "Category"
+msgstr "Catégorie"
+
+#: includes/hooks.php:183
+msgid "-- Category --"
+msgstr "-- Catégorie --"
+
+#: includes/hooks.php:197
+msgid "Tag"
+msgstr "Balise"
+
+#: includes/hooks.php:199
+msgid "-- Tag --"
+msgstr "-- Balise --"
+
+#: includes/lang.php:9
+msgid "Permission denied!"
+msgstr "Permission refusée!"
+
+#: includes/lang.php:12
+msgid "No record found."
+msgstr "Aucun enregistrement trouvé."
+
+#: includes/lang.php:15
+msgid "Processing request"
+msgstr "Traitement de la demande"
+
+#: includes/lang.php:18
+msgid "Processing data for export completed. Please wait to downloading file."
+msgstr ""
+"Traitement des données pour l’exportation terminé. Veuillez attendre le "
+"téléchargement du fichier."
+
+#: includes/lang.php:21
+msgid "Processing data"
+msgstr "Données en traitement"
+
+#: includes/lang.php:24
+msgid "This process will take a while to complete due to number of records"
+msgstr ""
+"Ce processus prendra un certain temps en raison du nombre d’enregistrements"
+
+#: includes/lang.php:28 includes/lang.php:30
+#, php-format
+msgid "Preparing %d record(s)"
+msgstr "Préparation %d(s) dossier(s)"
+
+#: includes/lang.php:33
+msgid "Import data completed"
+msgstr "Importation des données terminée"
+
+#: includes/lang.php:36
+msgid "Please wait to downloading file."
+msgstr "Veuillez attendre le téléchargement du fichier."
+
+#: includes/lang.php:39
+msgid "Uploading file."
+msgstr "Téléchargement du fichier."
+
+#: includes/lang.php:42
+msgid "Date range required."
+msgstr "Plage de dates requise."
+
+#: includes/lang.php:51
+msgid "Shipment Number"
+msgstr "Numéro d’expédition"
+
+#: includes/lang.php:54
+msgid "File type is not allowed, required .CSV file format."
+msgstr ""
+"Le type de fichier n’est pas autorisé, obligatoire . Format de fichier CSV."
+
+#: includes/lang.php:57
+msgid ""
+"Error file header is required for data mapping. Please download import "
+"template."
+msgstr ""
+"L’en-tête du fichier d’erreur est requis pour le mappage des données. "
+"Veuillez télécharger le modèle d’importation."
+
+#: includes/lang.php:60
+msgid "Error file data to process, please check file header"
+msgstr ""
+"Données du fichier d’erreur à traiter, veuillez vérifier l’en-tête du fichier"
+
+#: includes/lang.php:63
+msgid "Shipment number"
+msgstr "Numéro d’expédition"
+
+#: includes/lang.php:63
+msgid "successfull saved"
+msgstr "enregistré avec succès"
+
+#: includes/lang.php:66
+#, php-format
+msgid ""
+"Error:  No Import/Export page found for WPCargo Frontend Manager dashbaord. "
+"Please create page with a shortcode %s and set the template to WPCargo "
+"Dashbaord"
+msgstr ""
+"Erreur : Aucune page d’importation/exportation trouvée pour WPCargo Frontend "
+"Manager dashbaord. Veuillez créer une page avec un shortcode %s et définir "
+"le modèle sur WPCargo Dashbaord"
+
+#: includes/lang.php:69
+msgid "WPCargo Import and Export Add-ons License key is required."
+msgstr "La clé de licence WPCargo Import and Export Add-ons est requise."
+
+#: includes/lang.php:69
+msgid "Activate License Key"
+msgstr "Activer la clé de licence"
+
+#: templates/export.tpl.php:11
+msgid "Registered Shipper"
+msgstr "Expéditeur enregistré"
+
+#: templates/export.tpl.php:13
+msgid "-- Registered Shipper --"
+msgstr "-- Expéditeur enregistré --"
+
+#: templates/export.tpl.php:22
+msgid "Status"
+msgstr "Statut"
+
+#: templates/export.tpl.php:24
+msgid "-- Status --"
+msgstr "-- Statut --"
+
+#: templates/export.tpl.php:35 templates/export.tpl.php:41
+msgid "YYYY-MM-DD"
+msgstr "YYYY-MM-DD"
+
+#: templates/export.tpl.php:36
+msgid "Start"
+msgstr "Commencer"
+
+#: templates/export.tpl.php:42
+msgid "End"
+msgstr "Fin"
+
+#: templates/export.tpl.php:52
+msgid "Available Fields"
+msgstr "Champs disponibles"
+
+#: templates/export.tpl.php:72
+msgid "Selected Fields"
+msgstr "Champs sélectionnés"
+
+#: templates/import.tpl.php:30
+msgid "Import CSV File"
+msgstr "Importer un fichier au format CSV"
+
+#: templates/import.tpl.php:52
+msgid "Instructions on how to Import Shipment "
+msgstr "Instructions sur la façon d’importer l’expédition "
+
+#: templates/import.tpl.php:54
+msgid "Download CSV template"
+msgstr "Télécharger le modèle CSV"
+
+#: templates/import.tpl.php:54
+msgid "as template for Importing data."
+msgstr "comme modèle pour l’importation de données."
+
+#: templates/import.tpl.php:55
+msgid ""
+"Delete Column(s) that are not needed, make sure no empty header column this "
+"cause data mapping error."
+msgstr ""
+"Supprimez les colonnes qui ne sont pas nécessaires, assurez-vous qu’aucune "
+"colonne d’en-tête vide ne provoque une erreur de mappage de données."
+
+#: templates/import.tpl.php:56
+msgid "Add Data to each Cell."
+msgstr "Ajoutez des données à chaque cellule."
+
+#: templates/import.tpl.php:57
+msgid "Import CSV template."
+msgstr "Importer le modèle CSV."
+
+#: templates/navigation.php:3
+msgid "Export"
+msgstr "Exporter"
+
+#: templates/navigation.php:6
+msgid "Import"
+msgstr "Importer"
+
+#: templates/restricted.tpl.php:4
+msgid "Sorry your are not allowed to access this page!"
+msgstr "Désolé, vous n’êtes pas autorisé à accéder à cette page!"
+
+#: templates/restricted.tpl.php:5
+msgid "Please contact administrator for your permission."
+msgstr "Veuillez contacter l’administrateur pour obtenir votre autorisation."
+
+#: templates/settings.tpl.php:9
+msgid "Email Notification upon Import?"
+msgstr "Notification par e-mail lors de l’importation?"
+
+#: templates/settings.tpl.php:12
+msgid "Note: This will enable email notification upon importing data."
+msgstr ""
+"Remarque : Cela activera la notification par e-mail lors de l’importation "
+"des données."
+
+#: templates/settings.tpl.php:16
+msgid "Disabled in Frontend Manager Dashboard"
+msgstr "Désactivé dans frontend manager dashboard"
+
+#: templates/settings.tpl.php:19
+msgid ""
+"Note: This will disable the Import/Export menu in the frontend manager "
+"dashboard."
+msgstr ""
+"Remarque : Cela désactivera le menu Importer/Exporter dans le tableau de "
+"bord du gestionnaire frontal."
+
+#: templates/settings.tpl.php:23
+msgid "Restrict user roles"
+msgstr "Restreindre les rôles d’utilisateur"
+
+#: templates/settings.tpl.php:34
+msgid ""
+"Note: This will restrict selected roles to access the Import/Export page in "
+"the frontend manager dashboard."
+msgstr ""
+"Remarque : Cela limitera l’accès aux rôles sélectionnés pour accéder à la "
+"page Importer/Exporter dans le tableau de bord du gestionnaire frontal."
+
+#: templates/settings.tpl.php:38
+msgid "Save Settings"
+msgstr "Enregistrer les paramètres"
+
+#. Plugin Name of the plugin/theme
+msgid "WPCargo Import and Export Add-ons"
+msgstr "Add-ons d’importation et d’exportation WPCargo"
+
+#. Plugin URI of the plugin/theme
+#. Author URI of the plugin/theme
+msgid "http://www.wpcargo.com"
+msgstr "http://www.wpcargo.com"
+
+#. Description of the plugin/theme
+msgid ""
+"Allows you to Import/Export your shipments or to make backups. Requires "
+"WPCargo plugin to work."
+msgstr ""
+"Vous permet d’importer/exporter vos envois ou de faire des sauvegardes. "
+"Nécessite plugin WPCargo pour fonctionner."
+
+#. Author of the plugin/theme
+msgid "<a href=\"http://wptaskforce.com/\">WPTaskforce</a>"
+msgstr "<a href=\"http://wptaskforce.com/\">WPTaskForce</a>"

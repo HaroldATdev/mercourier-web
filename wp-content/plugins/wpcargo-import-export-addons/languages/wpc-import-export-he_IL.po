@@ -1,0 +1,468 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WPCargo Import and Export Add-ons\n"
+"POT-Creation-Date: 2022-09-09 14:01+0800\n"
+"PO-Revision-Date: 2022-09-09 14:01+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: he_IL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? "
+"2 : 3);\n"
+"X-Generator: Poedit 3.1.1\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: wpcargo-import-export-addons.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.min.js\n"
+
+#: includes/functions.php:126
+msgid "Pending"
+msgstr "בהמתנה"
+
+#: includes/functions.php:134 includes/functions.php:316
+msgid "Shipper Name"
+msgstr "שם השולח"
+
+#: includes/functions.php:171
+msgid "There is no error, the file uploaded with success."
+msgstr "אין שגיאה, הקובץ שהועלה בהצלחה."
+
+#: includes/functions.php:172
+msgid "The uploaded file exceeds the upload_max_filesize directive in php.ini."
+msgstr "הקובץ שהועלה עולה על ההנחיה upload_max_filesize ב- php.ini."
+
+#: includes/functions.php:173
+msgid ""
+"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in "
+"the HTML form."
+msgstr "הקובץ שהועלה עולה על ההוראה MAX_FILE_SIZE שצוינה בטופס HTML."
+
+#: includes/functions.php:174
+msgid "The uploaded file was only partially uploaded."
+msgstr "הקובץ לא עלה עד הסוף."
+
+#: includes/functions.php:175
+msgid "No file was uploaded."
+msgstr "לא הועלה קובץ."
+
+#: includes/functions.php:176
+msgid "Missing a temporary folder."
+msgstr "חסר הרשאות."
+
+#: includes/functions.php:177
+msgid "Failed to write file to disk."
+msgstr "נכשלתי בכתיבת קובץ לדיסק."
+
+#: includes/functions.php:178
+msgid "A PHP extension stopped the file upload."
+msgstr "סיומת PHP עצרה את העלאת הקובץ."
+
+#: includes/functions.php:321
+msgid "Shipper Phone Number"
+msgstr "מספר טלפון של שולח"
+
+#: includes/functions.php:326
+msgid "Shipper Address"
+msgstr "כתובת השולח"
+
+#: includes/functions.php:331
+msgid "Shipper Email"
+msgstr "דוא ל השולח"
+
+#: includes/functions.php:336
+msgid "Receiver Name"
+msgstr "שם מקלט"
+
+#: includes/functions.php:341
+msgid "Receiver Phone Number"
+msgstr "מספר טלפון של מקלט"
+
+#: includes/functions.php:346
+msgid "Receiver Address"
+msgstr "כתובת מגורים של המקבל"
+
+#: includes/functions.php:351
+msgid "Receiver Email"
+msgstr "מקלט דוא ל"
+
+#: includes/functions.php:356
+msgid "Agent Name"
+msgstr "שם"
+
+#: includes/functions.php:361
+msgid "Type of Shipment"
+msgstr "סוג המשלוח"
+
+#: includes/functions.php:366
+msgid "Courier"
+msgstr "שליח"
+
+#: includes/functions.php:371
+msgid "Mode"
+msgstr "מצב"
+
+#: includes/functions.php:376
+msgid "Quantity"
+msgstr "כמות"
+
+#: includes/functions.php:381
+msgid "Total Freight"
+msgstr "סה כ הובלה"
+
+#: includes/functions.php:386
+msgid "Carrier Reference No."
+msgstr "הפניית מנשא לא."
+
+#: includes/functions.php:391
+msgid "Origin"
+msgstr "מקור המידע"
+
+#: includes/functions.php:396
+msgid "Pickup Date"
+msgstr "תאריך"
+
+#: includes/functions.php:401
+msgid "Comments"
+msgstr "תגובות"
+
+#: includes/functions.php:406
+msgid "Weight"
+msgstr "משקל"
+
+#: includes/functions.php:411
+msgid "Packages"
+msgstr "חבילות"
+
+#: includes/functions.php:416
+msgid "Product"
+msgstr "מוצר"
+
+#: includes/functions.php:421
+msgid "Payment Mode"
+msgstr "מצב תשלום"
+
+#: includes/functions.php:426
+msgid "Carrier"
+msgstr "נושא"
+
+#: includes/functions.php:431
+msgid "Departure Time"
+msgstr "זמן ההמראה"
+
+#: includes/functions.php:436
+msgid "Destination"
+msgstr "יעד"
+
+#: includes/functions.php:441
+msgid "Pickup Time"
+msgstr "זמן האיסוף"
+
+#: includes/functions.php:446
+msgid "Expected Delivery Date"
+msgstr "תאריך מסירה צפוי"
+
+#: includes/functions.php:453
+msgid "Package Details"
+msgstr "פרטי החבילה:"
+
+#: includes/functions.php:458
+msgid "Shipment History"
+msgstr "היסטוריית משלוחים"
+
+#: includes/functions.php:463
+msgid "Shipment Status"
+msgstr "מצב משלוח"
+
+#: includes/functions.php:490
+msgid "ShipmentID"
+msgstr "שיפנטיד"
+
+#: includes/functions.php:495
+msgid "Shipment Title"
+msgstr "כותרת משלוח"
+
+#: includes/functions.php:500 includes/lang.php:48
+msgid "Shipment Category ID"
+msgstr "מזהה קטגוריית משלוח"
+
+#: includes/functions.php:505 includes/lang.php:45
+msgid "Assigned Client ID"
+msgstr "מזהה לקוח מוקצה"
+
+#: includes/hooks.php:44 includes/hooks.php:45 includes/hooks.php:51
+#: includes/hooks.php:52 templates/settings.tpl.php:1
+msgid "Import/Export Settings"
+msgstr "הגדרות ייצוא/ייבוא"
+
+#: includes/hooks.php:62 includes/lang.php:6
+msgid "Import/Export"
+msgstr "ייבוא/ייצוא"
+
+#: includes/hooks.php:68
+msgid "Settings"
+msgstr "הגדרות"
+
+#: includes/hooks.php:69
+msgid "License"
+msgstr "רישיון"
+
+#: includes/hooks.php:81 templates/import.tpl.php:49
+msgid "Import Shipment"
+msgstr "ייבוא משלוח"
+
+#: includes/hooks.php:82 templates/export.tpl.php:87
+msgid "Export Shipment"
+msgstr "ייצוא משלוח"
+
+#: includes/hooks.php:181
+msgid "Category"
+msgstr "קטגוריה"
+
+#: includes/hooks.php:183
+msgid "-- Category --"
+msgstr "-- קטגוריה --"
+
+#: includes/hooks.php:197
+msgid "Tag"
+msgstr "תג"
+
+#: includes/hooks.php:199
+msgid "-- Tag --"
+msgstr "-- תג --"
+
+#: includes/lang.php:9
+msgid "Permission denied!"
+msgstr "ההרשאה נדחתה!"
+
+#: includes/lang.php:12
+msgid "No record found."
+msgstr "לא נמצאה רשומה."
+
+#: includes/lang.php:15
+msgid "Processing request"
+msgstr "עיבוד בקשה"
+
+#: includes/lang.php:18
+msgid "Processing data for export completed. Please wait to downloading file."
+msgstr "עיבוד נתונים לייצוא הושלם. אנא המתן להורדת הקובץ."
+
+#: includes/lang.php:21
+msgid "Processing data"
+msgstr "עיבוד נתונים"
+
+#: includes/lang.php:24
+msgid "This process will take a while to complete due to number of records"
+msgstr "תהליך זה ייקח זמן מה להשלים בשל מספר הרשומות"
+
+#: includes/lang.php:28 includes/lang.php:30
+#, php-format
+msgid "Preparing %d record(s)"
+msgstr "הכנת רשומות %d"
+
+#: includes/lang.php:33
+msgid "Import data completed"
+msgstr "ייבוא נתונים שהושלמו"
+
+#: includes/lang.php:36
+msgid "Please wait to downloading file."
+msgstr "אנא המתן להורדת הקובץ."
+
+#: includes/lang.php:39
+msgid "Uploading file."
+msgstr "העלאת קובץ."
+
+#: includes/lang.php:42
+msgid "Date range required."
+msgstr "נדרש טווח תאריכים."
+
+#: includes/lang.php:51
+msgid "Shipment Number"
+msgstr "מספר משלוח"
+
+#: includes/lang.php:54
+msgid "File type is not allowed, required .CSV file format."
+msgstr "סוג הקובץ אינו מותר, נדרש . תבנית קובץ CSV."
+
+#: includes/lang.php:57
+msgid ""
+"Error file header is required for data mapping. Please download import "
+"template."
+msgstr "כותרת קובץ שגיאה נדרשת למיפוי נתונים. אנא הורד את תבנית הייבוא."
+
+#: includes/lang.php:60
+msgid "Error file data to process, please check file header"
+msgstr "נתוני קובץ שגיאה לעיבוד, אנא בדוק את כותרת הקובץ"
+
+#: includes/lang.php:63
+msgid "Shipment number"
+msgstr "מספר משלוח"
+
+#: includes/lang.php:63
+msgid "successfull saved"
+msgstr "שמירה מוצלחת"
+
+#: includes/lang.php:66
+#, php-format
+msgid ""
+"Error:  No Import/Export page found for WPCargo Frontend Manager dashbaord. "
+"Please create page with a shortcode %s and set the template to WPCargo "
+"Dashbaord"
+msgstr ""
+"שגיאה: לא נמצא דף ייבוא/ייצוא עבור מנהל WPCargo Frontend dashbaord. אנא צור "
+"דף עם קוד קצר %s והגדר את התבנית ל- WPCargo Dashbaord"
+
+#: includes/lang.php:69
+msgid "WPCargo Import and Export Add-ons License key is required."
+msgstr "נדרש מפתח רישיון לייבוא וייצוא של WPCargo לתוספות."
+
+#: includes/lang.php:69
+msgid "Activate License Key"
+msgstr "הפעל מפתח רשיון"
+
+#: templates/export.tpl.php:11
+msgid "Registered Shipper"
+msgstr "שולח רשום"
+
+#: templates/export.tpl.php:13
+msgid "-- Registered Shipper --"
+msgstr "--מוביל רשום-"
+
+#: templates/export.tpl.php:22
+msgid "Status"
+msgstr "סטטוס"
+
+#: templates/export.tpl.php:24
+msgid "-- Status --"
+msgstr "-- סטאטוס --"
+
+#: templates/export.tpl.php:35 templates/export.tpl.php:41
+msgid "YYYY-MM-DD"
+msgstr "יום-חודש-שנה"
+
+#: templates/export.tpl.php:36
+msgid "Start"
+msgstr "התחל"
+
+#: templates/export.tpl.php:42
+msgid "End"
+msgstr "סיום"
+
+#: templates/export.tpl.php:52
+msgid "Available Fields"
+msgstr "שדות זמינים"
+
+#: templates/export.tpl.php:72
+msgid "Selected Fields"
+msgstr "שדות נבחרים"
+
+#: templates/import.tpl.php:30
+msgid "Import CSV File"
+msgstr "ייבוא אירועים (קובץ csv)"
+
+#: templates/import.tpl.php:52
+msgid "Instructions on how to Import Shipment "
+msgstr "הוראות כיצד לייבא משלוח "
+
+#: templates/import.tpl.php:54
+msgid "Download CSV template"
+msgstr "הורד תבנית CSV"
+
+#: templates/import.tpl.php:54
+msgid "as template for Importing data."
+msgstr "כתבנית לייבוא נתונים."
+
+#: templates/import.tpl.php:55
+msgid ""
+"Delete Column(s) that are not needed, make sure no empty header column this "
+"cause data mapping error."
+msgstr ""
+"מחק עמודות שאין צורך בהן, ודא שאין עמודת כותרת ריקה שגורמת לשגיית מיפוי "
+"נתונים."
+
+#: templates/import.tpl.php:56
+msgid "Add Data to each Cell."
+msgstr "הוסף נתונים לכל תא."
+
+#: templates/import.tpl.php:57
+msgid "Import CSV template."
+msgstr "יבא תבנית CSV."
+
+#: templates/navigation.php:3
+msgid "Export"
+msgstr "ייצא"
+
+#: templates/navigation.php:6
+msgid "Import"
+msgstr "ייבוא"
+
+#: templates/restricted.tpl.php:4
+msgid "Sorry your are not allowed to access this page!"
+msgstr "מצטער שאתה לא מורשה לגשת לדף זה!"
+
+#: templates/restricted.tpl.php:5
+msgid "Please contact administrator for your permission."
+msgstr "אנא צור קשר עם מנהל המערכת לקבלת רשותך."
+
+#: templates/settings.tpl.php:9
+msgid "Email Notification upon Import?"
+msgstr "הודעת דוא\"ל בעת הייבוא?"
+
+#: templates/settings.tpl.php:12
+msgid "Note: This will enable email notification upon importing data."
+msgstr "הערה: פעולה זו תאפשר הודעה בדואר אלקטרוני בעת ייבוא נתונים."
+
+#: templates/settings.tpl.php:16
+msgid "Disabled in Frontend Manager Dashboard"
+msgstr "מושבת בלוח המחוונים של מנהל Frontend"
+
+#: templates/settings.tpl.php:19
+msgid ""
+"Note: This will disable the Import/Export menu in the frontend manager "
+"dashboard."
+msgstr ""
+"הערה: פעולה זו תהפוך את תפריט הייבוא/ייצוא ללא זמין בלוח המחוונים של מנהל "
+"frontend."
+
+#: templates/settings.tpl.php:23
+msgid "Restrict user roles"
+msgstr "הגבלת תפקידי משתמש"
+
+#: templates/settings.tpl.php:34
+msgid ""
+"Note: This will restrict selected roles to access the Import/Export page in "
+"the frontend manager dashboard."
+msgstr ""
+"הערה: פעולה זו תגביל תפקידים נבחרים כדי לגשת לדף ייבוא/ייצוא בלוח המחוונים "
+"של מנהל frontend."
+
+#: templates/settings.tpl.php:38
+msgid "Save Settings"
+msgstr "שמור שינויים"
+
+#. Plugin Name of the plugin/theme
+msgid "WPCargo Import and Export Add-ons"
+msgstr "WPCargo ייבוא וייצוא הרחבות"
+
+#. Plugin URI of the plugin/theme
+#. Author URI of the plugin/theme
+msgid "http://www.wpcargo.com"
+msgstr "http://www.wpcargo.com"
+
+#. Description of the plugin/theme
+msgid ""
+"Allows you to Import/Export your shipments or to make backups. Requires "
+"WPCargo plugin to work."
+msgstr ""
+"מאפשר לך לייבא/לייצא את המשלוחים שלך או לבצע גיבויים. דורש תוסף WPCargo "
+"לעבודה."
+
+#. Author of the plugin/theme
+msgid "<a href=\"http://wptaskforce.com/\">WPTaskforce</a>"
+msgstr "<a href=\"http://wptaskforce.com/\">כוח משימות</a>"

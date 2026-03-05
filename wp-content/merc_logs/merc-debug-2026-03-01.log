@@ -1,0 +1,1346 @@
+[01-Mar-2026 00:01:17 UTC] MERC_DEBUG_META_UPDATE - meta_id=29791 post_id=3127 meta_key=_elementor_element_cache meta_value={"timeout":1772391677,"value":{"content":"<div class=\"elementor-element elementor-element-adf4afe e-flex e-con-boxed e-con e-parent\" data-id=\"adf4afe\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;classic&quot;}\">\n\t\t\t\t\t<div class=\"e-con-inner\">\n\t\t\t\t<div class=\"elementor-element elementor-element-48eccec elementor-invisible elementor-widget elementor-widget-heading\" data-id=\"48eccec\" data-element_type=\"widget\" data-settings=\"{&quot;_animation&quot;:&quot;fadeIn&quot;}\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\"><b>NOSOTROS<\/b><\/h2>\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-ab0e004 e-con-full e-flex elementor-invisible e-con e-child\" data-id=\"ab0e004\" data-element_type=\"container\" data-settings=\"{&quot;animation&quot;:&quot;fadeIn&quot;}\">\n\t\t<div class=\"elementor-element elementor-element-05910b4 e-con-full e-flex e-con e-child\" data-id=\"05910b4\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;gradient&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-6aa1ea7 elementor-widget__width-initial elementor-widget-tablet__width-initial elementor-widget-mobile__width-initial elementor-widget elementor-widget-image\" data-id=\"6aa1ea7\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/81-1.png\" class=\"attachment-full size-full wp-image-4565\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/81-1.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/81-1-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/81-1-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/81-1-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-497819d e-con-full e-flex e-con e-child\" data-id=\"497819d\" data-element_type=\"container\">\n\t\t\t\t<div class=\"elementor-element elementor-element-07e7c94 elementor-widget elementor-widget-heading\" data-id=\"07e7c94\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">CONOCE NUESTRA MISI\u00d3N:<\/h2>\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-db91ee2 e-con-full e-flex e-con e-child\" data-id=\"db91ee2\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImIzYTA2YTYiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD48Yj48aT5OdWVzdHJhIG1pc2lcdTAwZjNuIGVzIGJyaW5kYXIgdHJhbnF1aWxpZGFkIHkgY29uZmlhbnphPFwvaT48XC9iPiBhYnNvbHV0YSBhIHRyYXZcdTAwZTlzIGRlIHVuIHNlcnZpY2lvIGRlIFx1MDBmYWx0aW1hIG1pbGxhIGV4Y2VwY2lvbmFsLiBFbiBNZXJjb3VyaWVyLCBub3MgZXNmb3J6YW1vcyBkaWFyaWFtZW50ZSBwb3Igc2VyIGVsIHB1ZW50ZSBxdWUgY29uZWN0YSBtYXJjYXMgY29uIHBlcnNvbmFzLCBnYXJhbnRpemFuZG8gcXVlIGNhZGEgcGFxdWV0ZSBsbGVndWUgYSBzdSBkZXN0aW5vIGNvbiBlbCBjdWlkYWRvLCA8Yj48aT5sYSBpbnRlZ3JpZGFkIHkgbGEgcHVudHVhbGlkYWQgcmlndXJvc2EgcXVlIHR1IG5lZ29jaW8geSB0dXM8XC9pPiBjbGllbnRlcyBtZXJlY2VuLjxcL2I+IE5vIHNvbG8gZW50cmVnYW1vcyBwcm9kdWN0b3M7IDxiPjxpPnRyYW5zcG9ydGFtb3MgZWwgZXNmdWVyem8gZGUgdHUgdHJhYmFqby48XC9pPjxcL2I+PFwvcD4iLCJfX2dsb2JhbHNfXyI6eyJ0ZXh0X2NvbG9yIjoiZ2xvYmFsc1wvY29sb3JzP2lkPWJsb2Nrc3lfcGFsZXR0ZV84In0sImNvbHVtbl9nYXAiOnsidW5pdCI6InB4Iiwic2l6ZSI6MCwic2l6ZXMiOltdfSwicGFyYWdyYXBoX3NwYWNpbmciOnsidW5pdCI6InB4Iiwic2l6ZSI6MCwic2l6ZXMiOltdfSwiYWxpZ25fdGFibGV0IjoiY2VudGVyIiwidHlwb2dyYXBoeV90eXBvZ3JhcGh5IjoiY3VzdG9tIiwidHlwb2dyYXBoeV9mb250X3NpemVfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOjIwLCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2ZvbnRfZmFtaWx5IjoiU2FucyBTZXJpZiJ9LCJlbGVtZW50cyI6W10sIndpZGdldFR5cGUiOiJ0ZXh0LWVkaXRvciJ9\"]\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-ade00b0 e-con-full e-flex e-con e-child\" data-id=\"ade00b0\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;gradient&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-02df707 elementor-widget__width-initial elementor-widget-tablet__width-inherit elementor-widget elementor-widget-image\" data-id=\"02df707\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/121-1.png\" class=\"attachment-full size-full wp-image-4569\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/121-1.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/121-1-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/121-1-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/121-1-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-62745e1 e-con-full e-flex e-con e-child\" data-id=\"62745e1\" data-element_type=\"container\">\n\t\t\t\t<div class=\"elementor-element elementor-element-613cec0 elementor-widget elementor-widget-heading\" data-id=\"613cec0\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">OBSERVA NUESTRA VISI\u00d3N:<\/h2>\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-22441c7 e-con-full e-flex e-con e-child\" data-id=\"22441c7\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImFiMGM1YTMiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiIiLCJfX2dsb2JhbHNfXyI6eyJ0ZXh0X2NvbG9yIjoiZ2xvYmFsc1wvY29sb3JzP2lkPWJsb2Nrc3lfcGFsZXR0ZV84In19LCJlbGVtZW50cyI6W10sIndpZGdldFR5cGUiOiJ0ZXh0LWVkaXRvciJ9\"][elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImI3Yzc5YTMiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD48Yj48aT5OdWVzdHJhIHZpc2lcdTAwZjNuIGVzIGNvbnNvbGlkYXJub3MgY29tbyBlbCByZWZlcmVudGUgaW5kaXNjdXRpYmxlIGRlbCBzZXJ2aWNpbyBsb2dcdTAwZWRzdGljbyBlbiBsYSByZWdpXHUwMGYzbjxcL2k+PFwvYj4sIHRyYW5zZm9ybWFuZG8gZWwgZXN0XHUwMGUxbmRhciBkZSBsYSBcdTAwZmFsdGltYSBtaWxsYS4gQXNwaXJhbW9zIGEgc2VyIGVsIGFsaWFkbyBlc3RyYXRcdTAwZTlnaWNvIHF1ZSBpbXB1bHNlIGVsIGNyZWNpbWllbnRvIGluZmluaXRvIGRlIG51ZXN0cm9zIGNsaWVudGVzLCByZWRlZmluaWVuZG8gbGEgbG9nXHUwMGVkc3RpY2EgYSB0cmF2XHUwMGU5cyBkZSBsYSBpbm5vdmFjaVx1MDBmM24gY29uc3RhbnRlIHkgdW5hIGNvbmV4aVx1MDBmM24gaHVtYW5hIHF1ZSBubyBjb25vY2UgZnJvbnRlcmFzLjxcL3A+IiwiX19nbG9iYWxzX18iOnsidGV4dF9jb2xvciI6Imdsb2JhbHNcL2NvbG9ycz9pZD1ibG9ja3N5X3BhbGV0dGVfOCJ9LCJjb2x1bW5fZ2FwIjp7InVuaXQiOiJweCIsInNpemUiOjAsInNpemVzIjpbXX0sInBhcmFncmFwaF9zcGFjaW5nIjp7InVuaXQiOiJweCIsInNpemUiOjAsInNpemVzIjpbXX0sImFsaWduX3RhYmxldCI6ImNlbnRlciIsInR5cG9ncmFwaHlfdHlwb2dyYXBoeSI6ImN1c3RvbSIsInR5cG9ncmFwaHlfZm9udF9zaXplX3RhYmxldCI6eyJ1bml0IjoicHgiLCJzaXplIjoyMCwic2l6ZXMiOltdfSwidHlwb2dyYXBoeV9mb250X2ZhbWlseSI6IlNhbnMgU2VyaWYifSwiZWxlbWVudHMiOltdLCJ3aWRnZXRUeXBlIjoidGV4dC1lZGl0b3IifQ==\"]\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-a685e9b e-con-full e-flex e-con e-child\" data-id=\"a685e9b\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;gradient&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-141e23c elementor-widget__width-initial elementor-widget-tablet__width-inherit elementor-widget elementor-widget-image\" data-id=\"141e23c\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/71-1.png\" class=\"attachment-full size-full wp-image-4564\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/71-1.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/71-1-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/71-1-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/71-1-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-0025130 e-con-full e-flex e-con e-child\" data-id=\"0025130\" data-element_type=\"container\">\n\t\t\t\t<div class=\"elementor-element elementor-element-3c6e5f5 elementor-widget elementor-widget-heading\" data-id=\"3c6e5f5\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">\u00bfPOR QU\u00c9 ELEGIR MERCOURIER?<\/h2>\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-ecbffe0 e-con-full e-flex e-con e-child\" data-id=\"ecbffe0\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6IjlmZWY2ZTQiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiIiLCJfX2dsb2JhbHNfXyI6eyJ0ZXh0X2NvbG9yIjoiZ2xvYmFsc1wvY29sb3JzP2lkPWJsb2Nrc3lfcGFsZXR0ZV84In19LCJlbGVtZW50cyI6W10sIndpZGdldFR5cGUiOiJ0ZXh0LWVkaXRvciJ9\"][elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImFhMzBjNzQiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5Ob3MgZGlmZXJlbmNpYW1vcyBwb3Igb2ZyZWNlciB1biBlY29zaXN0ZW1hIGxvZ1x1MDBlZHN0aWNvIGNvbXBsZXRvIHF1ZSBzZSBhZGFwdGEgYSBjYWRhIG5lY2VzaWRhZDo8XC9wPjx1bD48bGkgc3R5bGU9XCJtYXJnaW4tYmxvY2stZW5kOiAyNHB4O1wiIGRhdGEtcGF0aC10by1ub2RlPVwiOSwwLDBcIj48c3BhbiBzdHlsZT1cImZvbnQtd2VpZ2h0OiBib2xkO1wiIGRhdGEtcGF0aC10by1ub2RlPVwiOSwwLDBcIiBkYXRhLWluZGV4LWluLW5vZGU9XCIwXCI+VmVyc2F0aWxpZGFkIFRvdGFsOjxcL3NwYW4+XHUwMGEwRGVzZGUgc2VydmljaW9zIHByb2dyYW1hZG9zIDxlbT48c3Ryb25nPihNRVJDIEVtcHJlbmRlZG9yIHkgQWdlbmNpYSk8XC9zdHJvbmc+PFwvZW0+IGhhc3RhIGVudHJlZ2FzIGlubWVkaWF0YXMgPGVtPjxzdHJvbmc+KE1FUkMgRXhwcmVzcyk8XC9zdHJvbmc+PFwvZW0+IHkgc29sdWNpb25lcyBkZSBhbG1hY2VuYW1pZW50byBpbnRlbGlnZW50ZSA8ZW0+PHN0cm9uZz4oTUVSQyBGdWxmaWxsbWVudCkuPFwvc3Ryb25nPjxcL2VtPjxcL2xpPjxsaSBzdHlsZT1cIm1hcmdpbi1ibG9jay1lbmQ6IDI0cHg7XCIgZGF0YS1wYXRoLXRvLW5vZGU9XCI5LDEsMFwiPjxzcGFuIHN0eWxlPVwiZm9udC13ZWlnaHQ6IGJvbGQ7XCIgZGF0YS1wYXRoLXRvLW5vZGU9XCI5LDEsMFwiIGRhdGEtaW5kZXgtaW4tbm9kZT1cIjBcIj5TZWd1cmlkYWQgR2FyYW50aXphZGE6PFwvc3Bhbj5cdTAwYTBTb21vcyBkZSBsYXMgcG9jYXMgZW1wcmVzYXMgcXVlIHByb3RlZ2VuIHR1IGludmVyc2lcdTAwZjNuIGNvbiB1blx1MDBhMDxzcGFuIHN0eWxlPVwiZm9udC13ZWlnaHQ6IGJvbGQ7XCIgZGF0YS1wYXRoLXRvLW5vZGU9XCI5LDEsMFwiIGRhdGEtaW5kZXgtaW4tbm9kZT1cIjg0XCI+c2VndXJvIGdyYXR1aXRvPFwvc3Bhbj5cdTAwYTBxdWUgY3VicmUgZWwgdmFsb3IgcmVhbCBkZSB0dXMgaW5zdW1vcyBoYXN0YSBTXC8gMzAwLjAwLjxcL2xpPjxcL3VsPiIsIl9fZ2xvYmFsc19fIjp7InRleHRfY29sb3IiOiJnbG9iYWxzXC9jb2xvcnM\/aWQ9YmxvY2tzeV9wYWxldHRlXzgifSwiY29sdW1uX2dhcCI6eyJ1bml0IjoicHgiLCJzaXplIjowLCJzaXplcyI6W119LCJwYXJhZ3JhcGhfc3BhY2luZyI6eyJ1bml0IjoicHgiLCJzaXplIjowLCJzaXplcyI6W119LCJhbGlnbl90YWJsZXQiOiJjZW50ZXIiLCJ0eXBvZ3JhcGh5X3R5cG9ncmFwaHkiOiJjdXN0b20iLCJ0eXBvZ3JhcGh5X2ZvbnRfc2l6ZV90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MjAsInNpemVzIjpbXX0sInRleHRfc2hhZG93X3RleHRfc2hhZG93X3R5cGUiOiJ5ZXMiLCJ0eXBvZ3JhcGh5X2ZvbnRfZmFtaWx5IjoiU2FucyBTZXJpZiJ9LCJlbGVtZW50cyI6W10sIndpZGdldFR5cGUiOiJ0ZXh0LWVkaXRvciJ9\"]\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-9ef7b5f e-con-full e-flex e-con e-child\" data-id=\"9ef7b5f\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;gradient&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-65ad411 elementor-widget__width-initial elementor-widget-tablet__width-inherit elementor-widget elementor-widget-image\" data-id=\"65ad411\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/101-1.png\" class=\"attachment-full size-full wp-image-4567\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/101-1.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/101-1-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/101-1-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/101-1-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-c6d3eb8 e-con-full e-flex e-con e-child\" data-id=\"c6d3eb8\" data-element_type=\"container\">\n\t\t\t\t<div class=\"elementor-element elementor-element-c8c834f elementor-widget elementor-widget-heading\" data-id=\"c8c834f\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">LLEVAMOS TU NEGOCIO M\u00c1S LEJOS.<\/h2>\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-c7e9dde e-con-full e-flex e-con e-child\" data-id=\"c7e9dde\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6Ijk2MmI0MWEiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5FbiA8YiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsMFwiIGRhdGEtaW5kZXgtaW4tbm9kZT1cIjRcIj48aT5NZXJjb3VyaWVyPFwvaT48XC9iPiwgZW50ZW5kZW1vcyBxdWUgZGV0clx1MDBlMXMgZGUgY2FkYSBwYXF1ZXRlIGhheSB1biBzdWVcdTAwZjFvIHkgbXVjaG8gZXNmdWVyem87IHBvciBlc28sIHNvbW9zIG1cdTAwZTFzIHF1ZSB1biBzZXJ2aWNpbyBkZSBtZW5zYWplclx1MDBlZGE6IG5vcyBjb252ZXJ0aW1vcyBlbiBlbCA8aT48YiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsMFwiIGRhdGEtaW5kZXgtaW4tbm9kZT1cIjE1N1wiPm1vdG9yIGxvZ1x1MDBlZHN0aWNvIHF1ZSBpbXB1bHNhIHkgYWNlbGVyYSBlbCBjcmVjaW1pZW50byBkZSB0dSBuZWdvY2lvPFwvYj4uPFwvaT4gTnVlc3RyYSBoaXN0b3JpYSBjb21lbnpcdTAwZjMgY29uIGVsIGZpcm1lIHByb3BcdTAwZjNzaXRvIGRlIHRyYW5zZm9ybWFyIHkgc2ltcGxpZmljYXIgbGEgZGlzdHJpYnVjaVx1MDBmM24gZGUgcHJvZHVjdG9zIGVuIHRvZGEgTGltYSB5IENhbGxhby4gSG95LCA8aT48Yj5ub3MgZW5vcmd1bGxlY2Ugb2ZyZWNlciBzb2x1Y2lvbmVzIGludGVncmFsZXMsIGVmaWNpZW50ZXMgeSB0b3RhbG1lbnRlIHBlcnNvbmFsaXphZGFzLDxcL2I+PFwvaT4gZGlzZVx1MDBmMWFkYXMgZXNwZWNcdTAwZWRmaWNhbWVudGUgcGFyYSByZXNwYWxkYXIgZWwgXHUwMGU5eGl0byBkZSBlbXByZW5kZWRvcmVzLCBlbXByZXNhcyBjb25zb2xpZGFkYXMgeSBjbGllbnRlcyBwYXJ0aWN1bGFyZXMgcXVlIGJ1c2NhbiBsYSBleGNlbGVuY2lhIGVuIGNhZGEgZW50cmVnYS48XC9wPiIsIl9fZ2xvYmFsc19fIjp7InRleHRfY29sb3IiOiJnbG9iYWxzXC9jb2xvcnM\/aWQ9YmxvY2tzeV9wYWxldHRlXzgifSwiY29sdW1uX2dhcCI6eyJ1bml0IjoicHgiLCJzaXplIjowLCJzaXplcyI6W119LCJwYXJhZ3JhcGhfc3BhY2luZyI6eyJ1bml0IjoicHgiLCJzaXplIjowLCJzaXplcyI6W119LCJhbGlnbl90YWJsZXQiOiJjZW50ZXIiLCJ0eXBvZ3JhcGh5X3R5cG9ncmFwaHkiOiJjdXN0b20iLCJ0eXBvZ3JhcGh5X2ZvbnRfc2l6ZV90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MjAsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfZm9udF9mYW1pbHkiOiJTYW5zIFNlcmlmIn0sImVsZW1lbnRzIjpbXSwid2lkZ2V0VHlwZSI6InRleHQtZWRpdG9yIn0=\"][elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImM0NDRhYjkiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiIiLCJfX2dsb2JhbHNfXyI6eyJ0ZXh0X2NvbG9yIjoiZ2xvYmFsc1wvY29sb3JzP2lkPWJsb2Nrc3lfcGFsZXR0ZV84In19LCJlbGVtZW50cyI6W10sIndpZGdldFR5cGUiOiJ0ZXh0LWVkaXRvciJ9\"]\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t","scripts":[],"styles":[]}}
+[01-Mar-2026 00:01:17 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #108 | Fecha: 2026-02-28
+[01-Mar-2026 00:02:29 UTC] URL actual: /dashboard/?status=REPROGRAMADO&date_start=2025-12-27&date_end=2026-02-25
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '108'
+    
+[01-Mar-2026 00:02:29 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 00:02:29 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 00:02:29 UTC] ✅ PERMITIDO: Cliente #108 sin envíos hoy - Puede crear
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #108 | Fecha: 2026-02-28
+[01-Mar-2026 00:02:29 UTC] URL actual: /dashboard/?status=REPROGRAMADO&date_start=2025-12-27&date_end=2026-02-25
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '108'
+    
+[01-Mar-2026 00:02:29 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 00:02:29 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 00:02:29 UTC] ✅ PERMITIDO: Cliente #108 sin envíos hoy - Puede crear
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #108 | Fecha: 2026-02-28
+[01-Mar-2026 00:02:29 UTC] URL actual: /dashboard/?status=REPROGRAMADO&date_start=2025-12-27&date_end=2026-02-25
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '108'
+    
+[01-Mar-2026 00:02:29 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 00:02:29 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 00:02:29 UTC] ✅ PERMITIDO: Cliente #108 sin envíos hoy - Puede crear
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #108 | Fecha: 2026-02-28
+[01-Mar-2026 00:02:29 UTC] URL actual: /dashboard/?status=REPROGRAMADO&date_start=2025-12-27&date_end=2026-02-25
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '108'
+    
+[01-Mar-2026 00:02:29 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 00:02:29 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 00:02:29 UTC] ✅ PERMITIDO: Cliente #108 sin envíos hoy - Puede crear
+[01-Mar-2026 00:02:29 UTC] =====================================
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] filter_shipment_by_date_and_tiendaname llamado
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] Usuario actual: 108
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] Args iniciales: {"post_type":"wpcargo_shipment","post_status":"publish","posts_per_page":10,"paged":1,"s":"","meta_query":{"relation":"AND","0":{"wpcargo_status":{"key":"wpcargo_status","value":"REPROGRAMADO","compare":"="},"__assignment":{"key":"registered_shipper","value":108,"compare":"="}}},"date_query":[{"after":"2025-12-27","before":"2026-02-25","inclusive":true}]}
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] GET params: Array
+(
+    [status] => REPROGRAMADO
+    [date_start] => 2025-12-27
+    [date_end] => 2026-02-25
+)
+
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] Sin parámetros de fecha, aplicando HOY por defecto: 2026-02-28
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] Fecha desde: '2026-02-28' | Fecha hasta: '2026-02-28'
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] has_from: true | has_to: true
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] REMOVIENDO date_query para evitar conflicto
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] SQL Query: 
+            SELECT DISTINCT p.ID 
+            FROM wp_posts p
+            INNER JOIN wp_postmeta pm ON p.ID = pm.post_id
+            WHERE p.post_type = 'wpcargo_shipment'
+            AND pm.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio')
+            AND (STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('2026-02-28', '%Y-%m-%d') AND STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('2026-02-28', '%Y-%m-%d'))
+        
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] IDs encontrados por fecha: 8
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] Primeros 10 IDs: 6916, 6919, 6920, 6924, 6923, 6925, 6926, 6927
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] post__in no existe, creando nuevo
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] post_status cambiado a array para incluir estados normales (EXCLUYENDO trash)
+[01-Mar-2026 00:02:29 UTC] 🔵 [FILTER] Args finales: {"post_type":"wpcargo_shipment","post_status":["publish","draft","pending","private"],"posts_per_page":10,"paged":1,"s":"","meta_query":{"relation":"AND","0":{"wpcargo_status":{"key":"wpcargo_status","value":"REPROGRAMADO","compare":"="},"__assignment":{"key":"registered_shipper","value":108,"compare":"="}}},"post__in":["6916","6919","6920","6924","6923","6925","6926","6927"]}
+[01-Mar-2026 00:55:44 UTC] ✅ merc_save_phone_on_user_register: Guardado teléfono para usuario 146: 85455191998
+[01-Mar-2026 00:55:44 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[01-Mar-2026 00:55:44 UTC] ✅ merc_profile_update: saved phone for user 146 from POST[phone]
+[01-Mar-2026 01:43:31 UTC] PHP Notice:  La función wpdb::prepare ha sido llamada <strong>de forma incorrecta</strong>. El argumento de la consulta wpdb::prepare() debe tener un marcador de posición. Por favor, ve <a href="https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/">depuración en WordPress</a> para más información. (Este mensaje fue añadido en la versión 3.9.0). in /home/diffmerc/web/mercourier.com/public_html/wp-includes/functions.php on line 6121
+[01-Mar-2026 02:39:47 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:39:47 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:39:47 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:39:47 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:39:47 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:39:47 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:39:47 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:39:47 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:39:47 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:39:47 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:39:47 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:39:47 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:39:47 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:39:47 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:39:47 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:39:47 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:39:47 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:39:47 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:39:47 UTC] =====================================
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] filter_shipment_by_date_and_tiendaname llamado
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] Usuario actual: 124
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] Args iniciales: {"post_type":"wpcargo_shipment","post_status":"publish","posts_per_page":"25","paged":1,"s":"","meta_query":{"relation":"AND","0":{"__assignment":{"key":"registered_shipper","value":124,"compare":"="}}},"date_query":[{"after":"2026-02-28","before":"2026-02-28","inclusive":true}]}
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] GET params: Array
+(
+)
+
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] Sin parámetros de fecha, aplicando HOY por defecto: 2026-02-28
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] Fecha desde: '2026-02-28' | Fecha hasta: '2026-02-28'
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] has_from: true | has_to: true
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] REMOVIENDO date_query para evitar conflicto
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] SQL Query: 
+            SELECT DISTINCT p.ID 
+            FROM wp_posts p
+            INNER JOIN wp_postmeta pm ON p.ID = pm.post_id
+            WHERE p.post_type = 'wpcargo_shipment'
+            AND pm.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio')
+            AND (STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('2026-02-28', '%Y-%m-%d') AND STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('2026-02-28', '%Y-%m-%d'))
+        
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] IDs encontrados por fecha: 8
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] Primeros 10 IDs: 6916, 6919, 6920, 6924, 6923, 6925, 6926, 6927
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] post__in no existe, creando nuevo
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] post_status cambiado a array para incluir estados normales (EXCLUYENDO trash)
+[01-Mar-2026 02:39:47 UTC] 🔵 [FILTER] Args finales: {"post_type":"wpcargo_shipment","post_status":["publish","draft","pending","private"],"posts_per_page":"25","paged":1,"s":"","meta_query":{"relation":"AND","0":{"__assignment":{"key":"registered_shipper","value":124,"compare":"="}}},"post__in":["6916","6919","6920","6924","6923","6925","6926","6927"]}
+[01-Mar-2026 02:40:12 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:40:12 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:40:12 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:40:12 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:40:12 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:40:12 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:40:12 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:40:12 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:40:12 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:40:12 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔒 DESBLOQUEO MANUAL AGOTADO: Cliente #124 ya usó su envío permitido
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #124 | Fecha: 2026-02-28
+[01-Mar-2026 02:40:12 UTC] URL actual: /dashboard/
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '124'
+    
+[01-Mar-2026 02:40:12 UTC] 📊 Total envíos del cliente (sin filtrar): 7
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6922: post_date_raw='2026-02-28 10:34:27' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='28/2/2026' | fecha_efectiva='2026-02-28' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ✅ INCLUIDO en filtrados
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6928: post_date_raw='2026-02-28 10:34:28' | fecha_reprog_raw='02/03/2026' | fecha_efectiva='2026-03-02' | hoy='2026-02-28'
+[01-Mar-2026 02:40:12 UTC]       ❌ NO incluido (fecha no coincide)
+[01-Mar-2026 02:40:12 UTC] 📦 Total envíos encontrados para HOY: 5
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6923: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6923: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6924: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6924: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6925: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6925: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6926: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6926: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/diffmerc/web/mercourier.com/public_html/wp-content/themes/blocksy-child/functions.php on line 11248
+[01-Mar-2026 02:40:12 UTC]    📅 Envío #6927: Creado=2026-02-28 | Reprog=1970-01-01 | Efectiva=2026-02-28 | Estado=en base mercourier | Pago=
+[01-Mar-2026 02:40:12 UTC]    Envío #6927: en base mercourier → Pendiente de recoger
+[01-Mar-2026 02:40:12 UTC] 📊 RESUMEN - Total: 5 | Finales: 0 | Recogidos: 0 | Entregados sin pagar: 0 | No Recogidos: 0 | Otros: 5
+[01-Mar-2026 02:40:12 UTC] ✅ PERMITIDO: No hay envíos recogidos aún, o todos están finalizados - Puede crear más
+[01-Mar-2026 02:40:12 UTC] =====================================
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] filter_shipment_by_date_and_tiendaname llamado
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] Usuario actual: 124
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] Args iniciales: {"post_type":"wpcargo_shipment","post_status":"publish","posts_per_page":"25","paged":1,"s":"","meta_query":{"relation":"AND","0":{"__assignment":{"key":"registered_shipper","value":124,"compare":"="}}},"date_query":[{"after":"2026-02-28","before":"2026-02-28","inclusive":true}]}
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] GET params: Array
+(
+)
+
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] Sin parámetros de fecha, aplicando HOY por defecto: 2026-02-28
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] Fecha desde: '2026-02-28' | Fecha hasta: '2026-02-28'
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] has_from: true | has_to: true
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] REMOVIENDO date_query para evitar conflicto
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] SQL Query: 
+            SELECT DISTINCT p.ID 
+            FROM wp_posts p
+            INNER JOIN wp_postmeta pm ON p.ID = pm.post_id
+            WHERE p.post_type = 'wpcargo_shipment'
+            AND pm.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio')
+            AND (STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('2026-02-28', '%Y-%m-%d') AND STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('2026-02-28', '%Y-%m-%d'))
+        
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] IDs encontrados por fecha: 8
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] Primeros 10 IDs: 6916, 6919, 6920, 6924, 6923, 6925, 6926, 6927
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] post__in no existe, creando nuevo
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] post_status cambiado a array para incluir estados normales (EXCLUYENDO trash)
+[01-Mar-2026 02:40:12 UTC] 🔵 [FILTER] Args finales: {"post_type":"wpcargo_shipment","post_status":["publish","draft","pending","private"],"posts_per_page":"25","paged":1,"s":"","meta_query":{"relation":"AND","0":{"__assignment":{"key":"registered_shipper","value":124,"compare":"="}}},"post__in":["6916","6919","6920","6924","6923","6925","6926","6927"]}
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:23 UTC] URL actual: /dashboard/
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:23 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:23 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:23 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:23 UTC] URL actual: /dashboard/
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:23 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:23 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:23 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:23 UTC] URL actual: /dashboard/
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:23 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:23 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:23 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:23 UTC] URL actual: /dashboard/
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:23 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:23 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:23 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:23 UTC] =====================================
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] filter_shipment_by_date_and_tiendaname llamado
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] Usuario actual: 91
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] Args iniciales: {"post_type":"wpcargo_shipment","post_status":"publish","posts_per_page":10,"paged":1,"s":"","meta_query":{"relation":"AND","0":{"__assignment":{"key":"registered_shipper","value":91,"compare":"="}}},"date_query":[{"after":"2026-02-28","before":"2026-02-28","inclusive":true}]}
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] GET params: Array
+(
+)
+
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] Sin parámetros de fecha, aplicando HOY por defecto: 2026-02-28
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] Fecha desde: '2026-02-28' | Fecha hasta: '2026-02-28'
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] has_from: true | has_to: true
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] REMOVIENDO date_query para evitar conflicto
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] SQL Query: 
+            SELECT DISTINCT p.ID 
+            FROM wp_posts p
+            INNER JOIN wp_postmeta pm ON p.ID = pm.post_id
+            WHERE p.post_type = 'wpcargo_shipment'
+            AND pm.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio')
+            AND (STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('2026-02-28', '%Y-%m-%d') AND STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('2026-02-28', '%Y-%m-%d'))
+        
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] IDs encontrados por fecha: 8
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] Primeros 10 IDs: 6916, 6919, 6920, 6924, 6923, 6925, 6926, 6927
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] post__in no existe, creando nuevo
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] post_status cambiado a array para incluir estados normales (EXCLUYENDO trash)
+[01-Mar-2026 03:26:23 UTC] 🔵 [FILTER] Args finales: {"post_type":"wpcargo_shipment","post_status":["publish","draft","pending","private"],"posts_per_page":10,"paged":1,"s":"","meta_query":{"relation":"AND","0":{"__assignment":{"key":"registered_shipper","value":91,"compare":"="}}},"post__in":["6916","6919","6920","6924","6923","6925","6926","6927"]}
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:27 UTC] URL actual: /dashboard/?wpcfe=add
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:27 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:27 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:27 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:27 UTC] URL actual: /dashboard/?wpcfe=add
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:27 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:27 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:27 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:27 UTC] URL actual: /dashboard/?wpcfe=add
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:27 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:27 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:27 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:27 UTC] URL actual: /dashboard/?wpcfe=add
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:27 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:27 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:27 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:27 UTC] =====================================
+[01-Mar-2026 03:26:27 UTC] 📝 [EDIT_FORM_LOAD] Envío #3527 | Tipo:  | Costo envío: 0
+[01-Mar-2026 03:26:27 UTC] ⚠️ Tipo de envío no es full_fitment, saltando selector de productos
+[01-Mar-2026 03:26:27 UTC] ═══════════════════════════════════════════════════════════════
+[01-Mar-2026 03:26:27 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 91 | Tipo: normal | Ahora: 22:26
+[01-Mar-2026 03:26:27 UTC] Límites: SIN=10:00 | CON=10:00
+[01-Mar-2026 03:26:27 UTC] 📊 [CONTAR ENVÍOS] Cliente 91 | Tipo: normal | Hoy: 2026-02-28 | Total: 0
+[01-Mar-2026 03:26:27 UTC] 📊 Envíos de tipo NORMAL creados hoy: 0
+[01-Mar-2026 03:26:27 UTC] 📌 ESCENARIO 1: SIN ENVÍOS
+[01-Mar-2026 03:26:27 UTC]    Comparando: 22:26 vs 10:00
+[01-Mar-2026 03:26:27 UTC]    ✅ PASÓ LA HORA LÍMITE → PERMITIR CON FECHA MAÑANA
+[01-Mar-2026 03:26:27 UTC] ═══════════════════════════════════════════════════════════════
+[01-Mar-2026 03:26:27 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 91 | Tipo: express | Ahora: 22:26
+[01-Mar-2026 03:26:27 UTC] Límites: SIN=12:30 | CON=13:00
+[01-Mar-2026 03:26:27 UTC] 📊 [CONTAR ENVÍOS] Cliente 91 | Tipo: express | Hoy: 2026-02-28 | Total: 0
+[01-Mar-2026 03:26:27 UTC] 📊 Envíos de tipo EXPRESS creados hoy: 0
+[01-Mar-2026 03:26:27 UTC] 📌 ESCENARIO 1: SIN ENVÍOS
+[01-Mar-2026 03:26:27 UTC]    Comparando: 22:26 vs 12:30
+[01-Mar-2026 03:26:27 UTC]    ✅ PASÓ LA HORA LÍMITE → PERMITIR CON FECHA MAÑANA
+[01-Mar-2026 03:26:27 UTC] ═══════════════════════════════════════════════════════════════
+[01-Mar-2026 03:26:27 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 91 | Tipo: full_fitment | Ahora: 22:26
+[01-Mar-2026 03:26:27 UTC] Límites: SIN=11:30 | CON=12:15
+[01-Mar-2026 03:26:27 UTC] 📊 [CONTAR ENVÍOS] Cliente 91 | Tipo: full_fitment | Hoy: 2026-02-28 | Total: 0
+[01-Mar-2026 03:26:27 UTC] 📊 Envíos de tipo FULL FITMENT creados hoy: 0
+[01-Mar-2026 03:26:27 UTC] 📌 ESCENARIO 1: SIN ENVÍOS
+[01-Mar-2026 03:26:27 UTC]    Comparando: 22:26 vs 11:30
+[01-Mar-2026 03:26:27 UTC]    ✅ PASÓ LA HORA LÍMITE → PERMITIR CON FECHA MAÑANA
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:32 UTC] URL actual: /dashboard/?wpcfe=add&type=normal
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:32 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:32 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:32 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:32 UTC] URL actual: /dashboard/?wpcfe=add&type=normal
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:32 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:32 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:32 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:32 UTC] URL actual: /dashboard/?wpcfe=add&type=normal
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:32 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:32 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:32 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:26:32 UTC] URL actual: /dashboard/?wpcfe=add&type=normal
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:26:32 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:26:32 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:26:32 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:26:32 UTC] =====================================
+[01-Mar-2026 03:26:32 UTC] 📝 [EDIT_FORM_LOAD] Envío #3527 | Tipo:  | Costo envío: 0
+[01-Mar-2026 03:26:32 UTC] ⚠️ Tipo de envío no es full_fitment, saltando selector de productos
+[01-Mar-2026 03:26:32 UTC] 🔍 FRONTEND VALIDATION: DEBUG: Usuario=91, Tipo=normal, Hora=22:26
+[01-Mar-2026 03:26:32 UTC] ═══════════════════════════════════════════════════════════════
+[01-Mar-2026 03:26:32 UTC] 🔍 NUEVA LÓGICA DE BLOQUEOS - Cliente: 91 | Tipo: normal | Ahora: 22:26
+[01-Mar-2026 03:26:32 UTC] Límites: SIN=10:00 | CON=10:00
+[01-Mar-2026 03:26:32 UTC] 📊 [CONTAR ENVÍOS] Cliente 91 | Tipo: normal | Hoy: 2026-02-28 | Total: 0
+[01-Mar-2026 03:26:32 UTC] 📊 Envíos de tipo NORMAL creados hoy: 0
+[01-Mar-2026 03:26:32 UTC] 📌 ESCENARIO 1: SIN ENVÍOS
+[01-Mar-2026 03:26:32 UTC]    Comparando: 22:26 vs 10:00
+[01-Mar-2026 03:26:32 UTC]    ✅ PASÓ LA HORA LÍMITE → PERMITIR CON FECHA MAÑANA
+[01-Mar-2026 03:26:32 UTC] 🎯 RESULTADO BLOQUEO: PERMITIDO
+[01-Mar-2026 03:26:34 UTC] 🔍 [AJAX] Consultando desbloqueo parcial para NORMAL | caller=91 query_user=91
+[01-Mar-2026 03:26:34 UTC]    Meta key: merc_desbloqueo_parcial_NORMAL
+[01-Mar-2026 03:26:34 UTC]    Unlock info: {"tipo":"normal","fecha":"2026-02-28","razon":"sin_envios_pasada_hora","fecha_asignada":"02\/03\/2026"}
+[01-Mar-2026 03:26:34 UTC]    Force date: 02/03/2026
+[01-Mar-2026 03:26:35 UTC] 🔄 [RESETEO DIARIO] Usuario 91 | Fecha: 2026-02-28
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:28:03 UTC] URL actual: /import-export/?type=import
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:28:03 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:28:03 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:28:03 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:28:03 UTC] URL actual: /import-export/?type=import
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:28:03 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:28:03 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:28:03 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:28:03 UTC] URL actual: /import-export/?type=import
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:28:03 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:28:03 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:28:03 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔍 VERIFICANDO BLOQUEO - Cliente: #91 | Fecha: 2026-02-28
+[01-Mar-2026 03:28:03 UTC] URL actual: /import-export/?type=import
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 03:28:03 UTC] 🔎 SQL Query: 
+        SELECT 
+            p.ID, 
+            p.post_date,
+            pm_status.meta_value as estado,
+            pm_pago.meta_value as estado_pago,
+            pm_fecha_reprog.meta_value as fecha_reprogramada
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN wp_postmeta pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_pago 
+            ON p.ID = pm_pago.post_id 
+            AND pm_pago.meta_key = 'wpcargo_estado_pago_remitente'
+        LEFT JOIN wp_postmeta pm_fecha_reprog 
+            ON p.ID = pm_fecha_reprog.post_id 
+            AND pm_fecha_reprog.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = '91'
+    
+[01-Mar-2026 03:28:03 UTC] 📊 Total envíos del cliente (sin filtrar): 0
+[01-Mar-2026 03:28:03 UTC] 📦 Total envíos encontrados para HOY: 0
+[01-Mar-2026 03:28:03 UTC] ✅ PERMITIDO: Cliente #91 sin envíos hoy - Puede crear
+[01-Mar-2026 03:28:03 UTC] =====================================
+[01-Mar-2026 04:29:14 UTC] MERC_DEBUG_META_UPDATE - meta_id=28411 post_id=3317 meta_key=_elementor_element_cache meta_value={"timeout":1772407754,"value":{"content":"<div class=\"elementor-element elementor-element-dabd070 e-flex e-con-boxed e-con e-parent\" data-id=\"dabd070\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;classic&quot;}\">\n\t\t\t\t\t<div class=\"e-con-inner\">\n\t\t<div class=\"elementor-element elementor-element-f58041f e-flex e-con-boxed e-con e-child\" data-id=\"f58041f\" data-element_type=\"container\">\n\t\t\t\t\t<div class=\"e-con-inner\">\n\t\t\t\t<div class=\"elementor-element elementor-element-4bc1c69 elementor-invisible elementor-widget elementor-widget-heading\" data-id=\"4bc1c69\" data-element_type=\"widget\" data-settings=\"{&quot;_animation&quot;:&quot;fadeIn&quot;}\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\"><b>NUESTROS SERVICIOS<\/b><\/h2>\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-656776b e-flex e-con-boxed e-con e-child\" data-id=\"656776b\" data-element_type=\"container\" data-settings=\"{&quot;background_background&quot;:&quot;gradient&quot;}\">\n\t\t\t\t\t<div class=\"e-con-inner\">\n\t\t\t\t<div class=\"elementor-element elementor-element-0074f46 elementor-widget__width-initial elementor-arrows-position-inside elementor-widget elementor-widget-image-carousel\" data-id=\"0074f46\" data-element_type=\"widget\" data-settings=\"{&quot;image_spacing_custom&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:0,&quot;sizes&quot;:[]},&quot;slides_to_show&quot;:&quot;6&quot;,&quot;navigation&quot;:&quot;arrows&quot;,&quot;speed&quot;:800,&quot;slides_to_show_tablet&quot;:&quot;4&quot;,&quot;slides_to_show_mobile&quot;:&quot;2&quot;,&quot;autoplay&quot;:&quot;yes&quot;,&quot;pause_on_interaction&quot;:&quot;yes&quot;,&quot;autoplay_speed&quot;:5000,&quot;infinite&quot;:&quot;yes&quot;,&quot;image_spacing_custom_tablet&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]},&quot;image_spacing_custom_mobile&quot;:{&quot;unit&quot;:&quot;px&quot;,&quot;size&quot;:&quot;&quot;,&quot;sizes&quot;:[]}}\" data-widget_type=\"image-carousel.default\">\n\t\t\t\t\t\t\t<div class=\"elementor-image-carousel-wrapper swiper\" role=\"region\" aria-roledescription=\"carousel\" aria-label=\"Carrusel de im\u00e1genes\" dir=\"ltr\">\n\t\t\t<div class=\"elementor-image-carousel swiper-wrapper\" aria-live=\"off\">\n\t\t\t\t\t\t\t\t<div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"1 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/12-150x100.png\" alt=\"1[2]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"2 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/21-1-150x100.png\" alt=\"2[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"3 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/31-150x100.png\" alt=\"3[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"4 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/41-1-150x100.png\" alt=\"4[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"5 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/51-1-150x100.png\" alt=\"5[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"6 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/61-1-150x100.png\" alt=\"6[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"7 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/71-150x100.png\" alt=\"7[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"8 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/81-150x100.png\" alt=\"8[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"9 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/101-150x100.png\" alt=\"10[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"10 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/91-150x100.png\" alt=\"9[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"11 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/111-150x100.png\" alt=\"11[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"12 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/121-150x100.png\" alt=\"12[1]\" \/><\/figure><\/div><div class=\"swiper-slide\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"13 de 13\"><figure class=\"swiper-slide-inner\"><img class=\"swiper-slide-image\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/131-150x100.png\" alt=\"13[1]\" \/><\/figure><\/div>\t\t\t<\/div>\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"elementor-swiper-button elementor-swiper-button-prev\" role=\"button\" tabindex=\"0\">\n\t\t\t\t\t\t<svg aria-hidden=\"true\" class=\"e-font-icon-svg e-eicon-chevron-left\" viewBox=\"0 0 1000 1000\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M646 125C629 125 613 133 604 142L308 442C296 454 292 471 292 487 292 504 296 521 308 533L604 854C617 867 629 875 646 875 663 875 679 871 692 858 704 846 713 829 713 812 713 796 708 779 692 767L438 487 692 225C700 217 708 204 708 187 708 171 704 154 692 142 675 129 663 125 646 125Z\"><\/path><\/svg>\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"elementor-swiper-button elementor-swiper-button-next\" role=\"button\" tabindex=\"0\">\n\t\t\t\t\t\t<svg aria-hidden=\"true\" class=\"e-font-icon-svg e-eicon-chevron-right\" viewBox=\"0 0 1000 1000\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z\"><\/path><\/svg>\t\t\t\t\t<\/div>\n\t\t\t\t\n\t\t\t\t\t\t\t\t\t<\/div>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-8255f61 e-con-full e-flex elementor-invisible e-con e-child\" data-id=\"8255f61\" data-element_type=\"container\" id=\"emprendedor\" data-settings=\"{&quot;animation&quot;:&quot;fadeIn&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-27cffcf elementor-widget-tablet__width-inherit elementor-widget__width-initial elementor-widget elementor-widget-image\" data-id=\"27cffcf\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/IMAGENES-PAGINA-1024X1024.png\" class=\"attachment-full size-full wp-image-4797\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/IMAGENES-PAGINA-1024X1024.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/IMAGENES-PAGINA-1024X1024-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/IMAGENES-PAGINA-1024X1024-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/IMAGENES-PAGINA-1024X1024-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-a30767b e-con-full e-flex e-con e-child\" data-id=\"a30767b\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6IjY3OWIxOTYiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5TZXJ2aWNpbzxcL3A+IiwidHlwb2dyYXBoeV90eXBvZ3JhcGh5IjoiY3VzdG9tIiwidHlwb2dyYXBoeV9mb250X3NpemUiOnsidW5pdCI6InB4Iiwic2l6ZSI6MjYsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfZm9udF93ZWlnaHQiOiJib2xkIiwiYWxpZ25fbW9iaWxlIjoiY2VudGVyIiwiYWxpZ25fdGFibGV0IjoiY2VudGVyIiwiX19nbG9iYWxzX18iOnsidGV4dF9jb2xvciI6Imdsb2JhbHNcL2NvbG9ycz9pZD1ibG9ja3N5X3BhbGV0dGVfOCJ9LCJ0eXBvZ3JhcGh5X2ZvbnRfc2l6ZV90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MTcsInNpemVzIjpbXX0sImFsaWduIjoiY2VudGVyIiwidHlwb2dyYXBoeV9mb250X2ZhbWlseSI6Ik1vbnRzZXJyYXQiLCJwYXJhZ3JhcGhfc3BhY2luZyI6eyJ1bml0IjoicHgiLCJzaXplIjowLCJzaXplcyI6W119LCJfbWFyZ2luIjp7InVuaXQiOiJweCIsInRvcCI6IjAiLCJyaWdodCI6IjAiLCJib3R0b20iOiIwIiwibGVmdCI6IjAiLCJpc0xpbmtlZCI6ZmFsc2V9fSwiZWxlbWVudHMiOltdLCJ3aWRnZXRUeXBlIjoidGV4dC1lZGl0b3IifQ==\"]\t\t<div class=\"elementor-element elementor-element-605a074 elementor-widget elementor-widget-heading\" data-id=\"605a074\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">MERC EMPRENDEDOR<\/h2>\t\t\t\t<\/div>\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6IjRjNjQ3OGQiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5FbCBzZXJ2aWNpbyBvZnJlY2UgbG9nXHUwMGVkc3RpY2EgZGlhcmlhIGNvbiByZWNvam8gcG9yIGxhIG1hXHUwMGYxYW5hIHkgZW50cmVnYSBwb3IgbGEgdGFyZGUuIDxiPjxpPkRlc3RhY2EgcG9yIHN1IHRhcmlmYSBwbGFuYSBkZSBTXC8gMTAgZW4gTGltYSB5IENhbGxhbyBzaW4gZXhpZ2lyIHVuIG1cdTAwZWRuaW1vIGRlIGVudlx1MDBlZG9zLjxcL2k+PFwvYj4gSW5jbHV5ZSBiZW5lZmljaW9zIGNvbW8gc2VndXJvIGdyYXR1aXRvIGhhc3RhIFNcLyAzMDAgLCBkZXBcdTAwZjNzaXRvcyBkZSB0dXMgdmVudGFzIGVsIG1pc21vIGRcdTAwZWRhIHkgc2VydmljaW8gZGUgY29udHJhIGVudHJlZ2EgY29uIG1cdTAwZmFsdGlwbGVzIG1lZGlvcyBkZSBwYWdvLiA8Yj48aT5Ub2RvIGVzIGdlc3Rpb25hZG8gcG9yIG1vdG9yaXphZG9zIGV4cGVydG9zIHF1ZSB1c2FuIGNhamFzIGRlIHNlZ3VyaWRhZCBwYXJhIHByb3RlZ2VyIHR1cyBwcm9kdWN0b3MuPFwvaT48XC9iPjxcL3A+IiwiX21hcmdpbiI6eyJ1bml0IjoicHgiLCJ0b3AiOiIwIiwicmlnaHQiOiIwIiwiYm90dG9tIjoiMjAiLCJsZWZ0IjoiMCIsImlzTGlua2VkIjpmYWxzZX0sImFsaWduX3RhYmxldCI6ImNlbnRlciIsImFsaWduX21vYmlsZSI6ImNlbnRlciIsImFsaWduIjoianVzdGlmeSIsInR5cG9ncmFwaHlfdHlwb2dyYXBoeSI6ImN1c3RvbSIsIl9fZ2xvYmFsc19fIjp7InRleHRfY29sb3IiOiJnbG9iYWxzXC9jb2xvcnM\/aWQ9YmxvY2tzeV9wYWxldHRlXzYifSwidHlwb2dyYXBoeV9mb250X3NpemVfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOjI2LCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2xpbmVfaGVpZ2h0X3RhYmxldCI6eyJ1bml0IjoiZW0iLCJzaXplIjoxLjMsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfbGV0dGVyX3NwYWNpbmdfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOi0xLjEsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfd29yZF9zcGFjaW5nX3RhYmxldCI6eyJ1bml0IjoiZW0iLCJzaXplIjowLCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2ZvbnRfZmFtaWx5IjoiU2FucyBTZXJpZiIsInR5cG9ncmFwaHlfZm9udF9zaXplX21vYmlsZSI6eyJ1bml0IjoicHgiLCJzaXplIjoxOSwic2l6ZXMiOltdfX0sImVsZW1lbnRzIjpbXSwid2lkZ2V0VHlwZSI6InRleHQtZWRpdG9yIn0=\"]\t\t<div class=\"elementor-element elementor-element-c127d9a elementor-widget elementor-widget-accordion\" data-id=\"c127d9a\" data-element_type=\"widget\" data-widget_type=\"accordion.default\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2021\" class=\"elementor-tab-title\" data-tab=\"1\" role=\"button\" aria-controls=\"elementor-tab-content-2021\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfPor qu\u00e9 elegir el servicio MERC Emprendedor?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2021\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"1\" role=\"region\" aria-labelledby=\"elementor-tab-title-2021\"><p>Es la opci\u00f3n ideal si buscas <b><i>comodidad y rapidez<\/i><\/b>, ya que enviamos un motorizado a tu ubicaci\u00f3n para recoger tus paquetes. Te permite cumplir con tus clientes el mismo d\u00eda con una<i><b> tarifa plana de S\/ 10.00 en todo Lima y Callao,<\/b><\/i> sin exigencia de un m\u00ednimo de env\u00edos.<\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2022\" class=\"elementor-tab-title\" data-tab=\"2\" role=\"button\" aria-controls=\"elementor-tab-content-2022\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfQu\u00e9 seguridad tengo sobre mis productos y mi dinero?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2022\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"2\" role=\"region\" aria-labelledby=\"elementor-tab-title-2022\"><p data-path-to-node=\"4\"><span data-path-to-node=\"4,1\"><span class=\"citation-186\">Tus productos viajan protegidos con un <\/span><b data-path-to-node=\"4,1\" data-index-in-node=\"39\"><span class=\"citation-186\">seguro gratuito<\/span><\/b><span class=\"citation-186\"> que cubre robo, p\u00e9rdida o da\u00f1os materiales hasta por S\/ 300.00<\/span><\/span><span data-path-to-node=\"4,3\">. <\/span><span data-path-to-node=\"4,5\"><span class=\"citation-185\">Adem\u00e1s, garantizamos tu liquidez realizando el dep\u00f3sito de tus ventas cobradas mediante contra entrega el mismo d\u00eda<\/span><\/span><span data-path-to-node=\"4,7\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2023\" class=\"elementor-tab-title\" data-tab=\"3\" role=\"button\" aria-controls=\"elementor-tab-content-2023\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfC\u00f3mo funciona la log\u00edstica de recojo y entrega?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2023\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"3\" role=\"region\" aria-labelledby=\"elementor-tab-title-2023\"><p data-path-to-node=\"6\"><span data-path-to-node=\"6,1\"><span class=\"citation-184\">Solo debes solicitarlo antes de las 9:30 am para que recojamos tu mercader\u00eda entre las 10:00 am y 12:30 pm<\/span><\/span><span data-path-to-node=\"6,3\">. <\/span><span data-path-to-node=\"6,5\"><span class=\"citation-183\">Las entregas se realizan esa misma tarde, en un rango de 2:00 pm a 7:30 pm, envi\u00e1ndote una foto como respaldo de cada entrega exitosa<\/span><\/span><span data-path-to-node=\"6,7\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t\t<\/div>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-e80b204 e-con-full e-flex elementor-invisible e-con e-child\" data-id=\"e80b204\" data-element_type=\"container\" id=\"express\" data-settings=\"{&quot;animation&quot;:&quot;fadeIn&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-07f6c3d elementor-widget-tablet__width-inherit elementor-widget elementor-widget-image\" data-id=\"07f6c3d\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11.png\" class=\"attachment-full size-full wp-image-4513\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-2d88018 e-con-full e-flex e-con e-child\" data-id=\"2d88018\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6IjM0MjQzNjAiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5TZXJ2aWNpbzxcL3A+IiwidHlwb2dyYXBoeV90eXBvZ3JhcGh5IjoiY3VzdG9tIiwidHlwb2dyYXBoeV9mb250X3NpemUiOnsidW5pdCI6InB4Iiwic2l6ZSI6MjYsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfZm9udF93ZWlnaHQiOiJib2xkIiwiYWxpZ25fdGFibGV0IjoiY2VudGVyIiwiX19nbG9iYWxzX18iOnsidGV4dF9jb2xvciI6Imdsb2JhbHNcL2NvbG9ycz9pZD1ibG9ja3N5X3BhbGV0dGVfOCJ9LCJ0eXBvZ3JhcGh5X2ZvbnRfc2l6ZV90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MTcsInNpemVzIjpbXX0sImFsaWduIjoiY2VudGVyIiwidHlwb2dyYXBoeV9mb250X2ZhbWlseSI6Ik1vbnRzZXJyYXQifSwiZWxlbWVudHMiOltdLCJ3aWRnZXRUeXBlIjoidGV4dC1lZGl0b3IifQ==\"]\t\t<div class=\"elementor-element elementor-element-8a1ecd0 elementor-widget elementor-widget-heading\" data-id=\"8a1ecd0\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">MERC<br>EXPRESS<\/h2>\t\t\t\t<\/div>\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImI0ZDBjZWIiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD48c3BhbiBzdHlsZT1cImZvbnQtZmFtaWx5OiAnR29vZ2xlIFNhbnMgVGV4dCcsIHNhbnMtc2VyaWYgIWltcG9ydGFudDsgbGluZS1oZWlnaHQ6IDEuMTUgIWltcG9ydGFudDsgbWFyZ2luLXRvcDogMHB4ICFpbXBvcnRhbnQ7XCIgZGF0YS1wYXRoLXRvLW5vZGU9XCIyLDFcIj48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTI4OVwiIHN0eWxlPVwibGluZS1oZWlnaHQ6IDEuMTUgIWltcG9ydGFudDsgbWFyZ2luLXRvcDogMHB4ICFpbXBvcnRhbnQ7XCI+RWwgc2VydmljaW8gPFwvc3Bhbj48ZW0+PHN0cm9uZz48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTI4OVwiIHN0eWxlPVwibGluZS1oZWlnaHQ6IDEuMTUgIWltcG9ydGFudDsgbWFyZ2luLXRvcDogMHB4ICFpbXBvcnRhbnQ7XCI+TUVSQyBFeHByZXNzPFwvc3Bhbj48XC9zdHJvbmc+PFwvZW0+PHNwYW4gY2xhc3M9XCJjaXRhdGlvbi0yODlcIiBzdHlsZT1cImxpbmUtaGVpZ2h0OiAxLjE1ICFpbXBvcnRhbnQ7IG1hcmdpbi10b3A6IDBweCAhaW1wb3J0YW50O1wiPiBlcyB1bmEgc29sdWNpXHUwMGYzbiBsb2dcdTAwZWRzdGljYSBwZXJzb25hbGl6YWRhIHkgZGUgZW50cmVnYSBkaXJlY3RhLCA8ZW0+PHN0cm9uZz5kaXNlXHUwMGYxYWRhIHBhcmEgcXVpZW5lcyByZXF1aWVyZW4gaW5tZWRpYXRleiw8XC9zdHJvbmc+PFwvZW0+IGNvbiB1biB0aWVtcG8gZXN0aW1hZG8gZGUgbGxlZ2FkYSBkZSBlbnRyZSAxIGEgMiBob3JhcyBkZXBlbmRpZW5kbyBkZSBsYSBkaXN0YW5jaWE8XC9zcGFuPjxcL3NwYW4+PHNwYW4gc3R5bGU9XCJmb250LXNpemU6IGluaGVyaXQ7IGZvbnQtdmFyaWFudC1saWdhdHVyZXM6IGluaGVyaXQ7IGZvbnQtdmFyaWFudC1jYXBzOiBpbmhlcml0OyBmb250LXdlaWdodDogaW5oZXJpdDsgZm9udC1mYW1pbHk6ICdHb29nbGUgU2FucyBUZXh0Jywgc2Fucy1zZXJpZiAhaW1wb3J0YW50OyBsaW5lLWhlaWdodDogMS4xNSAhaW1wb3J0YW50OyBtYXJnaW4tdG9wOiAwcHggIWltcG9ydGFudDtcIiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsM1wiPi5cdTAwYTA8XC9zcGFuPjxcL3A+PHA+PHNwYW4gc3R5bGU9XCJmb250LXNpemU6IGluaGVyaXQ7IGZvbnQtdmFyaWFudC1saWdhdHVyZXM6IGluaGVyaXQ7IGZvbnQtdmFyaWFudC1jYXBzOiBpbmhlcml0OyBmb250LXdlaWdodDogaW5oZXJpdDsgZm9udC1mYW1pbHk6ICdHb29nbGUgU2FucyBUZXh0Jywgc2Fucy1zZXJpZiAhaW1wb3J0YW50OyBsaW5lLWhlaWdodDogMS4xNSAhaW1wb3J0YW50OyBtYXJnaW4tdG9wOiAwcHggIWltcG9ydGFudDtcIiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsNVwiPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMjg4XCIgc3R5bGU9XCJsaW5lLWhlaWdodDogMS4xNSAhaW1wb3J0YW50OyBtYXJnaW4tdG9wOiAwcHggIWltcG9ydGFudDtcIj5FcyB1biBzZXJ2aWNpbyBkZSBhbHRhIHByaW9yaWRhZCBxdWUgcGVybWl0ZSBlbnZpYXIgcGFxdWV0ZXMgZGUgPGVtPjxzdHJvbmc+aGFzdGEgMTAga2lsb3MgeSBtZWRpZGFzIGRlIDQ1IHggNDUgeCA0NSw8XC9zdHJvbmc+PFwvZW0+XHUwMGEwPFwvc3Bhbj48ZW0+PHN0cm9uZz48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTI4OFwiIHN0eWxlPVwibGluZS1oZWlnaHQ6IDEuMTUgIWltcG9ydGFudDsgbWFyZ2luLXRvcDogMHB4ICFpbXBvcnRhbnQ7XCI+Z2FyYW50aXphbmRvIHJhcGlkZXogeSBwcm9mZXNpb25hbGlzbW8gZW4gY2FkYSB0cmFzbGFkby48XC9zcGFuPjxcL3N0cm9uZz48XC9lbT48XC9zcGFuPjxcL3A+IiwiX21hcmdpbiI6eyJ1bml0IjoicHgiLCJ0b3AiOiIwIiwicmlnaHQiOiIwIiwiYm90dG9tIjoiMjAiLCJsZWZ0IjoiMCIsImlzTGlua2VkIjpmYWxzZX0sImFsaWduX3RhYmxldCI6ImNlbnRlciIsImFsaWduX21vYmlsZSI6ImNlbnRlciIsImFsaWduIjoianVzdGlmeSIsInR5cG9ncmFwaHlfdHlwb2dyYXBoeSI6ImN1c3RvbSIsIl9fZ2xvYmFsc19fIjp7InRleHRfY29sb3IiOiJnbG9iYWxzXC9jb2xvcnM\/aWQ9YmxvY2tzeV9wYWxldHRlXzYifSwiY29sdW1uX2dhcF90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MCwic2l6ZXMiOltdfSwidHlwb2dyYXBoeV9mb250X3NpemVfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOjI2LCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2xpbmVfaGVpZ2h0X3RhYmxldCI6eyJ1bml0IjoiZW0iLCJzaXplIjoxLjMsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfbGV0dGVyX3NwYWNpbmdfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOi0xLjEsInNpemVzIjpbXX0sInRleHRfc2hhZG93X3RleHRfc2hhZG93X3R5cGUiOiJ5ZXMiLCJ0eXBvZ3JhcGh5X2ZvbnRfZmFtaWx5IjoiU2FucyBTZXJpZiIsInR5cG9ncmFwaHlfZm9udF9zaXplX21vYmlsZSI6eyJ1bml0IjoicHgiLCJzaXplIjoxOSwic2l6ZXMiOltdfX0sImVsZW1lbnRzIjpbXSwid2lkZ2V0VHlwZSI6InRleHQtZWRpdG9yIn0=\"]\t\t<div class=\"elementor-element elementor-element-ea1cbf7 elementor-widget elementor-widget-accordion\" data-id=\"ea1cbf7\" data-element_type=\"widget\" data-widget_type=\"accordion.default\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2451\" class=\"elementor-tab-title\" data-tab=\"1\" role=\"button\" aria-controls=\"elementor-tab-content-2451\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfC\u00f3mo funciona la modalidad de trabajo y los horarios?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2451\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"1\" role=\"region\" aria-labelledby=\"elementor-tab-title-2451\"><p><span data-path-to-node=\"5,2\"><span class=\"citation-287\">Para acceder a este servicio, <i><b>debes solicitarlo con una hora de anticipaci\u00f3n dentro del rango horario de 10:00 am a 5:00 pm,<\/b><\/i> asegurando as\u00ed una <i><b>entrega directa que toma entre 1 a 2 horas de acuerdo a la distancia del destino<\/b><\/i><\/span><\/span><span data-path-to-node=\"5,4\"><i><b>.<\/b><\/i><\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2452\" class=\"elementor-tab-title\" data-tab=\"2\" role=\"button\" aria-controls=\"elementor-tab-content-2452\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfCu\u00e1les son las tarifas y costos por kil\u00f3metro?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2452\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"2\" role=\"region\" aria-labelledby=\"elementor-tab-title-2452\"><p data-path-to-node=\"4\"><span data-path-to-node=\"6,2\"><span class=\"citation-286\">El costo se calcula mediante una tarifa por kilometraje de S\/ 2.50 por km, con un <i><b>monto m\u00ednimo de servicio de S\/ 10.00,<\/b><\/i> y en caso de que la entrega supere los 20 kil\u00f3metros, la tarifa se reduce a S\/ 2.00 por cada kil\u00f3metro recorrido<\/span><\/span><span data-path-to-node=\"6,4\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2453\" class=\"elementor-tab-title\" data-tab=\"3\" role=\"button\" aria-controls=\"elementor-tab-content-2453\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfQu\u00e9 seguridad y opciones de pago ofrece para mi negocio?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2453\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"3\" role=\"region\" aria-labelledby=\"elementor-tab-title-2453\"><p data-path-to-node=\"6\"><span data-path-to-node=\"7,2\"><span class=\"citation-285\"><b><i>Este servicio incluye un seguro gratuito que cubre el valor real de tus productos hasta por S\/ 300.00 ante robo, p\u00e9rdida o da\u00f1os,<\/i><\/b> y adem\u00e1s te permite realizar ventas por <i><b>contra entreg<\/b><\/i>a con dep\u00f3sitos de tu dinero el mismo d\u00eda mediante diversos medios de pago como efectivo o tarjetas<\/span><\/span><span data-path-to-node=\"7,4\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t\t<\/div>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-75aa3f2 e-con-full e-flex elementor-invisible e-con e-child\" data-id=\"75aa3f2\" data-element_type=\"container\" id=\"agencia\" data-settings=\"{&quot;animation&quot;:&quot;fadeIn&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-1383467 elementor-widget-tablet__width-inherit elementor-widget__width-initial elementor-widget elementor-widget-image\" data-id=\"1383467\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11.png\" class=\"attachment-full size-full wp-image-4513\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-9529176 e-con-full e-flex e-con e-child\" data-id=\"9529176\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImVhYzI4YjMiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5TZXJ2aWNpbzxcL3A+IiwidHlwb2dyYXBoeV90eXBvZ3JhcGh5IjoiY3VzdG9tIiwidHlwb2dyYXBoeV9mb250X3NpemUiOnsidW5pdCI6InB4Iiwic2l6ZSI6MjYsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfZm9udF93ZWlnaHQiOiJib2xkIiwiYWxpZ25fbW9iaWxlIjoiY2VudGVyIiwiYWxpZ25fdGFibGV0IjoiY2VudGVyIiwiX19nbG9iYWxzX18iOnsidGV4dF9jb2xvciI6IiJ9LCJ0eXBvZ3JhcGh5X2ZvbnRfc2l6ZV90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MTcsInNpemVzIjpbXX0sInRleHRfY29sb3IiOiIjRkZGRkZGIiwiYWxpZ24iOiJjZW50ZXIiLCJ0eXBvZ3JhcGh5X2ZvbnRfZmFtaWx5IjoiTW9udHNlcnJhdCJ9LCJlbGVtZW50cyI6W10sIndpZGdldFR5cGUiOiJ0ZXh0LWVkaXRvciJ9\"]\t\t<div class=\"elementor-element elementor-element-70646e3 elementor-widget elementor-widget-heading\" data-id=\"70646e3\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">MERC AGENCIA<\/h2>\t\t\t\t<\/div>\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6IjFiMTNlMTEiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD48c3BhbiBkYXRhLXBhdGgtdG8tbm9kZT1cIjAsMVwiPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMTYwXCI+RWwgc2VydmljaW8gPFwvc3Bhbj48ZW0+PGIgZGF0YS1wYXRoLXRvLW5vZGU9XCIwLDFcIiBkYXRhLWluZGV4LWluLW5vZGU9XCIxMlwiPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMTYwXCI+TUVSQyBBZ2VuY2lhPFwvc3Bhbj48XC9iPjxcL2VtPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMTYwXCI+IGVzIGxhIG9wY2lcdTAwZjNuIG1cdTAwZTFzIGVjb25cdTAwZjNtaWNhIHBhcmEgcXVpZW5lcyBwdWVkZW4gZGVqYXIgc3VzIHBhcXVldGVzIGRpcmVjdGFtZW50ZSBlbiBudWVzdHJhIHNlZGU8XC9zcGFuPjxcL3NwYW4+PHNwYW4gZGF0YS1wYXRoLXRvLW5vZGU9XCIwLDNcIj4uIDxcL3NwYW4+PHNwYW4gZGF0YS1wYXRoLXRvLW5vZGU9XCIwLDVcIj48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTE1OVwiPkxvcyBwZWRpZG9zIHJlY2liaWRvcyBoYXN0YSBsYXMgMTI6MzAgcG0gc2UgZW50cmVnYW4gZWwgbWlzbW8gZFx1MDBlZGEgcG9yIGxhIHRhcmRlLCBjb24gdW5hIDxcL3NwYW4+PGVtPjxiIGRhdGEtcGF0aC10by1ub2RlPVwiMCw1XCIgZGF0YS1pbmRleC1pbi1ub2RlPVwiODhcIj48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTE1OVwiPnRhcmlmYSBwbGFuYSBkZSBTXC8gODxcL3NwYW4+PFwvYj48XC9lbT48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTE1OVwiPiBwYXJhIHRvZG8gTGltYSB5IENhbGxhbyBzaW4gbVx1MDBlZG5pbW9zIGRlIGVudlx1MDBlZG88XC9zcGFuPjxcL3NwYW4+PHNwYW4gZGF0YS1wYXRoLXRvLW5vZGU9XCIwLDdcIj4uIDxcL3NwYW4+PHNwYW4gZGF0YS1wYXRoLXRvLW5vZGU9XCIwLDlcIj48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTE1OFwiPkluY2x1eWUgbG9zIG1pc21vcyBiZW5lZmljaW9zIGRlIHNlZ3VyaWRhZCwgY29tbyBlbCA8XC9zcGFuPjxlbT48YiBkYXRhLXBhdGgtdG8tbm9kZT1cIjAsOVwiIGRhdGEtaW5kZXgtaW4tbm9kZT1cIjUyXCI+PHNwYW4gY2xhc3M9XCJjaXRhdGlvbi0xNThcIj5zZWd1cm8gZ3JhdHVpdG8gaGFzdGEgU1wvIDMwMDxcL3NwYW4+PFwvYj48XC9lbT48c3BhbiBjbGFzcz1cImNpdGF0aW9uLTE1OFwiPiB5IGRlcFx1MDBmM3NpdG9zIGRlIHR1cyB2ZW50YXMgZWwgbWlzbW8gZFx1MDBlZGE8XC9zcGFuPjxcL3NwYW4+PHNwYW4gZGF0YS1wYXRoLXRvLW5vZGU9XCIwLDExXCI+LiA8XC9zcGFuPjxzcGFuIGRhdGEtcGF0aC10by1ub2RlPVwiMCwxM1wiPkVzIGlkZWFsIHBhcmEgbWF4aW1pemFyIHR1cyBnYW5hbmNpYXMgbWFudGVuaWVuZG8gbGEgcmFwaWRleiB5IGNvbmZpYW56YSBkZSBzaWVtcHJlPFwvc3Bhbj48c3BhbiBkYXRhLXBhdGgtdG8tbm9kZT1cIjAsMTVcIj4uPFwvc3Bhbj48XC9wPiIsIl9tYXJnaW4iOnsidW5pdCI6InB4IiwidG9wIjoiMCIsInJpZ2h0IjoiMCIsImJvdHRvbSI6IjIwIiwibGVmdCI6IjAiLCJpc0xpbmtlZCI6ZmFsc2V9LCJhbGlnbl90YWJsZXQiOiJjZW50ZXIiLCJhbGlnbl9tb2JpbGUiOiJjZW50ZXIiLCJhbGlnbiI6Imp1c3RpZnkiLCJ0eXBvZ3JhcGh5X3R5cG9ncmFwaHkiOiJjdXN0b20iLCJfX2dsb2JhbHNfXyI6eyJ0ZXh0X2NvbG9yIjoiZ2xvYmFsc1wvY29sb3JzP2lkPWJsb2Nrc3lfcGFsZXR0ZV84In0sInR5cG9ncmFwaHlfZm9udF9zaXplX3RhYmxldCI6eyJ1bml0IjoicHgiLCJzaXplIjoyNiwic2l6ZXMiOltdfSwidHlwb2dyYXBoeV9saW5lX2hlaWdodF90YWJsZXQiOnsidW5pdCI6ImVtIiwic2l6ZSI6MS42LCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2xldHRlcl9zcGFjaW5nX3RhYmxldCI6eyJ1bml0IjoicHgiLCJzaXplIjotMS4xLCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2ZvbnRfZmFtaWx5IjoiU2FucyBTZXJpZiIsInR5cG9ncmFwaHlfZm9udF9zaXplX21vYmlsZSI6eyJ1bml0IjoicHgiLCJzaXplIjoxOSwic2l6ZXMiOltdfX0sImVsZW1lbnRzIjpbXSwid2lkZ2V0VHlwZSI6InRleHQtZWRpdG9yIn0=\"]\t\t<div class=\"elementor-element elementor-element-e4b4e59 elementor-widget elementor-widget-accordion\" data-id=\"e4b4e59\" data-element_type=\"widget\" data-widget_type=\"accordion.default\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2391\" class=\"elementor-tab-title\" data-tab=\"1\" role=\"button\" aria-controls=\"elementor-tab-content-2391\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfCu\u00e1les son las ventajas de elegir MERC Agencia?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2391\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"1\" role=\"region\" aria-labelledby=\"elementor-tab-title-2391\"><p><span data-path-to-node=\"2,1\"><span class=\"citation-218\">Es tu opci\u00f3n m\u00e1s econ\u00f3mica para env\u00edos en Lima Metropolitana y Callao, con una <\/span><b data-path-to-node=\"2,1\" data-index-in-node=\"79\"><span class=\"citation-218\">tarifa plana de S\/ 8.00<\/span><\/b><span class=\"citation-218\"> y sin requerir un m\u00ednimo de paquetes<\/span><\/span><span data-path-to-node=\"2,3\">. <\/span><span data-path-to-node=\"2,5\"><span class=\"citation-217\">Es ideal si puedes acercarte a nuestra sede, permiti\u00e9ndote reducir costos log\u00edsticos sin perder calidad<\/span><\/span><span data-path-to-node=\"2,7\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2392\" class=\"elementor-tab-title\" data-tab=\"2\" role=\"button\" aria-controls=\"elementor-tab-content-2392\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfCu\u00e1l es el horario l\u00edmite para que mi entrega llegue el mismo d\u00eda?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2392\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"2\" role=\"region\" aria-labelledby=\"elementor-tab-title-2392\"><p data-path-to-node=\"4\"><span data-path-to-node=\"4,1\"><span class=\"citation-216\">Debes entregar tus pedidos en nuestra agencia a m\u00e1s tardar a las <\/span><b data-path-to-node=\"4,1\" data-index-in-node=\"65\"><span class=\"citation-216\">12:30 pm<\/span><\/b><span class=\"citation-216\"> para que salgan a ruta ese mismo d\u00eda<\/span><\/span><span data-path-to-node=\"4,3\">. <\/span><span data-path-to-node=\"4,5\"><span class=\"citation-215\">Si los dejas despu\u00e9s de esa hora (hasta las 6:30 pm), tu entrega quedar\u00e1 programada para la tarde del d\u00eda siguiente<\/span><\/span><span data-path-to-node=\"4,7\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2393\" class=\"elementor-tab-title\" data-tab=\"3\" role=\"button\" aria-controls=\"elementor-tab-content-2393\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfQu\u00e9 beneficios de pago y seguridad incluye este servicio?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2393\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"3\" role=\"region\" aria-labelledby=\"elementor-tab-title-2393\"><p data-path-to-node=\"6\"><span data-path-to-node=\"6,1\"><span class=\"citation-214\">Al igual que nuestros otros servicios, cuentas con un <\/span><b data-path-to-node=\"6,1\" data-index-in-node=\"54\"><span class=\"citation-214\">seguro gratuito<\/span><\/b><span class=\"citation-214\"> que cubre hasta S\/ 300.00 en mercader\u00eda o insumos<\/span><\/span><span data-path-to-node=\"6,3\">. <\/span><span data-path-to-node=\"6,5\"><span class=\"citation-213\">Adem\u00e1s, realizamos el dep\u00f3sito de tus ventas cobradas por contra entrega el mismo d\u00eda, aceptando efectivo, Yape, Plin o tarjeta<\/span><\/span><span data-path-to-node=\"6,7\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t\t<\/div>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-477852a e-con-full e-flex elementor-invisible e-con e-child\" data-id=\"477852a\" data-element_type=\"container\" id=\"fullfillment\" data-settings=\"{&quot;animation&quot;:&quot;fadeIn&quot;}\">\n\t\t\t\t<div class=\"elementor-element elementor-element-af12b10 elementor-widget-tablet__width-inherit elementor-widget elementor-widget-image\" data-id=\"af12b10\" data-element_type=\"widget\" data-widget_type=\"image.default\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<img width=\"1024\" height=\"1024\" src=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11.png\" class=\"attachment-full size-full wp-image-4513\" alt=\"\" srcset=\"https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11.png 1024w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-300x300.png 300w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-150x150.png 150w, https:\/\/mercourier.com\/wp-content\/uploads\/2026\/01\/11-768x768.png 768w\" sizes=\"(max-width: 1024px) 100vw, 1024px\" \/>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/div>\n\t\t<div class=\"elementor-element elementor-element-5bcfac4 e-con-full e-flex e-con e-child\" data-id=\"5bcfac4\" data-element_type=\"container\">\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImViYTk3N2UiLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD5TZXJ2aWNpbzxcL3A+IiwidHlwb2dyYXBoeV90eXBvZ3JhcGh5IjoiY3VzdG9tIiwidHlwb2dyYXBoeV9mb250X3NpemUiOnsidW5pdCI6InB4Iiwic2l6ZSI6MjYsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfZm9udF93ZWlnaHQiOiJib2xkIiwiYWxpZ25fbW9iaWxlIjoiY2VudGVyIiwiYWxpZ25fdGFibGV0IjoiY2VudGVyIiwiX19nbG9iYWxzX18iOnsidGV4dF9jb2xvciI6Imdsb2JhbHNcL2NvbG9ycz9pZD1ibG9ja3N5X3BhbGV0dGVfOCJ9LCJ0eXBvZ3JhcGh5X2ZvbnRfc2l6ZV90YWJsZXQiOnsidW5pdCI6InB4Iiwic2l6ZSI6MTcsInNpemVzIjpbXX0sImFsaWduIjoiY2VudGVyIiwidHlwb2dyYXBoeV9mb250X2ZhbWlseSI6Ik1vbnRzZXJyYXQifSwiZWxlbWVudHMiOltdLCJ3aWRnZXRUeXBlIjoidGV4dC1lZGl0b3IifQ==\"]\t\t<div class=\"elementor-element elementor-element-b8e86b5 elementor-widget elementor-widget-heading\" data-id=\"b8e86b5\" data-element_type=\"widget\" data-widget_type=\"heading.default\">\n\t\t\t\t\t<h2 class=\"elementor-heading-title elementor-size-default\">MERC FULLFILLMENT<\/h2>\t\t\t\t<\/div>\n\t\t[elementor-element k=\"f0ed140f8b6c5ed68b460c37d284d5b3\" data=\"eyJpZCI6ImJkMDY2ODciLCJlbFR5cGUiOiJ3aWRnZXQiLCJzZXR0aW5ncyI6eyJlZGl0b3IiOiI8cD48c3BhbiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsMVwiPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMzE0XCI+RWwgc2VydmljaW8gPFwvc3Bhbj48ZW0+PGIgZGF0YS1wYXRoLXRvLW5vZGU9XCIyLDFcIiBkYXRhLWluZGV4LWluLW5vZGU9XCIxMlwiPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMzE0XCI+TUVSQyBGdWxsZmlsbG1lbnQ8XC9zcGFuPjxcL2I+PFwvZW0+PHNwYW4gY2xhc3M9XCJjaXRhdGlvbi0zMTRcIj4gZXMgbGEgc29sdWNpXHUwMGYzbiBsb2dcdTAwZWRzdGljYSBpbnRlZ3JhbCBkaXNlXHUwMGYxYWRhIHBhcmEgcXVlIGRlbGVndWVzIHRvZGEgdHUgb3BlcmFjaVx1MDBmM24sIHlhIHF1ZSBpbmNsdXllIGxhIHJlY2VwY2lcdTAwZjNuLCBlbCBhbG1hY2VuYW1pZW50byBlc3RyYXRcdTAwZTlnaWNvIHkgbGEgZ2VzdGlcdTAwZjNuIGRlIGludmVudGFyaW8gZGUgdHVzIHByb2R1Y3RvczxcL3NwYW4+PFwvc3Bhbj48c3BhbiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsM1wiPi4gPFwvc3Bhbj48c3BhbiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsNVwiPjxzcGFuIGNsYXNzPVwiY2l0YXRpb24tMzEzXCI+PGVtPjxzdHJvbmc+RXN0ZSBzZXJ2aWNpbyB0ZSBwZXJtaXRlIG9wdGltaXphciB0aWVtcG9zIGFsIGVuY2FyZ2Fybm9zIGRlbCBlbXBhcXVldGFkbywgcm90dWxhZG8geSBzZWd1aW1pZW50byBwcm9mZXNpb25hbCBkZSBjYWRhIHBlZGlkbyw8XC9zdHJvbmc+PFwvZW0+IGFzZWd1cmFuZG8gZW50cmVnYXMgZWZpY2llbnRlcyBlbiBMaW1hIHkgQ2FsbGFvIGJham8gdW5hIG1vZGFsaWRhZCBkZSB0cmFiYWpvIHF1ZSBnYXJhbnRpemEgb3JkZW4geSBjb250cm9sIHRvdGFsIGRlIHR1IG1lcmNhZGVyXHUwMGVkYTxcL3NwYW4+PFwvc3Bhbj48c3BhbiBkYXRhLXBhdGgtdG8tbm9kZT1cIjIsN1wiPi48XC9zcGFuPjxcL3A+IiwiX21hcmdpbiI6eyJ1bml0IjoicHgiLCJ0b3AiOiIwIiwicmlnaHQiOiIwIiwiYm90dG9tIjoiMjAiLCJsZWZ0IjoiMCIsImlzTGlua2VkIjpmYWxzZX0sImFsaWduX3RhYmxldCI6ImNlbnRlciIsImFsaWduX21vYmlsZSI6ImNlbnRlciIsImFsaWduIjoianVzdGlmeSIsInR5cG9ncmFwaHlfdHlwb2dyYXBoeSI6ImN1c3RvbSIsIl9fZ2xvYmFsc19fIjp7InRleHRfY29sb3IiOiJnbG9iYWxzXC9jb2xvcnM\/aWQ9YmxvY2tzeV9wYWxldHRlXzYifSwidHlwb2dyYXBoeV9mb250X3NpemVfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOjI2LCJzaXplcyI6W119LCJ0eXBvZ3JhcGh5X2xpbmVfaGVpZ2h0X3RhYmxldCI6eyJ1bml0IjoiZW0iLCJzaXplIjoxLjYsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfbGV0dGVyX3NwYWNpbmdfdGFibGV0Ijp7InVuaXQiOiJweCIsInNpemUiOi0xLjEsInNpemVzIjpbXX0sInR5cG9ncmFwaHlfZm9udF9mYW1pbHkiOiJTYW5zIFNlcmlmIiwidHlwb2dyYXBoeV9mb250X3NpemVfbW9iaWxlIjp7InVuaXQiOiJweCIsInNpemUiOjE5LCJzaXplcyI6W119fSwiZWxlbWVudHMiOltdLCJ3aWRnZXRUeXBlIjoidGV4dC1lZGl0b3IifQ==\"]\t\t<div class=\"elementor-element elementor-element-df1a376 elementor-widget elementor-widget-accordion\" data-id=\"df1a376\" data-element_type=\"widget\" data-widget_type=\"accordion.default\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion\">\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2331\" class=\"elementor-tab-title\" data-tab=\"1\" role=\"button\" aria-controls=\"elementor-tab-content-2331\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfC\u00f3mo funciona la modalidad de trabajo y los horarios?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2331\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"1\" role=\"region\" aria-labelledby=\"elementor-tab-title-2331\"><p><span data-path-to-node=\"5,2\"><span class=\"citation-312\">Para acceder a este servicio, debes solicitarlo a m\u00e1s tardar a las 11:30 am del mismo d\u00eda, permiti\u00e9ndonos preparar tus productos para que las entregas se realicen esa misma tarde en el rango horario de 2:00 pm a 7:30 pm seg\u00fan la ruta establecida<\/span><\/span><span data-path-to-node=\"5,4\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2332\" class=\"elementor-tab-title\" data-tab=\"2\" role=\"button\" aria-controls=\"elementor-tab-content-2332\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfCu\u00e1les son las tarifas y condiciones de empaquetado?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2332\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"2\" role=\"region\" aria-labelledby=\"elementor-tab-title-2332\"><p data-path-to-node=\"4\"><span data-path-to-node=\"6,2\"><span class=\"citation-311\">Ofrecemos una tarifa plana de S\/ 10.00 para toda Lima Metropolitana y Callao sin exigir un m\u00ednimo de env\u00edos, encarg\u00e1ndonos del empaquetado y rotulado de acuerdo a la presentaci\u00f3n de tu marca, siempre que los paquetes respeten las medidas m\u00e1ximas de 25 cm por lado y un peso de hasta 3 kilos<\/span><\/span><span data-path-to-node=\"6,4\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t<div class=\"elementor-accordion-item\">\n\t\t\t\t\t<div id=\"elementor-tab-title-2333\" class=\"elementor-tab-title\" data-tab=\"3\" role=\"button\" aria-controls=\"elementor-tab-content-2333\" aria-expanded=\"false\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon elementor-accordion-icon-right\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-closed\"><svg class=\"e-font-icon-svg e-fas-plus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t<span class=\"elementor-accordion-icon-opened\"><svg class=\"e-font-icon-svg e-fas-minus\" viewBox=\"0 0 448 512\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\"><path d=\"M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"><\/path><\/svg><\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t\t\t\t\t\t\t<a class=\"elementor-accordion-title\" tabindex=\"0\">\u00bfQu\u00e9 seguridad y opciones de pago ofrece para mi negocio?<\/a>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div id=\"elementor-tab-content-2333\" class=\"elementor-tab-content elementor-clearfix\" data-tab=\"3\" role=\"region\" aria-labelledby=\"elementor-tab-title-2333\"><p data-path-to-node=\"6\"><span data-path-to-node=\"7,2\"><span class=\"citation-310\">Este servicio te brinda la tranquilidad de un seguro gratuito que cubre el valor real de tus productos hasta por S\/ 300.00 ante robo o da\u00f1os, adem\u00e1s de facilitar el cobro de tus ventas mediante contra entrega con el dep\u00f3sito de tu dinero el mismo d\u00eda a trav\u00e9s de efectivo, Yape o tarjetas<\/span><\/span><span data-path-to-node=\"7,4\">.<\/span><\/p><\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t\t\t\t<\/div>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/div>\n\t\t","scripts":[],"styles":[]}}
+[01-Mar-2026 04:29:14 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[01-Mar-2026 05:13:28 UTC] 🌅 [RESETEO DIARIO AUTOMÁTICO] Ejecutado para 2026-03-01
+[01-Mar-2026 13:56:44 UTC] 📅 Planificador de recojos - Filtrando por fecha: 01/03/2026
+[01-Mar-2026 13:56:44 UTC] 👤 Motorizado actual: ID 50
+[01-Mar-2026 13:56:44 UTC] MERC_PLANIFICADOR_SQL - SELECT DISTINCT p.ID, p.post_title
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_driver ON p.ID = pm_driver.post_id AND pm_driver.meta_key = 'wpcargo_driver'
+        LEFT JOIN wp_postmeta pm_pickup ON p.ID = pm_pickup.post_id AND pm_pickup.meta_key IN ('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio')
+        LEFT JOIN wp_postmeta pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_tipo ON p.ID = pm_tipo.post_id AND pm_tipo.meta_key = 'tipo_envio'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_driver.meta_value = 50
+        AND (
+            (STR_TO_DATE(pm_pickup.meta_value, '{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}d/{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}m/{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}Y') = STR_TO_DATE('2026-03-01', '{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}Y-{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}m-{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}d'))
+            OR (STR_TO_DATE(pm_pickup.meta_value, '{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}Y-{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}m-{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}d') = STR_TO_DATE('2026-03-01', '{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}Y-{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}m-{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}d'))
+            OR pm_pickup.meta_value LIKE '01/03/2026{16ce95d2dba8fc32457e1a47d06aeef47f718a5ff3cfd30b0c663fe211043771}'
+        )
+        AND LOWER(IFNULL(pm_tipo.meta_value, '')) = 'normal'
+        AND UPPER(IFNULL(pm_status.meta_value, '')) = 'PENDIENTE'
+        ORDER BY p.ID ASC
+[01-Mar-2026 13:56:44 UTC] ✅ Recojos asignados al motorizado 50: 0
+[01-Mar-2026 13:56:44 UTC] MERC_DIAG - Found candidate shipments by pickup meta: 0
+[01-Mar-2026 19:25:16 UTC] 
+════════════════════════════════════════════════════════════
+[01-Mar-2026 19:25:16 UTC] 🧹 [LIMPIEZA DIARIA] Eliminando merc_motorizo_recojo_default de todos los usuarios
+[01-Mar-2026 19:25:16 UTC] ════════════════════════════════════════════════════════════
+[01-Mar-2026 19:25:16 UTC] 📊 Usuarios con motorizado_recojo_default: 0
+[01-Mar-2026 19:25:16 UTC] 🔄 Total usuarios limpios: 0
+[01-Mar-2026 19:25:16 UTC] ✅ [LIMPIEZA DIARIA COMPLETADA] Próxima ejecución en 24 horas
+[01-Mar-2026 19:25:16 UTC] ════════════════════════════════════════════════════════════
+
+[01-Mar-2026 23:30:55 UTC] 📅 Planificador de recojos - Filtrando por fecha: 01/03/2026
+[01-Mar-2026 23:30:55 UTC] 👤 Motorizado actual: ID 50
+[01-Mar-2026 23:30:55 UTC] MERC_PLANIFICADOR_SQL - SELECT DISTINCT p.ID, p.post_title
+        FROM wp_posts p
+        LEFT JOIN wp_postmeta pm_driver ON p.ID = pm_driver.post_id AND pm_driver.meta_key = 'wpcargo_driver'
+        LEFT JOIN wp_postmeta pm_pickup ON p.ID = pm_pickup.post_id AND pm_pickup.meta_key IN ('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio')
+        LEFT JOIN wp_postmeta pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN wp_postmeta pm_tipo ON p.ID = pm_tipo.post_id AND pm_tipo.meta_key = 'tipo_envio'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_driver.meta_value = 50
+        AND (
+            (STR_TO_DATE(pm_pickup.meta_value, '{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}d/{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}m/{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}Y') = STR_TO_DATE('2026-03-01', '{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}Y-{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}m-{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}d'))
+            OR (STR_TO_DATE(pm_pickup.meta_value, '{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}Y-{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}m-{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}d') = STR_TO_DATE('2026-03-01', '{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}Y-{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}m-{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}d'))
+            OR pm_pickup.meta_value LIKE '01/03/2026{462338ee89c61f6b5356702b9079cd9df3c44b52f4eaf5acae77561f228e8a25}'
+        )
+        AND LOWER(IFNULL(pm_tipo.meta_value, '')) = 'normal'
+        AND UPPER(IFNULL(pm_status.meta_value, '')) = 'PENDIENTE'
+        ORDER BY p.ID ASC
+[01-Mar-2026 23:30:55 UTC] ✅ Recojos asignados al motorizado 50: 0
+[01-Mar-2026 23:30:55 UTC] MERC_DIAG - Found candidate shipments by pickup meta: 0
