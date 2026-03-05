@@ -58,7 +58,8 @@ class MERC_Shipment_Table {
 		$distrito_destino = get_post_meta( $shipment_id, 'wpcargo_distrito_destino', true )
 		                 ?: get_post_meta( $shipment_id, 'wpcargo_destination',       true );
 
-		$fecha = get_post_meta( $shipment_id, 'wpcargo_calendarenvio', true )
+		$fecha = get_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', true )
+		      ?: get_post_meta( $shipment_id, 'wpcargo_calendarenvio', true )
 		      ?: date( 'd/m/Y', strtotime( get_post_field( 'post_date', $shipment_id ) ) );
 
 		$tipo_html             = $this->render_tipo( get_post_meta( $shipment_id, 'tipo_envio', true ) );
@@ -66,7 +67,11 @@ class MERC_Shipment_Table {
 		$motorizo_recojo_html  = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo',  true ) );
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
-		load_template( $this->tpl_path . 'table-row.tpl.php', false );
+		load_template( $this->tpl_path . 'table-row.tpl.php', false, compact(
+			'shipment_id', 'tienda_html', 'actions_html',
+			'distrito_recojo', 'distrito_destino', 'fecha',
+			'tipo_html', 'cambio_html', 'motorizo_recojo_html', 'motorizo_entrega_html'
+		) );
 	}
 
 	/* ── Helpers de render ───────────────────────────────────────────── */
