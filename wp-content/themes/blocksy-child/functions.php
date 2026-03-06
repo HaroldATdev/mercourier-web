@@ -7912,93 +7912,9 @@ add_action('save_post_wpcargo_shipment', 'merc_asignar_estado_segun_tipo_servici
 add_action('wpcfe_after_save_add_shipment', 'merc_force_decimal_total_on_save', 1);
 add_action('save_post_wpcargo_shipment', 'merc_force_decimal_total_on_save_post', 20, 3);
 // Hook para asignar unidades de full fitment
-add_action('save_post_wpcargo_shipment', 'merc_asignar_unidades_full_fitment', 12, 2);
-// Hook adicional para forzar el estado después de todo
+// Hook para forzar el estado después de todo
 add_action('save_post_wpcargo_shipment', 'merc_forzar_estado_por_tipo', 13, 3);
 add_action('wp_footer', 'merc_cambiar_estado_en_frontend');
-
-/**
- * Asignar unidades de producto a envío full fitment
- * Se ejecuta despúes de merc_guardar_envio_producto() pero antes de forzar estado
- */
-function merc_asignar_unidades_full_fitment($post_id, $post) {
-    // No procesar en autosave
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-        error_log("🔄 Full Fitment #{$post_id} - SKIPPED (autosave)");
-        return;
-    }
-    
-    // Obtener tipo de envío: primero desde REQUEST, luego desde meta
-    $tipo_envio = '';
-    if (isset($_REQUEST['type'])) {
-        $tipo_envio = strtolower(sanitize_text_field($_REQUEST['type']));
-    } else {
-        $tipo_envio_raw = get_post_meta($post_id, 'wpcargo_type_of_shipment', true);
-        $tipo_envio = strtolower($tipo_envio_raw);
-    }
-    
-    $es_full_fitment = (strpos($tipo_envio, 'full') !== false || strpos($tipo_envio, 'fitment') !== false || $tipo_envio === 'full_fitment');
-    
-    error_log("🔍 Full Fitment verificación #{$post_id} - Tipo: '{$tipo_envio}' -> Es full fitment: " . ($es_full_fitment ? 'SI' : 'NO'));
-    
-    if (!$es_full_fitment) {
-        error_log("⏭️ Full Fitment #{$post_id} - NO es full fitment, saltando");
-        return;
-    }
-    
-    // Verificar si ya hay unidades asignadas
-    $unidades_asignadas = get_post_meta($post_id, '_merc_producto_unidades', true);
-    if (!empty($unidades_asignadas) && is_array($unidades_asignadas)) {
-        error_log("✅ Full Fitment #{$post_id} - Unidades ya asignadas: " . count($unidades_asignadas) . " [" . implode(',', $unidades_asignadas) . "]");
-        return;
-    }
-    
-    // Obtener producto y cantidad
-    $producto_id = intval(get_post_meta($post_id, '_merc_producto_id', true));
-    $cantidad = intval(get_post_meta($post_id, '_merc_producto_cantidad', true));
-    
-    // Si no hay cantidad pero hay producto seleccionado, intentar obtenerla desde POST
-    if ($cantidad === 0 && $producto_id > 0) {
-        $cantidad = isset($_POST['merc_producto_cantidad']) ? intval($_POST['merc_producto_cantidad']) : 1;
-        error_log("📝 Full Fitment #{$post_id} - Cantidad obtenida desde POST: {$cantidad}");
-    }
-    
-    error_log("📦 Full Fitment #{$post_id} - Datos: Producto={$producto_id}, Cantidad={$cantidad}");
-    
-    if ($producto_id <= 0 || $cantidad <= 0) {
-        error_log("⚠️ Full Fitment #{$post_id} - NO SE PROCESÓ: Producto o cantidad inválidos");
-        return;
-    }
-    
-    // Verificar stock disponible
-    $stock_disponible = merc_get_product_stock($producto_id);
-    $stock_disponible = intval($stock_disponible);
-    
-    error_log("📊 Full Fitment #{$post_id} - Stock disponible: {$stock_disponible} unidades");
-    
-    if ($cantidad > $stock_disponible) {
-        error_log("❌ Full Fitment #{$post_id} - STOCK INSUFICIENTE: Solicitado {$cantidad}, Disponible {$stock_disponible}");
-        return;
-    }
-    
-    // Asignar unidades
-    error_log("🚀 Full Fitment #{$post_id} - ASIGNANDO {$cantidad} unidades del producto #{$producto_id} al envío");
-    $assigned_units = merc_assign_stock_units($producto_id, $cantidad, $post_id);
-    
-    if ($assigned_units === false) {
-        error_log("❌ Full Fitment #{$post_id} - merc_assign_stock_units() retornó FALSE");
-        return;
-    }
-    
-    if (empty($assigned_units)) {
-        error_log("❌ Full Fitment #{$post_id} - merc_assign_stock_units() retornó array vacío");
-        return;
-    }
-    
-    // Guardar unidades asignadas
-    update_post_meta($post_id, '_merc_producto_unidades', $assigned_units);
-    error_log("✅ Full Fitment #{$post_id} - Unidades ASIGNADAS EXITOSAMENTE: " . implode(',', $assigned_units) . " (Total: " . count($assigned_units) . ")");
-}
 
 /**
  * Forzar que `wpcargo_total_cobrar` se guarde como decimal (2 decimales)
