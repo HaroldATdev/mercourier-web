@@ -16,3 +16,4 @@ define( 'MERC_TABLE_URL',     plugin_dir_url( __FILE__ ) );
 
 require_once MERC_TABLE_PATH . 'includes/functions.php';
 require_once MERC_TABLE_PATH . 'admin/classes/class-shipment-table.php';
+require_once MERC_TABLE_PATH . 'admin/classes/class-shipment-filters.php';
