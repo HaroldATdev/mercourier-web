@@ -6,10 +6,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * Gestiona todos los filtros del historial de envíos del frontend WPCargo:
  *   - Barra de filtros: Fecha, Marca, Celular destinatario, Motorizado recojo/entrega.
- *   - Query filters: fecha (SQL directo + post__in), marca, celular y motorizado (meta_query).
+ *   - Query filters: todas las condiciones como EXISTS subqueries en posts_where (sin JOINs extra).
  *   - Rename "Shipments" → "Historial de Envíos".
  */
 class MERC_Shipment_Filters {
+
+    /** Condiciones WHERE acumuladas para inyectar via posts_where. */
+    private array $custom_where_conds = [];
 
     public function __construct() {
         // Quitar el filtro de fecha nativo de WPCargo antes de añadir los propios
@@ -24,15 +27,10 @@ class MERC_Shipment_Filters {
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_celular_filter' ], 102 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_driver_filters' ], 103 );
 
-        // ── Query: filtros en meta_query (mismo nivel que las condiciones de WPCargo) ─
-        // IMPORTANTE: celular, marca y motorizados van en wpcfe_dashboard_meta_query
-        // para quedar en el nivel interno correcto de la estructura que WPCargo arma.
-        add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_marca_meta_query' ] );
-        add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_celular_meta_query' ] );
-        add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_driver_meta_query' ] );
-
-        // ── Query: fecha usa wpcfe_dashboard_arguments para post__in (SQL directo) ──
-        add_filter( 'wpcfe_dashboard_arguments', [ $this, 'apply_date_query' ], 20 );
+        // ── Query: todos los filtros via EXISTS (sin JOINs en WP_Query) ───
+        // Preparamos las condiciones en wpcfe_dashboard_arguments y las
+        // inyectamos en posts_where para evitar JOINs lentos en meta_query.
+        add_filter( 'wpcfe_dashboard_arguments', [ $this, 'prepare_custom_filter_clauses' ], 20 );
 
         // ── Internacionalización ──────────────────────────────────────────
         add_filter( 'gettext', [ $this, 'rename_shipments_text' ], 20, 3 );
@@ -53,8 +51,6 @@ class MERC_Shipment_Filters {
     /* ── Ocultar controles AJAX nativos rotos (shipper/receiver Select2) ── */
 
     public function suppress_native_ajax_filters_css(): void {
-        // Mostrar solo para usuarios logueados; el selector es suficientemente
-        // específico (#wpcfe-filters) para no afectar otras páginas.
         if ( ! is_user_logged_in() ) {
             return;
         }
@@ -215,22 +211,25 @@ class MERC_Shipment_Filters {
         <?php
     }
 
-    /* ── Query: Fecha → post__in (wpcfe_dashboard_arguments) ───────────── */
-    /*                                                                        */
-    /* Solo maneja el filtro de fecha mediante SQL directo y post__in.       */
-    /* Por defecto muestra HOY si no se pasan parámetros de fecha.           */
+    /* ── Query: construye EXISTS subqueries e inyecta en posts_where ─────── */
+    /*                                                                         */
+    /* Cada filtro genera un EXISTS (SELECT 1 FROM wp_postmeta WHERE ...)     */
+    /* que MySQL resuelve con el índice meta_key sin JOINs en la query        */
+    /* principal de WP_Query. Mucho más rápido que meta_query o post__in.    */
 
-    public function apply_date_query( array $args ): array {
+    public function prepare_custom_filter_clauses( array $args ): array {
         global $wpdb;
 
-        $from = isset( $_GET['shipping_date_start'] )
-            ? sanitize_text_field( $_GET['shipping_date_start'] )
-            : '';
-        $to   = isset( $_GET['shipping_date_end'] )
-            ? sanitize_text_field( $_GET['shipping_date_end'] )
-            : '';
+        $this->custom_where_conds = [];
 
-        // Sin parámetros: mostrar el día de hoy por defecto
+        unset( $args['date_query'] ); // evitar conflicto con date_query nativo
+
+        // ── Fecha ─────────────────────────────────────────────────────────
+        $from = isset( $_GET['shipping_date_start'] )
+            ? sanitize_text_field( $_GET['shipping_date_start'] ) : '';
+        $to   = isset( $_GET['shipping_date_end'] )
+            ? sanitize_text_field( $_GET['shipping_date_end'] )   : '';
+
         if ( empty( $from ) && empty( $to ) ) {
             $from = current_time( 'Y-m-d' );
             $to   = current_time( 'Y-m-d' );
@@ -239,125 +238,126 @@ class MERC_Shipment_Filters {
         $has_from = $from && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $from );
         $has_to   = $to   && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $to );
 
-        if ( ! $has_from && ! $has_to ) {
-            return $args;
-        }
-
-        unset( $args['date_query'] ); // Evitar conflicto con date_query nativo
-
-        // Cachear el resultado para no repetir la consulta en recargas del mismo rango
-        $cache_key = 'merc_date_ids_' . md5( $from . '_' . $to );
-        $date_ids  = get_transient( $cache_key );
-
-        if ( $date_ids === false ) {
-            // Caso más común: día único — usar comparación directa (usa índice en meta_value)
+        if ( $has_from || $has_to ) {
+            // Día único → comparación directa (usa índice en meta_value sin STR_TO_DATE)
             if ( $has_from && $has_to && $from === $to ) {
                 $d        = \DateTime::createFromFormat( 'Y-m-d', $from );
                 $date_dmy = $d ? $d->format( 'd/m/Y' ) : null;
 
                 if ( $date_dmy ) {
-                    $condition = $wpdb->prepare( 'pm.meta_value = %s', $date_dmy );
+                    $date_cond = $wpdb->prepare( 'pm_dt.meta_value = %s', $date_dmy );
                 } else {
-                    $condition = $wpdb->prepare(
-                        "STR_TO_DATE(pm.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')",
+                    $date_cond = $wpdb->prepare(
+                        "STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')",
                         $from
                     );
                 }
             } else {
-                // Rango de fechas: STR_TO_DATE inevitable (sin índice)
-                $conditions = [];
+                // Rango de fechas
+                $parts = [];
                 if ( $has_from ) {
-                    $conditions[] = $wpdb->prepare(
-                        "STR_TO_DATE(pm.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE(%s, '%%Y-%%m-%%d')",
+                    $parts[] = $wpdb->prepare(
+                        "STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE(%s, '%%Y-%%m-%%d')",
                         $from
                     );
                 }
                 if ( $has_to ) {
-                    $conditions[] = $wpdb->prepare(
-                        "STR_TO_DATE(pm.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE(%s, '%%Y-%%m-%%d')",
+                    $parts[] = $wpdb->prepare(
+                        "STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE(%s, '%%Y-%%m-%%d')",
                         $to
                     );
                 }
-                $condition = implode( ' AND ', $conditions );
+                $date_cond = implode( ' AND ', $parts );
             }
 
+            $keys_in = "'wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_calendarenvio','wpcargo_fecha_envio'";
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $date_ids = $wpdb->get_col( "
-                SELECT DISTINCT p.ID
-                FROM {$wpdb->posts} p
-                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-                WHERE p.post_type = 'wpcargo_shipment'
-                  AND pm.meta_key IN (
-                      'wpcargo_pickup_date_picker',
-                      'wpcargo_pickup_date',
-                      'wpcargo_calendarenvio',
-                      'wpcargo_fecha_envio'
-                  )
-                  AND ( {$condition} )
-            " );
-
-            $date_ids = $date_ids ?: [];
-            set_transient( $cache_key, $date_ids, MINUTE_IN_SECONDS );
+            $this->custom_where_conds[] = "EXISTS (
+                SELECT 1 FROM {$wpdb->postmeta} pm_dt
+                WHERE pm_dt.post_id = {$wpdb->posts}.ID
+                  AND pm_dt.meta_key IN ({$keys_in})
+                  AND ( {$date_cond} )
+            )";
         }
 
-        if ( ! empty( $date_ids ) ) {
-            $existing         = isset( $args['post__in'] ) && ! empty( $args['post__in'] )
-                ? $args['post__in']
-                : null;
-            $args['post__in'] = $existing
-                ? array_values( array_intersect( $existing, $date_ids ) )
-                : array_map( 'intval', $date_ids );
-        } else {
-            $args['post__in'] = [ 0 ]; // Sin resultados para este rango de fechas
+        // ── Marca ─────────────────────────────────────────────────────────
+        if ( ! empty( $_GET['wpcargo_tiendaname'] ) ) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->custom_where_conds[] = $wpdb->prepare(
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_mc
+                    WHERE pm_mc.post_id = {$wpdb->posts}.ID
+                      AND pm_mc.meta_key = 'wpcargo_tiendaname'
+                      AND pm_mc.meta_value = %s
+                )",
+                sanitize_text_field( $_GET['wpcargo_tiendaname'] )
+            );
+        }
+
+        // ── Celular ───────────────────────────────────────────────────────
+        if ( ! empty( $_GET['celular_destinatario'] ) ) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->custom_where_conds[] = $wpdb->prepare(
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_cl
+                    WHERE pm_cl.post_id = {$wpdb->posts}.ID
+                      AND pm_cl.meta_key = 'wpcargo_receiver_phone'
+                      AND pm_cl.meta_value = %s
+                )",
+                sanitize_text_field( $_GET['celular_destinatario'] )
+            );
+        }
+
+        // ── Motorizado Recojo ─────────────────────────────────────────────
+        if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) ) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->custom_where_conds[] = $wpdb->prepare(
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_mr
+                    WHERE pm_mr.post_id = {$wpdb->posts}.ID
+                      AND pm_mr.meta_key = 'wpcargo_motorizo_recojo'
+                      AND pm_mr.meta_value = %s
+                )",
+                intval( $_GET['wpcargo_motorizo_recojo'] )
+            );
+        }
+
+        // ── Motorizado Entrega ────────────────────────────────────────────
+        if ( ! empty( $_GET['wpcargo_motorizo_entrega'] ) ) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->custom_where_conds[] = $wpdb->prepare(
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_me
+                    WHERE pm_me.post_id = {$wpdb->posts}.ID
+                      AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
+                      AND pm_me.meta_value = %s
+                )",
+                intval( $_GET['wpcargo_motorizo_entrega'] )
+            );
+        }
+
+        if ( ! empty( $this->custom_where_conds ) ) {
+            add_filter( 'posts_where', [ $this, 'inject_custom_where' ], 99, 2 );
         }
 
         return $args;
     }
 
-    /* ── Query: Marca / Nombre de tienda (wpcfe_dashboard_meta_query) ───── */
-
-    public function apply_marca_meta_query( array $meta_query ): array {
-        if ( ! empty( $_GET['wpcargo_tiendaname'] ) ) {
-            $meta_query[] = [
-                'key'     => 'wpcargo_tiendaname',
-                'value'   => sanitize_text_field( $_GET['wpcargo_tiendaname'] ),
-                'compare' => 'LIKE',
-            ];
+    /**
+     * Inyecta las condiciones EXISTS en el WHERE de WP_Query.
+     * Se auto-elimina tras la primera ejecución para no afectar otras queries.
+     */
+    public function inject_custom_where( string $where, \WP_Query $query ): string {
+        if ( $query->get( 'post_type' ) !== 'wpcargo_shipment' ) {
+            return $where;
         }
-        return $meta_query;
-    }
+        remove_filter( 'posts_where', [ $this, 'inject_custom_where' ], 99 );
 
-    /* ── Query: Celular del destinatario (wpcfe_dashboard_meta_query) ───── */
-
-    public function apply_celular_meta_query( array $meta_query ): array {
-        if ( ! empty( $_GET['celular_destinatario'] ) ) {
-            $meta_query[] = [
-                'key'     => 'wpcargo_receiver_phone',
-                'value'   => sanitize_text_field( $_GET['celular_destinatario'] ),
-                'compare' => '=',
-            ];
+        foreach ( $this->custom_where_conds as $cond ) {
+            $where .= " AND ({$cond})";
         }
-        return $meta_query;
-    }
 
-    /* ── Query: Motorizado Recojo / Entrega (wpcfe_dashboard_meta_query) ── */
-
-    public function apply_driver_meta_query( array $meta_query ): array {
-        if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) ) {
-            $meta_query[] = [
-                'key'     => 'wpcargo_motorizo_recojo',
-                'value'   => intval( $_GET['wpcargo_motorizo_recojo'] ),
-                'compare' => '=',
-            ];
-        }
-        if ( ! empty( $_GET['wpcargo_motorizo_entrega'] ) ) {
-            $meta_query[] = [
-                'key'     => 'wpcargo_motorizo_entrega',
-                'value'   => intval( $_GET['wpcargo_motorizo_entrega'] ),
-                'compare' => '=',
-            ];
-        }
-        return $meta_query;
+        return $where;
     }
 
     /* ── Helpers ─────────────────────────────────────────────────────────── */
