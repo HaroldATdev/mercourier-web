@@ -5143,8 +5143,7 @@ function merc_log_edit_shipping_cost($post_id, $post) {
         $line = date('c') . ' ' . $message . PHP_EOL;
         // Usar file_put_contents con bloqueo para evitar concurrencia
         @file_put_contents( $file, $line, FILE_APPEND | LOCK_EX );
-    }
-}
+    
 
 /**
  * Obtener el monto POS neto para un envío: si existe el meta `wpcargo_pos`
@@ -5282,7 +5281,7 @@ function get_pos_net_for_shipment( $shipment_id, $totales = array() ) {
         </div>
     </div>
     <?php
-}
+
 
 
     if ( ! current_user_can( 'administrator' ) ) {
@@ -5839,7 +5838,7 @@ function get_pos_net_for_shipment( $shipment_id, $totales = array() ) {
     </script>
     <?php
     return ob_get_clean();
-}
+
 
 function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado ) {
     global $wpdb;
@@ -11603,7 +11602,7 @@ function merc_sidebar_badges() {
     </style>
     <?php
     return ob_get_clean();
-}
+
 
 
     global $wpdb;
@@ -12065,7 +12064,7 @@ function merc_sidebar_badges() {
 	});
 	</script>
     <?php
-}
+
 
 
     global $wpdb;
@@ -12176,7 +12175,7 @@ function merc_sidebar_badges() {
         </tfoot>
     </table>
     <?php
-}
+
 
 // ========== ASIGNACIÓN AUTOMÁTICA DE ENVÍOS A CONTENEDORES ==========
 /**
