@@ -18,3 +18,5 @@ require_once MERC_TABLE_PATH . 'includes/functions.php';
 require_once MERC_TABLE_PATH . 'admin/classes/class-shipment-table.php';
 require_once MERC_TABLE_PATH . 'admin/classes/class-shipment-filters.php';
 require_once MERC_TABLE_PATH . 'admin/classes/class-fecha-ajax.php';
+require_once MERC_TABLE_PATH . 'admin/classes/class-table-ajax.php';
+require_once MERC_TABLE_PATH . 'admin/classes/class-table-ui.php';
