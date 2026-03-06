@@ -5807,11 +5807,12 @@ function merc_log_edit_shipping_cost($post_id, $post) {
     error_log("✏️ [EDIT_DETECTED] Envío #{$post_id} siendo editado | Tipo: {$tipo_envio} | Distrito: {$distrito} | Costo ANTES: {$costo_envio_antes}");
 }
 
-// ---------------------------------------------------------------------------
-// PANEL MOTORIZADO - MEJORADO
-// ---------------------------------------------------------------------------
+// ===== PANELES DE USUARIO MIGRADOS AL PLUGIN WPCARGO-USER-MANAGEMENT =====
+// Los paneles: merc_panel_motorizado, merc_panel_admin, merc_panel_cliente
+// Y sus helpers: merc_motorizado_resumen, merc_motorizado_entregas, merc_admin_resumen_general, etc.
+// Ahora están en: wp-content/plugins/wpcargo-user-management/includes/panels.php
 
-add_shortcode( 'merc_panel_motorizado', 'merc_panel_motorizado_shortcode' );
+// ========== ASIGNACIÓN AUTOMÁTICA DE ENVÍOS A CONTENEDORES ==========
 function merc_panel_motorizado_shortcode() {
     $current_user = wp_get_current_user();
     if ( ! in_array( 'wpcargo_driver', $current_user->roles, true ) ) {
