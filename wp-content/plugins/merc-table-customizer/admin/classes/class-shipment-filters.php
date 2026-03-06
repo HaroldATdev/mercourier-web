@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * Gestiona todos los filtros del historial de envíos del frontend WPCargo:
  *   - Barra de filtros: Fecha, Marca, Celular destinatario, Motorizado recojo/entrega.
- *   - Query filters: fecha (SQL directo + post__in), marca, celular y motorizado (meta_query).
+ *   - Query filters: fecha (SQL directo), marca, celular y motorizado (meta_query).
  *   - Rename "Shipments" → "Historial de Envíos".
  */
 class MERC_Shipment_Filters {
@@ -24,15 +24,10 @@ class MERC_Shipment_Filters {
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_celular_filter' ], 102 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_driver_filters' ], 103 );
 
-        // ── Query: filtros en meta_query (mismo nivel que las condiciones de WPCargo) ─
-        // IMPORTANTE: celular, marca y motorizados van en wpcfe_dashboard_meta_query
-        // para quedar en el nivel interno correcto de la estructura que WPCargo arma.
-        add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_marca_meta_query' ] );
-        add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_celular_meta_query' ] );
+        // ── Query: filtros aplicados al WP_Query ──────────────────────────
+        add_filter( 'wpcfe_dashboard_arguments',  [ $this, 'apply_date_and_marca_query' ], 20 );
         add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_driver_meta_query' ] );
-
-        // ── Query: fecha usa wpcfe_dashboard_arguments para post__in (SQL directo) ──
-        add_filter( 'wpcfe_dashboard_arguments', [ $this, 'apply_date_query' ], 20 );
+        add_filter( 'wpcfe_dashboard_meta_query', [ $this, 'apply_celular_meta_query' ] );
 
         // ── Internacionalización ──────────────────────────────────────────
         add_filter( 'gettext', [ $this, 'rename_shipments_text' ], 20, 3 );
@@ -53,16 +48,15 @@ class MERC_Shipment_Filters {
     /* ── Ocultar controles AJAX nativos rotos (shipper/receiver Select2) ── */
 
     public function suppress_native_ajax_filters_css(): void {
-        // Mostrar solo para usuarios logueados; el selector es suficientemente
-        // específico (#wpcfe-filters) para no afectar otras páginas.
-        if ( ! is_user_logged_in() ) {
+        if ( ! isset( $_GET['wpcfe'] ) || $_GET['wpcfe'] !== 'shipments' ) {
             return;
         }
         ?>
         <style id="merc-hide-native-ajax-filters">
-            /* Oculta los selectores AJAX nativos de WPCargo (shipper/receiver)
+            /* Oculta los filtros AJAX nativos de WPCargo (shipper/receiver)
                que fallan por la dependencia de wpccf_get_field_by_metakey.
-               Los reemplazos (Marca y Celular) los provee merc-table-customizer. */
+               Los filtros equivalentes (Marca y Celular) son provistos por
+               el plugin merc-table-customizer mediante controles PHP nativos. */
             #wpcfe-filters .shipper-filter,
             #wpcfe-filters .receiver-filter {
                 display: none !important;
@@ -154,7 +148,7 @@ class MERC_Shipment_Filters {
     public function render_driver_filters(): void {
         $current_user = wp_get_current_user();
         if ( in_array( 'wpcargo_client', (array) $current_user->roles ) ) {
-            return;
+            return; // Los clientes no ven los filtros de motorizado
         }
 
         $value_recojo  = isset( $_GET['wpcargo_motorizo_recojo'] )
@@ -212,12 +206,9 @@ class MERC_Shipment_Filters {
         <?php
     }
 
-    /* ── Query: Fecha → post__in (wpcfe_dashboard_arguments) ───────────── */
-    /*                                                                        */
-    /* Solo maneja el filtro de fecha mediante SQL directo y post__in.       */
-    /* Por defecto muestra HOY si no se pasan parámetros de fecha.           */
+    /* ── Query: Fecha + Marca (wpcfe_dashboard_arguments) ──────────────── */
 
-    public function apply_date_query( array $args ): array {
+    public function apply_date_and_marca_query( array $args ): array {
         global $wpdb;
 
         $from = isset( $_GET['shipping_date_start'] )
@@ -236,79 +227,60 @@ class MERC_Shipment_Filters {
         $has_from = $from && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $from );
         $has_to   = $to   && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $to );
 
-        if ( ! $has_from && ! $has_to ) {
-            return $args;
+        if ( $has_from || $has_to ) {
+            unset( $args['date_query'] ); // Evitar conflicto con date_query nativo
+
+            $date_conditions = [];
+            if ( $has_from ) {
+                $date_conditions[] = "STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('"
+                    . esc_sql( $from ) . "', '%Y-%m-%d')";
+            }
+            if ( $has_to ) {
+                $date_conditions[] = "STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('"
+                    . esc_sql( $to ) . "', '%Y-%m-%d')";
+            }
+            $final_condition = implode( ' AND ', $date_conditions );
+
+            $date_ids = $wpdb->get_col( "
+                SELECT DISTINCT p.ID
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                WHERE p.post_type = 'wpcargo_shipment'
+                  AND pm.meta_key IN (
+                      'wpcargo_pickup_date_picker',
+                      'wpcargo_pickup_date',
+                      'calendarenvio',
+                      'wpcargo_fecha_envio'
+                  )
+                  AND ( {$final_condition} )
+            " );
+
+            if ( ! empty( $date_ids ) ) {
+                $args['post__in'] = isset( $args['post__in'] ) && ! empty( $args['post__in'] )
+                    ? array_values( array_intersect( $args['post__in'], $date_ids ) )
+                    : array_map( 'intval', $date_ids );
+                $args['post_status'] = [ 'publish', 'draft', 'pending', 'private' ];
+            } else {
+                $args['post__in'] = [ 0 ]; // Sin resultados
+            }
         }
 
-        unset( $args['date_query'] ); // Evitar conflicto con date_query nativo
-
-        $conditions = [];
-        if ( $has_from ) {
-            $conditions[] = "STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('"
-                . esc_sql( $from ) . "', '%Y-%m-%d')";
-        }
-        if ( $has_to ) {
-            $conditions[] = "STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('"
-                . esc_sql( $to ) . "', '%Y-%m-%d')";
-        }
-
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-        $date_ids = $wpdb->get_col( "
-            SELECT DISTINCT p.ID
-            FROM {$wpdb->posts} p
-            INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-            WHERE p.post_type = 'wpcargo_shipment'
-              AND pm.meta_key IN (
-                  'wpcargo_pickup_date_picker',
-                  'wpcargo_pickup_date',
-                  'wpcargo_calendarenvio',
-                  'wpcargo_fecha_envio'
-              )
-              AND ( " . implode( ' AND ', $conditions ) . " )
-        " );
-
-        if ( ! empty( $date_ids ) ) {
-            $existing = isset( $args['post__in'] ) && ! empty( $args['post__in'] )
-                ? $args['post__in']
-                : null;
-
-            $args['post__in'] = $existing
-                ? array_values( array_intersect( $existing, $date_ids ) )
-                : array_map( 'intval', $date_ids );
-        } else {
-            $args['post__in'] = [ 0 ]; // Sin resultados para este rango de fechas
-        }
-
-        return $args;
-    }
-
-    /* ── Query: Marca / Nombre de tienda (wpcfe_dashboard_meta_query) ───── */
-
-    public function apply_marca_meta_query( array $meta_query ): array {
+        // ── Filtro por marca / nombre de tienda ───────────────────────────
         if ( ! empty( $_GET['wpcargo_tiendaname'] ) ) {
-            $meta_query[] = [
+            if ( ! isset( $args['meta_query'] ) ) {
+                $args['meta_query'] = [];
+            }
+            $args['meta_query']['wpcargo_tiendaname'] = [
                 'key'     => 'wpcargo_tiendaname',
                 'value'   => sanitize_text_field( $_GET['wpcargo_tiendaname'] ),
                 'compare' => 'LIKE',
             ];
         }
-        return $meta_query;
+
+        return $args;
     }
 
-    /* ── Query: Celular del destinatario (wpcfe_dashboard_meta_query) ───── */
-
-    public function apply_celular_meta_query( array $meta_query ): array {
-        if ( ! empty( $_GET['celular_destinatario'] ) ) {
-            $meta_query[] = [
-                'key'     => 'wpcargo_receiver_phone',
-                'value'   => sanitize_text_field( $_GET['celular_destinatario'] ),
-                'compare' => 'LIKE',
-            ];
-        }
-        return $meta_query;
-    }
-
-    /* ── Query: Motorizado Recojo / Entrega (wpcfe_dashboard_meta_query) ── */
+    /* ── Query: Motorizado (wpcfe_dashboard_meta_query) ────────────────── */
 
     public function apply_driver_meta_query( array $meta_query ): array {
         if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) ) {
@@ -328,11 +300,23 @@ class MERC_Shipment_Filters {
         return $meta_query;
     }
 
+    /* ── Query: Celular del destinatario (wpcfe_dashboard_meta_query) ───── */
+
+    public function apply_celular_meta_query( array $meta_query ): array {
+        if ( ! empty( $_GET['celular_destinatario'] ) ) {
+            $meta_query[] = [
+                'key'     => 'wpcargo_receiver_phone',
+                'value'   => sanitize_text_field( $_GET['celular_destinatario'] ),
+                'compare' => 'LIKE',
+            ];
+        }
+        return $meta_query;
+    }
+
     /* ── Helpers ─────────────────────────────────────────────────────────── */
 
     private function get_marcas(): array {
         global $wpdb;
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $results = $wpdb->get_col( "
             SELECT DISTINCT meta_value
             FROM {$wpdb->postmeta}
@@ -364,8 +348,9 @@ class MERC_Shipment_Filters {
 
     public function fix_table_header_fallback( array $header_data, string $section ): array {
         if ( ! empty( $header_data['field_key'] ) ) {
-            return $header_data;
+            return $header_data; // Ya tiene datos correctos, no tocar.
         }
+        // Mapeo de sección → meta_key y etiqueta locales
         $defaults = [
             'shipper'  => [ 'label' => 'Nombre de la Marca', 'field_key' => 'wpcargo_tiendaname' ],
             'receiver' => [ 'label' => 'Celular',            'field_key' => 'wpcargo_receiver_phone' ],
