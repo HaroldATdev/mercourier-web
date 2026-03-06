@@ -22,6 +22,7 @@ require_once MERC_FINANCE_DIR . 'includes/penalties.php';
 require_once MERC_FINANCE_DIR . 'includes/ajax.php';
 require_once MERC_FINANCE_DIR . 'includes/hooks.php';
 require_once MERC_FINANCE_DIR . 'includes/frontend.php';
+require_once MERC_FINANCE_DIR . 'includes/liquidations.php';
 
 register_activation_hook(__FILE__, function() {
     error_log('[MERC FINANCE] Plugin activado');
