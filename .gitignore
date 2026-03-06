@@ -1,0 +1,35 @@
+# Debug logs
+wp-content/debug.log
+wp-content/merc_logs/
+/debug.log
+
+# Environment
+.env
+.env.local
+
+# WordPress
+wp-config-local.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup-*
+
+# Node/Build
+node_modules/
+dist/
+build/
+*.map
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Misc
+.htpasswds
+local-config.php

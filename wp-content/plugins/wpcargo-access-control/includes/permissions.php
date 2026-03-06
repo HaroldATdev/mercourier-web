@@ -12,11 +12,42 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * NUEVA FUNCIÓN: merc_get_permisos()
+ * Obtener matrix de permisos por email de usuario
+ * 
+ * @return array Matriz completa de permisos
+ */
+function merc_get_permisos() {
+	return apply_filters( 'merc_permissions_matrix', array(
+		'admin@mercourier.com' => array(
+			'*' // Acceso total
+		),
+		'mercourier2019@gmail.com' => array(
+			'*' // Acceso total
+		),
+		'seminarioromanbetzylu@gmail.com' => array(
+			'/wpcumanage-users/',
+			'/dashboard/',
+			'/dashboard/?wpcfe=add',
+			'/import-export/',
+			'/receiving/',
+		),
+		'mirellavu6@hotmail.com' => array(
+			'/wpcumanage-users/',
+			'/dashboard/',
+			'/dashboard/?wpcfe=add',
+			'/import-export/',
+			'/receiving/',
+		),
+	));
+}
+
+/**
  * Get default permissions matrix
  * Estructura: email => [allowed_paths]
  */
 function wpcac_get_default_permissions() {
-    return array(
+    return merc_get_permisos();
         'seminarioromanbetzylu@gmail.com' => array(
             '/wpcumanage-users/',
             '/dashboard/',
