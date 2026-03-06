@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Blocksy Child Theme Functions
  *
