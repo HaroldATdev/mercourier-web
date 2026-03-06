@@ -9377,45 +9377,6 @@ function merc_transferir_pago_motorizado_a_merc( $shipment_id ) {
 }
 
 // ---------------------------------------------------------------------------
-// AJAX: LIQUIDAR PAGO INDIVIDUAL
-// ---------------------------------------------------------------------------
-
-add_action( 'wp_ajax_merc_liquidar_pago', 'merc_liquidar_pago_ajax' );
-function merc_liquidar_pago_ajax() {
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_liquidar_pago' ) ) {
-        wp_send_json_error( array( 'message' => 'Seguridad: nonce inválido' ) );
-    }
-    if ( ! current_user_can( 'administrator' ) ) {
-        wp_send_json_error( array( 'message' => 'No tienes permisos para esta acción' ) );
-    }
-
-    $shipment_id = isset( $_POST['shipment_id'] ) ? intval( $_POST['shipment_id'] ) : 0;
-    $tipo        = isset( $_POST['tipo'] ) ? sanitize_text_field( $_POST['tipo'] ) : '';
-
-    if ( $shipment_id <= 0 || ! in_array( $tipo, array( 'motorizado', 'remitente' ), true ) ) {
-        wp_send_json_error( array( 'message' => 'Datos inválidos' ) );
-    }
-
-    $shipment = get_post( $shipment_id );
-    if ( ! $shipment || $shipment->post_type !== 'wpcargo_shipment' ) {
-        wp_send_json_error( array( 'message' => 'Envío no encontrado' ) );
-    }
-
-    if ( 'motorizado' === $tipo ) {
-        // Solo transferir pago de motorizado a MERC (sin cambiar estado)
-        merc_transferir_pago_motorizado_a_merc( $shipment_id );
-        update_post_meta( $shipment_id, 'wpcargo_fecha_entrega_efectivo', current_time( 'mysql' ) );
-        $message = 'Efectivo entregado a MERC correctamente';
-    } else {
-        // La liquidación por remitente NO se realiza de forma individual.
-        // Usar la acción de liquidación general ("Liquidar todo") para procesar remitentes.
-        wp_send_json_error( array( 'message' => 'Liquidación por remitente sólo está permitida de forma general. Usa "Liquidar todo" para este remitente.' ) );
-    }
-
-    wp_send_json_success( array( 'message' => $message ) );
-}
-
-// ---------------------------------------------------------------------------
 // AJAX: LIQUIDAR TODO POR USUARIO
 // ---------------------------------------------------------------------------
 
