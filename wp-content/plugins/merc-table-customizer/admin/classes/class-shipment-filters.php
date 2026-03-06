@@ -71,6 +71,52 @@ class MERC_Shipment_Filters {
         <?php
     }
 
+    /* ── UI: Filtro por Marca (Nombre de Tienda) ────────────────────────── */
+
+    public function render_marca_filter(): void {
+        $marcas       = $this->get_marcas();
+        $marca_actual = isset( $_GET['wpcargo_tiendaname'] )
+            ? sanitize_text_field( $_GET['wpcargo_tiendaname'] )
+            : '';
+        ?>
+        <div class="form-group wpcfe-filter p-0 mx-1">
+            <div class="md-form form-group" style="margin:0;">
+                <select name="wpcargo_tiendaname" class="form-control form-control-sm wpcfe-select">
+                    <option value="">Todas las marcas</option>
+                    <?php foreach ( $marcas as $marca ) : ?>
+                        <option value="<?php echo esc_attr( $marca ); ?>" <?php selected( $marca_actual, $marca ); ?>>
+                            <?php echo esc_html( $marca ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <?php
+    }
+
+    /* ── UI: Filtro por Celular del Destinatario ────────────────────────── */
+
+    public function render_celular_filter(): void {
+        $celulares      = $this->get_celulares();
+        $celular_actual = isset( $_GET['celular_destinatario'] )
+            ? sanitize_text_field( $_GET['celular_destinatario'] )
+            : '';
+        ?>
+        <div class="form-group wpcfe-filter p-0 mx-1">
+            <div class="md-form form-group" style="margin:0;">
+                <select name="celular_destinatario" class="form-control form-control-sm wpcfe-select">
+                    <option value="">Todo Celular</option>
+                    <?php foreach ( $celulares as $celular ) : ?>
+                        <option value="<?php echo esc_attr( $celular ); ?>" <?php selected( $celular_actual, $celular ); ?>>
+                            <?php echo esc_html( $celular ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <?php
+    }
+
     /* ── UI: Filtro de Fecha de Envío ───────────────────────────────────── */
 
     public function render_date_filter(): void {
@@ -101,49 +147,6 @@ class MERC_Shipment_Filters {
                        autocomplete="off"
                        value="<?php echo esc_attr( $end ); ?>"
                        placeholder="YYYY-MM-DD" />
-            </div>
-        </div>
-        <?php
-    }
-
-    /* ── UI: Filtro por Marca (Nombre de Tienda) ────────────────────────── */
-
-    public function render_marca_filter(): void {
-        $marcas       = $this->get_marcas();
-        $marca_actual = isset( $_GET['wpcargo_tiendaname'] )
-            ? sanitize_text_field( $_GET['wpcargo_tiendaname'] )
-            : '';
-        ?>
-        <div class="form-group wpcfe-filter p-0 mx-1">
-            <div class="md-form form-group" style="margin:0;">
-                <select name="wpcargo_tiendaname" class="form-control form-control-sm wpcfe-select">
-                    <option value="">Todas las marcas</option>
-                    <?php foreach ( $marcas as $marca ) : ?>
-                        <option value="<?php echo esc_attr( $marca ); ?>" <?php selected( $marca_actual, $marca ); ?>>
-                            <?php echo esc_html( $marca ); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-        <?php
-    }
-
-    /* ── UI: Filtro por Celular del Destinatario ────────────────────────── */
-
-    public function render_celular_filter(): void {
-        $celular = isset( $_GET['celular_destinatario'] )
-            ? sanitize_text_field( $_GET['celular_destinatario'] )
-            : '';
-        ?>
-        <div class="form-group wpcfe-filter p-0 mx-1">
-            <div class="md-form form-group" style="margin:0;">
-                <input type="text"
-                       name="celular_destinatario"
-                       class="form-control form-control-sm"
-                       style="width:150px;"
-                       placeholder="Celular destinatario"
-                       value="<?php echo esc_attr( $celular ); ?>" />
             </div>
         </div>
         <?php
@@ -302,7 +305,7 @@ class MERC_Shipment_Filters {
             $meta_query[] = [
                 'key'     => 'wpcargo_receiver_phone',
                 'value'   => sanitize_text_field( $_GET['celular_destinatario'] ),
-                'compare' => 'LIKE',
+                'compare' => '=',
             ];
         }
         return $meta_query;
@@ -331,6 +334,10 @@ class MERC_Shipment_Filters {
     /* ── Helpers ─────────────────────────────────────────────────────────── */
 
     private function get_marcas(): array {
+        $cached = get_transient( 'merc_marcas_list' );
+        if ( $cached !== false ) {
+            return $cached;
+        }
         global $wpdb;
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $results = $wpdb->get_col( "
@@ -341,7 +348,29 @@ class MERC_Shipment_Filters {
               AND meta_value != ''
             ORDER BY meta_value ASC
         " );
-        return array_unique( array_map( 'trim', $results ) );
+        $marcas = array_unique( array_map( 'trim', $results ) );
+        set_transient( 'merc_marcas_list', $marcas, 5 * MINUTE_IN_SECONDS );
+        return $marcas;
+    }
+
+    private function get_celulares(): array {
+        $cached = get_transient( 'merc_celulares_list' );
+        if ( $cached !== false ) {
+            return $cached;
+        }
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $results = $wpdb->get_col( "
+            SELECT DISTINCT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE meta_key  = 'wpcargo_receiver_phone'
+              AND meta_value IS NOT NULL
+              AND meta_value != ''
+            ORDER BY meta_value ASC
+        " );
+        $celulares = array_unique( array_map( 'trim', $results ) );
+        set_transient( 'merc_celulares_list', $celulares, 5 * MINUTE_IN_SECONDS );
+        return $celulares;
     }
 
     /* ── Rename "Shipments" → "Historial de Envíos" ─────────────────────── */
