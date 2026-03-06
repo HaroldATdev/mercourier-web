@@ -18534,3 +18534,4 @@ function merc_get_shipment_status_ajax() {
         'post_id' => $post_id
     ]);
 }
+//end
