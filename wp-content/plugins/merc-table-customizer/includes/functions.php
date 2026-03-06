@@ -46,10 +46,8 @@ function merc_manipulate_shipment_columns() {
 	remove_action( 'wpcfe_shipment_table_header_action', 'wpcfe_shipment_table_header_action_print', 25 );
 	remove_action( 'wpcfe_shipment_table_data_action', 'wpcfe_shipment_table_action_print', 25 );
 	
-	// Quitar action rows (View/Edit/Delete) del tracking number
-	remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_view_action_row', 10 );
-	remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_update_action_row', 10 );
-	remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_delete_action_row', 10 );
+	// ✅ Mantener action rows (View/Edit/Delete) - Se renderizarán en la columna Tienda
+	// (NO remover para que aparezcan en wpcfe_shipment_action_rows)
 }
 add_action( 'init', 'merc_manipulate_shipment_columns' );
 add_action( 'plugins_loaded', 'merc_manipulate_shipment_columns', 20 );
