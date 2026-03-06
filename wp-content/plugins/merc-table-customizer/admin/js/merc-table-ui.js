@@ -39,10 +39,25 @@
         // "Estado" queda justo después de "Cambio de Producto"
         moveColumn('Cambio de Producto', 'Estado');
 
-        // Columna de seguimiento queda justo después de "Motorizado Entrega"
+        // Columna de seguimiento va al final (última columna)
+        function moveColumnToEnd(moveText) {
+            var $ths    = $table.find('thead tr:first th');
+            var moveIdx = findThIndexByText($ths, moveText);
+            if (moveIdx === -1 || moveIdx === $ths.length - 1) return;
+
+            var $moveTh = $ths.eq(moveIdx);
+            $table.find('thead tr:first').append($moveTh);
+
+            $table.find('tbody tr').each(function () {
+                var $cells  = $(this).find('td');
+                var $moveTd = $cells.eq(moveIdx);
+                if ($moveTd.length) { $(this).append($moveTd); }
+            });
+        }
+
         ['Número de seguimiento', 'Número', 'Seguimiento', 'Tracking', 'Tracking Number',
          'Número de tracking', 'Número de Tracking'].forEach(function (candidate) {
-            moveColumn('Motorizado Entrega', candidate);
+            moveColumnToEnd(candidate);
         });
     });
 })(jQuery);

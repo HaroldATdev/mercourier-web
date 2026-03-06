@@ -213,7 +213,7 @@ class MERC_Table_Ajax {
         update_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', $nueva_fecha );
 
         if ( class_exists( 'LiteSpeed_Cache_API' ) ) {
-            LiteSpeed_Cache_API::purge_all( 'shipment date updated' );
+            call_user_func( [ 'LiteSpeed_Cache_API', 'purge_all' ], 'shipment date updated' );
         }
 
         $tipo_envio = get_post_meta( $shipment_id, 'wpcargo_type_of_shipment', true )
