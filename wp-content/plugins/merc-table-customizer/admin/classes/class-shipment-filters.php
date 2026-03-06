@@ -15,6 +15,9 @@ class MERC_Shipment_Filters {
         // Quitar el filtro de fecha nativo de WPCargo antes de añadir los propios
         add_action( 'plugins_loaded', [ $this, 'remove_native_filters' ], 20 );
 
+        // ── UI: Ocultar controles AJAX nativos rotos de WPCargo ──────────
+        add_action( 'wp_head', [ $this, 'suppress_native_ajax_filters_css' ] );
+
         // ── UI: Barra de filtros ──────────────────────────────────────────
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_date_filter' ],    100 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_marca_filter' ],   101 );
@@ -28,13 +31,38 @@ class MERC_Shipment_Filters {
 
         // ── Internacionalización ──────────────────────────────────────────
         add_filter( 'gettext', [ $this, 'rename_shipments_text' ], 20, 3 );
+
+        // ── Fallback para wpcfe_table_header cuando wpccf no está activo ─
+        add_filter( 'wpcfe_table_header', [ $this, 'fix_table_header_fallback' ], 5, 2 );
     }
 
     /* ── Eliminar filtros nativos de WPCargo ────────────────────────────── */
 
     public function remove_native_filters(): void {
         remove_action( 'wpcfe_after_shipment_filters', 'wpcfe_shipment_created_date_filter_callback', 100 );
-        remove_filter( 'wpcfe_dashboard_arguments',    'wpcfe_shipment_created_date_quuery_args_callback' );
+        // Ambas variantes del nombre (WPCargo tiene un typo en versiones distintas)
+        remove_filter( 'wpcfe_dashboard_arguments', 'wpcfe_shipment_created_date_query_args_callback' );
+        remove_filter( 'wpcfe_dashboard_arguments', 'wpcfe_shipment_created_date_quuery_args_callback' );
+    }
+
+    /* ── Ocultar controles AJAX nativos rotos (shipper/receiver Select2) ── */
+
+    public function suppress_native_ajax_filters_css(): void {
+        if ( ! isset( $_GET['wpcfe'] ) || $_GET['wpcfe'] !== 'shipments' ) {
+            return;
+        }
+        ?>
+        <style id="merc-hide-native-ajax-filters">
+            /* Oculta los filtros AJAX nativos de WPCargo (shipper/receiver)
+               que fallan por la dependencia de wpccf_get_field_by_metakey.
+               Los filtros equivalentes (Marca y Celular) son provistos por
+               el plugin merc-table-customizer mediante controles PHP nativos. */
+            #wpcfe-filters .shipper-filter,
+            #wpcfe-filters .receiver-filter {
+                display: none !important;
+            }
+        </style>
+        <?php
     }
 
     /* ── UI: Filtro de Fecha de Envío ───────────────────────────────────── */
@@ -48,7 +76,7 @@ class MERC_Shipment_Filters {
             ? sanitize_text_field( $_GET['shipping_date_end'] )
             : $today;
         ?>
-        <div id="wpcfe-custom-shipping-date" class="form-group wpcfe-filter receiver-filter p-0 mx-1">
+        <div id="wpcfe-custom-shipping-date" class="form-group wpcfe-filter p-0 mx-1">
             <div class="md-form form-group">
                 <strong>Fecha de Envío</strong>
                 <input id="shipping_date_start"
@@ -313,6 +341,21 @@ class MERC_Shipment_Filters {
             return str_replace( 'Shipments', 'Historial de Envíos', $text );
         }
         return $translated_text;
+    }
+
+    /* ── Fallback para wpcfe_table_header ───────────────────────────────── */
+    /* Garantiza que field_key siempre exista aunque wpccf no esté activo.   */
+
+    public function fix_table_header_fallback( array $header_data, string $section ): array {
+        if ( ! empty( $header_data['field_key'] ) ) {
+            return $header_data; // Ya tiene datos correctos, no tocar.
+        }
+        // Mapeo de sección → meta_key y etiqueta locales
+        $defaults = [
+            'shipper'  => [ 'label' => 'Nombre de la Marca', 'field_key' => 'wpcargo_tiendaname' ],
+            'receiver' => [ 'label' => 'Celular',            'field_key' => 'wpcargo_receiver_phone' ],
+        ];
+        return $defaults[ $section ] ?? $header_data;
     }
 }
 
