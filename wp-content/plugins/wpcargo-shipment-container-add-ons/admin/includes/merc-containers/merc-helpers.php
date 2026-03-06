@@ -84,33 +84,6 @@ function merc_get_all_container_shipments($container_id) {
 }
 
 /**
- * Verificar si la fecha de recojo es HOY
- */
-function merc_pickup_date_is_today($shipment_id) {
-    $pickup_date = get_post_meta($shipment_id, 'wpcargo_pickup_date_picker', true);
-    if (empty($pickup_date)) return false;
-    
-    $today = date('d/m/Y');
-    return strpos($pickup_date, $today) !== false;
-}
-
-/**
- * Verificar si la fecha de recojo es FUTURA
- */
-function merc_pickup_date_is_future($shipment_id) {
-    $pickup_date = get_post_meta($shipment_id, 'wpcargo_pickup_date_picker', true);
-    if (empty($pickup_date)) return false;
-    
-    $date_parts = explode('/', $pickup_date);
-    if (count($date_parts) !== 3) return false;
-    
-    $date_timestamp = strtotime("{$date_parts[2]}-{$date_parts[1]}-{$date_parts[0]}");
-    $today_timestamp = strtotime(date('Y-m-d'));
-    
-    return $date_timestamp > $today_timestamp;
-}
-
-/**
  * Obtener motorizado activo asignado a cliente
  */
 function merc_get_motorizado_activo($shipment_id) {
