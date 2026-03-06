@@ -245,36 +245,65 @@ class MERC_Shipment_Filters {
 
         unset( $args['date_query'] ); // Evitar conflicto con date_query nativo
 
-        $conditions = [];
-        if ( $has_from ) {
-            $conditions[] = "STR_TO_DATE(pm.meta_value, '%d/%m/%Y') >= STR_TO_DATE('"
-                . esc_sql( $from ) . "', '%Y-%m-%d')";
-        }
-        if ( $has_to ) {
-            $conditions[] = "STR_TO_DATE(pm.meta_value, '%d/%m/%Y') <= STR_TO_DATE('"
-                . esc_sql( $to ) . "', '%Y-%m-%d')";
-        }
+        // Cachear el resultado para no repetir la consulta en recargas del mismo rango
+        $cache_key = 'merc_date_ids_' . md5( $from . '_' . $to );
+        $date_ids  = get_transient( $cache_key );
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-        $date_ids = $wpdb->get_col( "
-            SELECT DISTINCT p.ID
-            FROM {$wpdb->posts} p
-            INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-            WHERE p.post_type = 'wpcargo_shipment'
-              AND pm.meta_key IN (
-                  'wpcargo_pickup_date_picker',
-                  'wpcargo_pickup_date',
-                  'wpcargo_calendarenvio',
-                  'wpcargo_fecha_envio'
-              )
-              AND ( " . implode( ' AND ', $conditions ) . " )
-        " );
+        if ( $date_ids === false ) {
+            // Caso más común: día único — usar comparación directa (usa índice en meta_value)
+            if ( $has_from && $has_to && $from === $to ) {
+                $d        = \DateTime::createFromFormat( 'Y-m-d', $from );
+                $date_dmy = $d ? $d->format( 'd/m/Y' ) : null;
+
+                if ( $date_dmy ) {
+                    $condition = $wpdb->prepare( 'pm.meta_value = %s', $date_dmy );
+                } else {
+                    $condition = $wpdb->prepare(
+                        "STR_TO_DATE(pm.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')",
+                        $from
+                    );
+                }
+            } else {
+                // Rango de fechas: STR_TO_DATE inevitable (sin índice)
+                $conditions = [];
+                if ( $has_from ) {
+                    $conditions[] = $wpdb->prepare(
+                        "STR_TO_DATE(pm.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE(%s, '%%Y-%%m-%%d')",
+                        $from
+                    );
+                }
+                if ( $has_to ) {
+                    $conditions[] = $wpdb->prepare(
+                        "STR_TO_DATE(pm.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE(%s, '%%Y-%%m-%%d')",
+                        $to
+                    );
+                }
+                $condition = implode( ' AND ', $conditions );
+            }
+
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $date_ids = $wpdb->get_col( "
+                SELECT DISTINCT p.ID
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                WHERE p.post_type = 'wpcargo_shipment'
+                  AND pm.meta_key IN (
+                      'wpcargo_pickup_date_picker',
+                      'wpcargo_pickup_date',
+                      'wpcargo_calendarenvio',
+                      'wpcargo_fecha_envio'
+                  )
+                  AND ( {$condition} )
+            " );
+
+            $date_ids = $date_ids ?: [];
+            set_transient( $cache_key, $date_ids, MINUTE_IN_SECONDS );
+        }
 
         if ( ! empty( $date_ids ) ) {
-            $existing = isset( $args['post__in'] ) && ! empty( $args['post__in'] )
+            $existing         = isset( $args['post__in'] ) && ! empty( $args['post__in'] )
                 ? $args['post__in']
                 : null;
-
             $args['post__in'] = $existing
                 ? array_values( array_intersect( $existing, $date_ids ) )
                 : array_map( 'intval', $date_ids );
