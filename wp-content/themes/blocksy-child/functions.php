@@ -2440,16 +2440,7 @@ function merc_ocultar_solo_import_export() {
     <?php
 }
 
-
-
-// RENOMBRANDO RECEIVING (Correcto - usa wpcfe_after_sidebar_menu_items)
-function custom_rename_receiving_menu_callback( $menu_items ){
-   if( isset($menu_items['receiving-menu']) ){
-       $menu_items['receiving-menu']['label'] = 'Escáner';
-   }
-   return $menu_items; 
-}
-add_filter( 'wpcfe_after_sidebar_menu_items', 'custom_rename_receiving_menu_callback' );
+// ===== RENOMBRAMIENTO RECEIVING MIGRADO AL PLUGIN MERC-TABLE-CUSTOMIZER =====
 
 //RENOMBRANDO SHIPMENTS
 function custom_rename_shipments_text( $translated_text, $text, $domain ) {
