@@ -26,9 +26,6 @@ class MERC_Table_UI {
     /* ── Encolar JS de reordenamiento de columnas ────────────────────── */
 
     public function enqueue_scripts(): void {
-        if ( ! is_page( 'dashboard' ) ) {
-            return;
-        }
         wp_enqueue_script(
             'merc-table-ui',
             MERC_TABLE_URL . 'admin/js/merc-table-ui.js',

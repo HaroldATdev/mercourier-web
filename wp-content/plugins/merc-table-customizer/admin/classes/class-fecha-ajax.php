@@ -21,10 +21,6 @@ class MERC_Fecha_Ajax {
     /* ── Encolar JS con los datos necesarios para la llamada AJAX ─────── */
 
     public function enqueue_scripts(): void {
-        if ( ! is_page( 'dashboard' ) ) {
-            return;
-        }
-
         wp_enqueue_script(
             'merc-fecha-ajax',
             MERC_TABLE_URL . 'admin/js/merc-fecha-ajax.js',
