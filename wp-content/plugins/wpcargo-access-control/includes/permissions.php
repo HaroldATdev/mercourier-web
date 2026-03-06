@@ -39,6 +39,46 @@ function merc_get_permisos() {
 			'/import-export/',
 			'/receiving/',
 		),
+		'marisabel_16_02@hotmail.com' => array(
+			'/wpcumanage-users/',
+			'/dashboard/',
+			'/dashboard/?wpcfe=add',
+			'/import-export/',
+			'/receiving/',
+		),
+		'cmoralesdiaz248@gmail.com' => array(
+			'/almacen-de-productos/',
+			'/devoluciones/',
+			'/dashboard/',
+			'/receiving/',
+		),
+		'isaiasjossep.sanchezgutierrez@gmail.com' => array(
+			'/containers/',
+			'/dashboard/',
+			'/panel-admin/',
+		),
+		'bonilucy07@gmail.com' => array(
+			'/containers/',
+			'/panel-admin/',
+			'/dashboard/',
+			'/dashboard/?wpcfe=add',
+			'/import-export/',
+			'/wpcumanage-users/',
+			'/receiving/',
+			'/devoluciones/',
+			'/almacen-de-productos/',
+		),
+		'grissel.6@gmail.com' => array(
+			'/containers/',
+			'/panel-admin/',
+			'/dashboard/',
+			'/dashboard/?wpcfe=add',
+			'/import-export/',
+			'/wpcumanage-users/',
+			'/receiving/',
+			'/devoluciones/',
+			'/almacen-de-productos/',
+		),
 	));
 }
 
@@ -48,76 +88,6 @@ function merc_get_permisos() {
  */
 function wpcac_get_default_permissions() {
     return merc_get_permisos();
-        'seminarioromanbetzylu@gmail.com' => array(
-            '/wpcumanage-users/',
-            '/dashboard/',
-            '/dashboard/?wpcfe=add',
-            '/dashboard/?wpcfe=add&type=normal',
-            '/dashboard/?wpcfe=add&type=express',
-            '/dashboard/?wpcfe=add&type=full_fitment',
-            '/import-export/?type=import',
-            '/receiving/',
-        ),
-        'mirellavu6@hotmail.com' => array(
-            '/wpcumanage-users/',
-            '/dashboard/',
-            '/dashboard/?wpcfe=add',
-            '/dashboard/?wpcfe=add&type=normal',
-            '/dashboard/?wpcfe=add&type=express',
-            '/dashboard/?wpcfe=add&type=full_fitment',
-            '/import-export/?type=import',
-            '/receiving/',
-        ),
-        'marisabel_16_02@hotmail.com' => array(
-            '/wpcumanage-users/',
-            '/dashboard/',
-            '/dashboard/?wpcfe=add',
-            '/dashboard/?wpcfe=add&type=normal',
-            '/dashboard/?wpcfe=add&type=express',
-            '/dashboard/?wpcfe=add&type=full_fitment',
-            '/import-export/?type=import',
-            '/receiving/',
-        ),
-        'cmoralesdiaz248@gmail.com' => array(
-            '/almacen-de-productos/',
-            '/devoluciones/',
-            '/dashboard/',
-            '/receiving/',
-        ),
-        'isaiasjossep.sanchezgutierrez@gmail.com' => array(
-            '/containers/',
-            '/dashboard/',
-            '/panel-admin/',
-        ),
-        'bonilucy07@gmail.com' => array(
-            '/containers/',
-            '/panel-admin/',
-            '/dashboard/',
-            '/dashboard/?wpcfe=add',
-            '/dashboard/?wpcfe=add&type=normal',
-            '/dashboard/?wpcfe=add&type=express',
-            '/dashboard/?wpcfe=add&type=full_fitment',
-            '/import-export/?type=import',
-            '/wpcumanage-users/',
-            '/receiving/',
-            '/devoluciones/',
-            '/almacen-de-productos/',
-        ),
-        'grissel.6@gmail.com' => array(
-            '/containers/',
-            '/panel-admin/',
-            '/dashboard/',
-            '/dashboard/?wpcfe=add',
-            '/dashboard/?wpcfe=add&type=normal',
-            '/dashboard/?wpcfe=add&type=express',
-            '/dashboard/?wpcfe=add&type=full_fitment',
-            '/import-export/?type=import',
-            '/wpcumanage-users/',
-            '/receiving/',
-            '/devoluciones/',
-            '/almacen-de-productos/',
-        ),
-    );
 }
 
 /**
