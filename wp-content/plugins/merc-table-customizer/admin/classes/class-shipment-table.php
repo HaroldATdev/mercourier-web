@@ -32,12 +32,15 @@ class MERC_Shipment_Table {
 		remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_view_action_row',   10 );
 		remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_update_action_row', 10 );
 		remove_filter( 'wpcfe_shipment_action_rows', 'wpcfe_shipment_delete_action_row', 10 );
+		// Quitar columna "Container" del plugin wpcargo-shipment-container-add-ons
+		remove_action( 'wpcfe_shipment_table_header', 'wpcsc_shipment_container_table_header', 10 );
+		remove_action( 'wpcfe_shipment_table_data',   'wpcsc_shipment_container_table_data',   10 );
 	}
 
 	/* ── Header ──────────────────────────────────────────────────────── */
 
 	public function custom_header(): void {
-		load_template( $this->tpl_path . 'table-header.tpl.php', false );
+		$this->render_tpl( 'table-header.tpl.php', [] );
 	}
 
 	/* ── Data ────────────────────────────────────────────────────────── */
@@ -55,7 +58,8 @@ class MERC_Shipment_Table {
 		$distrito_destino = get_post_meta( $shipment_id, 'wpcargo_distrito_destino', true )
 		                 ?: get_post_meta( $shipment_id, 'wpcargo_destination',       true );
 
-		$fecha = get_post_meta( $shipment_id, 'wpcargo_calendarenvio', true )
+		$fecha = get_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', true )
+		      ?: get_post_meta( $shipment_id, 'wpcargo_calendarenvio', true )
 		      ?: date( 'd/m/Y', strtotime( get_post_field( 'post_date', $shipment_id ) ) );
 
 		$tipo_html             = $this->render_tipo( get_post_meta( $shipment_id, 'tipo_envio', true ) );
@@ -63,7 +67,20 @@ class MERC_Shipment_Table {
 		$motorizo_recojo_html  = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo',  true ) );
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
-		load_template( $this->tpl_path . 'table-row.tpl.php', false );
+		$this->render_tpl( 'table-row.tpl.php', compact(
+			'shipment_id', 'tienda_html', 'actions_html',
+			'distrito_recojo', 'distrito_destino', 'fecha',
+			'tipo_html', 'cambio_html', 'motorizo_recojo_html', 'motorizo_entrega_html'
+		) );
+	}
+
+	/* ── Template renderer ───────────────────────────────────────────── */
+
+	private function render_tpl( string $file, array $data ): void {
+		// extract() en este scope + include: el template accede a todas las variables.
+		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+		extract( $data );
+		include $this->tpl_path . $file;
 	}
 
 	/* ── Helpers de render ───────────────────────────────────────────── */
