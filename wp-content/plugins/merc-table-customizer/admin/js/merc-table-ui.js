@@ -4,6 +4,12 @@
  */
 (function ($) {
     $(function () {
+        // Si el accordion ya fue generado, no procesar la tabla
+        if ($('#shipment-history-accordion').length > 0) {
+            console.log('🛑 merc-table-ui.js: Accordion ya procesado, saltando reorden');
+            return;
+        }
+
         var $table = $('#shipment-list');
         if (!$table.length) return;
 

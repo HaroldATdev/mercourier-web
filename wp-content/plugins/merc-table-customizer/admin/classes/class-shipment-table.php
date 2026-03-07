@@ -320,12 +320,19 @@ class MERC_Shipment_Table {
 					$accordion.append($card);
 				});
 
-				// Reemplazar tabla
-				$table.replaceWith($accordion);
+				// Reemplazar tabla y marcar wrapper para evitar procesamiento posterior
+				const $wrapper = $table.closest('#shipment-history-list') || $table.closest('.table-responsive') || $table.parent();
+				
+				if ($wrapper.length) {
+					// Reemplazar contenido del wrapper para que otros scripts no procesen tablas antiguas
+					$wrapper.html($accordion);
+					$wrapper.addClass('merc-accordion-processed'); // Marcar para que otros scripts salten
+				} else {
+					$table.replaceWith($accordion);
+				}
 
 				initialized = true;
-				console.log('✅ Accordion generado!');
-				return true;
+				console.log('✅ Accordion generado completamente!');
 			}
 
 			// Usar MutationObserver para detectar cuando se añade la tabla
