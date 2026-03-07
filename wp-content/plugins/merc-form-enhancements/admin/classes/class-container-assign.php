@@ -12,15 +12,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class MERC_Container_Assign {
 
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts',                                [ $this, 'enqueue_scripts' ] );
+		// Cargar JS via wp_footer (inline data + <script src>) para garantizar carga
+		add_action( 'wp_footer',                                         [ $this, 'output_inline_script' ], 19 );
 		add_action( 'wp_ajax_merc_buscar_contenedor_por_distrito',       [ $this, 'buscar_contenedor_ajax' ] );
 		add_action( 'wp_ajax_nopriv_merc_buscar_contenedor_por_distrito', [ $this, 'buscar_contenedor_ajax' ] );
 	}
 
-	/* ── Encolar JS ──────────────────────────────────────────────────── */
+	/* ── Cargar JS via wp_footer (inline data + script src) ─────────────── */
 
-	public function enqueue_scripts(): void {
-		// Detectar si estamos en formulario de envío
+	public function output_inline_script(): void {
 		$es_formulario = (
 			( isset( $_GET['wpcfe'] ) && in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) ||
 			( is_page() && ( has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcfe_shipment_form' ) ||
@@ -31,21 +31,13 @@ class MERC_Container_Assign {
 
 		$mode        = isset( $_GET['wpcfe'] ) ? sanitize_text_field( $_GET['wpcfe'] ) : 'add';
 		$shipment_id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
-
-		wp_enqueue_script(
-			'merc-container-assign',
-			MERC_FORM_URL . 'admin/assets/js/container-assign.js',
-			[ 'jquery' ],
-			MERC_FORM_VERSION,
-			true
-		);
-
-		wp_localize_script( 'merc-container-assign', 'MercContainerAssign', [
-			'ajaxurl'    => admin_url( 'admin-ajax.php' ),
-			'mode'       => $mode,
-			'shipmentId' => $shipment_id,
-			'debug'      => defined( 'WP_DEBUG' ) && WP_DEBUG,
-		] );
+		$ajaxurl     = admin_url( 'admin-ajax.php' );
+		$debug       = defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false';
+		$js_url      = MERC_FORM_URL . 'admin/assets/js/container-assign.js?ver=' . MERC_FORM_VERSION;
+		?>
+		<script>var MercContainerAssign = { ajaxurl: '<?php echo esc_js( $ajaxurl ); ?>', mode: '<?php echo esc_js( $mode ); ?>', shipmentId: <?php echo $shipment_id; ?>, debug: <?php echo $debug; ?> };</script>
+		<script src="<?php echo esc_url( $js_url ); ?>"></script>
+		<?php
 	}
 
 	/* ── AJAX: buscar contenedor por distrito ────────────────────────── */

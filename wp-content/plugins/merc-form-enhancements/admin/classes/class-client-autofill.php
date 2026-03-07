@@ -17,8 +17,8 @@ class MERC_Client_Autofill {
 		// Reemplazar display_name con billing_company en el select de clientes
 		add_filter( 'wpcfe_get_users_wpcargo_client_list', [ $this, 'usar_billing_company' ] );
 
-		// Encolar JS de autofill en formulario de creación
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		// Cargar JS via wp_footer (inline data + <script src>) para garantizar carga
+		add_action( 'wp_footer', [ $this, 'output_inline_script' ], 18 );
 
 		// AJAX: devolver datos de usuario (cliente) por ID
 		add_action( 'wp_ajax_merc_get_client_data', [ $this, 'get_client_data_ajax' ] );
@@ -36,31 +36,27 @@ class MERC_Client_Autofill {
 		return $users;
 	}
 
-	/* ── Encolar JS ──────────────────────────────────────────────────── */
+	/* ── Cargar JS via wp_footer (inline data + script src) ─────────────── */
 
-	public function enqueue_scripts(): void {
-		// Detectar si estamos en formulario de envío
+	public function output_inline_script(): void {
+		if ( ! is_user_logged_in() ) return;
+
 		$es_formulario = (
 			( isset( $_GET['wpcfe'] ) && in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) ||
 			( is_page() && ( has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcfe_shipment_form' ) ||
 							 has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcargo_add_shipment' ) ) )
 		);
 
-		if ( ! $es_formulario || ! is_user_logged_in() ) return;
+		if ( ! $es_formulario ) return;
 
-		wp_enqueue_script(
-			'merc-client-autofill',
-			MERC_FORM_URL . 'admin/assets/js/client-autofill.js',
-			[ 'jquery' ],
-			MERC_FORM_VERSION,
-			true
-		);
-
-		wp_localize_script( 'merc-client-autofill', 'MercClientAutofill', [
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'merc_get_client_data' ),
-			'debug'   => defined( 'WP_DEBUG' ) && WP_DEBUG,
-		] );
+		$ajaxurl = admin_url( 'admin-ajax.php' );
+		$nonce   = wp_create_nonce( 'merc_get_client_data' );
+		$debug   = defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false';
+		$js_url  = MERC_FORM_URL . 'admin/assets/js/client-autofill.js?ver=' . MERC_FORM_VERSION;
+		?>
+		<script>var MercClientAutofill = { ajaxurl: '<?php echo esc_js( $ajaxurl ); ?>', nonce: '<?php echo esc_js( $nonce ); ?>', debug: <?php echo $debug; ?> };</script>
+		<script src="<?php echo esc_url( $js_url ); ?>"></script>
+		<?php
 	}
 
 	/* ── AJAX: retornar datos del cliente por ID ─────────────────────── */
