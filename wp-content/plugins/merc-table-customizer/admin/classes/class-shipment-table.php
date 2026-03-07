@@ -225,28 +225,17 @@ class MERC_Shipment_Table {
 			function initializeAccordion() {
 				if (initialized) return true;
 
-				console.log('🔍 Buscando tabla...');
+				console.log('🔍 Buscando #shipment-history...');
 				
-				// Buscar cualquier tabla con tbody
-				let $table = null;
-				const $allTables = $('table');
+				// Buscar SOLO la tabla shipment-history
+				let $table = $('table#shipment-history');
 				
-				console.log('📍 Encontradas ' + $allTables.length + ' tablas en total');
-
-				$allTables.each(function() {
-					const $t = $(this);
-					const rows = $t.find('tbody tr').length;
-					if (rows > 0 && $t.find('tbody tr[data-tienda]').length > 0) {
-						console.log('✅ Tabla con data-tienda encontrada:', $t.attr('id'), '(' + rows + ' filas)');
-						$table = $t;
-						return false; // break
-					}
-				});
-
-				if (!$table || !$table.length) {
-					console.log('❌ No encontré tabla con filas data-tienda');
+				if (!$table.length) {
+					console.log('❌ #shipment-history no encontrada');
 					return false;
 				}
+
+				console.log('✅ #shipment-history encontrada');
 
 				const $tbody = $table.find('tbody');
 				console.log('📝 Total filas:', $tbody.find('tr').length);
@@ -271,6 +260,15 @@ class MERC_Shipment_Table {
 				// Crear accordion
 				const $accordion = $('<div id="shipment-history-accordion"></div>');
 
+				// Obtener cabeceras
+				const $headerRow = $table.find('thead tr').first();
+				let headerHtml = '';
+				if ($headerRow.length) {
+					$headerRow.find('th').each(function() {
+						headerHtml += '<th>' + $(this).html() + '</th>';
+					});
+				}
+
 			// Crear cards
 			orden.forEach(function(tienda) {
 				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
@@ -285,8 +283,8 @@ class MERC_Shipment_Table {
 					'<span class="merc-tienda-icon">▼</span>'
 				);
 
-				// Tabla interna SIN header para evitar desalineacion
-				const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><tbody></tbody></table>');
+				// Tabla interna CON headers
+				const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><thead><tr>' + headerHtml + '</tr></thead><tbody></tbody></table>');
 				const $innerTbody = $innerTable.find('tbody');
 				
 				rowsForTienda.forEach(function($row) {
@@ -314,12 +312,7 @@ class MERC_Shipment_Table {
 				});
 
 				// Reemplazar tabla
-				const $wrapper = $table.closest('#shipment-history-list') || $table.closest('.table-responsive') || $table.parent();
-				if ($wrapper.length) {
-					$wrapper.html($accordion);
-				} else {
-					$table.replaceWith($accordion);
-				}
+				$table.replaceWith($accordion);
 
 				initialized = true;
 				console.log('✅ Accordion generado!');
@@ -329,8 +322,8 @@ class MERC_Shipment_Table {
 			// Usar MutationObserver para detectar cuando se añade la tabla
 			const observerConfig = { childList: true, subtree: true };
 			const observer = new MutationObserver(function(mutations) {
-				if (!initialized && $('tbody tr[data-tienda]').length > 0) {
-					console.log('👁️ MutationObserver - detectó tabla con data-tienda');
+				if (!initialized && $('table#shipment-history').length > 0) {
+					console.log('👁️ MutationObserver - detectó #shipment-history');
 					observer.disconnect();
 					setTimeout(initializeAccordion, 100);
 				}
@@ -348,7 +341,7 @@ class MERC_Shipment_Table {
 			// Timeout para limpiar observer si no se usa
 			setTimeout(function() {
 				if (!initialized && observer) {
-					console.log('⏱️  Limpiando observer - timeout');
+					console.log('⏱️ Limpiando observer - timeout');
 					observer.disconnect();
 				}
 			}, 10000);
