@@ -285,8 +285,8 @@ add_shortcode('merc_almacen_productos', function() {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
-    <link rel="stylesheet" href="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/styles.css'); ?>">
-    <script src="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/scripts.js'); ?>"></script>
+    <link rel="stylesheet" href="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/styles.css') . '?v=' . filemtime(MERC_WAREHOUSE_DIR . 'assets/styles.css'); ?>">
+    <script src="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/scripts.js') . '?v=' . filemtime(MERC_WAREHOUSE_DIR . 'assets/scripts.js'); ?>"></script>
     <?php
     return ob_get_clean();
 });

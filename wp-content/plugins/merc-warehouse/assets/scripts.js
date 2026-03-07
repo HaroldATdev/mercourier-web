@@ -1,8 +1,9 @@
-// Parser JSON seguro: elimina el BOM (U+FEFF) que a veces WordPress antepone
-// a las respuestas AJAX antes de parsear el JSON.
+// Parser JSON seguro: elimina BOM (U+FEFF) y whitespace inicial que
+// PHP o plugins de caché pueden inyectar antes del JSON.
 function parseJsonSafe(r) {
     return r.text().then(function(text) {
-        var cleaned = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+        // Regex quita cualquier combinación de espacios, newlines y BOM al inicio
+        var cleaned = text.replace(/^[\s\uFEFF]+/, '');
         return JSON.parse(cleaned);
     });
 }
