@@ -109,54 +109,119 @@ class MERC_Shipment_Table {
 		return esc_html( $nombre );
 	}
 
-	/* ── Enqueue CSS/JS para collapse de tiendas ───────────────────── */
+	/* ── Enqueue CSS/JS para accordion de tiendas ───────────────────── */
 
 	public function enqueue_table_scripts(): void {
 		// Inyectar CSS y JS inline
 		?>
 		<style>
-			/* Estilos para agrupación de tiendas */
-			.merc-tienda-header {
+			/* Wrapper principal */
+			#shipment-history-accordion {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+				width: 100%;
+			}
+
+			/* Card de tienda */
+			.merc-tienda-card {
+				border: 1px solid #ddd;
+				border-radius: 6px;
+				overflow: hidden;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+				transition: all 0.3s ease;
+			}
+
+			.merc-tienda-card:hover {
+				box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+			}
+
+			/* Header de card */
+			.merc-tienda-card-header {
 				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 				color: white;
-				padding: 3px 16px;
-				font-weight: bold;
-				font-size: 14px;
+				padding: 12px 16px;
 				cursor: pointer;
 				user-select: none;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				font-weight: bold;
+				font-size: 14px;
 				transition: all 0.3s ease;
 			}
-			.merc-tienda-header:hover {
+
+			.merc-tienda-card-header:hover {
 				background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
 			}
+
+			.merc-tienda-card-header-left {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+
+			.merc-tienda-checkbox {
+				width: 18px;
+				height: 18px;
+				margin-right: 8px;
+			}
+
 			.merc-tienda-icon {
 				display: inline-block;
 				font-size: 16px;
 				transition: transform 0.3s ease;
+				margin-left: auto;
 			}
-			.merc-tienda-header.collapsed .merc-tienda-icon {
+
+			.merc-tienda-card.collapsed .merc-tienda-icon {
 				transform: rotate(-90deg);
 			}
-			.shipment-row.hidden-by-tienda {
-				display: none !important;
-			}
-			tr[data-tienda] .merc-tienda-count {
+
+			.merc-tienda-count {
 				font-size: 12px;
 				opacity: 0.9;
-				margin-left: 10px;
+				margin-left: 8px;
+			}
+
+			/* Contenedor de tabla */
+			.merc-tienda-card-content {
+				overflow: hidden;
+				max-height: none;
+				transition: max-height 0.3s ease;
+			}
+
+			.merc-tienda-card.collapsed .merc-tienda-card-content {
+				display: none;
+			}
+
+			/* Tabla dentro de card */
+			.merc-tienda-card-table {
+				width: 100%;
+				border-collapse: collapse;
+				margin: 0;
+			}
+
+			.merc-tienda-card-table tbody tr {
+				border-top: 1px solid #eee;
+			}
+
+			.merc-tienda-card-table tbody tr:hover {
+				background-color: #f9f9f9;
+			}
+
+			.merc-tienda-card-table td {
+				padding: 8px 12px;
+				vertical-align: middle;
 			}
 		</style>
 		<script>
 		jQuery(function($) {
-			const $table = $('table#shipment-history');
-			if ( ! $table.length ) return;
+			const $originalTable = $('table#shipment-history');
+			if ( ! $originalTable.length ) return;
 
-			// Obtener tabla body
-			const $tbody = $table.find('tbody');
-			if ( ! $tbody.length ) return;
+			const $tbody = $originalTable.find('tbody');
+			const $tableWrapper = $originalTable.closest('.table-responsive');
 
 			// Agrupar filas por tienda
 			const tiendas = {};
@@ -173,53 +238,69 @@ class MERC_Shipment_Table {
 				tiendas[tienda].push($row.clone(true));
 			});
 
-			// Limpiar tbody
-			$tbody.empty();
+			// Crear wrapper accordion
+			const $accordion = $('<div>')
+				.attr('id', 'shipment-history-accordion')
+				.css('display', 'block');
 
-			// Renderizar ordenado por tienda
-			orden.forEach(function(tienda) {
-				const $header = $('<tr>')
-					.addClass('merc-tienda-header-row')
-					.attr('data-tienda-header', tienda)
+			// Renderizar cards por tienda (collapsed por defecto)
+			orden.forEach(function(tienda, index) {
+				const tiendaSlug = tienda.replace(/\s+/g, '-').toLowerCase();
+				const rowCount = tiendas[tienda].length;
+
+				// Header de card
+				const $cardHeader = $('<div>')
+					.addClass('merc-tienda-card-header')
 					.html(
-						'<td colspan="8" style="padding: 0; border: none;">' +
-						'<div class="merc-tienda-header merc-tienda-header-' + tienda.replace(/\s+/g, '-').toLowerCase() + '">' +
-						'<span>📦 ' + tienda + ' <span class="merc-tienda-count">(' + tiendas[tienda].length + ' envíos)</span></span>' +
-						'<span class="merc-tienda-icon">▼</span>' +
+						'<div class="merc-tienda-card-header-left">' +
+						'<input type="checkbox" class="merc-tienda-checkbox merc-select-all-' + tiendaSlug + '">' +
+						'<span>📦 ' + tienda + ' <span class="merc-tienda-count">(' + rowCount + ' envíos)</span></span>' +
 						'</div>' +
-						'</td>' +
-						'</tr>'
+						'<span class="merc-tienda-icon">▼</span>'
 					);
 
-				$tbody.append($header);
+				// Tabla intterna con las filas
+				const $cardTable = $('<table>')
+					.addClass('merc-tienda-card-table')
+					.html('<tbody></tbody>');
 
-				// Agregar filas de esta tienda
+				const $cardTbody = $cardTable.find('tbody');
 				tiendas[tienda].forEach(function($row) {
-					$row.addClass('shipment-row-group-' + tienda.replace(/\s+/g, '-').toLowerCase());
-					$tbody.append($row);
+					$cardTbody.append($row);
+				});
+
+				// Contenedor de contenido
+				const $cardContent = $('<div>')
+					.addClass('merc-tienda-card-content')
+					.append($cardTable);
+
+				// Card completa
+				const $card = $('<div>')
+					.addClass('merc-tienda-card collapsed')
+					.attr('data-tienda', tiendaSlug)
+					.append($cardHeader)
+					.append($cardContent);
+
+				$accordion.append($card);
+
+				// Event: click en header para toggle
+				$cardHeader.on('click', function() {
+					$card.toggleClass('collapsed');
+				});
+
+				// Event: checkbox de header selecciona todos
+				$cardHeader.find('.merc-tienda-checkbox').on('change', function() {
+					const isChecked = $(this).prop('checked');
+					$cardTbody.find('input[type="checkbox"]').prop('checked', isChecked);
 				});
 			});
 
-			// Event listener para headers de tienda (delegado)
-			$(document).on('click', '.merc-tienda-header', function(e) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				const $header = $(this);
-				const $row = $header.closest('tr');
-				const tienday = $row.attr('data-tienda-header');
-				const isCollapsed = $header.toggleClass('collapsed').hasClass('collapsed');
-
-				// Toggle rows de esta tienda
-				const selector = 'tr.shipment-row-group-' + tienday.replace(/\s+/g, '-').toLowerCase();
-				$tbody.find(selector).toggleClass('hidden-by-tienda', isCollapsed);
-			});
-
-			// Expand all por defecto
-			$tbody.find('tr.merc-tienda-header-row').each(function() {
-				$(this).find('.merc-tienda-header').removeClass('collapsed');
-			});
-			$tbody.find('tr.shipment-row-group-' + orden[0].replace(/\s+/g, '-').toLowerCase()).removeClass('hidden-by-tienda');
+			// Reemplazar tabla original con accordion
+			if ( $tableWrapper.length ) {
+				$tableWrapper.html($accordion);
+			} else {
+				$originalTable.replaceWith($accordion);
+			}
 		});
 		</script>
 		<?php
