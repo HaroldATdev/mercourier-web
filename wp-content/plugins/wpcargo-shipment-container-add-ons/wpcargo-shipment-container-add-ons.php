@@ -33,3 +33,5 @@ require_once(WPCARGO_SHIPMENT_CONTAINER_PATH . 'admin/classes/class-api.php');
 require_once(WPCARGO_SHIPMENT_CONTAINER_PATH . 'admin/classes/class-container.php');
 require_once(WPCARGO_SHIPMENT_CONTAINER_PATH . 'admin/classes/class-container-user.php');
 require_once(WPCARGO_SHIPMENT_CONTAINER_PATH . 'admin/classes/class-container-scripts.php');
+// Mercourier Containers Integration
+require_once(WPCARGO_SHIPMENT_CONTAINER_PATH . 'admin/includes/merc-loader.php');
