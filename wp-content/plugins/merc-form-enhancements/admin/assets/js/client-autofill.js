@@ -231,36 +231,59 @@ jQuery(document).ready(function ($) {
      * DETECCIÓN DE CAMBIO — Event listeners + Polling como respaldo
      * ══════════════════════════════════════════════════════════════ */
 
-    // Listener estándar change (nativo y jQuery)
-    $(document).on('change', '#registered_client, select[name="registered_shipper"]', function () {
+    // Función auxiliar para obtener el select de cliente con múltiples selectores
+    function getClientSelect() {
+        var selectors = [
+            '#registered_client',
+            'select[name="registered_shipper"]',
+            'select[id*="client"]',
+            'select[name*="client"]',
+            'select[name*="shipper"]',
+            'select.wpcargo-client-select'
+        ];
+        
+        for (var i = 0; i < selectors.length; i++) {
+            var $sel = $(selectors[i]).first();
+            if ($sel.length) {
+                if (i > 1 && pollingIntentando === 0) {
+                    console.log('[ClientAutofill] ✓ Cliente select encontrado con:', selectors[i]);
+                }
+                return $sel;
+            }
+        }
+        return $();
+    }
+
+    // Listener estándar change (nativo y jQuery) - SELECTORES AMPLIOS
+    $(document).on('change', '#registered_client, select[name="registered_shipper"], select[id*="client"], select[name*="client"], select[name*="shipper"]', function () {
         var v = $(this).val();
-        console.log('[ClientAutofill] [EVENT:change] Cliente seleccionado:', v);
+        console.log('[ClientAutofill] [EVENT:change] Cliente seleccionado:', v, '| Selector:', this.name || this.id);
         if (v && v !== '0' && v !== '') cargarDatosCliente(v);
     });
 
     // Select2 dispara este evento en adición a change
-    $(document).on('select2:select', '#registered_client, select[name="registered_shipper"]', function (e) {
+    $(document).on('select2:select', '#registered_client, select[name="registered_shipper"], select[id*="client"], select[name*="client"]', function (e) {
         var v = (e.params && e.params.data) ? String(e.params.data.id) : $(this).val();
-        console.log('[ClientAutofill] [EVENT:select2:select] Cliente seleccionado:', v);
+        console.log('[ClientAutofill] [EVENT:select2:select] Cliente seleccionado:', v, '| Selector:', this.name || this.id);
         if (v && v !== '0' && v !== '') cargarDatosCliente(v);
     });
 
     // También escuchar click como fallback
-    $(document).on('click', '#registered_client, select[name="registered_shipper"]', function () {
+    $(document).on('click', 'select[id*="client"], select[name*="client"], select[name*="shipper"]', function () {
+        var that = this;
         setTimeout(function() {
-            var $sel = $('#registered_client, select[name="registered_shipper"]').first();
-            var v = $sel.val();
+            var v = $(that).val();
             if (v && v !== '0' && v !== '' && v !== ultimoClienteId) {
-                console.log('[ClientAutofill] [EVENT:click] Cliente detectado:', v);
+                console.log('[ClientAutofill] [EVENT:click] Cliente detectado:', v, '| Selector:', that.name || that.id);
                 cargarDatosCliente(v);
             }
-        }, 200);
+        }, 100);
     });
 
-    // Polling: comprueba cada 300 ms si el valor del select cambió
+    // Polling: comprueba cada 200 ms si el valor del select cambió (MEJORADO)
     var pollingIntentando = 0;
     setInterval(function () {
-        var $sel = $('#registered_client, select[name="registered_shipper"]').first();
+        var $sel = getClientSelect();
         if (!$sel.length) {
             if (pollingIntentando < 3) {
                 pollingIntentando++;
@@ -271,10 +294,10 @@ jQuery(document).ready(function ($) {
         
         var v = $sel.val();
         if (v && v !== ultimoClienteId && v !== '' && v !== '0') {
-            console.log('[ClientAutofill] [POLLING] Cambio detectado, val:', v);
+            console.log('[ClientAutofill] [POLLING] Cambio detectado \u2192 userId:', v, '| Selector:', $sel.attr('name') || $sel.attr('id'));
             cargarDatosCliente(v);
         }
-    }, 300);
+    }, 200);
 
     /* ══════════════════════════════════════════════════════════════
      * TOAST

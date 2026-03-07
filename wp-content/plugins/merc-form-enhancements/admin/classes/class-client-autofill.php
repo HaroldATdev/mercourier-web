@@ -39,8 +39,14 @@ class MERC_Client_Autofill {
 	/* ── Encolar JS ──────────────────────────────────────────────────── */
 
 	public function enqueue_scripts(): void {
-		if ( ! isset( $_GET['wpcfe'] ) || ! in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) return;
-		if ( ! is_user_logged_in() ) return;
+		// Detectar si estamos en formulario de envío
+		$es_formulario = (
+			( isset( $_GET['wpcfe'] ) && in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) ||
+			( is_page() && ( has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcfe_shipment_form' ) ||
+							 has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcargo_add_shipment' ) ) )
+		);
+
+		if ( ! $es_formulario || ! is_user_logged_in() ) return;
 
 		wp_enqueue_script(
 			'merc-client-autofill',
@@ -53,6 +59,7 @@ class MERC_Client_Autofill {
 		wp_localize_script( 'merc-client-autofill', 'MercClientAutofill', [
 			'ajaxurl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'merc_get_client_data' ),
+			'debug'   => defined( 'WP_DEBUG' ) && WP_DEBUG,
 		] );
 	}
 

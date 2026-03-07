@@ -63,13 +63,13 @@ jQuery(document).ready(function ($) {
      */
     function buscarSelectDistrito(tipo) {
         var nombres = tipo === 'destino' 
-            ? ['wpcargo_distrito_destino', 'distrito_destino', 'destination_district']
-            : ['wpcargo_distrito_recojo', 'distrito_recojo', 'pickup_district'];
+            ? ['wpcargo_distrito_destino', 'distrito_destino', 'destination_district', 'distrito']
+            : ['wpcargo_distrito_recojo', 'distrito_recojo', 'pickup_district', 'distrito_origen'];
         
         for (var i = 0; i < nombres.length; i++) {
-            var $sel = $('select[name="' + nombres[i] + '"], #' + nombres[i]);
+            var $sel = $('select[name="' + nombres[i] + '"], #' + nombres[i] + ', select[id*="' + nombres[i] + '"]');
             if ($sel.length > 0) {
-                return $sel;
+                return $sel.first();
             }
         }
         return $();
@@ -302,9 +302,14 @@ jQuery(document).ready(function ($) {
 
     // Polling como respaldo (captura cambios aunque los eventos no lleguen)
     var pollingIntentando = 0;
+    var pollingInfoMostrado = false;
     setInterval(function () {
         var $dest = buscarSelectDistrito('destino');
         if ($dest.length) {
+            if (!pollingInfoMostrado) {
+                console.log('[ContainerAssign] [POLLING] ✓ Select destino encontrado:', $dest.attr('name') || $dest.attr('id'));
+                pollingInfoMostrado = true;
+            }
             onDestinoChange($dest.val());
         } else if (pollingIntentando < 3) {
             pollingIntentando++;
@@ -315,7 +320,7 @@ jQuery(document).ready(function ($) {
         if ($rec.length) {
             onRecojoChange($rec.val());
         }
-    }, 300);
+    }, 200);
 
     /* ══════════════════════════════════════════════════════════════
      * ESTADO POR DEFECTO Y OBSERVACIONES OPCIONALES

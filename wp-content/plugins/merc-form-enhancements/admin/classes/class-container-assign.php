@@ -20,11 +20,16 @@ class MERC_Container_Assign {
 	/* ── Encolar JS ──────────────────────────────────────────────────── */
 
 	public function enqueue_scripts(): void {
-		if ( ! isset( $_GET['wpcfe'] ) || ! in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) {
-			return;
-		}
+		// Detectar si estamos en formulario de envío
+		$es_formulario = (
+			( isset( $_GET['wpcfe'] ) && in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) ||
+			( is_page() && ( has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcfe_shipment_form' ) ||
+							 has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcargo_add_shipment' ) ) )
+		);
 
-		$mode       = sanitize_text_field( $_GET['wpcfe'] );
+		if ( ! $es_formulario ) return;
+
+		$mode        = isset( $_GET['wpcfe'] ) ? sanitize_text_field( $_GET['wpcfe'] ) : 'add';
 		$shipment_id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
 
 		wp_enqueue_script(
@@ -39,6 +44,7 @@ class MERC_Container_Assign {
 			'ajaxurl'    => admin_url( 'admin-ajax.php' ),
 			'mode'       => $mode,
 			'shipmentId' => $shipment_id,
+			'debug'      => defined( 'WP_DEBUG' ) && WP_DEBUG,
 		] );
 	}
 

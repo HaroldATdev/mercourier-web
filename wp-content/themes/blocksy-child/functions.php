@@ -2914,39 +2914,40 @@ function custom_shipment_multipackage_template() {
             );
         }
 
-        // CORRECCIÓN: Escuchar cambios en wpcargo_distrito_destino
-        $(document).on('change', '#wpcargo_distrito_destino', function() {
-            console.log('Cambio detectado en distrito destino');
+        // CORRECCIÓN: Escuchar cambios en wpcargo_distrito_destino con NAMESPACE para evitar conflictos
+        $(document).on('change.costbreakdown', '#wpcargo_distrito_destino', function() {
+            console.log('[CostBreakdown] Cambio detectado en distrito destino');
             window.districtChanged = true; // Marcar que el usuario cambió el distrito
+            // Delay para que container-assign ejecute primero
+            setTimeout(updateShippingBreakdown, 100);
+        });
+        
+        // Escuchar cambios en el campo de monto con NAMESPACE
+        $(document).on('input.costbreakdown change.costbreakdown', '#wpcargo_monto, input[name*="monto"], input[id*="monto"]', function() {
+            console.log('[CostBreakdown] Cambio detectado en monto');
             updateShippingBreakdown();
         });
         
-        // Escuchar cambios en el campo de monto
-        $(document).on('input change', '#wpcargo_monto, input[name*="monto"], input[id*="monto"]', function() {
-            console.log('Cambio detectado en monto');
-            updateShippingBreakdown();
-        });
-        
-        // Escuchar cambios en el modo de pago (para actualizar cuando el campo monto aparece/desaparece)
-        $(document).on('change', 'select[name="payment_wpcargo_mode_field"]', function() {
-            console.log('Cambio detectado en modo de pago:', $(this).val());
+        // Escuchar cambios en el modo de pago con NAMESPACE
+        $(document).on('change.costbreakdown', 'select[name="payment_wpcargo_mode_field"]', function() {
+            console.log('[CostBreakdown] Cambio detectado en modo de pago:', $(this).val());
             // Esperar un momento a que el campo de monto se actualice o muestre/oculte
             setTimeout(function() {
                 updateShippingBreakdown();
             }, 300);
         });
         
-        // También escuchar con selectWoo/Select2 si está en uso
-        $(document).on('select2:select', '#wpcargo_distrito_destino', function() {
-            console.log('Select2 detectado en distrito destino');
-            updateShippingBreakdown();
+        // También escuchar con selectWoo/Select2 si está en uso con NAMESPACE
+        $(document).on('select2:select.costbreakdown', '#wpcargo_distrito_destino', function() {
+            console.log('[CostBreakdown] Select2 detectado en distrito destino');
+            setTimeout(updateShippingBreakdown, 100);
         });
         
-        // Ejecutar inmediatamente para el valor inicial
+        // Ejecutar inmediatamente para el valor inicial (después de otros scripts)
         setTimeout(function() {
-            console.log('Inicializando cálculo de envío...');
+            console.log('[CostBreakdown] Inicializando cálculo de envío...');
             updateShippingBreakdown();
-        }, 500);
+        }, 1000);
         
         // Verificar periódicamente si los campos aparecen (carga dinámica)
         let checkInterval = setInterval(function() {
@@ -3000,7 +3001,8 @@ function custom_shipment_multipackage_template() {
     </style>
     <?php
 }
-add_action('after_wpcfe_shipment_form_fields', 'custom_shipment_multipackage_template', 1, 1);
+// Aumentar prioridad para que se ejecute después de los scripts del plugin
+add_action('after_wpcfe_shipment_form_fields', 'custom_shipment_multipackage_template', 20, 1);
 
 // Selector de productos para envíos - VERSION OPTIMIZADA CON MÚLTIPLES HOOKS
 add_action('after_wpcfe_shipment_form_fields', 'merc_producto_selector_envio', 5, 1);
