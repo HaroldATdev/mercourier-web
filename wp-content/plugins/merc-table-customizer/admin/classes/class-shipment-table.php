@@ -278,12 +278,16 @@ class MERC_Shipment_Table {
 					});
 				}
 
-			// Crear cards
+			// Crear cards SOLO para tiendas válidas (excluyendo "Sin tienda")
 			orden.forEach(function(tienda) {
+				// Saltar tiendas sin nombre
+				if (!tienda || tienda === 'Sin tienda' || tienda === '') {
+					console.log('⏭️ Omitiendo tienda vacía:', tienda);
+					return;
+				}
+
 				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
 				const rowsForTienda = tiendas[tienda];
-
-				const $header = $('<div class="merc-tienda-card-header"></div>').html(
 					'<div class="merc-tienda-info">' +
 					'<input type="checkbox" class="merc-tienda-checkbox">' +
 					'<strong>' + tienda + '</strong>' +
