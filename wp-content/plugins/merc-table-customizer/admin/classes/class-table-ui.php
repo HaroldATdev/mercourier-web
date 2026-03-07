@@ -164,6 +164,58 @@ class MERC_Table_UI {
     </style>
     <script>
     jQuery(document).ready(function($) {
+
+        // ── Reordenar columnas ─────────────────────────────────────────────
+        function reordenarColumnas() {
+            var $table = $('#shipment-list');
+            if (!$table.length) return;
+
+            function findThIdx($ths, text) {
+                var idx = -1;
+                $ths.each(function(i) {
+                    if ($(this).text().toUpperCase().trim().indexOf(text.toUpperCase()) !== -1) { idx = i; return false; }
+                });
+                return idx;
+            }
+
+            function moveCol(afterText, moveText) {
+                var $ths     = $table.find('thead tr:first th');
+                var afterIdx = findThIdx($ths, afterText);
+                var moveIdx  = findThIdx($ths, moveText);
+                if (afterIdx === -1 || moveIdx === -1 || moveIdx === afterIdx + 1) return;
+                $ths.eq(moveIdx).insertAfter($ths.eq(afterIdx));
+                $table.find('tbody tr').each(function() {
+                    var $cells = $(this).find('td');
+                    var $mv = $cells.eq(moveIdx), $af = $cells.eq(afterIdx);
+                    if ($mv.length && $af.length) $mv.insertAfter($af);
+                });
+            }
+
+            function moveColToEnd(moveText) {
+                var $ths    = $table.find('thead tr:first th');
+                var moveIdx = findThIdx($ths, moveText);
+                if (moveIdx === -1 || moveIdx === $ths.length - 1) return;
+                $table.find('thead tr:first').append($ths.eq(moveIdx));
+                $table.find('tbody tr').each(function() {
+                    var $cells = $(this).find('td');
+                    var $mv = $cells.eq(moveIdx);
+                    if ($mv.length) $(this).append($mv);
+                });
+            }
+
+            // "Estado" queda justo después de "Cambio de Producto"
+            moveCol('Cambio de Producto', 'Estado');
+
+            // "Número de seguimiento" queda al final
+            ['Número de seguimiento', 'Seguimiento', 'Tracking Number', 'Número de Tracking'].forEach(function(c) {
+                moveColToEnd(c);
+            });
+        }
+
+        reordenarColumnas();
+        setTimeout(reordenarColumnas, 800);
+        // ──────────────────────────────────────────────────────────────────
+
         console.log('🔧 Inicializando columna Estado editable');
 
         const estados         = <?php echo json_encode( $estados ); ?>;

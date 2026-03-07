@@ -55,9 +55,13 @@
             });
         }
 
-        ['Número de seguimiento', 'Número', 'Seguimiento', 'Tracking', 'Tracking Number',
-         'Número de tracking', 'Número de Tracking'].forEach(function (candidate) {
-            moveColumnToEnd(candidate);
-        });
+        function aplicarOrden() {
+            ['Número de seguimiento', 'Seguimiento', 'Tracking Number', 'Número de Tracking'].forEach(function (candidate) {
+                moveColumnToEnd(candidate);
+            });
+        }
+
+        aplicarOrden();
+        setTimeout(aplicarOrden, 800);
     });
 })(jQuery);
