@@ -20,3 +20,4 @@ require_once MERC_FORM_PATH . 'admin/classes/class-form-autofill.php';
 require_once MERC_FORM_PATH . 'admin/classes/class-status-filter.php';
 require_once MERC_FORM_PATH . 'admin/classes/class-container-assign.php';
 require_once MERC_FORM_PATH . 'admin/classes/class-client-autofill.php';
+require_once MERC_FORM_PATH . 'admin/classes/class-shipment-form-fields.php';

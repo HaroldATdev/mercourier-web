@@ -13,7 +13,12 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
-    if (typeof MercClientAutofill === 'undefined') return;
+    if (typeof MercClientAutofill === 'undefined') {
+        console.warn('[MercClientAutofill] Variable no disponible — script no cargado correctamente.');
+        return;
+    }
+
+    console.log('[MercClientAutofill] Script cargado.');
 
     var ajaxurl = MercClientAutofill.ajaxurl;
     var nonce   = MercClientAutofill.nonce;
@@ -27,6 +32,8 @@ jQuery(document).ready(function ($) {
 
     /* ── Rellenar campos del remitente con los datos del cliente ── */
     function rellenarRemitente(ud) {
+        console.log('[MercClientAutofill] Rellenando campos con:', ud);
+
         var map = {
             nombre:    document.querySelector('[name="wpcargo_shipper_name"]'),
             telefono:  document.querySelector('[name="wpcargo_shipper_phone"]'),
@@ -42,35 +49,54 @@ jQuery(document).ready(function ($) {
             if (map[k] && ud[k]) {
                 map[k].value = ud[k];
                 trigger(map[k]);
+                console.log('[MercClientAutofill] ✅ Campo', k, '=', ud[k]);
             }
         });
 
-        /* Distrito es un <select> → buscar opción por valor o texto */
+        /* Distrito es un <select> */
         if (map.distrito && ud.distrito) {
             var opts = map.distrito.options;
             for (var i = 0; i < opts.length; i++) {
                 if (opts[i].value === ud.distrito || opts[i].text.trim() === ud.distrito) {
                     map.distrito.selectedIndex = i;
                     trigger(map.distrito);
+                    console.log('[MercClientAutofill] ✅ Campo distrito =', ud.distrito);
                     break;
                 }
             }
         }
     }
 
-    /* ── Listener delegado en document (funciona aunque el select se cargue tarde) ── */
-    $(document).on('change', '#registered_client', function () {
-        var userId = $(this).val();
+    /* ── Función de fetch AJAX ── */
+    function fetchClientData(userId) {
         if (!userId) return;
+        console.log('[MercClientAutofill] Obteniendo datos del cliente ID:', userId);
 
         $.post(
             ajaxurl,
             { action: 'merc_get_client_data', nonce: nonce, user_id: userId },
             function (resp) {
+                console.log('[MercClientAutofill] Respuesta AJAX:', resp);
                 if (resp && resp.success && resp.data) {
                     rellenarRemitente(resp.data);
+                } else {
+                    console.warn('[MercClientAutofill] Respuesta incorrecta:', resp);
                 }
             }
-        );
+        ).fail(function (xhr, status, err) {
+            console.error('[MercClientAutofill] Error AJAX:', status, err);
+        });
+    }
+
+    /* ── Listener nativo: change en el select original ── */
+    $(document).on('change', '#registered_client', function () {
+        fetchClientData($(this).val());
     });
+
+    /* ── Listener Select2: por si el select usa Select2 ── */
+    $(document).on('select2:select', '#registered_client', function () {
+        fetchClientData($(this).val());
+    });
+
+    console.log('[MercClientAutofill] Listeners registrados en #registered_client.');
 });
