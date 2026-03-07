@@ -14,6 +14,8 @@
  */
 ?>
 <tr class="shipment-row" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>">
+<td><?php echo $actions_html; ?></td>
+
 <td><?php echo ! empty( $distrito_recojo )
 	? esc_html( $distrito_recojo )
 	: '<span style="color:#999;">N/A</span>'; ?></td>
@@ -31,6 +33,4 @@
 <td><?php echo $motorizo_recojo_html; ?></td>
 
 <td><?php echo $motorizo_entrega_html; ?></td>
-
-<td><?php echo $actions_html; ?></td>
 </tr>

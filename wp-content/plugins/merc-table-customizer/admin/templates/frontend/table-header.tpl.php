@@ -1,4 +1,5 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
+<th>Número de seguimiento</th>
 <th>Distrito de Recojo</th>
 <th>Distrito de Entrega</th>
 <th>Fecha</th>
