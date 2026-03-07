@@ -47,3 +47,4 @@ class MERC_Form_Autofill {
 }
 
 new MERC_Form_Autofill();
+

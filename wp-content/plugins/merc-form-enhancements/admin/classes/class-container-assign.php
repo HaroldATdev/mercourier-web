@@ -12,34 +12,32 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class MERC_Container_Assign {
 
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts',                                [ $this, 'enqueue_scripts' ] );
+		// Cargar JS via wp_footer (inline data + <script src>) para garantizar carga
+		add_action( 'wp_footer',                                         [ $this, 'output_inline_script' ], 19 );
 		add_action( 'wp_ajax_merc_buscar_contenedor_por_distrito',       [ $this, 'buscar_contenedor_ajax' ] );
 		add_action( 'wp_ajax_nopriv_merc_buscar_contenedor_por_distrito', [ $this, 'buscar_contenedor_ajax' ] );
 	}
 
-	/* ── Encolar JS ──────────────────────────────────────────────────── */
+	/* ── Cargar JS via wp_footer (inline data + script src) ─────────────── */
 
-	public function enqueue_scripts(): void {
-		if ( ! isset( $_GET['wpcfe'] ) || ! in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) {
-			return;
-		}
-
-		$mode       = sanitize_text_field( $_GET['wpcfe'] );
-		$shipment_id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
-
-		wp_enqueue_script(
-			'merc-container-assign',
-			MERC_FORM_URL . 'admin/assets/js/container-assign.js',
-			[ 'jquery' ],
-			MERC_FORM_VERSION,
-			true
+	public function output_inline_script(): void {
+		$es_formulario = (
+			( isset( $_GET['wpcfe'] ) && in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) ||
+			( is_page() && ( has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcfe_shipment_form' ) ||
+							 has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcargo_add_shipment' ) ) )
 		);
 
-		wp_localize_script( 'merc-container-assign', 'MercContainerAssign', [
-			'ajaxurl'    => admin_url( 'admin-ajax.php' ),
-			'mode'       => $mode,
-			'shipmentId' => $shipment_id,
-		] );
+		if ( ! $es_formulario ) return;
+
+		$mode        = isset( $_GET['wpcfe'] ) ? sanitize_text_field( $_GET['wpcfe'] ) : 'add';
+		$shipment_id = isset( $_GET['id'] ) ? intval( $_GET['id'] ) : 0;
+		$ajaxurl     = admin_url( 'admin-ajax.php' );
+		$debug       = defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false';
+		$js_url      = MERC_FORM_URL . 'admin/assets/js/container-assign.js?ver=' . MERC_FORM_VERSION;
+		?>
+		<script>var MercContainerAssign = { ajaxurl: '<?php echo esc_js( $ajaxurl ); ?>', mode: '<?php echo esc_js( $mode ); ?>', shipmentId: <?php echo $shipment_id; ?>, debug: <?php echo $debug; ?> };</script>
+		<script src="<?php echo esc_url( $js_url ); ?>"></script>
+		<?php
 	}
 
 	/* ── AJAX: buscar contenedor por distrito ────────────────────────── */
@@ -50,6 +48,15 @@ class MERC_Container_Assign {
 
 		if ( empty( $distrito ) ) {
 			wp_send_json_error( [ 'message' => 'Distrito vacío' ] );
+		}
+
+		// ✅ VALIDACIÓN: Solo funciona para MERC EMPRENDEDOR (tipo 'normal')
+		$tipo_lower = strtolower( trim( $tipo_envio ) );
+		if ( ! empty( $tipo_envio ) && $tipo_lower !== 'normal' ) {
+			wp_send_json_error( [
+				'message'    => 'Asignación automática solo para MERC EMPRENDEDOR',
+				'tipo_envio' => $tipo_envio,
+			] );
 		}
 
 		$distrito_normalizado = strtolower( remove_accents( trim( $distrito ) ) );
@@ -123,3 +130,4 @@ class MERC_Container_Assign {
 }
 
 new MERC_Container_Assign();
+

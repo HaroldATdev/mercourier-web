@@ -1,0 +1,1147 @@
+[2026-03-05 20:10:00]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   2b108ae2..087e6121  main       -> origin/main
+Updating 2b108ae2..087e6121
+Fast-forward
+ test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test.txt
+
+[2026-03-05 20:17:40]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   087e6121..ba9ef586  main       -> origin/main
+Updating 087e6121..ba9ef586
+Fast-forward
+ test.txt | 1 -
+ 1 file changed, 1 deletion(-)
+ delete mode 100644 test.txt
+
+[2026-03-05 20:18:24]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   ba9ef586..8c393166  main       -> origin/main
+Updating ba9ef586..8c393166
+Fast-forward
+ test.txt | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 test.txt
+
+[2026-03-05 20:19:01]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8c393166..328a6daa  main       -> origin/main
+Updating 8c393166..328a6daa
+Fast-forward
+ test.txt | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ delete mode 100644 test.txt
+
+[2026-03-05 21:14:16]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   328a6daa..074827b6  main       -> origin/main
+Updating 328a6daa..074827b6
+Fast-forward
+ .../admin/assets/js/form-autofill.js               | 116 ++++++++++++++++
+ .../admin/assets/js/status-filter.js               | 150 +++++++++++++++++++++
+ .../admin/assets/js/tipo-envio-saver.js            |  68 ++++++++++
+ .../admin/classes/class-form-autofill.php          |  49 +++++++
+ .../admin/classes/class-status-filter.php          |  39 ++++++
+ .../admin/classes/class-tipo-envio-saver.php       | 128 ++++++++++++++++++
+ .../merc-form-enhancements/includes/functions.php  |  23 ++++
+ .../merc-form-enhancements.php                     |  20 +++
+ 8 files changed, 593 insertions(+)
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/assets/js/form-autofill.js
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/assets/js/status-filter.js
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/assets/js/tipo-envio-saver.js
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-form-autofill.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-status-filter.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-tipo-envio-saver.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/includes/functions.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/merc-form-enhancements.php
+
+[2026-03-05 21:45:03]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   074827b6..8b511dd1  main       -> origin/main
+Updating 074827b6..8b511dd1
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php       | 3 +++
+ 1 file changed, 3 insertions(+)
+
+[2026-03-05 21:49:54]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8b511dd1..61fbd01a  main       -> origin/main
+Updating 8b511dd1..61fbd01a
+Fast-forward
+ .../merc-table-customizer/admin/templates/frontend/table-header.tpl.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+[2026-03-05 22:00:12]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   61fbd01a..0df09f9c  main       -> origin/main
+Updating 61fbd01a..0df09f9c
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+[2026-03-05 22:05:26]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   0df09f9c..065a2449  main       -> origin/main
+Updating 0df09f9c..065a2449
+Fast-forward
+ .../admin/classes/class-shipment-table.php                  | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+[2026-03-05 22:07:54]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   065a2449..dfe52d89  main       -> origin/main
+Updating 065a2449..dfe52d89
+Fast-forward
+ .../merc-table-customizer/admin/templates/frontend/table-header.tpl.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+[2026-03-05 22:37:58]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   dfe52d89..a834a3f1  main       -> origin/main
+Updating dfe52d89..a834a3f1
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php     | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+[2026-03-05 22:43:36]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   a834a3f1..b7cdd288  main       -> origin/main
+Updating a834a3f1..b7cdd288
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php     | 5 -----
+ 1 file changed, 5 deletions(-)
+
+[2026-03-05 23:43:27]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b7cdd288..c7c74ff0  main       -> origin/main
+Updating b7cdd288..c7c74ff0
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+[2026-03-05 23:47:06]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   c7c74ff0..4ee47332  main       -> origin/main
+Updating c7c74ff0..4ee47332
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 1012 ++++++++++++-------------
+ 1 file changed, 506 insertions(+), 506 deletions(-)
+
+[2026-03-06 00:12:16]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4ee47332..8ebf639e  main       -> origin/main
+Updating 4ee47332..8ebf639e
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 1012 ++++++++++++-------------
+ 1 file changed, 506 insertions(+), 506 deletions(-)
+
+[2026-03-06 09:49:51]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 10:39:47]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 10:57:40]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 11:08:56]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8ebf639e..02142207  main       -> origin/main
+Updating 8ebf639e..02142207
+Fast-forward
+ .gitignore                                         |  35 ++
+ MIGRATION_SUMMARY_2026-03-05.md                    | 285 +++++++++++++++
+ PLUGINS_INDEX.md                                   | 289 +++++++++++++++
+ .../plugins/merc-finance/includes/liquidations.php | 300 ++++++++++++++++
+ .../plugins/merc-finance/includes/penalties.php    | 101 ------
+ wp-content/plugins/merc-finance/merc-finance.php   |   1 +
+ .../includes/enhancements.php                      | 181 ++++++++++
+ .../merc-form-enhancements.php                     |   1 +
+ wp-content/plugins/merc-helpers-library/README.md  | 103 ++++++
+ .../merc-helpers-library/includes/class-main.php   |  30 ++
+ .../merc-helpers-library/includes/helpers-date.php | 134 +++++++
+ .../includes/helpers-financial.php                 | 167 +++++++++
+ .../includes/helpers-shipment.php                  | 186 ++++++++++
+ .../merc-helpers-library/includes/helpers-user.php | 150 ++++++++
+ wp-content/plugins/merc-helpers-library/plugin.php |  54 +++
+ .../merc-table-customizer/includes/functions.php   | 314 ++++++++++++++++
+ .../includes/permissions.php                       |  33 +-
+ .../plugins/wpcargo-shipment-filters/README.md     |  67 ++++
+ .../includes/class-main.php                        |  47 +++
+ .../includes/filters-ui.php                        | 283 +++++++++++++++
+ .../wpcargo-shipment-filters/includes/filters.php  | 213 +++++++++++
+ .../wpcargo-shipment-filters/includes/scripts.php  | 102 ++++++
+ .../plugins/wpcargo-shipment-filters/plugin.php    |  48 +++
+ wp-content/plugins/wpcargo-ui-customizer/README.md |  80 +++++
+ .../wpcargo-ui-customizer/includes/class-main.php  |  32 ++
+ .../wpcargo-ui-customizer/includes/footer.php      |  26 ++
+ .../wpcargo-ui-customizer/includes/menus.php       |  42 +++
+ .../wpcargo-ui-customizer/includes/styles.php      | 116 ++++++
+ .../wpcargo-ui-customizer/includes/tables.php      | 101 ++++++
+ .../plugins/wpcargo-ui-customizer/plugin.php       |  52 +++
+ wp-content/themes/blocksy-child/functions.php      | 397 +--------------------
+ 31 files changed, 3478 insertions(+), 492 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 MIGRATION_SUMMARY_2026-03-05.md
+ create mode 100644 PLUGINS_INDEX.md
+ create mode 100644 wp-content/plugins/merc-finance/includes/liquidations.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/includes/enhancements.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/README.md
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/class-main.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-date.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-financial.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-shipment.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-user.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/plugin.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/README.md
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/class-main.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/filters-ui.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/filters.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/scripts.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/plugin.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/README.md
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/class-main.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/footer.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/menus.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/styles.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/tables.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/plugin.php
+
+[2026-03-06 11:11:59]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 11:12:29]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   02142207..f54040a9  main       -> origin/main
+Updating 02142207..f54040a9
+Fast-forward
+ .../merc-table-customizer/includes/functions.php   |   6 +-
+ .../includes/permissions.php                       | 110 ++++++++-------------
+ 2 files changed, 42 insertions(+), 74 deletions(-)
+
+[2026-03-06 11:13:54]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 11:14:33]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   f54040a9..7d84acbc  main       -> origin/main
+Updating f54040a9..7d84acbc
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+[2026-03-06 11:17:50]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 11:18:40]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7d84acbc..ee970470  main       -> origin/main
+Updating 7d84acbc..ee970470
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 431 --------------------------
+ 1 file changed, 431 deletions(-)
+
+[2026-03-06 11:21:00]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 11:38:17]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 14:00:07]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 14:07:46]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   ee970470..04dd2096  main       -> origin/main
+error: Your local changes to the following files would be overwritten by merge:
+	wp-content/themes/blocksy-child/functions.php
+Please commit your changes or stash them before you merge.
+Aborting
+Updating ee970470..04dd2096
+
+[2026-03-06 14:12:34]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+error: Your local changes to the following files would be overwritten by merge:
+	wp-content/themes/blocksy-child/functions.php
+Please commit your changes or stash them before you merge.
+Aborting
+Updating ee970470..04dd2096
+
+[2026-03-06 14:15:49]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   04dd2096..b8ca5636  main       -> origin/main
+error: Your local changes to the following files would be overwritten by merge:
+	wp-content/themes/blocksy-child/functions.php
+Please commit your changes or stash them before you merge.
+Aborting
+Updating ee970470..b8ca5636
+
+[2026-03-06 14:18:13]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+error: Your local changes to the following files would be overwritten by merge:
+	wp-content/themes/blocksy-child/functions.php
+Please commit your changes or stash them before you merge.
+Aborting
+Updating ee970470..b8ca5636
+
+[2026-03-06 14:22:32]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Updating ee970470..b8ca5636
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 669 +-------------------------
+ 1 file changed, 14 insertions(+), 655 deletions(-)
+
+[2026-03-06 14:22:46]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b8ca5636..a6ff6cba  main       -> origin/main
+Updating b8ca5636..a6ff6cba
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 1 +
+ 1 file changed, 1 insertion(+)
+
+[2026-03-06 14:24:51]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 14:32:42]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   a6ff6cba..0420bcd2  main       -> origin/main
+Updating a6ff6cba..0420bcd2
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 39 ---------------------------
+ 1 file changed, 39 deletions(-)
+
+[2026-03-06 14:33:08]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   0420bcd2..bdb59003  main       -> origin/main
+Updating 0420bcd2..bdb59003
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+[2026-03-06 14:35:04]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   bdb59003..e0359beb  main       -> origin/main
+Updating bdb59003..e0359beb
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 322 --------------------------
+ 1 file changed, 322 deletions(-)
+
+[2026-03-06 14:36:31]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   e0359beb..7083bc6b  main       -> origin/main
+Updating e0359beb..7083bc6b
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 108 --------------------------
+ 1 file changed, 108 deletions(-)
+
+[2026-03-06 14:51:10]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7083bc6b..f6d3278b  main       -> origin/main
+Updating 7083bc6b..f6d3278b
+Fast-forward
+ .../plugins/merc-finance/includes/liquidations.php | 300 --------------
+ wp-content/plugins/merc-finance/merc-finance.php   |   1 -
+ .../includes/enhancements.php                      | 181 ---------
+ .../merc-form-enhancements.php                     |   1 -
+ .../merc-table-customizer/includes/functions.php   | 312 ---------------
+ .../includes/permissions.php                       | 143 ++++---
+ wp-content/themes/blocksy-child/functions.php      | 430 +++++++++++++++++++++
+ 7 files changed, 501 insertions(+), 867 deletions(-)
+ delete mode 100644 wp-content/plugins/merc-finance/includes/liquidations.php
+ delete mode 100644 wp-content/plugins/merc-form-enhancements/includes/enhancements.php
+
+[2026-03-06 15:28:43]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   f6d3278b..12ba7d7a  main       -> origin/main
+Updating f6d3278b..12ba7d7a
+Fast-forward
+ .../merc-finance/includes/financial-data.php       |  104 ++
+ .../merc-finance/includes/financial-helpers.php    |  241 +++++
+ .../plugins/merc-finance/includes/liquidations.php | 1067 ++++++++++++++++++++
+ wp-content/plugins/merc-finance/merc-finance.php   |    3 +
+ .../admin/classes/class-calendar-blocker.php       |  172 ++++
+ .../admin/classes/class-multipackage-template.php  |  331 ++++++
+ .../admin/classes/class-product-selector.php       |  175 ++++
+ .../merc-form-enhancements.php                     |    3 +
+ 8 files changed, 2096 insertions(+)
+ create mode 100644 wp-content/plugins/merc-finance/includes/financial-data.php
+ create mode 100644 wp-content/plugins/merc-finance/includes/financial-helpers.php
+ create mode 100644 wp-content/plugins/merc-finance/includes/liquidations.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-calendar-blocker.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-multipackage-template.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-product-selector.php
+
+[2026-03-06 15:41:02]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   12ba7d7a..8f61c5f9  main       -> origin/main
+Updating 12ba7d7a..8f61c5f9
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 104 +-------------------------
+ 1 file changed, 1 insertion(+), 103 deletions(-)
+
+[2026-03-06 15:43:45]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8f61c5f9..0bb5e372  main       -> origin/main
+Updating 8f61c5f9..0bb5e372
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 106 --------------------------
+ 1 file changed, 106 deletions(-)
+
+[2026-03-06 15:47:16]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   0bb5e372..74663f56  main       -> origin/main
+Updating 0bb5e372..74663f56
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 45 ---------------------------
+ 1 file changed, 45 deletions(-)
+
+[2026-03-06 15:51:44]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   74663f56..4ab99d61  main       -> origin/main
+Updating 74663f56..4ab99d61
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 62 ---------------------------
+ 1 file changed, 62 deletions(-)
+
+[2026-03-06 15:57:32]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4ab99d61..aac03df7  main       -> origin/main
+Updating 4ab99d61..aac03df7
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 637 --------------------------
+ 1 file changed, 637 deletions(-)
+
+[2026-03-06 16:15:03]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   aac03df7..e4a83ba8  main       -> origin/main
+Updating aac03df7..e4a83ba8
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 7007 ++++++-------------------
+ 1 file changed, 1541 insertions(+), 5466 deletions(-)
+
+[2026-03-06 16:20:31]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   e4a83ba8..5de4a529  main       -> origin/main
+Updating e4a83ba8..5de4a529
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 215 +-------------------------
+ 1 file changed, 1 insertion(+), 214 deletions(-)
+
+[2026-03-06 16:26:46]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   5de4a529..a4837747  main       -> origin/main
+Updating 5de4a529..a4837747
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 661 --------------------------
+ 1 file changed, 661 deletions(-)
+
+[2026-03-06 16:44:59]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   a4837747..01768254  main       -> origin/main
+Updating a4837747..01768254
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 50 ---------------------------
+ 1 file changed, 50 deletions(-)
+
+[2026-03-06 16:56:01]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   01768254..e3e65284  main       -> origin/main
+Updating 01768254..e3e65284
+Fast-forward
+ wp-content/plugins/merc-sidebar-menu/README.md     |  34 +++++
+ .../merc-sidebar-menu/includes/sidebar-menu.php    | 168 +++++++++++++++++++++
+ wp-content/plugins/merc-sidebar-menu/plugin.php    |  22 +++
+ 3 files changed, 224 insertions(+)
+ create mode 100644 wp-content/plugins/merc-sidebar-menu/README.md
+ create mode 100644 wp-content/plugins/merc-sidebar-menu/includes/sidebar-menu.php
+ create mode 100644 wp-content/plugins/merc-sidebar-menu/plugin.php
+
+[2026-03-06 17:03:53]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   e3e65284..60356758  main       -> origin/main
+Updating e3e65284..60356758
+Fast-forward
+ .../plugins/merc-sidebar-menu/includes/sidebar-menu.php | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
+
+[2026-03-06 19:44:09]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+ + 60356758...8ebf639e main       -> origin/main  (forced update)
+Already up to date.
+
+[2026-03-06 19:46:50]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8ebf639e..708434f5  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-06 21:27:57]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   708434f5..8740aae5  main       -> origin/main
+Updating 708434f5..8740aae5
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 319 +++++++++++++
+ .../admin/classes/class-shipment-table.php         |   3 -
+ .../merc-table-customizer.php                      |   1 +
+ wp-content/themes/blocksy-child/functions.php      | 531 ---------------------
+ 4 files changed, 320 insertions(+), 534 deletions(-)
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/classes/class-shipment-filters.php
+
+[2026-03-06 21:49:10]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8740aae5..a721c664  main       -> origin/main
+Updating 8740aae5..a721c664
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 47 +++++++++++++++++++++-
+ 1 file changed, 45 insertions(+), 2 deletions(-)
+
+[2026-03-06 21:57:33]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 22:08:41]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   a721c664..d265dd70  main       -> origin/main
+Updating a721c664..d265dd70
+Fast-forward
+ .gitignore                                         |   35 +
+ MIGRATION_SUMMARY_2026-03-05.md                    |  285 ++++
+ PLUGINS_INDEX.md                                   |  289 ++++
+ .../plugins/merc-finance/includes/liquidations.php |  300 ++++
+ .../plugins/merc-finance/includes/penalties.php    |  101 --
+ wp-content/plugins/merc-finance/merc-finance.php   |    1 +
+ .../includes/enhancements.php                      |  181 +++
+ .../merc-form-enhancements.php                     |    1 +
+ wp-content/plugins/merc-helpers-library/README.md  |  103 ++
+ .../merc-helpers-library/includes/class-main.php   |   30 +
+ .../merc-helpers-library/includes/helpers-date.php |  134 ++
+ .../includes/helpers-financial.php                 |  167 +++
+ .../includes/helpers-shipment.php                  |  186 +++
+ .../merc-helpers-library/includes/helpers-user.php |  150 ++
+ wp-content/plugins/merc-helpers-library/plugin.php |   54 +
+ .../merc-table-customizer/includes/functions.php   |  312 ++++
+ .../includes/permissions.php                       |  143 +-
+ .../admin/includes/merc-containers/merc-ajax.php   |  183 +++
+ .../admin/includes/merc-containers/merc-auto.php   |  187 +++
+ .../admin/includes/merc-containers/merc-base.php   |  139 ++
+ .../admin/includes/merc-containers/merc-edit.php   |  121 ++
+ .../includes/merc-containers/merc-helpers.php      |  124 ++
+ .../admin/includes/merc-containers/merc-loader.php |   24 +
+ .../includes/merc-containers/merc-motorizado.php   |  310 ++++
+ .../admin/includes/merc-containers/merc-state.php  |  189 +++
+ .../wpcargo-shipment-container-add-ons.php         |    3 +
+ .../plugins/wpcargo-shipment-filters/README.md     |   67 +
+ .../includes/class-main.php                        |   47 +
+ .../includes/filters-ui.php                        |  283 ++++
+ .../wpcargo-shipment-filters/includes/filters.php  |  213 +++
+ .../wpcargo-shipment-filters/includes/scripts.php  |  102 ++
+ .../plugins/wpcargo-shipment-filters/plugin.php    |   48 +
+ wp-content/plugins/wpcargo-ui-customizer/README.md |   80 +
+ .../wpcargo-ui-customizer/includes/class-main.php  |   32 +
+ .../wpcargo-ui-customizer/includes/footer.php      |   26 +
+ .../wpcargo-ui-customizer/includes/menus.php       |   42 +
+ .../wpcargo-ui-customizer/includes/styles.php      |  116 ++
+ .../wpcargo-ui-customizer/includes/tables.php      |  101 ++
+ .../plugins/wpcargo-ui-customizer/plugin.php       |   52 +
+ wp-content/themes/blocksy-child/functions.php      | 1579 +-------------------
+ 40 files changed, 4827 insertions(+), 1713 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 MIGRATION_SUMMARY_2026-03-05.md
+ create mode 100644 PLUGINS_INDEX.md
+ create mode 100644 wp-content/plugins/merc-finance/includes/liquidations.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/includes/enhancements.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/README.md
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/class-main.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-date.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-financial.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-shipment.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/includes/helpers-user.php
+ create mode 100644 wp-content/plugins/merc-helpers-library/plugin.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-ajax.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-auto.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-base.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-edit.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-helpers.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-loader.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-motorizado.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-container-add-ons/admin/includes/merc-containers/merc-state.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/README.md
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/class-main.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/filters-ui.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/filters.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/includes/scripts.php
+ create mode 100644 wp-content/plugins/wpcargo-shipment-filters/plugin.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/README.md
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/class-main.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/footer.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/menus.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/styles.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/includes/tables.php
+ create mode 100644 wp-content/plugins/wpcargo-ui-customizer/plugin.php
+
+[2026-03-06 22:11:19]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 22:12:03]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   d265dd70..1d31ee35  main       -> origin/main
+Updating d265dd70..1d31ee35
+Fast-forward
+ .../includes/merc-containers/merc-helpers.php      | 27 ----------------------
+ 1 file changed, 27 deletions(-)
+
+[2026-03-06 22:18:05]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   1d31ee35..39d9b263  main       -> origin/main
+Updating 1d31ee35..39d9b263
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 327 +-------------------------
+ 1 file changed, 2 insertions(+), 325 deletions(-)
+
+[2026-03-06 22:18:24]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-06 22:27:18]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   39d9b263..e247373f  main       -> origin/main
+Updating 39d9b263..e247373f
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 151 +++++++++++----------
+ 1 file changed, 83 insertions(+), 68 deletions(-)
+
+[2026-03-06 22:29:42]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   e247373f..ef3aa259  main       -> origin/main
+Updating e247373f..ef3aa259
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 151 ++++++++++-----------
+ 1 file changed, 68 insertions(+), 83 deletions(-)
+
+[2026-03-06 22:34:15]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+ + ef3aa259...a721c664 main       -> origin/main  (forced update)
+Already up to date.
+
+[2026-03-06 22:38:38]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   a721c664..5a7fea4b  main       -> origin/main
+Updating a721c664..5a7fea4b
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 151 +++++++++++----------
+ 1 file changed, 83 insertions(+), 68 deletions(-)
+
+[2026-03-06 22:42:54]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   5a7fea4b..26676028  main       -> origin/main
+Updating 5a7fea4b..26676028
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 117 +++++++++++++--------
+ 1 file changed, 73 insertions(+), 44 deletions(-)
+
+[2026-03-06 22:48:47]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   26676028..502a5f42  main       -> origin/main
+Updating 26676028..502a5f42
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 79 +++++++++++++++-------
+ 1 file changed, 54 insertions(+), 25 deletions(-)
+
+[2026-03-06 22:58:10]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   502a5f42..691cc493  main       -> origin/main
+Updating 502a5f42..691cc493
+Fast-forward
+ .../admin/classes/class-shipment-filters.php       | 214 ++++++++++-----------
+ 1 file changed, 107 insertions(+), 107 deletions(-)
+
+[2026-03-06 23:22:05]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   691cc493..1bbe2542  main       -> origin/main
+Updating 691cc493..1bbe2542
+Fast-forward
+ .../admin/classes/class-fecha-ajax.php             |  86 +++++++++
+ .../admin/js/merc-fecha-ajax.js                    |  84 +++++++++
+ .../merc-table-customizer.php                      |   1 +
+ wp-content/themes/blocksy-child/functions.php      | 204 +--------------------
+ 4 files changed, 172 insertions(+), 203 deletions(-)
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/classes/class-fecha-ajax.php
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/js/merc-fecha-ajax.js
+
+[2026-03-06 23:50:15]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   1bbe2542..6fcca76c  main       -> origin/main
+Updating 1bbe2542..6fcca76c
+Fast-forward
+ .../admin/classes/class-table-ajax.php             |  358 ++++
+ .../admin/classes/class-table-ui.php               |  739 ++++++++
+ .../admin/js/merc-table-ui.js                      |   48 +
+ .../merc-table-customizer.php                      |    2 +
+ wp-content/themes/blocksy-child/functions.php      | 1972 +-------------------
+ 5 files changed, 1148 insertions(+), 1971 deletions(-)
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/classes/class-table-ajax.php
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/classes/class-table-ui.php
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/js/merc-table-ui.js
+
+[2026-03-06 23:55:39]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   6fcca76c..117fbfa6  main       -> origin/main
+Updating 6fcca76c..117fbfa6
+Fast-forward
+ .../admin/classes/class-table-ajax.php                |  2 +-
+ .../merc-table-customizer/admin/js/merc-table-ui.js   | 19 +++++++++++++++++--
+ 2 files changed, 18 insertions(+), 3 deletions(-)
+
+[2026-03-07 00:00:23]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   117fbfa6..9b44e8c3  main       -> origin/main
+Updating 117fbfa6..9b44e8c3
+Fast-forward
+ .../plugins/merc-table-customizer/admin/classes/class-fecha-ajax.php  | 4 ----
+ .../plugins/merc-table-customizer/admin/classes/class-table-ui.php    | 3 ---
+ 2 files changed, 7 deletions(-)
+
+[2026-03-07 00:04:34]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   9b44e8c3..62aa6045  main       -> origin/main
+Updating 9b44e8c3..62aa6045
+Fast-forward
+ .../admin/classes/class-table-ui.php               | 52 ++++++++++++++++++++++
+ .../admin/js/merc-table-ui.js                      | 12 +++--
+ 2 files changed, 60 insertions(+), 4 deletions(-)
+
+[2026-03-07 01:39:04]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   62aa6045..46da4d96  main       -> origin/main
+Updating 62aa6045..46da4d96
+Fast-forward
+ .../admin/assets/js/client-autofill.js             |   75 ++
+ .../admin/assets/js/container-assign.js            |  202 ++++
+ .../admin/classes/class-client-autofill.php        |   95 ++
+ .../admin/classes/class-container-assign.php       |  125 +++
+ .../merc-form-enhancements.php                     |    2 +
+ .../admin/classes/class-shipment-filters.php       |    2 +-
+ wp-content/themes/blocksy-child/functions.php      | 1067 --------------------
+ 7 files changed, 500 insertions(+), 1068 deletions(-)
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/assets/js/client-autofill.js
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/assets/js/container-assign.js
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-client-autofill.php
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-container-assign.php
+
+[2026-03-07 01:46:53]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   46da4d96..b0669741  main       -> origin/main
+Updating 46da4d96..b0669741
+Fast-forward
+ .../admin/assets/js/client-autofill.js             |  41 ++--
+ .../admin/assets/js/container-assign.js            | 211 +++++++--------------
+ 2 files changed, 88 insertions(+), 164 deletions(-)
+
+[2026-03-07 02:15:25]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b0669741..2237f1a9  main       -> origin/main
+Updating b0669741..2237f1a9
+Fast-forward
+ .../admin/assets/js/client-autofill.js             |  38 +-
+ .../admin/assets/js/container-assign.js            | 136 ++--
+ .../admin/classes/class-shipment-form-fields.php   | 648 +++++++++++++++++
+ .../merc-form-enhancements.php                     |   1 +
+ wp-content/themes/blocksy-child/functions.php      | 782 +--------------------
+ 5 files changed, 764 insertions(+), 841 deletions(-)
+ create mode 100644 wp-content/plugins/merc-form-enhancements/admin/classes/class-shipment-form-fields.php
+
+[2026-03-07 02:26:29]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+ + 2237f1a9...b0669741 main       -> origin/main  (forced update)
+Already up to date.
+
+[2026-03-07 02:39:39]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b0669741..4d574ca9  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 03:07:27]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4d574ca9..693577f1  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 03:22:13]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   693577f1..4c4bc599  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 04:09:21]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4c4bc599..d4a2c4c5  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 04:40:42]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   d4a2c4c5..2c490032  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:04:23]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   2c490032..fde4d82f  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:19:56]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   fde4d82f..fb06b961  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:41:21]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   fb06b961..3126c4f5  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:51:23]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   3126c4f5..5b7dbdfa  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:52:24]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   5b7dbdfa..0dd89d23  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:52:57]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   0dd89d23..7c11d9b5  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 05:56:20]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7c11d9b5..57622d86  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 06:37:52]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   57622d86..04aa8824  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 07:17:54]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   04aa8824..17f27e20  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 12:24:36]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   17f27e20..b0709233  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+[2026-03-07 13:01:44]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b0709233..c18c57f3  main       -> origin/main
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+

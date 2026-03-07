@@ -21,3 +21,4 @@ function mfe_include_template( string $file, array $data = [] ): void {
 	}
 	include $path;
 }
+

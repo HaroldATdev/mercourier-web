@@ -126,3 +126,4 @@ class MERC_Tipo_Envio_Saver {
 }
 
 new MERC_Tipo_Envio_Saver();
+

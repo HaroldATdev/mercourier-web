@@ -13,10 +13,21 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class MERC_Shipment_Form_Fields {
 
 	public function __construct() {
+		// Renderizar campos en el formulario
 		add_action( 'after_wpcfe_shipment_form_fields', [ $this, 'render_shipping_cost' ],    1, 1 );
 		add_action( 'after_wpcfe_shipment_form_fields', [ $this, 'render_producto_selector' ], 5, 1 );
 		add_action( 'wpcfe_after_shipment_form_fields', [ $this, 'render_producto_selector' ], 5, 1 );
 		add_action( 'wpcfe_shipment_form_fields',       [ $this, 'render_producto_selector' ], 999, 1 );
+
+		// Scripts y estilos del formulario de paquetes
+		add_action( 'wp_footer', [ $this, 'package_defaults_script' ], 15 );
+		add_action( 'wp_head',   [ $this, 'package_form_styles' ] );
+
+		// Guardar datos financieros al salvar el envío
+		add_action( 'wpcargo_after_save_shipment', [ $this, 'save_financial_data' ], 20, 1 );
+		add_action( 'save_post_wpcargo_shipment',  [ $this, 'save_financial_data' ], 20, 1 );
+		add_action( 'save_post_wpcargo_shipment',  [ $this, 'verify_final_shipping_cost' ], 999999, 1 );
+		add_action( 'edit_post',                   [ $this, 'log_edit_shipping_cost' ], 10, 2 );
 	}
 
 	/* ── Desglose del costo de envío ─────────────────────────────────────── */
@@ -642,6 +653,104 @@ class MERC_Shipment_Form_Fields {
 		</style>
 		<?php
 		echo ob_get_clean();
+	}
+
+	/* ── Valores predeterminados en campos de paquetes ───────────────────── */
+
+	public function package_defaults_script(): void {
+		if ( ! isset( $_GET['wpcfe'] ) || $_GET['wpcfe'] !== 'add' || ! isset( $_GET['type'] ) ) return;
+		?>
+		<script>
+		jQuery(document).ready(function($) {
+			setTimeout(function() {
+				$('#wpcfe-packages-repeater tbody tr').each(function() {
+					var $row = $(this);
+					var lengthField = $row.find('input[name*="length"]');
+					var widthField  = $row.find('input[name*="width"]');
+					var heightField = $row.find('input[name*="height"]');
+					var weightField = $row.find('input[name*="weight"]');
+					if (lengthField.length && !lengthField.val()) lengthField.val('25');
+					if (widthField.length  && !widthField.val())  widthField.val('25');
+					if (heightField.length && !heightField.val()) heightField.val('25');
+					if (weightField.length && !weightField.val()) weightField.val('3');
+				});
+			}, 500);
+		});
+		</script>
+		<?php
+	}
+
+	/* ── CSS: ocultar columna de descripción en paquetes ─────────────────── */
+
+	public function package_form_styles(): void {
+		if ( ! isset( $_GET['wpcfe'] ) || $_GET['wpcfe'] !== 'add' ) return;
+		$hide_packages = ( isset( $_GET['type'] ) && $_GET['type'] === 'full_fitment' );
+		?>
+		<style>
+		textarea.wpc-pm-description,
+		textarea[name*="[wpc-pm-description]"] { display: none !important; }
+		#wpcfe-packages-repeater td:has(textarea.wpc-pm-description),
+		#wpcfe-packages-repeater td:has(textarea[name*="[wpc-pm-description]"]) { display: none !important; }
+		#wpcfe-packages-repeater thead tr th:nth-child(3) { display: none !important; }
+		<?php if ( $hide_packages ) : ?>
+		#package_id { display: none !important; }
+		<?php endif; ?>
+		</style>
+		<?php
+	}
+
+	/* ── Guardar datos financieros del formulario ─────────────────────────── */
+
+	public function save_financial_data( int $post_id ): void {
+		if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) return;
+
+		if ( isset( $_POST['wpcargo_costo_producto'] ) ) {
+			update_post_meta( $post_id, 'wpcargo_costo_producto',
+				sanitize_text_field( $_POST['wpcargo_costo_producto'] ) );
+		}
+
+		if ( isset( $_POST['wpcargo_costo_envio'] ) ) {
+			update_post_meta( $post_id, 'wpcargo_costo_envio',
+				sanitize_text_field( $_POST['wpcargo_costo_envio'] ) );
+		}
+
+		if ( isset( $_POST['wpcargo_cargo_remitente'] ) ) {
+			update_post_meta( $post_id, 'wpcargo_cargo_remitente',
+				sanitize_text_field( $_POST['wpcargo_cargo_remitente'] ) );
+		}
+
+		$monto = floatval( get_post_meta( $post_id, 'wpcargo_monto', true ) );
+
+		update_post_meta( $post_id, 'wpcargo_quien_paga', 'remitente' );
+		update_post_meta( $post_id, 'wpcargo_cobrado_por_motorizado', $monto > 0 ? $monto : '0' );
+
+		if ( ! get_post_meta( $post_id, 'wpcargo_estado_pago_motorizado', true ) ) {
+			update_post_meta( $post_id, 'wpcargo_estado_pago_motorizado', 'pendiente' );
+		}
+		if ( ! get_post_meta( $post_id, 'wpcargo_cliente_pago_a', true ) ) {
+			update_post_meta( $post_id, 'wpcargo_cliente_pago_a', 'pendiente' );
+		}
+	}
+
+	/* ── Verificación final del costo de envío (logging) ─────────────────── */
+
+	public function verify_final_shipping_cost( int $post_id ): void {
+		if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) return;
+		$costo    = get_post_meta( $post_id, 'wpcargo_costo_envio', true );
+		$distrito = get_post_meta( $post_id, 'wpcargo_distrito_destino', true );
+		$tipo     = get_post_meta( $post_id, 'tipo_envio', true );
+		error_log( "🔚 [FINAL_VERIFICATION] Envío #{$post_id} | Tipo: {$tipo} | Distrito: {$distrito} | Costo: {$costo}" );
+	}
+
+	/* ── Logging al editar un envío ───────────────────────────────────────── */
+
+	public function log_edit_shipping_cost( int $post_id, \WP_Post $post ): void {
+		if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) return;
+		if ( $post->post_status === 'auto-draft' ) return;
+		$costo    = get_post_meta( $post_id, 'wpcargo_costo_envio', true );
+		$distrito = get_post_meta( $post_id, 'wpcargo_distrito_destino', true );
+		$tipo     = get_post_meta( $post_id, 'tipo_envio', true );
+		error_log( "✏️ [EDIT_DETECTED] Envío #{$post_id} | Tipo: {$tipo} | Distrito: {$distrito} | Costo antes: {$costo}" );
 	}
 }
 

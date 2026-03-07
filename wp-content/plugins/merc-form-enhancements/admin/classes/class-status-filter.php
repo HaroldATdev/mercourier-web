@@ -37,3 +37,4 @@ class MERC_Status_Filter {
 }
 
 new MERC_Status_Filter();
+

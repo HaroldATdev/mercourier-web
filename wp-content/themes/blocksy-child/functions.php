@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Blocksy Child Theme Functions
  *
@@ -2320,77 +2320,6 @@ add_action('template_redirect', function(){
     }
 });
 
-// Establecer valores predeterminados en campos de paquetes al cargar el formulario
-add_action('wp_footer', function() {
-    if ( isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' && isset($_GET['type']) ) {
-        ?>
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            // Esperar a que el DOM esté completamente cargado
-            setTimeout(function() {
-                // Establecer valores predeterminados en todos los campos de dimensiones y peso
-                $('#wpcfe-packages-repeater tbody tr').each(function() {
-                    var $row = $(this);
-                    
-                    // Solo establecer si están vacíos
-                    var lengthField = $row.find('input[name*="length"]');
-                    var widthField = $row.find('input[name*="width"]');
-                    var heightField = $row.find('input[name*="height"]');
-                    var weightField = $row.find('input[name*="weight"]');
-                    
-                    if (lengthField.length && !lengthField.val()) {
-                        lengthField.val('25');
-                    }
-                    if (widthField.length && !widthField.val()) {
-                        widthField.val('25');
-                    }
-                    if (heightField.length && !heightField.val()) {
-                        heightField.val('25');
-                    }
-                    if (weightField.length && !weightField.val()) {
-                        weightField.val('3');
-                    }
-                });
-            }, 500); // Esperar 500ms para asegurar que el formulario esté cargado
-        });
-        </script>
-        <?php
-    }
-}, 1000);
-
-// Ocultar SOLO la columna de descripción en paquetes
-add_action('wp_head', function() {
-    if ( isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add' ) {
-        ?>
-        <style>
-        /* Ocultar campos de descripción */
-        textarea.wpc-pm-description,
-        textarea[name*="[wpc-pm-description]"] {
-            display: none !important;
-        }
-        
-        /* Ocultar la celda TD que contiene el textarea de descripción */
-        #wpcfe-packages-repeater td:has(textarea.wpc-pm-description),
-        #wpcfe-packages-repeater td:has(textarea[name*="[wpc-pm-description]"]) {
-            display: none !important;
-        }
-        
-        /* Ocultar el TH (encabezado) correspondiente a descripción */
-        /* Asumiendo que descripción es la columna 7, ajusta el número si es diferente */
-        #wpcfe-packages-repeater thead tr th:nth-child(3) {
-            display: none !important;
-        }
-        
-        <?php if (isset($_GET['type']) && $_GET['type'] === 'full_fitment'): ?>
-        /* Ocultar la sección de paquetes SOLO para FULL FITMENT */
-        #package_id {
-            display: none !important;
-        }
-        <?php endif; ?>
-        </style>
-        <?php
-    }
-});
 
 add_filter( 'wp_head', 'remove_history_track_result' );
 function remove_history_track_result(){
@@ -2484,6 +2413,269 @@ add_action('wp_logout', function() {
     }
 });
 
+
+// Selector de productos para envíos - VERSION OPTIMIZADA CON MÚLTIPLES HOOKS
+add_action('after_wpcfe_shipment_form_fields', 'merc_producto_selector_envio', 5, 1);
+add_action('wpcfe_after_shipment_form_fields', 'merc_producto_selector_envio', 5, 1);
+add_action('wpcfe_shipment_form_fields', 'merc_producto_selector_envio', 999, 1);
+function merc_producto_selector_envio($shipment_id) {
+    // SOLO mostrar si el tipo de envío es MERC FULL FITMENT
+    if (!isset($_GET['type']) || $_GET['type'] !== 'full_fitment') {
+        error_log("⚠️ Tipo de envío no es full_fitment, saltando selector de productos");
+        return;
+    }
+
+    // Evitar renderizado múltiple
+    static $ya_renderizado = false;
+    if ($ya_renderizado) {
+        error_log("⚠️ Selector ya renderizado, saltando");
+        return;
+    }
+    $ya_renderizado = true;
+    
+    error_log("📦 === INICIO SELECTOR PRODUCTOS ===");
+    error_log("Shipment ID: " . $shipment_id);
+    error_log("Hook actual: " . current_action());
+    
+    // Obtener usuario actual
+    $current_user_id = get_current_user_id();
+    $es_admin = current_user_can('manage_options') || current_user_can('edit_others_posts');
+    
+    // Construir meta_query para filtrar por cliente
+    $meta_query = array();
+    if (!$es_admin) {
+        // Clientes solo ven productos asignados específicamente a ellos
+        $meta_query = array(
+            array(
+                'key' => '_merc_producto_cliente_asignado',
+                'value' => $current_user_id,
+                'compare' => '='
+            )
+        );
+    }
+    
+    // Obtener productos disponibles filtrados por cliente
+    $productos = get_posts(array(
+        'post_type' => 'merc_producto',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'meta_query' => $meta_query
+    ));
+    
+    error_log("Total productos encontrados para usuario #{$current_user_id}: " . count($productos));
+    
+    // Filtrar manualmente productos sin_asignar o sin estado (nuevos)
+    // IMPORTANTE: Incluir también productos "asignados" si tienen stock disponible sin asignar
+    $productos_disponibles = array();
+    foreach ($productos as $prod) {
+        $estado = get_post_meta($prod->ID, '_merc_producto_estado', true);
+        $cantidad = merc_get_product_stock($prod->ID);
+        
+        error_log("Producto ID {$prod->ID} - Título: {$prod->post_title} - Estado: '{$estado}' - Cantidad disponible: '{$cantidad}'");
+        
+        // Incluir si:
+        // 1. No tiene estado (nuevo) O está sin_asignar, O
+        // 2. Está asignado pero TIENE stock disponible sin asignar
+        if (empty($estado) || $estado === 'sin_asignar' || ($estado === 'asignado' && intval($cantidad) > 0)) {
+            $productos_disponibles[] = $prod;
+            error_log("  ✅ Producto ID {$prod->ID} INCLUIDO (estado: '{$estado}' | stock disponible: {$cantidad})");
+        } else {
+            error_log("  ❌ Producto ID {$prod->ID} EXCLUIDO (estado: '{$estado}' | stock disponible: {$cantidad})");
+        }
+    }
+    
+    error_log("Total productos disponibles después del filtro: " . count($productos_disponibles));
+    
+    // Obtener producto ya seleccionado (si existe)
+    $producto_seleccionado = get_post_meta($shipment_id, '_merc_producto_id', true);
+    $cantidad_seleccionada = get_post_meta($shipment_id, '_merc_producto_cantidad', true);
+    
+    error_log("Producto seleccionado: " . ($producto_seleccionado ? $producto_seleccionado : 'ninguno'));
+    
+    // Si hay producto seleccionado y no está en la lista, agregarlo
+    if ($producto_seleccionado) {
+        $producto_actual = get_post($producto_seleccionado);
+        if ($producto_actual) {
+            $ya_incluido = false;
+            foreach ($productos_disponibles as $p) {
+                if ($p->ID == $producto_seleccionado) {
+                    $ya_incluido = true;
+                    break;
+                }
+            }
+            if (!$ya_incluido) {
+                $productos_disponibles[] = $producto_actual;
+                error_log("Producto seleccionado agregado a la lista");
+            }
+        }
+    }
+    
+    if (empty($cantidad_seleccionada)) {
+        $cantidad_seleccionada = 1;
+    }
+    
+    error_log("⏳ Iniciando renderizado HTML...");
+    
+    // FORZAR salida inmediata
+    ob_start();
+    ?>
+    
+    <!-- INICIO SELECTOR PRODUCTOS MERC -->
+    <?php wp_nonce_field('merc_envio_producto_guardar', 'merc_envio_producto_nonce'); ?>
+    <div class="col-md-12 mb-4" id="merc_producto_wrapper" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+        <div class="card">
+            <section class="card-header">
+                <strong>📦 Producto a Enviar</strong>
+            </section>
+            <section class="card-body">
+                <?php if (empty($productos_disponibles)): ?>
+                    <div class="alert alert-warning">
+                        <strong>⚠️ No hay productos disponibles</strong><br>
+                        Por favor, agrega productos al almacén desde el panel de administración.
+                    </div>
+                <?php else: ?>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="merc_producto_id"><strong>Producto *</strong></label>
+                            <select id="merc_producto_id" name="merc_producto_id" class="form-control" required style="display: block !important; width: 100% !important;">
+                                <option value="">-- Selecciona un producto --</option>
+                                <?php foreach ($productos_disponibles as $prod): 
+                                    $stock = merc_get_product_stock($prod->ID);
+                                    $stock = !empty($stock) ? intval($stock) : 0;
+                                    $codigo = get_post_meta($prod->ID, '_merc_producto_codigo_barras', true);
+                                    $selected = ($prod->ID == $producto_seleccionado) ? 'selected' : '';
+                                    
+                                    error_log("Renderizando option para producto ID {$prod->ID}");
+                                ?>
+                                    <option value="<?php echo $prod->ID; ?>" 
+                                            data-stock="<?php echo $stock; ?>"
+                                            <?php echo $selected; ?>>
+                                        <?php echo esc_html($prod->post_title); ?> - Stock: <?php echo $stock; ?>
+                                        <?php if ($codigo): ?> [<?php echo esc_html($codigo); ?>]<?php endif; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <small class="text-muted">Solo se muestran productos disponibles (<?php echo count($productos_disponibles); ?> total)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="merc_producto_cantidad"><strong>Cantidad *</strong></label>
+                            <input type="number" 
+                                   id="merc_producto_cantidad" 
+                                   name="merc_producto_cantidad" 
+                                   class="form-control" 
+                                   value="<?php echo esc_attr($cantidad_seleccionada); ?>" 
+                                   min="1" 
+                                   max="999" 
+                                   required
+                                   style="display: block !important; width: 100% !important;">
+                            <small id="merc_stock_display" class="text-muted"></small>
+                        </div>
+                    </div>
+                </div>
+                <div id="merc_stock_warning" class="alert alert-warning" style="display: none;">
+                    <strong>⚠️</strong> <span id="merc_warning_text"></span>
+                </div>
+                <?php endif; ?>
+            </section>
+        </div>
+    </div>
+    <!-- FIN SELECTOR PRODUCTOS MERC -->
+    
+    <script>
+    console.log('🚀 SCRIPT SELECTOR PRODUCTOS CARGADO - TIMESTAMP:', new Date().toISOString());
+    
+    jQuery(document).ready(function($) {
+        console.log('📦 jQuery ready - Inicializando selector productos');
+        
+        const $wrapper = $('#merc_producto_wrapper');
+        console.log('Wrapper encontrado:', $wrapper.length > 0);
+        console.log('Wrapper visible:', $wrapper.is(':visible'));
+        
+        const $productoSelect = $('#merc_producto_id');
+        const $cantidadInput = $('#merc_producto_cantidad');
+        const $stockDisplay = $('#merc_stock_display');
+        const $warning = $('#merc_stock_warning');
+        const $warningText = $('#merc_warning_text');
+        
+        console.log('Select encontrado:', $productoSelect.length > 0);
+        console.log('Opciones en select:', $productoSelect.find('option').length);
+        
+        function actualizarStock() {
+            const $option = $productoSelect.find('option:selected');
+            const stock = parseInt($option.data('stock')) || 0;
+            const cantidad = parseInt($cantidadInput.val()) || 0;
+            
+            if (!$option.val()) {
+                $stockDisplay.text('');
+                $warning.hide();
+                return;
+            }
+            
+            $stockDisplay.html('📦 Disponible: <strong>' + stock + '</strong>');
+            $cantidadInput.attr('max', stock);
+            
+            if (cantidad > stock) {
+                $warning.show();
+                $warningText.text('Stock insuficiente. Solo hay ' + stock + ' unidades disponibles.');
+                $cantidadInput.val(stock);
+            } else {
+                $warning.hide();
+            }
+        }
+        
+        $productoSelect.on('change', actualizarStock);
+        $cantidadInput.on('input change', actualizarStock);
+        
+        // Validar antes de enviar
+        $('form.wpcfe-new-shipment-form, form[name="wpcfe-shipment-form"]').on('submit', function(e) {
+            const productoId = $productoSelect.val();
+            
+            if (!productoId) {
+                e.preventDefault();
+                alert('⚠️ Debes seleccionar un producto');
+                $productoSelect.focus();
+                return false;
+            }
+            
+            const stock = parseInt($productoSelect.find('option:selected').data('stock')) || 0;
+            const cantidad = parseInt($cantidadInput.val()) || 0;
+            
+            if (cantidad > stock) {
+                e.preventDefault();
+                alert('⚠️ Stock insuficiente. Solo hay ' + stock + ' unidades.');
+                $cantidadInput.focus();
+                return false;
+            }
+        });
+        
+        // Inicializar
+        actualizarStock();
+        
+        console.log('✅ Selector de productos inicializado correctamente');
+    });
+    </script>
+    
+    <style>
+    #merc_producto_wrapper {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    </style>
+    <?php
+    $html = ob_get_clean();
+    echo $html;
+    
+    error_log("✅ HTML renderizado - Longitud: " . strlen($html) . " caracteres");
+    error_log("=== FIN SELECTOR PRODUCTOS ===");
+}
 
 // CÓDIGO ANTIGUO DESACTIVADO
 /*
@@ -4161,106 +4353,6 @@ function merc_is_shipment_liquidation_verified( $shipment_id ) {
 }
 
 // ---------------------------------------------------------------------------
-// SISTEMA FINANCIERO - GUARDADO DE DATOS (sin cambios)
-// ---------------------------------------------------------------------------
-
-add_action( 'wpcargo_after_save_shipment', 'merc_save_financial_data', 20, 1 );
-add_action( 'save_post_wpcargo_shipment', 'merc_save_financial_data', 20, 1 );
-function merc_save_financial_data( $post_id ) {
-    if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) {
-        return;
-    }
-
-    error_log("💰 [SAVE_FINANCIAL] === GUARDANDO DATOS FINANCIEROS - Envío #{$post_id} ===");
-    
-    if ( isset( $_POST['wpcargo_costo_producto'] ) ) {
-        $costo_producto = sanitize_text_field( $_POST['wpcargo_costo_producto'] );
-        error_log("💰 [SAVE_FINANCIAL] Costo producto desde POST: {$costo_producto}");
-        update_post_meta( $post_id, 'wpcargo_costo_producto', $costo_producto );
-    }
-    
-    if ( isset( $_POST['wpcargo_costo_envio'] ) ) {
-        $costo_envio = sanitize_text_field( $_POST['wpcargo_costo_envio'] );
-        error_log("💰 [SAVE_FINANCIAL] Costo envío desde POST: {$costo_envio}");
-        
-        // Verificar el distrito para debugging
-        $distrito = isset($_POST['wpcargo_distrito_destino']) ? sanitize_text_field($_POST['wpcargo_distrito_destino']) : 'N/A';
-        error_log("💰 [SAVE_FINANCIAL] Distrito destino: {$distrito}");
-        
-        update_post_meta( $post_id, 'wpcargo_costo_envio', $costo_envio );
-        error_log("💰 [SAVE_FINANCIAL] Costo envío GUARDADO en meta: {$costo_envio}");
-    } else {
-        error_log("⚠️ [SAVE_FINANCIAL] wpcargo_costo_envio NO está en POST");
-    }
-    
-    if ( isset( $_POST['wpcargo_cargo_remitente'] ) ) {
-        $cargo_remitente = sanitize_text_field( $_POST['wpcargo_cargo_remitente'] );
-        error_log("💰 [SAVE_FINANCIAL] Cargo remitente desde POST: {$cargo_remitente}");
-        update_post_meta( $post_id, 'wpcargo_cargo_remitente', $cargo_remitente );
-    }
-    
-    error_log("💰 [SAVE_FINANCIAL] === FIN GUARDADO DATOS FINANCIEROS ===");
-    
-    // Verificar el valor inmediatamente después de guardar
-    $costo_envio_verificado = get_post_meta($post_id, 'wpcargo_costo_envio', true);
-    error_log("🔍 [SAVE_FINANCIAL] Verificación inmediata - Costo envío en DB: {$costo_envio_verificado}");
-
-    $monto = get_post_meta( $post_id, 'wpcargo_monto', true );
-    $monto = floatval( $monto );
-
-    if ( $monto == 0 ) {
-        update_post_meta( $post_id, 'wpcargo_quien_paga', 'remitente' );
-        update_post_meta( $post_id, 'wpcargo_cobrado_por_motorizado', '0' );
-    } else {
-        // Preferimos que la marca (registered_shipper) asuma la responsabilidad
-        // en lugar de marcar al cliente final como pagador.
-        update_post_meta( $post_id, 'wpcargo_quien_paga', 'remitente' );
-        update_post_meta( $post_id, 'wpcargo_cobrado_por_motorizado', $monto );
-    }
-
-    if ( ! get_post_meta( $post_id, 'wpcargo_estado_pago_motorizado', true ) ) {
-        update_post_meta( $post_id, 'wpcargo_estado_pago_motorizado', 'pendiente' );
-    }
-    // El estado de liquidación del remitente ahora se maneja a nivel de usuario,
-    // no se almacena por envío. No setear meta 'wpcargo_estado_pago_remitente' aquí.
-    if ( ! get_post_meta( $post_id, 'wpcargo_cliente_pago_a', true ) ) {
-        update_post_meta( $post_id, 'wpcargo_cliente_pago_a', 'pendiente' );
-    }
-}
-
-// Hook adicional para verificar el valor FINAL después de todos los hooks
-add_action('save_post_wpcargo_shipment', 'merc_verify_final_shipping_cost', 999999, 1);
-function merc_verify_final_shipping_cost($post_id) {
-    if (get_post_type($post_id) !== 'wpcargo_shipment') {
-        return;
-    }
-    
-    // Esperar un momento para que todos los hooks se ejecuten
-    $costo_envio_final = get_post_meta($post_id, 'wpcargo_costo_envio', true);
-    $distrito = get_post_meta($post_id, 'wpcargo_distrito_destino', true);
-    $tipo_envio = get_post_meta($post_id, 'tipo_envio', true);
-    
-    error_log("🔚 [FINAL_VERIFICATION] Envío #{$post_id} | Tipo: {$tipo_envio} | Distrito: {$distrito} | Costo FINAL: {$costo_envio_final}");
-}
-
-// Hook para detectar cuando se EDITA un envío (no cuando se crea)
-add_action('edit_post', 'merc_log_edit_shipping_cost', 10, 2);
-function merc_log_edit_shipping_cost($post_id, $post) {
-    if (get_post_type($post_id) !== 'wpcargo_shipment') {
-        return;
-    }
-    
-    // Verificar si es una edición (no una creación)
-    if ($post->post_status === 'auto-draft') {
-        return; // Es un nuevo post, no una edición
-    }
-    
-    $costo_envio_antes = get_post_meta($post_id, 'wpcargo_costo_envio', true);
-    $distrito = get_post_meta($post_id, 'wpcargo_distrito_destino', true);
-    $tipo_envio = get_post_meta($post_id, 'tipo_envio', true);
-    
-    error_log("✏️ [EDIT_DETECTED] Envío #{$post_id} siendo editado | Tipo: {$tipo_envio} | Distrito: {$distrito} | Costo ANTES: {$costo_envio_antes}");
-}
 
 // ---------------------------------------------------------------------------
 // PANEL MOTORIZADO - MEJORADO
