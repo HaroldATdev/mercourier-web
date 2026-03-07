@@ -10,7 +10,7 @@
  *   MercClientAutofill.nonce    (string)
  */
 /* global MercClientAutofill, jQuery */
-(function ($) {
+jQuery(document).ready(function ($) {
     'use strict';
 
     if (typeof MercClientAutofill === 'undefined') return;
@@ -18,7 +18,14 @@
     var ajaxurl = MercClientAutofill.ajaxurl;
     var nonce   = MercClientAutofill.nonce;
 
-    /* ── Rellenar campos del remitente con datos del cliente ── */
+    /* ── Disparar evento change en un elemento ── */
+    function trigger(el) {
+        if (!el) return;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        $(el).trigger('change');
+    }
+
+    /* ── Rellenar campos del remitente con los datos del cliente ── */
     function rellenarRemitente(ud) {
         var map = {
             nombre:    document.querySelector('[name="wpcargo_shipper_name"]'),
@@ -30,6 +37,7 @@
             link_maps: document.querySelector('[name="link_maps_remitente"]')
         };
 
+        /* Campos de texto simples */
         ['nombre', 'telefono', 'direccion', 'email', 'empresa', 'link_maps'].forEach(function (k) {
             if (map[k] && ud[k]) {
                 map[k].value = ud[k];
@@ -37,7 +45,7 @@
             }
         });
 
-        // Distrito es un <select>
+        /* Distrito es un <select> → buscar opción por valor o texto */
         if (map.distrito && ud.distrito) {
             var opts = map.distrito.options;
             for (var i = 0; i < opts.length; i++) {
@@ -50,26 +58,19 @@
         }
     }
 
-    function trigger(el) {
-        if (!el) return;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        $(el).trigger('change');
-    }
-
-    /* ── Reaccionar al cambio del select de cliente ── */
+    /* ── Listener delegado en document (funciona aunque el select se cargue tarde) ── */
     $(document).on('change', '#registered_client', function () {
         var userId = $(this).val();
         if (!userId) return;
 
-        $.post(ajaxurl, {
-            action:  'merc_get_client_data',
-            nonce:   nonce,
-            user_id: userId
-        }, function (resp) {
-            if (resp && resp.success && resp.data) {
-                rellenarRemitente(resp.data);
+        $.post(
+            ajaxurl,
+            { action: 'merc_get_client_data', nonce: nonce, user_id: userId },
+            function (resp) {
+                if (resp && resp.success && resp.data) {
+                    rellenarRemitente(resp.data);
+                }
             }
-        });
+        );
     });
-
-}(jQuery));
+});
