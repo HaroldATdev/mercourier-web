@@ -271,33 +271,22 @@ class MERC_Shipment_Table {
 				// Crear accordion
 				const $accordion = $('<div id="shipment-history-accordion"></div>');
 
-				// Obtener cabeceras
-				const $headerRow = $table.find('thead tr').first();
-				let headerHtml = '';
-				if ($headerRow.length) {
-					$headerRow.find('th').each(function() {
-						headerHtml += '<th>' + $(this).html() + '</th>';
-					});
-				}
+			// Crear cards
+			orden.forEach(function(tienda) {
+				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
+				const rowsForTienda = tiendas[tienda];
 
-				// Crear cards
-				orden.forEach(function(tienda) {
-					const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
-					const rowsForTienda = tiendas[tienda];
+				const $header = $('<div class="merc-tienda-card-header"></div>').html(
+					'<div class="merc-tienda-info">' +
+					'<input type="checkbox" class="merc-tienda-checkbox">' +
+					'<strong>' + tienda + '</strong>' +
+					'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
+					'</div>' +
+					'<span class="merc-tienda-icon">▼</span>'
+				);
 
-					const $header = $('<div class="merc-tienda-card-header"></div>').html(
-						'<div class="merc-tienda-info">' +
-						'<input type="checkbox" class="merc-tienda-checkbox">' +
-						'<strong>' + tienda + '</strong>' +
-						'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
-						'</div>' +
-						'<span class="merc-tienda-icon">▼</span>'
-					);
-
-					const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><thead><tr>' + headerHtml + '</tr></thead><tbody></tbody></table>');
-					const $innerTbody = $innerTable.find('tbody');
-					
-					rowsForTienda.forEach(function($row) {
+				// Tabla interna SIN header para evitar desalineacion
+				const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><tbody></tbody></table>');
 						$innerTbody.append($row);
 					});
 
