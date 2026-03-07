@@ -58,6 +58,15 @@ class MERC_Container_Assign {
 			wp_send_json_error( [ 'message' => 'Distrito vacío' ] );
 		}
 
+		// ✅ VALIDACIÓN: Solo funciona para MERC EMPRENDEDOR (tipo 'normal')
+		$tipo_lower = strtolower( trim( $tipo_envio ) );
+		if ( ! empty( $tipo_envio ) && $tipo_lower !== 'normal' ) {
+			wp_send_json_error( [
+				'message'    => 'Asignación automática solo para MERC EMPRENDEDOR',
+				'tipo_envio' => $tipo_envio,
+			] );
+		}
+
 		$distrito_normalizado = strtolower( remove_accents( trim( $distrito ) ) );
 
 		// Usar caché transient (5 minutos)
