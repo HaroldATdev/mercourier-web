@@ -166,3 +166,6 @@ jQuery(document).ready(function ($) {
         }, 4000);
     }
 });
+
+
+//prueba de fecha ajax
