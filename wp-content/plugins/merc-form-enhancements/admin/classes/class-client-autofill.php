@@ -1,0 +1,95 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+/**
+ * MERC_Client_Autofill
+ *
+ * 1. Filtra el select de clientes de WPCargo para mostrar el nombre de la empresa
+ *    (billing_company) en lugar del nombre de usuario.
+ *
+ * 2. Provee un endpoint AJAX para devolver los datos de un cliente por ID,
+ *    de modo que el JS pueda autocompletar los campos del remitente al seleccionar
+ *    un cliente en el formulario de creación de envíos.
+ */
+class MERC_Client_Autofill {
+
+	public function __construct() {
+		// Reemplazar display_name con billing_company en el select de clientes
+		add_filter( 'wpcfe_get_users_wpcargo_client_list', [ $this, 'usar_billing_company' ] );
+
+		// Encolar JS de autofill en formulario de creación
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+
+		// AJAX: devolver datos de usuario (cliente) por ID
+		add_action( 'wp_ajax_merc_get_client_data', [ $this, 'get_client_data_ajax' ] );
+	}
+
+	/* ── Filtrar lista de clientes para mostrar billing_company ──────── */
+
+	public function usar_billing_company( array $users ): array {
+		foreach ( $users as $id => &$label ) {
+			$company = get_user_meta( (int) $id, 'billing_company', true );
+			if ( ! empty( $company ) ) {
+				$label = esc_html( trim( $company ) );
+			}
+		}
+		return $users;
+	}
+
+	/* ── Encolar JS ──────────────────────────────────────────────────── */
+
+	public function enqueue_scripts(): void {
+		if ( ! isset( $_GET['wpcfe'] ) || $_GET['wpcfe'] !== 'add' ) return;
+		if ( ! is_user_logged_in() ) return;
+
+		wp_enqueue_script(
+			'merc-client-autofill',
+			MERC_FORM_URL . 'admin/assets/js/client-autofill.js',
+			[ 'jquery' ],
+			MERC_FORM_VERSION,
+			true
+		);
+
+		wp_localize_script( 'merc-client-autofill', 'MercClientAutofill', [
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'merc_get_client_data' ),
+		] );
+	}
+
+	/* ── AJAX: retornar datos del cliente por ID ─────────────────────── */
+
+	public function get_client_data_ajax(): void {
+		check_ajax_referer( 'merc_get_client_data', 'nonce' );
+
+		if ( ! current_user_can( 'read' ) ) {
+			wp_send_json_error( [ 'message' => 'Sin permisos' ] );
+		}
+
+		$user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
+		if ( ! $user_id ) {
+			wp_send_json_error( [ 'message' => 'ID de usuario inválido' ] );
+		}
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			wp_send_json_error( [ 'message' => 'Usuario no encontrado' ] );
+		}
+
+		$nombre_completo = trim(
+			get_user_meta( $user_id, 'first_name', true ) . ' ' .
+			get_user_meta( $user_id, 'last_name',  true )
+		);
+
+		wp_send_json_success( [
+			'nombre'    => $nombre_completo ?: $user->display_name,
+			'telefono'  => get_user_meta( $user_id, 'phone',               true ),
+			'distrito'  => get_user_meta( $user_id, 'distrito',            true ),
+			'direccion' => get_user_meta( $user_id, 'billing_address_1',   true ),
+			'email'     => get_user_meta( $user_id, 'billing_email',       true ) ?: $user->user_email,
+			'empresa'   => get_user_meta( $user_id, 'billing_company',     true ),
+			'link_maps' => get_user_meta( $user_id, 'link_maps_remitente', true ),
+		] );
+	}
+}
+
+new MERC_Client_Autofill();
