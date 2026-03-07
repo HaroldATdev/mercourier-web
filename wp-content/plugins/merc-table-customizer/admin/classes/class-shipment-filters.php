@@ -116,7 +116,7 @@ class MERC_Shipment_Filters {
     /* ── UI: Filtro de Fecha de Envío ───────────────────────────────────── */
 
     public function render_date_filter(): void {
-        $today = date( 'Y-m-d' );
+        $today = current_time( 'Y-m-d' );
         $start = isset( $_GET['shipping_date_start'] )
             ? sanitize_text_field( $_GET['shipping_date_start'] )
             : $today;
