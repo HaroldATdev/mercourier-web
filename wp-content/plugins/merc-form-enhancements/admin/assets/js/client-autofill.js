@@ -18,59 +18,122 @@ jQuery(document).ready(function ($) {
     var ajaxurl = MercClientAutofill.ajaxurl;
     var nonce   = MercClientAutofill.nonce;
 
-    /* ── Disparar evento change en un elemento ── */
-    function trigger(el) {
-        if (!el) return;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        $(el).trigger('change');
-    }
+    /* ── Actualizar un <select> por valor o texto (compatible MDB / Select2 / nativo) ── */
+    function setearSelect($sel, valor) {
+        if (!$sel.length || !valor) return false;
 
-    /* ── Rellenar campos del remitente con los datos del cliente ── */
-    function rellenarRemitente(ud) {
-        var map = {
-            nombre:    document.querySelector('[name="wpcargo_shipper_name"]'),
-            telefono:  document.querySelector('[name="wpcargo_shipper_phone"]'),
-            distrito:  document.querySelector('[name="wpcargo_distrito_recojo"]'),
-            direccion: document.querySelector('[name="wpcargo_shipper_address"]'),
-            email:     document.querySelector('[name="wpcargo_shipper_email"]'),
-            empresa:   document.querySelector('[name="wpcargo_tiendaname"]'),
-            link_maps: document.querySelector('[name="link_maps_remitente"]')
-        };
+        var vlower = valor.toLowerCase();
+        var encontrado = false;
 
-        /* Campos de texto simples */
-        ['nombre', 'telefono', 'direccion', 'email', 'empresa', 'link_maps'].forEach(function (k) {
-            if (map[k] && ud[k]) {
-                map[k].value = ud[k];
-                trigger(map[k]);
+        $sel.find('option').each(function () {
+            var ov = $(this).val();
+            var ot = $(this).text().trim();
+            if (ov === valor || ov.toLowerCase() === vlower ||
+                ot === valor || ot.toLowerCase() === vlower) {
+                $sel.val(ov);
+                encontrado = true;
+                return false; // break
             }
         });
 
-        /* Distrito es un <select> → buscar opción por valor o texto */
-        if (map.distrito && ud.distrito) {
-            var opts = map.distrito.options;
-            for (var i = 0; i < opts.length; i++) {
-                if (opts[i].value === ud.distrito || opts[i].text.trim() === ud.distrito) {
-                    map.distrito.selectedIndex = i;
-                    trigger(map.distrito);
-                    break;
-                }
-            }
+        if (!encontrado) return false;
+
+        // Trigger estándar
+        $sel.trigger('change');
+
+        // MDB Material Design Bootstrap
+        if (typeof $sel.material_select === 'function') {
+            $sel.material_select();
+        }
+
+        // Select2
+        if ($sel.hasClass('select2-hidden-accessible')) {
+            try { $sel.trigger('change.select2'); } catch (e) { /* noop */ }
+        }
+
+        // Evento nativo para que otros listeners (container-assign.js) lo detecten
+        if ($sel[0]) {
+            $sel[0].dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        return true;
+    }
+
+    /* ── Rellenar campos de texto del remitente ── */
+    function rellenarRemitente(ud) {
+        var camposTexto = {
+            nombre:    '[name="wpcargo_shipper_name"]',
+            telefono:  '[name="wpcargo_shipper_phone"]',
+            direccion: '[name="wpcargo_shipper_address"]',
+            email:     '[name="wpcargo_shipper_email"]',
+            empresa:   '[name="wpcargo_tiendaname"]',
+            link_maps: '[name="link_maps_remitente"]'
+        };
+
+        $.each(camposTexto, function (k, selector) {
+            if (!ud[k]) return;
+            var $el = $(selector);
+            if (!$el.length) return;
+            $el.val(ud[k]);
+            // Disparar ambos eventos para compatibilidad con React/Vue y listeners nativos
+            $el[0].dispatchEvent(new Event('input',  { bubbles: true }));
+            $el[0].dispatchEvent(new Event('change', { bubbles: true }));
+            $el.trigger('change');
+        });
+
+        // Distrito remitente: es un <select> — buscar por valor o texto
+        if (ud.distrito) {
+            var $distr = $('[name="wpcargo_distrito_recojo"]');
+            setearSelect($distr, ud.distrito);
         }
     }
 
-    /* ── Listener delegado en document (funciona aunque el select se cargue tarde) ── */
+    /* ── Toast de notificación ── */
+    function mostrarToast(msg, color) {
+        $('.merc-client-toast').remove();
+        var $t = $('<div class="merc-client-toast">' + msg + '</div>').css({
+            background:    color,
+            color:         '#fff',
+            padding:       '10px 16px',
+            borderRadius:  '6px',
+            fontWeight:    'bold',
+            position:      'fixed',
+            top:           '70px',
+            right:         '20px',
+            zIndex:        9999,
+            boxShadow:     '0 2px 10px rgba(0,0,0,.25)',
+            fontSize:      '14px'
+        });
+        $('body').append($t);
+        setTimeout(function () { $t.fadeOut(400, function () { $t.remove(); }); }, 4000);
+    }
+
+    /* ── Listener delegado: cambio de cliente ── */
     $(document).on('change', '#registered_client', function () {
         var userId = $(this).val();
         if (!userId) return;
 
+        var $select = $(this);
+        // Deshabilitar temporalmente para evitar doble-click
+        $select.prop('disabled', true);
+
         $.post(
             ajaxurl,
-            { action: 'merc_get_client_data', nonce: nonce, user_id: userId },
-            function (resp) {
-                if (resp && resp.success && resp.data) {
-                    rellenarRemitente(resp.data);
-                }
+            { action: 'merc_get_client_data', nonce: nonce, user_id: userId }
+        )
+        .done(function (resp) {
+            if (resp && resp.success && resp.data) {
+                rellenarRemitente(resp.data);
+                mostrarToast('✅ Datos del remitente cargados', '#4CAF50');
+            } else {
+                mostrarToast('⚠️ No se encontraron datos para este cliente', '#f39c12');
             }
-        );
+        })
+        .fail(function () {
+            mostrarToast('❌ Error al cargar datos del cliente', '#e74c3c');
+        })
+        .always(function () {
+            $select.prop('disabled', false);
+        });
     });
 });
