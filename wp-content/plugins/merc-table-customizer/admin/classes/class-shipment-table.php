@@ -287,10 +287,13 @@ class MERC_Shipment_Table {
 
 				// Tabla interna SIN header para evitar desalineacion
 				const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><tbody></tbody></table>');
-						$innerTbody.append($row);
-					});
+				const $innerTbody = $innerTable.find('tbody');
+				
+				rowsForTienda.forEach(function($row) {
+					$innerTbody.append($row);
+				});
 
-					const $content = $('<div class="merc-tienda-card-content"></div>').append($innerTable);
+				const $content = $('<div class="merc-tienda-card-content"></div>').append($innerTable);
 
 					const $card = $('<div class="merc-tienda-card collapsed"></div>')
 						.append($header)
