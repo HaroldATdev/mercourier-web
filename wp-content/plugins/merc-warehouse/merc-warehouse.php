@@ -11,12 +11,12 @@
 
 if (!defined('ABSPATH')) exit;
 
-// En requests AJAX, iniciar buffer aquí (los plugins cargan ANTES que functions.php del tema).
-// Así el BOM u output espurio del tema queda atrapado en el buffer y se puede limpiar
-// en cada handler AJAX antes de enviar el JSON.
-if (defined('DOING_AJAX') && DOING_AJAX) {
-    ob_start();
-}
+// Iniciar buffer de salida siempre (no solo en AJAX).
+// Los plugins cargan ANTES que functions.php del tema, así cualquier BOM u output
+// espurio de cualquier archivo queda atrapado en el buffer.
+// En peticiones normales PHP descarga el buffer automaticamente al finalizar.
+// En AJAX, cada handler llama ob_end_clean() antes de enviar JSON.
+ob_start();
 
 define('MERC_WAREHOUSE_FILE', __FILE__);
 define('MERC_WAREHOUSE_DIR', plugin_dir_path(__FILE__));

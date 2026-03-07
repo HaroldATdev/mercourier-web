@@ -1,3 +1,12 @@
+// Parser JSON seguro: elimina el BOM (U+FEFF) que a veces WordPress antepone
+// a las respuestas AJAX antes de parsear el JSON.
+function parseJsonSafe(r) {
+    return r.text().then(function(text) {
+        var cleaned = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+        return JSON.parse(cleaned);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Merc Warehouse cargado');
     
@@ -34,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(r => {
             console.log('Respuesta HTTP:', r.status);
-            return r.json();
+            return parseJsonSafe(r);
         })
         .then(res => {
             console.log('Respuesta AJAX:', res);
@@ -273,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     body: new URLSearchParams(datos)
                 })
-                .then(r => r.json())
+                .then(parseJsonSafe)
                 .then(res => {
                     console.log('Respuesta guardado:', res);
                     if (res.success) {
@@ -332,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 nonce: nonce
             })
         })
-        .then(r => r.json())
+        .then(parseJsonSafe)
         .then(res => {
             console.log('Datos del producto:', res);
             if (res.success && res.data) {
@@ -514,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 nonce: nonce
             })
         })
-        .then(r => r.json())
+        .then(parseJsonSafe)
         .then(res => {
             if (res.success && res.data && res.data.clientes) {
                 // Limpiar opciones previas
@@ -594,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: new URLSearchParams(datos)
         })
-        .then(r => r.json())
+        .then(parseJsonSafe)
         .then(res => {
             console.log('Respuesta actualización:', res);
             if (res.success) {
@@ -641,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: new URLSearchParams(datos)
         })
-        .then(r => r.json())
+        .then(parseJsonSafe)
         .then(res => {
             console.log('Respuesta eliminación:', res);
             if (res.success) {
