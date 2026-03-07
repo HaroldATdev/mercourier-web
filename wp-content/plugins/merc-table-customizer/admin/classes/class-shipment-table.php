@@ -288,6 +288,8 @@ class MERC_Shipment_Table {
 
 				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
 				const rowsForTienda = tiendas[tienda];
+
+				const $header = $('<div class="merc-tienda-card-header"></div>').html(
 					'<div class="merc-tienda-info">' +
 					'<input type="checkbox" class="merc-tienda-checkbox">' +
 					'<strong>' + tienda + '</strong>' +
