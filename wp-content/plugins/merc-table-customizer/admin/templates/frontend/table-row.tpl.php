@@ -2,7 +2,7 @@
 /**
  * Variables disponibles en este template:
  * @var int    $shipment_id
- * @var string $tienda_html
+ * @var string $tienda
  * @var string $actions_html
  * @var string $distrito_recojo
  * @var string $distrito_destino
@@ -13,8 +13,7 @@
  * @var string $motorizo_entrega_html
  */
 ?>
-<td><?php echo $tienda_html . $actions_html; ?></td>
-
+<tr class="shipment-row" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>">
 <td><?php echo ! empty( $distrito_recojo )
 	? esc_html( $distrito_recojo )
 	: '<span style="color:#999;">N/A</span>'; ?></td>
@@ -32,3 +31,6 @@
 <td><?php echo $motorizo_recojo_html; ?></td>
 
 <td><?php echo $motorizo_entrega_html; ?></td>
+
+<td><?php echo $actions_html; ?></td>
+</tr>

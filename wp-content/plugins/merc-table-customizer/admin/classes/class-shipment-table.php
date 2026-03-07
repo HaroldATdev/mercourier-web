@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class MERC_Shipment_Table {
 
 	private string $tpl_path;
+	private ?string $last_tienda = null; // Track tienda para agrupar
 
 	public function __construct() {
 		$this->tpl_path = MERC_TABLE_PATH . 'admin/templates/frontend/';
@@ -16,6 +17,7 @@ class MERC_Shipment_Table {
 		add_action( 'plugins_loaded',              [ $this, 'remove_default_columns' ], 20 );
 		add_action( 'wpcfe_shipment_table_header', [ $this, 'custom_header' ],          99 );
 		add_action( 'wpcfe_shipment_table_data',   [ $this, 'custom_data' ],            99 );
+		add_action( 'wp_footer',                   [ $this, 'enqueue_table_scripts' ],  99 );
 	}
 
 	/* ── Quitar columnas default ─────────────────────────────────────── */
@@ -46,6 +48,12 @@ class MERC_Shipment_Table {
 		$tienda      = get_post_meta( $shipment_id, 'wpcargo_tiendaname', true );
 		$tienda_html = ! empty( $tienda ) ? esc_html( $tienda ) : '<span style="color:#999;">N/A</span>';
 
+		// Renderizar header de tienda si cambió
+		if ( $tienda !== $this->last_tienda ) {
+			$this->render_tpl( 'table-tienda-header.tpl.php', [ 'tienda' => $tienda ?: 'Sin tienda' ] );
+			$this->last_tienda = $tienda;
+		}
+
 		$action_rows  = function_exists( 'wpcfe_shipment_action_rows' ) ? wpcfe_shipment_action_rows( $shipment_id ) : [];
 		$actions_html = ! empty( $action_rows )
 			? '<div class="wpcfe-action-row" style="margin-top:6px;">' . implode( ' | ', $action_rows ) . '</div>'
@@ -65,7 +73,7 @@ class MERC_Shipment_Table {
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
 		$this->render_tpl( 'table-row.tpl.php', compact(
-			'shipment_id', 'tienda_html', 'actions_html',
+			'shipment_id', 'tienda', 'actions_html',
 			'distrito_recojo', 'distrito_destino', 'fecha',
 			'tipo_html', 'cambio_html', 'motorizo_recojo_html', 'motorizo_entrega_html'
 		) );
@@ -107,6 +115,65 @@ class MERC_Shipment_Table {
 			$nombre = $u ? $u->display_name : '-';
 		}
 		return esc_html( $nombre );
+	}
+
+	/* ── Enqueue CSS/JS para collapse de tiendas ───────────────────── */
+
+	public function enqueue_table_scripts(): void {
+		// Solo en frontend páginas que tengan la tabla
+		if ( is_admin() || ! function_exists( 'is_page' ) ) {
+			return;
+		}
+
+		if ( ! is_page() && ! is_singular( 'post' ) ) {
+			return;
+		}
+
+		// Inyectar CSS y JS inline
+		?>
+		<style>
+			.shipment-row {
+				display: table-row;
+				transition: opacity 0.3s;
+			}
+			.shipment-row.hidden {
+				display: none;
+			}
+			.tienda-header .tienda-toggle {
+				user-select: none;
+			}
+			.tienda-toggle-icon {
+				display: inline-block;
+				transition: transform 0.3s ease;
+			}
+			.tienda-header.collapsed .tienda-toggle-icon {
+				transform: rotate(-90deg);
+			}
+		</style>
+		<script>
+		jQuery(function($) {
+			const $table = $('table#shipment-history');
+			if ( ! $table.length ) return;
+
+			// Event listener para headers de tienda
+			$table.on('click', '.tienda-header .tienda-toggle', function() {
+				const $header = $(this).closest('tr.tienda-header');
+				const tienda = $header.data('tienda');
+				const isCollapsed = $header.toggleClass('collapsed').hasClass('collapsed');
+
+				// Show/hide todos los shipment-row de esta tienda
+				$table.find('tr.shipment-row[data-tienda="' + tienda + '"]').toggleClass('hidden', isCollapsed);
+			});
+
+			// Expand all tiendas por defecto
+			$table.find('tr.tienda-header').each(function() {
+				$(this).removeClass('collapsed');
+				const tienda = $(this).data('tienda');
+				$table.find('tr.shipment-row[data-tienda="' + tienda + '"]').removeClass('hidden');
+			});
+		});
+		</script>
+		<?php
 	}
 }
 

@@ -1,5 +1,4 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
-<th>Nombre de Tienda</th>
 <th>Distrito de Recojo</th>
 <th>Distrito de Entrega</th>
 <th>Fecha</th>
