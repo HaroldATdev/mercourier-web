@@ -39,7 +39,7 @@ class MERC_Client_Autofill {
 	/* ── Encolar JS ──────────────────────────────────────────────────── */
 
 	public function enqueue_scripts(): void {
-		if ( ! isset( $_GET['wpcfe'] ) || $_GET['wpcfe'] !== 'add' ) return;
+		if ( ! isset( $_GET['wpcfe'] ) || ! in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) return;
 		if ( ! is_user_logged_in() ) return;
 
 		wp_enqueue_script(

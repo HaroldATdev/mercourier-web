@@ -1,9 +1,10 @@
 /**
- * container-assign.js  v3
+ * container-assign.js  v4
  *
  * Asigna automáticamente el contenedor al cambiar el distrito.
- * Usa polling (detección activa cada 400 ms) + event listeners
+ * Usa polling (detección activa cada 300 ms) + event listeners
  * para garantizar funcionamiento independientemente de MDB/Select2.
+ * Versión mejorada con búsqueda dinámica de campos.
  *
  * - Distrito Destino → Contenedor ENTREGA (normal) o único (express/full_fitment)
  * - Distrito Recojo  → Contenedor RECOJO  (solo tipo 'normal')
@@ -21,7 +22,58 @@ jQuery(document).ready(function ($) {
     var modoEdicion = MercContainerAssign.mode === 'update';
     var shipmentId  = MercContainerAssign.shipmentId || 0;
 
-    console.log('[ContainerAssign] Iniciado ✓ Modo:', MercContainerAssign.mode);
+    console.log('[ContainerAssign] ✓ Iniciado - Modo:', MercContainerAssign.mode);
+
+    /* ══════════════════════════════════════════════════════════════
+     * DIAGNÓSTICO: Encontrar selects de distrito
+     * ══════════════════════════════════════════════════════════════ */
+
+    function diagnosticoFormulario() {
+        console.log('[ContainerAssign] === DIAGNÓSTICO DE FORMULARIO ===');
+        
+        var selectsEncontrados = [];
+        $('select').each(function() {
+            var nombre = $(this).attr('name') || $(this).attr('id') || 'sin-nombre';
+            var opciones = $(this).find('option').length;
+            selectsEncontrados.push({
+                nombre: nombre,
+                opciones: opciones,
+                valor: $(this).val()
+            });
+        });
+        
+        console.log('[ContainerAssign] Selects encontrados:');
+        selectsEncontrados.forEach(function(s) {
+            console.log('   ├─', s.nombre, '(' + s.opciones + ' opciones)', '→', s.valor);
+        });
+        
+        // Buscar específicamente los distritos
+        var $destino = buscarSelectDistrito('destino');
+        var $recojo = buscarSelectDistrito('recojo');
+        
+        console.log('[ContainerAssign] Resultados búsqueda:');
+        console.log('   ├─ Distrito Destino:', $destino.length > 0 ? 'ENCONTRADO (' + $destino.attr('name') + ')' : 'NO ENCONTRADO');
+        console.log('   └─ Distrito Recojo:', $recojo.length > 0 ? 'ENCONTRADO (' + $recojo.attr('name') + ')' : 'NO ENCONTRADO');
+    }
+
+    setTimeout(diagnosticoFormulario, 1000);
+
+    /**
+     * Busca un select de distrito (destino o recojo) por varios nombres posibles
+     */
+    function buscarSelectDistrito(tipo) {
+        var nombres = tipo === 'destino' 
+            ? ['wpcargo_distrito_destino', 'distrito_destino', 'destination_district']
+            : ['wpcargo_distrito_recojo', 'distrito_recojo', 'pickup_district'];
+        
+        for (var i = 0; i < nombres.length; i++) {
+            var $sel = $('select[name="' + nombres[i] + '"], #' + nombres[i]);
+            if ($sel.length > 0) {
+                return $sel;
+            }
+        }
+        return $();
+    }
 
     /* ══════════════════════════════════════════════════════════════
      * TIPO DE ENVÍO
@@ -130,7 +182,7 @@ jQuery(document).ready(function ($) {
     var enCurso = {}; // { destino: bool, recojo: bool }
 
     function buscarYAsignar(distrito, campo) {
-        if (!distrito || /^--/.test(distrito.trim())) return;
+        if (!distrito || /^--/.test(distrito.trim()) || distrito === '' || distrito === '0') return;
         if (enCurso[campo]) return;
 
         var tipo = tipoEnvioGlobal || getTipoEnvio();
@@ -190,37 +242,80 @@ jQuery(document).ready(function ($) {
     var tRecojo = null;
 
     function onDestinoChange(val) {
-        if (!val || val === lastDestino) return;
+        if (!val || val === lastDestino || /^--/.test(val) || val === '' || val === '0') return;
         lastDestino = val;
+        console.log('[ContainerAssign] [DEST] Cambio detectado →', val);
         clearTimeout(tDest);
-        tDest = setTimeout(function () { buscarYAsignar(val, 'destino'); }, 400);
+        tDest = setTimeout(function () { buscarYAsignar(val, 'destino'); }, 300);
     }
 
     function onRecojoChange(val) {
-        if (!val || val === lastRecojo) return;
+        if (!val || val === lastRecojo || /^--/.test(val) || val === '' || val === '0') return;
         lastRecojo = val;
+        console.log('[ContainerAssign] [REC] Cambio detectado →', val);
         clearTimeout(tRecojo);
-        tRecojo = setTimeout(function () { buscarYAsignar(val, 'recojo'); }, 400);
+        tRecojo = setTimeout(function () { buscarYAsignar(val, 'recojo'); }, 300);
     }
 
-    // Event listeners
-    $(document).on('change', 'select[name="wpcargo_distrito_destino"]', function () {
-        console.log('[ContainerAssign] change event destino:', $(this).val());
-        onDestinoChange($(this).val());
+    // Event listeners - Usar búsqueda dinámica
+    $(document).on('change', 'select[name*="distrito"]', function () {
+        var nombre = $(this).attr('name') || '';
+        var valor = $(this).val();
+        
+        if (nombre.indexOf('destino') !== -1) {
+            console.log('[ContainerAssign] [EVENT:change] Distrito DESTINO →', valor);
+            onDestinoChange(valor);
+        } else if (nombre.indexOf('recojo') !== -1) {
+            console.log('[ContainerAssign] [EVENT:change] Distrito RECOJO →', valor);
+            onRecojoChange(valor);
+        }
     });
-    $(document).on('change', 'select[name="wpcargo_distrito_recojo"]', function () {
-        console.log('[ContainerAssign] change event recojo:', $(this).val());
-        onRecojoChange($(this).val());
+
+    // Select2 events
+    $(document).on('select2:select', 'select[name*="distrito"]', function (e) {
+        var nombre = $(this).attr('name') || '';
+        var valor = (e.params && e.params.data) ? e.params.data.id : $(this).val();
+        
+        if (nombre.indexOf('destino') !== -1) {
+            console.log('[ContainerAssign] [EVENT:select2] Distrito DESTINO →', valor);
+            onDestinoChange(valor);
+        } else if (nombre.indexOf('recojo') !== -1) {
+            console.log('[ContainerAssign] [EVENT:select2] Distrito RECOJO →', valor);
+            onRecojoChange(valor);
+        }
+    });
+
+    // Click como fallback
+    $(document).on('click', 'select[name*="distrito"]', function () {
+        var $this = $(this);
+        setTimeout(function() {
+            var nombre = $this.attr('name') || '';
+            var valor = $this.val();
+            
+            if (nombre.indexOf('destino') !== -1) {
+                onDestinoChange(valor);
+            } else if (nombre.indexOf('recojo') !== -1) {
+                onRecojoChange(valor);
+            }
+        }, 100);
     });
 
     // Polling como respaldo (captura cambios aunque los eventos no lleguen)
+    var pollingIntentando = 0;
     setInterval(function () {
-        var $dest = $('select[name="wpcargo_distrito_destino"]');
-        if ($dest.length) onDestinoChange($dest.val());
+        var $dest = buscarSelectDistrito('destino');
+        if ($dest.length) {
+            onDestinoChange($dest.val());
+        } else if (pollingIntentando < 3) {
+            pollingIntentando++;
+            console.warn('[ContainerAssign] [POLLING] Select destino no encontrado (intento ' + pollingIntentando + ')');
+        }
 
-        var $rec = $('select[name="wpcargo_distrito_recojo"]');
-        if ($rec.length) onRecojoChange($rec.val());
-    }, 400);
+        var $rec = buscarSelectDistrito('recojo');
+        if ($rec.length) {
+            onRecojoChange($rec.val());
+        }
+    }, 300);
 
     /* ══════════════════════════════════════════════════════════════
      * ESTADO POR DEFECTO Y OBSERVACIONES OPCIONALES
