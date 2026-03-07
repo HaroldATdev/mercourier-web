@@ -109,89 +109,258 @@ class MERC_Shipment_Table {
 		return esc_html( $nombre );
 	}
 
-	/* ── Enqueue JS para agrupar por tienda ───────────────────────── */
+	/* ── Enqueue CSS/JS para accordion de tiendas ───────────────────── */
 
 	public function enqueue_table_scripts(): void {
+		// Inyectar CSS y JS inline
 		?>
 		<style>
-			.merc-tienda-group-header {
+			/* Estilos para accordion */
+			#shipment-history-accordion {
+				display: block;
+				width: 100%;
+			}
+
+			.merc-tienda-card {
+				border: 1px solid #ddd;
+				border-radius: 6px;
+				overflow: hidden;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+				margin-bottom: 12px;
+			}
+
+			.merc-tienda-card-header {
 				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 				color: white;
+				padding: 12px 16px;
+				cursor: pointer;
+				user-select: none;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
 				font-weight: bold;
-				font-size: 13px;
+				font-size: 14px;
+				transition: all 0.3s ease;
+			}
+
+			.merc-tienda-card-header:hover {
+				background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+			}
+
+			.merc-tienda-info {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+
+			.merc-tienda-checkbox {
+				width: 18px;
+				height: 18px;
+				cursor: pointer;
+			}
+
+			.merc-tienda-icon {
+				margin-left: auto;
+				font-size: 16px;
+				transition: transform 0.3s;
+			}
+
+			.merc-tienda-card.collapsed .merc-tienda-icon {
+				transform: rotate(-90deg);
+			}
+
+			.merc-tienda-card-content {
+				max-height: 2000px;
+				overflow: hidden;
+				transition: max-height 0.3s ease;
+				background: white;
+			}
+
+			.merc-tienda-card.collapsed .merc-tienda-card-content {
+				max-height: 0;
+				overflow: hidden;
+			}
+
+			.merc-tienda-card-table {
+				width: 100%;
+				border-collapse: collapse;
+				margin: 0;
+				background: white;
+			}
+
+			.merc-tienda-card-table thead {
+				background: #f5f5f5;
+				border-bottom: 1px solid #ddd;
+			}
+
+			.merc-tienda-card-table thead th {
+				padding: 10px 12px;
 				text-align: left;
-				padding: 0 !important;
+				font-weight: 600;
+				font-size: 12px;
+				color: #333;
+				border: none;
 			}
-			.merc-tienda-group-header td {
-				padding: 10px 12px !important;
-				border: none !important;
+
+			.merc-tienda-card-table tbody tr {
+				border-top: 1px solid #eee;
 			}
-			.merc-tienda-group-header .shipment-row {
-				display: none;
+
+			.merc-tienda-card-table tbody tr:hover {
+				background: #f9f9f9;
+			}
+
+			.merc-tienda-card-table tbody td {
+				padding: 8px 12px;
+				vertical-align: middle;
+				font-size: 13px;
 			}
 		</style>
 		<script>
 		(function($) {
-			function groupByTienda() {
-				const $table = $('table.wpc-shipment-history, table#shipment-history');
-				if (!$table.length) return;
+			console.log('🚀 merc-table script loaded');
+
+			let initialized = false;
+
+			function initializeAccordion() {
+				if (initialized) return true;
+
+				console.log('🔍 Buscando tabla...');
+				
+				// Buscar cualquier tabla con tbody
+				let $table = null;
+				const $allTables = $('table');
+				
+				console.log('📍 Encontradas ' + $allTables.length + ' tablas en total');
+
+				$allTables.each(function() {
+					const $t = $(this);
+					const rows = $t.find('tbody tr').length;
+					if (rows > 0 && $t.find('tbody tr[data-tienda]').length > 0) {
+						console.log('✅ Tabla con data-tienda encontrada:', $t.attr('id'), '(' + rows + ' filas)');
+						$table = $t;
+						return false; // break
+					}
+				});
+
+				if (!$table || !$table.length) {
+					console.log('❌ No encontré tabla con filas data-tienda');
+					return false;
+				}
 
 				const $tbody = $table.find('tbody');
-				const rows = $tbody.find('tr.shipment-row');
-				
-				if (rows.length === 0) return;
+				console.log('📝 Total filas:', $tbody.find('tr').length);
 
-				const groups = {};
-				const order = [];
+				// Agrupar filas por tienda
+				const tiendas = {};
+				const orden = [];
 
-				// Agrupar filas
-				rows.each(function() {
+				$tbody.find('tr').each(function() {
 					const $row = $(this);
 					const tienda = $row.data('tienda') || 'Sin tienda';
 					
-					if (!groups[tienda]) {
-						groups[tienda] = [];
-						order.push(tienda);
+					if (!tiendas[tienda]) {
+						tiendas[tienda] = [];
+						orden.push(tienda);
 					}
-					groups[tienda].push($row);
+					tiendas[tienda].push($row.clone());
 				});
 
-				// Reconstruir tbody con headers
-				$tbody.empty();
-				
-				order.forEach(function(tienda) {
-					// Header de tienda
-					const $header = $('<tr class="merc-tienda-group-header"></tr>').html(
-						'<td colspan="10">📦 ' + tienda + ' (' + groups[tienda].length + ' envíos)</td>'
-					);
-					$tbody.append($header);
-					
-					// Filas de tienda
-					groups[tienda].forEach(function($row) {
-						$tbody.append($row);
+				console.log('📊 Tiendas:', orden);
+
+				// Crear accordion
+				const $accordion = $('<div id="shipment-history-accordion"></div>');
+
+				// Obtener cabeceras
+				const $headerRow = $table.find('thead tr').first();
+				let headerHtml = '';
+				if ($headerRow.length) {
+					$headerRow.find('th').each(function() {
+						headerHtml += '<th>' + $(this).html() + '</th>';
 					});
+				}
+
+				// Crear cards
+				orden.forEach(function(tienda) {
+					const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
+					const rowsForTienda = tiendas[tienda];
+
+					const $header = $('<div class="merc-tienda-card-header"></div>').html(
+						'<div class="merc-tienda-info">' +
+						'<input type="checkbox" class="merc-tienda-checkbox">' +
+						'<strong>' + tienda + '</strong>' +
+						'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
+						'</div>' +
+						'<span class="merc-tienda-icon">▼</span>'
+					);
+
+					const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><thead><tr>' + headerHtml + '</tr></thead><tbody></tbody></table>');
+					const $innerTbody = $innerTable.find('tbody');
+					
+					rowsForTienda.forEach(function($row) {
+						$innerTbody.append($row);
+					});
+
+					const $content = $('<div class="merc-tienda-card-content"></div>').append($innerTable);
+
+					const $card = $('<div class="merc-tienda-card collapsed"></div>')
+						.append($header)
+						.append($content);
+
+					$header.on('click', function(e) {
+						if (!$(e.target).is('input[type="checkbox"]') && !$(e.target).closest('input[type="checkbox"]').length) {
+							$card.toggleClass('collapsed');
+						}
+					});
+
+					$header.find('input[type="checkbox"]').on('change', function() {
+						const isChecked = $(this).prop('checked');
+						$innerTbody.find('input[type="checkbox"]').prop('checked', isChecked);
+					});
+
+					$accordion.append($card);
 				});
 
-				console.log('✅ Tabla agrupada por tienda');
-			}
-
-			// Ejecutar cuando la tabla esté lista
-			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', groupByTienda);
-			} else {
-				groupByTienda();
-			}
-
-			// Reintentar cada 500ms por si la tabla carga con AJAX
-			let attempts = 0;
-			const interval = setInterval(function() {
-				if ($('tbody tr[data-tienda]').length > 0) {
-					clearInterval(interval);
-					groupByTienda();
+				// Reemplazar tabla
+				const $wrapper = $table.closest('#shipment-history-list') || $table.closest('.table-responsive') || $table.parent();
+				if ($wrapper.length) {
+					$wrapper.html($accordion);
+				} else {
+					$table.replaceWith($accordion);
 				}
-				attempts++;
-				if (attempts > 20) clearInterval(interval);
-			}, 500);
+
+				initialized = true;
+				console.log('✅ Accordion generado!');
+				return true;
+			}
+
+			// Usar MutationObserver para detectar cuando se añade la tabla
+			const observerConfig = { childList: true, subtree: true };
+			const observer = new MutationObserver(function(mutations) {
+				if (!initialized && $('tbody tr[data-tienda]').length > 0) {
+					console.log('👁️ MutationObserver - detectó tabla con data-tienda');
+					observer.disconnect();
+					setTimeout(initializeAccordion, 100);
+				}
+			});
+
+			// Iniciar observación
+			observer.observe(document.body, observerConfig);
+
+			// Intentar inicializar también en document.ready
+			$(document).ready(function() {
+				console.log('📌 Document ready');
+				setTimeout(initializeAccordion, 500);
+			});
+
+			// Timeout para limpiar observer si no se usa
+			setTimeout(function() {
+				if (!initialized && observer) {
+					console.log('⏱️  Limpiando observer - timeout');
+					observer.disconnect();
+				}
+			}, 10000);
+
 		})(jQuery);
 		</script>
 		<?php
