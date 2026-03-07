@@ -5,8 +5,6 @@
  *   - Distrito Destino  → Contenedor de ENTREGA  (normal) o contenedor único (express/full_fitment)
  *   - Distrito Recojo   → Contenedor de RECOJO   (solo en tipo 'normal')
  *
- * También establece el estado por defecto y hace opcionales las observaciones.
- *
  * Variables globales requeridas (via wp_localize_script):
  *   MercContainerAssign.ajaxurl    (string)
  *   MercContainerAssign.mode       ('add' | 'update')
@@ -35,62 +33,67 @@ jQuery(document).ready(function ($) {
             async: false,
             data:  { action: 'merc_get_shipment_data', shipment_id: shipmentId },
             success: function (r) {
-                if (r.success && r.data) {
+                if (r && r.success && r.data) {
                     tipoEnvioGlobal    = r.data.tipo_envio    || '';
                     estadoActualGlobal = r.data.estado_actual || '';
                 }
             }
         });
     } else {
-        tipoEnvioGlobal = $('input[name="tipo_envio"]').val() ||
-                          new URLSearchParams(window.location.search).get('type') || '';
+        /* En modo creación: leer desde hidden input (inyectado por tipo-envio-saver.js)
+           o desde la URL (?type=...) como fallback */
+        tipoEnvioGlobal = (function () {
+            var el = document.querySelector('input[name="tipo_envio"]');
+            if (el && el.value) return el.value;
+            return new URLSearchParams(window.location.search).get('type') || '';
+        }());
     }
 
-    /* ── Determinar nombre del select de contenedor según tipo y campo ──
+    /* ── Determinar el select de contenedor según tipo y campo ────────
      *
      *  tipo 'normal' (emprendedor):
-     *    - destino → shipment_container_entrega
-     *    - recojo  → shipment_container_recojo
+     *    destino → shipment_container_entrega
+     *    recojo  → shipment_container_recojo
      *
-     *  tipo 'express' / 'full_fitment':
-     *    - destino → shipment_container  (select único)
-     *    - recojo  → no aplica (null)
-     * ── */
+     *  express / full_fitment / otros:
+     *    destino → shipment_container  (único)
+     *    recojo  → no aplica (null)
+     * ─────────────────────────────────────────────────────────────── */
     function getSelectName(campo) {
         var tipo = (tipoEnvioGlobal || '').toLowerCase();
-
         if (tipo === 'normal') {
             return campo === 'destino' ? 'shipment_container_entrega' : 'shipment_container_recojo';
         }
-
-        // express, full_fitment y cualquier otro: un único select de contenedor
         return campo === 'destino' ? 'shipment_container' : null;
     }
 
-    /* ── Asignar valor en un <select> verificando que la opción exista ── */
-    function setearSelect($sel, containerId, containerName) {
+    /* ── Actualizar un MDB <select> programáticamente ─────────────────
+     *
+     *  MDB envuelve el <select> nativo con su propia UI personalizada.
+     *  Para que la UI visible se actualice hay que:
+     *    1. Fijar el valor en el <select> nativo con .val()
+     *    2. Dispara change (algunos builds de MDB escuchan esto)
+     *    3. Llamar .materialSelect() para re-renderizar el widget
+     * ─────────────────────────────────────────────────────────────── */
+    function setearSelectMDB($sel, containerId) {
         if (!$sel.length) return false;
 
-        // Verificar que la opción con ese ID exista en el select
-        var $opt = $sel.find('option[value="' + containerId + '"]');
-        if (!$opt.length) {
-            console.warn('[MercContainer] Opción no encontrada en select:', containerName, '(ID ' + containerId + ')');
+        /* Verificar que la opción exista antes de asignar */
+        if (!$sel.find('option[value="' + containerId + '"]').length) {
             return false;
         }
 
         $sel.val(containerId);
-
-        // Trigger estándar jQuery
         $sel.trigger('change');
 
-        // MDB Material Design Bootstrap
-        if (typeof $sel.material_select === 'function') {
-            $sel.material_select();
-        }
-
-        // Select2
-        if ($sel.hasClass('select2-hidden-accessible')) {
-            try { $sel.trigger('change.select2'); } catch (e) { /* noop */ }
+        /* Refrescar widget MDB (jQuery plugin: $.fn.materialSelect) */
+        if (typeof $.fn.materialSelect === 'function') {
+            try {
+                $sel.materialSelect('destroy');
+            } catch (e) { /* no-op si ya fue destruido */ }
+            try {
+                $sel.materialSelect();
+            } catch (e) { /* no-op */ }
         }
 
         return true;
@@ -102,26 +105,26 @@ jQuery(document).ready(function ($) {
         var $n = $('<div class="merc-container-notif">' + msg + '</div>').css({
             background:   color,
             color:        '#fff',
-            padding:      '10px 16px',
+            padding:      '10px 18px',
             borderRadius: '6px',
             fontWeight:   'bold',
             position:     'fixed',
             top:          '20px',
             right:        '20px',
             zIndex:       9999,
-            boxShadow:    '0 2px 10px rgba(0,0,0,.25)',
+            boxShadow:    '0 2px 10px rgba(0,0,0,.3)',
             fontSize:     '14px'
         });
         $('body').append($n);
         setTimeout(function () { $n.fadeOut(400, function () { $n.remove(); }); }, 4000);
     }
 
-    /* ── Buscar contenedor por distrito y asignarlo ── */
+    /* ── Buscar contenedor por distrito y asignarlo al select correcto ── */
     function buscarYAsignar(distrito, campo) {
-        if (!distrito || distrito === '-- Seleccione uno --' || distrito === '-- Select One --') return;
+        if (!distrito || /^\s*--/.test(distrito)) return;
 
         var selectName = getSelectName(campo);
-        if (!selectName) return; // No aplica (ej: recojo en express)
+        if (!selectName) return; /* recojo en express → no aplica */
 
         var $sel = $('select[name="' + selectName + '"]');
         if (!$sel.length) return;
@@ -136,17 +139,18 @@ jQuery(document).ready(function ($) {
                 tipo_envio: tipoEnvioGlobal
             },
             success: function (r) {
-                if (!r.success || !r.data || !r.data.container_id) {
+                if (!r || !r.success || !r.data || !r.data.container_id) {
                     mostrarToast('⚠️ Sin contenedor para: ' + distrito, '#f39c12');
                     return;
                 }
 
-                var ok = setearSelect($sel, r.data.container_id, r.data.container_name);
+                var ok = setearSelectMDB($sel, r.data.container_id);
+
                 if (ok) {
-                    var label = campo === 'destino' ? 'ENTREGA' : 'RECOJO';
+                    var label = (campo === 'destino') ? 'ENTREGA' : 'RECOJO';
                     mostrarToast('✅ Contenedor ' + label + ': ' + r.data.container_name, '#4CAF50');
                 } else {
-                    mostrarToast('⚠️ Contenedor no disponible en el listado: ' + r.data.container_name, '#f39c12');
+                    mostrarToast('⚠️ Contenedor no listado: ' + r.data.container_name, '#f39c12');
                 }
             },
             error: function () {
@@ -155,7 +159,7 @@ jQuery(document).ready(function ($) {
         });
     }
 
-    /* ── Listener: Distrito de DESTINO → Contenedor de entrega/único ── */
+    /* ── Listener: Distrito de DESTINO ── */
     $(document).off('change.caEntrega', 'select[name="wpcargo_distrito_destino"]')
                .on('change.caEntrega',  'select[name="wpcargo_distrito_destino"]', function () {
         var distrito = $(this).val();
@@ -165,7 +169,7 @@ jQuery(document).ready(function ($) {
         }, 400);
     });
 
-    /* ── Listener: Distrito de RECOJO → Contenedor de recojo (solo 'normal') ── */
+    /* ── Listener: Distrito de RECOJO ── */
     $(document).off('change.caRecojo', 'select[name="wpcargo_distrito_recojo"]')
                .on('change.caRecojo',  'select[name="wpcargo_distrito_recojo"]', function () {
         var distrito = $(this).val();
@@ -175,9 +179,8 @@ jQuery(document).ready(function ($) {
         }, 400);
     });
 
-    /* ── Estado por defecto y observaciones opcionales en modo creación ── */
+    /* ── Estado por defecto y observaciones opcionales (solo modo creación) ── */
     setTimeout(function () {
-        // Hacer observaciones opcionales
         $('label[for*="remarks"], label:contains("Observaciones"), label:contains("Remarks")')
             .find('.required, .text-danger, span:contains("*")').remove()
             .end().css('font-weight', 'normal');
@@ -190,7 +193,7 @@ jQuery(document).ready(function ($) {
         if (!$sel.length || $sel.val() !== '') return;
 
         var tipo   = tipoEnvioGlobal.toLowerCase();
-        var target = (tipo === 'normal')      ? 'pendiente'    :
+        var target = (tipo === 'normal')      ? 'pendiente'     :
                      (tipo === 'express' || tipo === 'full_fitment') ? 'recepcionado' : '';
         if (!target) return;
 

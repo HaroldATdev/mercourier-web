@@ -18,10 +18,25 @@ jQuery(document).ready(function ($) {
     var ajaxurl = MercClientAutofill.ajaxurl;
     var nonce   = MercClientAutofill.nonce;
 
-    /* ── Actualizar un <select> por valor o texto (compatible MDB / Select2 / nativo) ── */
+    /* ── Rellenar un campo de texto y notificar a MDB floating labels ──
+     *
+     *  MDB4 hace flotar la etiqueta al detectar el evento 'input' en el campo.
+     *  Disparamos tanto el evento nativo como el de jQuery para cubrir
+     *  cualquier versión de MDB/jQuery que esté escuchando.
+     * ───────────────────────────────────────────────────────────────── */
+    function setearCampoTexto($el, valor) {
+        if (!$el.length || !valor) return;
+        $el.val(valor);
+        /* Evento nativo (para MDB4 que usa addEventListener internamente) */
+        $el[0].dispatchEvent(new Event('input',  { bubbles: true }));
+        $el[0].dispatchEvent(new Event('change', { bubbles: true }));
+        /* Evento jQuery (para listeners con $.on) */
+        $el.trigger('input').trigger('change');
+    }
+
+    /* ── Actualizar un <select> por valor o texto (insensible a mayúsculas) ── */
     function setearSelect($sel, valor) {
         if (!$sel.length || !valor) return false;
-
         var vlower = valor.toLowerCase();
         var encontrado = false;
 
@@ -32,59 +47,32 @@ jQuery(document).ready(function ($) {
                 ot === valor || ot.toLowerCase() === vlower) {
                 $sel.val(ov);
                 encontrado = true;
-                return false; // break
+                return false; /* break */
             }
         });
 
         if (!encontrado) return false;
 
-        // Trigger estándar
+        /* Disparar change – nativo + jQuery para que container-assign.js lo detecte */
+        $sel[0].dispatchEvent(new Event('change', { bubbles: true }));
         $sel.trigger('change');
-
-        // MDB Material Design Bootstrap
-        if (typeof $sel.material_select === 'function') {
-            $sel.material_select();
-        }
-
-        // Select2
-        if ($sel.hasClass('select2-hidden-accessible')) {
-            try { $sel.trigger('change.select2'); } catch (e) { /* noop */ }
-        }
-
-        // Evento nativo para que otros listeners (container-assign.js) lo detecten
-        if ($sel[0]) {
-            $sel[0].dispatchEvent(new Event('change', { bubbles: true }));
-        }
 
         return true;
     }
 
-    /* ── Rellenar campos de texto del remitente ── */
+    /* ── Rellenar todos los campos del remitente ── */
     function rellenarRemitente(ud) {
-        var camposTexto = {
-            nombre:    '[name="wpcargo_shipper_name"]',
-            telefono:  '[name="wpcargo_shipper_phone"]',
-            direccion: '[name="wpcargo_shipper_address"]',
-            email:     '[name="wpcargo_shipper_email"]',
-            empresa:   '[name="wpcargo_tiendaname"]',
-            link_maps: '[name="link_maps_remitente"]'
-        };
+        /* Campos de texto */
+        setearCampoTexto($('[name="wpcargo_shipper_name"]'),    ud.nombre);
+        setearCampoTexto($('[name="wpcargo_shipper_phone"]'),   ud.telefono);
+        setearCampoTexto($('[name="wpcargo_shipper_address"]'), ud.direccion);
+        setearCampoTexto($('[name="wpcargo_shipper_email"]'),   ud.email);
+        setearCampoTexto($('[name="wpcargo_tiendaname"]'),      ud.empresa);
+        setearCampoTexto($('[name="link_maps_remitente"]'),     ud.link_maps);
 
-        $.each(camposTexto, function (k, selector) {
-            if (!ud[k]) return;
-            var $el = $(selector);
-            if (!$el.length) return;
-            $el.val(ud[k]);
-            // Disparar ambos eventos para compatibilidad con React/Vue y listeners nativos
-            $el[0].dispatchEvent(new Event('input',  { bubbles: true }));
-            $el[0].dispatchEvent(new Event('change', { bubbles: true }));
-            $el.trigger('change');
-        });
-
-        // Distrito remitente: es un <select> — buscar por valor o texto
+        /* Distrito remitente: es un <select> nativo (no MDB) */
         if (ud.distrito) {
-            var $distr = $('[name="wpcargo_distrito_recojo"]');
-            setearSelect($distr, ud.distrito);
+            setearSelect($('[name="wpcargo_distrito_recojo"]'), ud.distrito);
         }
     }
 
@@ -92,30 +80,26 @@ jQuery(document).ready(function ($) {
     function mostrarToast(msg, color) {
         $('.merc-client-toast').remove();
         var $t = $('<div class="merc-client-toast">' + msg + '</div>').css({
-            background:    color,
-            color:         '#fff',
-            padding:       '10px 16px',
-            borderRadius:  '6px',
-            fontWeight:    'bold',
-            position:      'fixed',
-            top:           '70px',
-            right:         '20px',
-            zIndex:        9999,
-            boxShadow:     '0 2px 10px rgba(0,0,0,.25)',
-            fontSize:      '14px'
+            background:   color,
+            color:        '#fff',
+            padding:      '10px 18px',
+            borderRadius: '6px',
+            fontWeight:   'bold',
+            position:     'fixed',
+            top:          '70px',
+            right:        '20px',
+            zIndex:       9999,
+            boxShadow:    '0 2px 10px rgba(0,0,0,.3)',
+            fontSize:     '14px'
         });
         $('body').append($t);
         setTimeout(function () { $t.fadeOut(400, function () { $t.remove(); }); }, 4000);
     }
 
-    /* ── Listener delegado: cambio de cliente ── */
+    /* ── Listener: selección de cliente ── */
     $(document).on('change', '#registered_client', function () {
         var userId = $(this).val();
         if (!userId) return;
-
-        var $select = $(this);
-        // Deshabilitar temporalmente para evitar doble-click
-        $select.prop('disabled', true);
 
         $.post(
             ajaxurl,
@@ -131,9 +115,6 @@ jQuery(document).ready(function ($) {
         })
         .fail(function () {
             mostrarToast('❌ Error al cargar datos del cliente', '#e74c3c');
-        })
-        .always(function () {
-            $select.prop('disabled', false);
         });
     });
 });
