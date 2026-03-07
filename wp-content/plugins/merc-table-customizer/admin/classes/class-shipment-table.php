@@ -117,9 +117,7 @@ class MERC_Shipment_Table {
 		<style>
 			/* Wrapper principal */
 			#shipment-history-accordion {
-				display: flex;
-				flex-direction: column;
-				gap: 8px;
+				display: block;
 				width: 100%;
 			}
 
@@ -129,7 +127,7 @@ class MERC_Shipment_Table {
 				border-radius: 6px;
 				overflow: hidden;
 				box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-				transition: all 0.3s ease;
+				margin-bottom: 8px;
 			}
 
 			.merc-tienda-card:hover {
@@ -158,18 +156,17 @@ class MERC_Shipment_Table {
 			.merc-tienda-card-header-left {
 				display: flex;
 				align-items: center;
-				gap: 8px;
+				gap: 10px;
 			}
 
 			.merc-tienda-checkbox {
 				width: 18px;
 				height: 18px;
-				margin-right: 8px;
+				cursor: pointer;
 			}
 
 			.merc-tienda-icon {
-				display: inline-block;
-				font-size: 16px;
+				font-size: 18px;
 				transition: transform 0.3s ease;
 				margin-left: auto;
 			}
@@ -180,19 +177,17 @@ class MERC_Shipment_Table {
 
 			.merc-tienda-count {
 				font-size: 12px;
-				opacity: 0.9;
-				margin-left: 8px;
+				opacity: 0.85;
 			}
 
 			/* Contenedor de tabla */
 			.merc-tienda-card-content {
-				overflow: hidden;
-				max-height: none;
-				transition: max-height 0.3s ease;
+				display: none;
+				overflow-x: auto;
 			}
 
-			.merc-tienda-card.collapsed .merc-tienda-card-content {
-				display: none;
+			.merc-tienda-card.expanded .merc-tienda-card-content {
+				display: block;
 			}
 
 			/* Tabla dentro de card */
@@ -200,6 +195,20 @@ class MERC_Shipment_Table {
 				width: 100%;
 				border-collapse: collapse;
 				margin: 0;
+				background: white;
+			}
+
+			.merc-tienda-card-table thead {
+				background: #f5f5f5;
+				border-bottom: 2px solid #ddd;
+			}
+
+			.merc-tienda-card-table thead th {
+				padding: 10px 12px;
+				text-align: left;
+				font-weight: 600;
+				font-size: 13px;
+				color: #333;
 			}
 
 			.merc-tienda-card-table tbody tr {
@@ -210,97 +219,126 @@ class MERC_Shipment_Table {
 				background-color: #f9f9f9;
 			}
 
-			.merc-tienda-card-table td {
+			.merc-tienda-card-table tbody td {
 				padding: 8px 12px;
 				vertical-align: middle;
+				font-size: 13px;
 			}
 		</style>
 		<script>
 		jQuery(function($) {
-			const $originalTable = $('table#shipment-history');
-			if ( ! $originalTable.length ) return;
-
-			const $tbody = $originalTable.find('tbody');
-			const $tableWrapper = $originalTable.closest('.table-responsive');
-
-			// Agrupar filas por tienda
-			const tiendas = {};
-			const orden = [];
-
-			$tbody.find('tr.shipment-row').each(function() {
-				const $row = $(this);
-				const tienda = $row.data('tienda') || 'Sin tienda';
-				
-				if ( ! tiendas[tienda] ) {
-					tiendas[tienda] = [];
-					orden.push(tienda);
+			// Esperar un poco a que el DOM esté completamente listo
+			setTimeout(function() {
+				const $tableWrapper = $('#shipment-history-list');
+				if ( ! $tableWrapper.length || ! $tableWrapper.find('table#shipment-history').length ) {
+					console.warn('Tabla #shipment-history no encontrada');
+					return;
 				}
-				tiendas[tienda].push($row.clone(true));
-			});
 
-			// Crear wrapper accordion
-			const $accordion = $('<div>')
-				.attr('id', 'shipment-history-accordion')
-				.css('display', 'block');
+				const $table = $tableWrapper.find('table#shipment-history');
+				const $tbody = $table.find('tbody');
 
-			// Renderizar cards por tienda (collapsed por defecto)
-			orden.forEach(function(tienda, index) {
-				const tiendaSlug = tienda.replace(/\s+/g, '-').toLowerCase();
-				const rowCount = tiendas[tienda].length;
+				if ( ! $tbody.length || $tbody.find('tr.shipment-row').length === 0 ) {
+					console.warn('No hay filas shipment-row');
+					return;
+				}
 
-				// Header de card
-				const $cardHeader = $('<div>')
-					.addClass('merc-tienda-card-header')
-					.html(
-						'<div class="merc-tienda-card-header-left">' +
-						'<input type="checkbox" class="merc-tienda-checkbox merc-select-all-' + tiendaSlug + '">' +
-						'<span>📦 ' + tienda + ' <span class="merc-tienda-count">(' + rowCount + ' envíos)</span></span>' +
-						'</div>' +
-						'<span class="merc-tienda-icon">▼</span>'
-					);
+				// Agrupar filas por tienda
+				const tiendas = {};
+				const orden = [];
 
-				// Tabla intterna con las filas
-				const $cardTable = $('<table>')
-					.addClass('merc-tienda-card-table')
-					.html('<tbody></tbody>');
-
-				const $cardTbody = $cardTable.find('tbody');
-				tiendas[tienda].forEach(function($row) {
-					$cardTbody.append($row);
+				$tbody.find('tr.shipment-row').each(function() {
+					const $row = $(this);
+					const tienda = $row.data('tienda') || 'Sin tienda';
+					
+					if ( ! tiendas[tienda] ) {
+						tiendas[tienda] = [];
+						orden.push(tienda);
+					}
+					tiendas[tienda].push($row.clone(true));
 				});
 
-				// Contenedor de contenido
-				const $cardContent = $('<div>')
-					.addClass('merc-tienda-card-content')
-					.append($cardTable);
+				console.log('Tiendas encontradas:', orden);
 
-				// Card completa
-				const $card = $('<div>')
-					.addClass('merc-tienda-card collapsed')
-					.attr('data-tienda', tiendaSlug)
-					.append($cardHeader)
-					.append($cardContent);
+				// Crear wrapper accordion
+				const $accordion = $('<div>')
+					.attr('id', 'shipment-history-accordion')
+					.css({
+						'display': 'block',
+						'width': '100%'
+					});
 
-				$accordion.append($card);
+				// Obtener header para saber qué columnas mostrar
+				const $headerRow = $table.find('thead tr').first();
+				let headerHtml = '';
+				if ( $headerRow.length ) {
+					$headerRow.find('th').each(function() {
+						headerHtml += '<th>' + $(this).html() + '</th>';
+					});
+				}
 
-				// Event: click en header para toggle
-				$cardHeader.on('click', function() {
-					$card.toggleClass('collapsed');
+				// Renderizar cards por tienda (collapsed por defecto)
+				orden.forEach(function(tienda) {
+					const tiendaSlug = tienda.replace(/\s+/g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+					const rowCount = tiendas[tienda].length;
+
+					// Header de card
+					const $cardHeader = $('<div>')
+						.addClass('merc-tienda-card-header')
+						.html(
+							'<div class="merc-tienda-card-header-left">' +
+							'<input type="checkbox" class="merc-tienda-checkbox merc-select-all-' + tiendaSlug + '">' +
+							'<span><strong>' + tienda + '</strong> <span class="merc-tienda-count">(' + rowCount + ' envíos)</span></span>' +
+							'</div>' +
+							'<span class="merc-tienda-icon">▼</span>'
+						);
+
+					// Tabla interna
+					const $cardTable = $('<table>')
+						.addClass('merc-tienda-card-table wpc-shipment-history')
+						.html(
+							'<thead><tr>' + headerHtml + '</tr></thead>' +
+							'<tbody></tbody>'
+						);
+
+					const $cardTbody = $cardTable.find('tbody');
+					tiendas[tienda].forEach(function($row) {
+						$cardTbody.append($row);
+					});
+
+					// Contenedor de contenido
+					const $cardContent = $('<div>')
+						.addClass('merc-tienda-card-content')
+						.append($cardTable);
+
+					// Card completa (collapsed por defecto)
+					const $card = $('<div>')
+						.addClass('merc-tienda-card collapsed')
+						.attr('data-tienda', tiendaSlug)
+						.append($cardHeader)
+						.append($cardContent);
+
+					$accordion.append($card);
+
+					// Event: click en header para toggle
+					$cardHeader.on('click', function(e) {
+						if (!$(e.target).closest('.merc-tienda-checkbox').length) {
+							$card.toggleClass('collapsed').toggleClass('expanded');
+						}
+					});
+
+					// Event: checkbox de header selecciona todos
+					$cardHeader.find('.merc-tienda-checkbox').on('change', function() {
+						const isChecked = $(this).prop('checked');
+						$cardTbody.find('input[type="checkbox"]').prop('checked', isChecked);
+					});
 				});
 
-				// Event: checkbox de header selecciona todos
-				$cardHeader.find('.merc-tienda-checkbox').on('change', function() {
-					const isChecked = $(this).prop('checked');
-					$cardTbody.find('input[type="checkbox"]').prop('checked', isChecked);
-				});
-			});
-
-			// Reemplazar tabla original con accordion
-			if ( $tableWrapper.length ) {
+				// Reemplazar tabla original con accordion
 				$tableWrapper.html($accordion);
-			} else {
-				$originalTable.replaceWith($accordion);
-			}
+				console.log('✅ Accordion de tiendas generado correctamente');
+
+			}, 100);
 		});
 		</script>
 		<?php
