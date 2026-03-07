@@ -9,7 +9,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class MERC_Shipment_Table {
 
 	private string $tpl_path;
-	private ?string $last_tienda = null; // Track tienda para agrupar
 
 	public function __construct() {
 		$this->tpl_path = MERC_TABLE_PATH . 'admin/templates/frontend/';
@@ -46,13 +45,6 @@ class MERC_Shipment_Table {
 
 	public function custom_data( int $shipment_id ): void {
 		$tienda      = get_post_meta( $shipment_id, 'wpcargo_tiendaname', true );
-		$tienda_html = ! empty( $tienda ) ? esc_html( $tienda ) : '<span style="color:#999;">N/A</span>';
-
-		// Renderizar header de tienda si cambió
-		if ( $tienda !== $this->last_tienda ) {
-			$this->render_tpl( 'table-tienda-header.tpl.php', [ 'tienda' => $tienda ?: 'Sin tienda' ] );
-			$this->last_tienda = $tienda;
-		}
 
 		$action_rows  = function_exists( 'wpcfe_shipment_action_rows' ) ? wpcfe_shipment_action_rows( $shipment_id ) : [];
 		$actions_html = ! empty( $action_rows )
@@ -120,34 +112,41 @@ class MERC_Shipment_Table {
 	/* ── Enqueue CSS/JS para collapse de tiendas ───────────────────── */
 
 	public function enqueue_table_scripts(): void {
-		// Solo en frontend páginas que tengan la tabla
-		if ( is_admin() || ! function_exists( 'is_page' ) ) {
-			return;
-		}
-
-		if ( ! is_page() && ! is_singular( 'post' ) ) {
-			return;
-		}
-
 		// Inyectar CSS y JS inline
 		?>
 		<style>
-			.shipment-row {
-				display: table-row;
-				transition: opacity 0.3s;
-			}
-			.shipment-row.hidden {
-				display: none;
-			}
-			.tienda-header .tienda-toggle {
+			/* Estilos para agrupación de tiendas */
+			.merc-tienda-header {
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: white;
+				padding: 3px 16px;
+				font-weight: bold;
+				font-size: 14px;
+				cursor: pointer;
 				user-select: none;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				transition: all 0.3s ease;
 			}
-			.tienda-toggle-icon {
+			.merc-tienda-header:hover {
+				background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+			}
+			.merc-tienda-icon {
 				display: inline-block;
+				font-size: 16px;
 				transition: transform 0.3s ease;
 			}
-			.tienda-header.collapsed .tienda-toggle-icon {
+			.merc-tienda-header.collapsed .merc-tienda-icon {
 				transform: rotate(-90deg);
+			}
+			.shipment-row.hidden-by-tienda {
+				display: none !important;
+			}
+			tr[data-tienda] .merc-tienda-count {
+				font-size: 12px;
+				opacity: 0.9;
+				margin-left: 10px;
 			}
 		</style>
 		<script>
@@ -155,22 +154,72 @@ class MERC_Shipment_Table {
 			const $table = $('table#shipment-history');
 			if ( ! $table.length ) return;
 
-			// Event listener para headers de tienda
-			$table.on('click', '.tienda-header .tienda-toggle', function() {
-				const $header = $(this).closest('tr.tienda-header');
-				const tienda = $header.data('tienda');
+			// Obtener tabla body
+			const $tbody = $table.find('tbody');
+			if ( ! $tbody.length ) return;
+
+			// Agrupar filas por tienda
+			const tiendas = {};
+			const orden = [];
+
+			$tbody.find('tr.shipment-row').each(function() {
+				const $row = $(this);
+				const tienda = $row.data('tienda') || 'Sin tienda';
+				
+				if ( ! tiendas[tienda] ) {
+					tiendas[tienda] = [];
+					orden.push(tienda);
+				}
+				tiendas[tienda].push($row.clone(true));
+			});
+
+			// Limpiar tbody
+			$tbody.empty();
+
+			// Renderizar ordenado por tienda
+			orden.forEach(function(tienda) {
+				const $header = $('<tr>')
+					.addClass('merc-tienda-header-row')
+					.attr('data-tienda-header', tienda)
+					.html(
+						'<td colspan="8" style="padding: 0; border: none;">' +
+						'<div class="merc-tienda-header merc-tienda-header-' + tienda.replace(/\s+/g, '-').toLowerCase() + '">' +
+						'<span>📦 ' + tienda + ' <span class="merc-tienda-count">(' + tiendas[tienda].length + ' envíos)</span></span>' +
+						'<span class="merc-tienda-icon">▼</span>' +
+						'</div>' +
+						'</td>' +
+						'</tr>'
+					);
+
+				$tbody.append($header);
+
+				// Agregar filas de esta tienda
+				tiendas[tienda].forEach(function($row) {
+					$row.addClass('shipment-row-group-' + tienda.replace(/\s+/g, '-').toLowerCase());
+					$tbody.append($row);
+				});
+			});
+
+			// Event listener para headers de tienda (delegado)
+			$(document).on('click', '.merc-tienda-header', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				const $header = $(this);
+				const $row = $header.closest('tr');
+				const tienday = $row.attr('data-tienda-header');
 				const isCollapsed = $header.toggleClass('collapsed').hasClass('collapsed');
 
-				// Show/hide todos los shipment-row de esta tienda
-				$table.find('tr.shipment-row[data-tienda="' + tienda + '"]').toggleClass('hidden', isCollapsed);
+				// Toggle rows de esta tienda
+				const selector = 'tr.shipment-row-group-' + tienday.replace(/\s+/g, '-').toLowerCase();
+				$tbody.find(selector).toggleClass('hidden-by-tienda', isCollapsed);
 			});
 
-			// Expand all tiendas por defecto
-			$table.find('tr.tienda-header').each(function() {
-				$(this).removeClass('collapsed');
-				const tienda = $(this).data('tienda');
-				$table.find('tr.shipment-row[data-tienda="' + tienda + '"]').removeClass('hidden');
+			// Expand all por defecto
+			$tbody.find('tr.merc-tienda-header-row').each(function() {
+				$(this).find('.merc-tienda-header').removeClass('collapsed');
 			});
+			$tbody.find('tr.shipment-row-group-' + orden[0].replace(/\s+/g, '-').toLowerCase()).removeClass('hidden-by-tienda');
 		});
 		</script>
 		<?php
