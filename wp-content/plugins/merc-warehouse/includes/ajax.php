@@ -4,8 +4,17 @@ if (!defined('ABSPATH')) exit;
 // AJAX handlers para warehouse (logueados solamente)
 add_action('wp_ajax_merc_almacen_get_productos', 'merc_almacen_get_productos');
 function merc_almacen_get_productos() {
-    // Limpiar cualquier salida previa que pudiera contaminar el JSON
-    while (ob_get_level() > 0) { ob_end_clean(); }
+    // DIAGNÓSTICO: capturar y loguear qué hay en el buffer antes de limpiar
+    $buf_level = ob_get_level();
+    $buf_contents = '';
+    for ($i = 0; $i < $buf_level; $i++) {
+        $buf_contents .= ob_get_clean();
+    }
+    if (!empty($buf_contents)) {
+        error_log('[MERC-WAREHOUSE] Buffer contenía (' . strlen($buf_contents) . ' bytes): ' . bin2hex(substr($buf_contents, 0, 30)));
+    } else {
+        error_log('[MERC-WAREHOUSE] Buffer vacío. Niveles previos: ' . $buf_level);
+    }
     
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
