@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) exit;
 add_action('wp_ajax_merc_almacen_get_productos', 'merc_almacen_get_productos');
 function merc_almacen_get_productos() {
     // Limpiar cualquier salida previa que pudiera contaminar el JSON
-    if (ob_get_length()) ob_clean();
+    while (ob_get_level() > 0) { ob_end_clean(); }
     
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
@@ -98,7 +98,7 @@ function merc_almacen_get_productos() {
 add_action('wp_ajax_merc_guardar_producto', 'merc_guardar_producto');
 function merc_guardar_producto() {
     // Limpiar cualquier salida previa
-    if (ob_get_length()) ob_clean();
+    while (ob_get_level() > 0) { ob_end_clean(); }
     
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
@@ -182,7 +182,7 @@ add_action('wp_ajax_merc_obtener_clientes_lista', 'merc_obtener_clientes_lista')
 add_action('wp_ajax_nopriv_merc_obtener_clientes_lista', 'merc_obtener_clientes_lista');
 function merc_obtener_clientes_lista() {
     // Limpiar cualquier salida previa
-    if (ob_get_length()) ob_clean();
+    while (ob_get_level() > 0) { ob_end_clean(); }
     
     // Validar nonce si está presente (pero no lo requerimos)
     if (isset($_POST['nonce'])) {
@@ -237,7 +237,7 @@ function merc_obtener_clientes_lista() {
 add_action('wp_ajax_merc_obtener_producto', 'merc_obtener_producto');
 function merc_obtener_producto() {
     // Limpiar cualquier salida previa
-    if (ob_get_length()) ob_clean();
+    while (ob_get_level() > 0) { ob_end_clean(); }
     
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
@@ -285,7 +285,7 @@ function merc_obtener_producto() {
 add_action('wp_ajax_merc_actualizar_producto', 'merc_actualizar_producto');
 function merc_actualizar_producto() {
     // Limpiar cualquier salida previa
-    if (ob_get_length()) ob_clean();
+    while (ob_get_level() > 0) { ob_end_clean(); }
     
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
@@ -359,7 +359,7 @@ function merc_actualizar_producto() {
 add_action('wp_ajax_merc_eliminar_producto', 'merc_eliminar_producto');
 function merc_eliminar_producto() {
     // Limpiar cualquier salida previa
-    if (ob_get_length()) ob_clean();
+    while (ob_get_level() > 0) { ob_end_clean(); }
     
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
