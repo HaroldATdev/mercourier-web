@@ -218,40 +218,37 @@ class MERC_Shipment_Table {
 		</style>
 		<script>
 		(function($) {
-			console.log('🚀 Script merc-table cargado');
+			console.log('🚀 merc-table script loaded');
+
+			let initialized = false;
 
 			function initializeAccordion() {
-				console.log('🔍 Buscando tablas...');
-				
-				// Buscar por cualquier tabla con clase wpc-shipment-history
-				let $table = $('table.wpc-shipment-history');
-				
-				if (!$table.length) {
-					console.log('❌ tabla.wpc-shipment-history no encontrada, buscando por ID...');
-					$table = $('table#shipment-history');
-				}
+				if (initialized) return true;
 
-				if (!$table.length) {
-					console.log('❌ tabla#shipment-history no encontrada, buscando cualquier tabla...');
-					$table = $('table').has('tbody tr[data-tienda]');
-				}
+				console.log('🔍 Buscando tabla...');
+				
+				// Buscar cualquier tabla con tbody
+				let $table = null;
+				const $allTables = $('table');
+				
+				console.log('📍 Encontradas ' + $allTables.length + ' tablas en total');
 
-				if (!$table.length) {
-					console.log('❌ No se encontró tabla con filas data-tienda');
-					console.log('📍 Tablas disponibles:', $('table').length);
-					$('table').each(function() {
-						console.log('  - ', $(this).attr('id'), $(this).attr('class'));
-					});
+				$allTables.each(function() {
+					const $t = $(this);
+					const rows = $t.find('tbody tr').length;
+					if (rows > 0 && $t.find('tbody tr[data-tienda]').length > 0) {
+						console.log('✅ Tabla con data-tienda encontrada:', $t.attr('id'), '(' + rows + ' filas)');
+						$table = $t;
+						return false; // break
+					}
+				});
+
+				if (!$table || !$table.length) {
+					console.log('❌ No encontré tabla con filas data-tienda');
 					return false;
 				}
 
 				const $tbody = $table.find('tbody');
-				if (!$tbody.length || $tbody.find('tr').length === 0) {
-					console.log('❌ tbody vacío');
-					return false;
-				}
-
-				console.log('✅ Tabla encontrada!');
 				console.log('📝 Total filas:', $tbody.find('tr').length);
 
 				// Agrupar filas por tienda
@@ -269,7 +266,7 @@ class MERC_Shipment_Table {
 					tiendas[tienda].push($row.clone());
 				});
 
-				console.log('📊 Tiendas agrupadas:', orden);
+				console.log('📊 Tiendas:', orden);
 
 				// Crear accordion
 				const $accordion = $('<div id="shipment-history-accordion"></div>');
@@ -283,22 +280,20 @@ class MERC_Shipment_Table {
 					});
 				}
 
-				// Crear cards por tienda
+				// Crear cards
 				orden.forEach(function(tienda) {
 					const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
 					const rowsForTienda = tiendas[tienda];
 
-					// Header
 					const $header = $('<div class="merc-tienda-card-header"></div>').html(
 						'<div class="merc-tienda-info">' +
-						'<input type="checkbox" class="merc-tienda-checkbox merc-check-' + tiendaSlug + '">' +
+						'<input type="checkbox" class="merc-tienda-checkbox">' +
 						'<strong>' + tienda + '</strong>' +
 						'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
 						'</div>' +
 						'<span class="merc-tienda-icon">▼</span>'
 					);
 
-					// Tabla interna
 					const $innerTable = $('<table class="merc-tienda-card-table wpc-shipment-history table table-hover table-sm"><thead><tr>' + headerHtml + '</tr></thead><tbody></tbody></table>');
 					const $innerTbody = $innerTable.find('tbody');
 					
@@ -306,22 +301,18 @@ class MERC_Shipment_Table {
 						$innerTbody.append($row);
 					});
 
-					// Content wrapper
 					const $content = $('<div class="merc-tienda-card-content"></div>').append($innerTable);
 
-					// Card completa
-					const $card = $('<div class="merc-tienda-card collapsed" data-tienda="' + tiendaSlug + '"></div>')
+					const $card = $('<div class="merc-tienda-card collapsed"></div>')
 						.append($header)
 						.append($content);
 
-					// Click en header para expandir
 					$header.on('click', function(e) {
 						if (!$(e.target).is('input[type="checkbox"]') && !$(e.target).closest('input[type="checkbox"]').length) {
 							$card.toggleClass('collapsed');
 						}
 					});
 
-					// Checkbox para seleccionar todos
 					$header.find('input[type="checkbox"]').on('change', function() {
 						const isChecked = $(this).prop('checked');
 						$innerTbody.find('input[type="checkbox"]').prop('checked', isChecked);
@@ -330,7 +321,7 @@ class MERC_Shipment_Table {
 					$accordion.append($card);
 				});
 
-				// Reemplazar
+				// Reemplazar tabla
 				const $wrapper = $table.closest('#shipment-history-list') || $table.closest('.table-responsive') || $table.parent();
 				if ($wrapper.length) {
 					$wrapper.html($accordion);
@@ -338,35 +329,37 @@ class MERC_Shipment_Table {
 					$table.replaceWith($accordion);
 				}
 
-				console.log('✅ Accordion generado exitosamente!');
+				initialized = true;
+				console.log('✅ Accordion generado!');
 				return true;
 			}
 
-			// Intentar múltiples veces
-			let attempts = 0;
-			const maxAttempts = 20;
-
-			function tryInit() {
-				attempts++;
-				console.log('🔄 Intento ' + attempts + '...');
-				
-				if (initializeAccordion()) {
-					return;
+			// Usar MutationObserver para detectar cuando se añade la tabla
+			const observerConfig = { childList: true, subtree: true };
+			const observer = new MutationObserver(function(mutations) {
+				if (!initialized && $('tbody tr[data-tienda]').length > 0) {
+					console.log('👁️ MutationObserver - detectó tabla con data-tienda');
+					observer.disconnect();
+					setTimeout(initializeAccordion, 100);
 				}
+			});
 
-				if (attempts < maxAttempts) {
-					setTimeout(tryInit, 300);
-				} else {
-					console.error('❌ No se pudo inicializar el accordion después de ' + maxAttempts + ' intentos');
+			// Iniciar observación
+			observer.observe(document.body, observerConfig);
+
+			// Intentar inicializar también en document.ready
+			$(document).ready(function() {
+				console.log('📌 Document ready');
+				setTimeout(initializeAccordion, 500);
+			});
+
+			// Timeout para limpiar observer si no se usa
+			setTimeout(function() {
+				if (!initialized && observer) {
+					console.log('⏱️  Limpiando observer - timeout');
+					observer.disconnect();
 				}
-			}
-
-			// Esperar a que jQuery esté listo y luego intentar
-			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', tryInit);
-			} else {
-				tryInit();
-			}
+			}, 10000);
 
 		})(jQuery);
 		</script>
