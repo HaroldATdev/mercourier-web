@@ -33,4 +33,6 @@
 <td><?php echo $motorizo_recojo_html; ?></td>
 
 <td><?php echo $motorizo_entrega_html; ?></td>
+
+<td><?php echo isset( $shipment_id ) ? esc_html( $shipment_id ) : ''; ?></td>
 </tr>
