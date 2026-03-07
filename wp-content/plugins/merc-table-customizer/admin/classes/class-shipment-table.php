@@ -109,10 +109,92 @@ class MERC_Shipment_Table {
 		return esc_html( $nombre );
 	}
 
-	/* ── Sin enqueue scripts adicionales ───────────────────────────── */
+	/* ── Enqueue JS para agrupar por tienda ───────────────────────── */
 
 	public function enqueue_table_scripts(): void {
-		// No se inyecta JS aquí - la tabla se renderiza tal cual con el orden correcto
+		?>
+		<style>
+			.merc-tienda-group-header {
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				color: white;
+				font-weight: bold;
+				font-size: 13px;
+				text-align: left;
+				padding: 0 !important;
+			}
+			.merc-tienda-group-header td {
+				padding: 10px 12px !important;
+				border: none !important;
+			}
+			.merc-tienda-group-header .shipment-row {
+				display: none;
+			}
+		</style>
+		<script>
+		(function($) {
+			function groupByTienda() {
+				const $table = $('table.wpc-shipment-history, table#shipment-history');
+				if (!$table.length) return;
+
+				const $tbody = $table.find('tbody');
+				const rows = $tbody.find('tr.shipment-row');
+				
+				if (rows.length === 0) return;
+
+				const groups = {};
+				const order = [];
+
+				// Agrupar filas
+				rows.each(function() {
+					const $row = $(this);
+					const tienda = $row.data('tienda') || 'Sin tienda';
+					
+					if (!groups[tienda]) {
+						groups[tienda] = [];
+						order.push(tienda);
+					}
+					groups[tienda].push($row);
+				});
+
+				// Reconstruir tbody con headers
+				$tbody.empty();
+				
+				order.forEach(function(tienda) {
+					// Header de tienda
+					const $header = $('<tr class="merc-tienda-group-header"></tr>').html(
+						'<td colspan="10">📦 ' + tienda + ' (' + groups[tienda].length + ' envíos)</td>'
+					);
+					$tbody.append($header);
+					
+					// Filas de tienda
+					groups[tienda].forEach(function($row) {
+						$tbody.append($row);
+					});
+				});
+
+				console.log('✅ Tabla agrupada por tienda');
+			}
+
+			// Ejecutar cuando la tabla esté lista
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', groupByTienda);
+			} else {
+				groupByTienda();
+			}
+
+			// Reintentar cada 500ms por si la tabla carga con AJAX
+			let attempts = 0;
+			const interval = setInterval(function() {
+				if ($('tbody tr[data-tienda]').length > 0) {
+					clearInterval(interval);
+					groupByTienda();
+				}
+				attempts++;
+				if (attempts > 20) clearInterval(interval);
+			}, 500);
+		})(jQuery);
+		</script>
+		<?php
 	}
 }
 
