@@ -15,6 +15,7 @@ define( 'MERC_FORM_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'MERC_FORM_URL',     plugin_dir_url( __FILE__ ) );
 
 require_once MERC_FORM_PATH . 'includes/functions.php';
+require_once MERC_FORM_PATH . 'admin/classes/class-shipment-form-fields.php';
 require_once MERC_FORM_PATH . 'admin/classes/class-tipo-envio-saver.php';
 require_once MERC_FORM_PATH . 'admin/classes/class-form-autofill.php';
 require_once MERC_FORM_PATH . 'admin/classes/class-status-filter.php';
