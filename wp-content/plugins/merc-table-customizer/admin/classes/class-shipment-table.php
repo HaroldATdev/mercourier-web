@@ -225,20 +225,26 @@ class MERC_Shipment_Table {
 			function initializeAccordion() {
 				if (initialized) return true;
 
-				console.log('🔍 Buscando #shipment-history...');
+				console.log('🔍 Buscando tabla con data-tienda...');
 				
-				// Buscar SOLO la tabla shipment-history
-				let $table = $('table#shipment-history');
+				// Buscar cualquier tabla que tenga filas con data-tienda
+				let $table = $('table:has(tbody tr[data-tienda])').first();
 				
 				if (!$table.length) {
-					console.log('❌ #shipment-history no encontrada');
+					console.log('❌ No encontrada tabla con data-tienda');
 					return false;
 				}
 
-				console.log('✅ #shipment-history encontrada');
+				console.log('✅ Tabla encontrada:', $table.attr('id') || $table.attr('class'));
 
 				const $tbody = $table.find('tbody');
-				console.log('📝 Total filas:', $tbody.find('tr').length);
+				const rowCount = $tbody.find('tr').length;
+				console.log('📝 Total filas en tabla:', rowCount);
+
+				if (!$tbody.length || rowCount === 0) {
+					console.log('❌ tbody vacío o no encontrado');
+					return false;
+				}
 
 				// Agrupar filas por tienda
 				const tiendas = {};
@@ -255,7 +261,10 @@ class MERC_Shipment_Table {
 					tiendas[tienda].push($row.clone());
 				});
 
-				console.log('📊 Tiendas:', orden);
+				console.log('📊 Tiendas agrupadas:', orden.length);
+				orden.forEach(function(t) {
+					console.log('  - ' + t + ': ' + tiendas[t].length + ' filas');
+				});
 
 				// Crear accordion
 				const $accordion = $('<div id="shipment-history-accordion"></div>');
@@ -322,8 +331,8 @@ class MERC_Shipment_Table {
 			// Usar MutationObserver para detectar cuando se añade la tabla
 			const observerConfig = { childList: true, subtree: true };
 			const observer = new MutationObserver(function(mutations) {
-				if (!initialized && $('table#shipment-history').length > 0) {
-					console.log('👁️ MutationObserver - detectó #shipment-history');
+				if (!initialized && $('tbody tr[data-tienda]').length > 0) {
+					console.log('👁️ MutationObserver - detectó tabla con data-tienda');
 					observer.disconnect();
 					setTimeout(initializeAccordion, 100);
 				}
