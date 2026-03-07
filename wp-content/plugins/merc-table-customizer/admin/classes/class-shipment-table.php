@@ -218,11 +218,30 @@ class MERC_Shipment_Table {
 		</style>
 		<script>
 		(function($) {
+			console.log('🚀 Script merc-table cargado');
+
 			function initializeAccordion() {
-				const $table = $('table#shipment-history');
+				console.log('🔍 Buscando tablas...');
+				
+				// Buscar por cualquier tabla con clase wpc-shipment-history
+				let $table = $('table.wpc-shipment-history');
 				
 				if (!$table.length) {
-					console.log('❌ tabla#shipment-history no encontrada');
+					console.log('❌ tabla.wpc-shipment-history no encontrada, buscando por ID...');
+					$table = $('table#shipment-history');
+				}
+
+				if (!$table.length) {
+					console.log('❌ tabla#shipment-history no encontrada, buscando cualquier tabla...');
+					$table = $('table').has('tbody tr[data-tienda]');
+				}
+
+				if (!$table.length) {
+					console.log('❌ No se encontró tabla con filas data-tienda');
+					console.log('📍 Tablas disponibles:', $('table').length);
+					$('table').each(function() {
+						console.log('  - ', $(this).attr('id'), $(this).attr('class'));
+					});
 					return false;
 				}
 
@@ -232,7 +251,7 @@ class MERC_Shipment_Table {
 					return false;
 				}
 
-				console.log('✅ Tabla encontrada, iniciando agrupación...');
+				console.log('✅ Tabla encontrada!');
 				console.log('📝 Total filas:', $tbody.find('tr').length);
 
 				// Agrupar filas por tienda
@@ -312,7 +331,7 @@ class MERC_Shipment_Table {
 				});
 
 				// Reemplazar
-				const $wrapper = $table.closest('#shipment-history-list');
+				const $wrapper = $table.closest('#shipment-history-list') || $table.closest('.table-responsive') || $table.parent();
 				if ($wrapper.length) {
 					$wrapper.html($accordion);
 				} else {
@@ -323,20 +342,31 @@ class MERC_Shipment_Table {
 				return true;
 			}
 
-			// Intentar ejecutar cuando document esté ready
-			$(document).ready(function() {
-				console.log('🔄 Document ready - initializando accordion...');
-				if (!initializeAccordion()) {
-					// Si falla, esperar e intentar de nuevo
-					setTimeout(initializeAccordion, 500);
-				}
-			});
+			// Intentar múltiples veces
+			let attempts = 0;
+			const maxAttempts = 20;
 
-			// También intentar en window load
-			$(window).on('load', function() {
-				console.log('🔄 Window load - verificando accordion...');
-				initializeAccordion();
-			});
+			function tryInit() {
+				attempts++;
+				console.log('🔄 Intento ' + attempts + '...');
+				
+				if (initializeAccordion()) {
+					return;
+				}
+
+				if (attempts < maxAttempts) {
+					setTimeout(tryInit, 300);
+				} else {
+					console.error('❌ No se pudo inicializar el accordion después de ' + maxAttempts + ' intentos');
+				}
+			}
+
+			// Esperar a que jQuery esté listo y luego intentar
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', tryInit);
+			} else {
+				tryInit();
+			}
 
 		})(jQuery);
 		</script>
