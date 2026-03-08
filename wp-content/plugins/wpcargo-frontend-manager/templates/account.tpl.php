@@ -25,6 +25,7 @@
                             <a href="#" id="close-upload-avatar"><i class="fa fa-close text-danger"></i></a>
                             <div id="upload-avatar" ></div>
                             <div id="croppie-actions">
+                                <?php wp_nonce_field( 'wpcfe_upload_avatar_action', 'wpcfe_upload_avatar_nonce' ); ?>
                                 <input type="file" id="upload" class="btn actionUpload btn-primary btn-sm" value="<?php esc_html_e('Upload Avatar', 'wpcargo-frontend-manager' ); ?>" accept="image/*" />
                                 <a class="button actionSave btn btn-success btn-sm"><?php esc_html_e('Save Avatar', 'wpcargo-frontend-manager' ); ?></a>
                             </div>

@@ -197,6 +197,7 @@ jQuery(document).ready(function($){
                 data:{
                     action:'wpcfe_upload_avatar',
                     imageData: resp,
+                    nonce: $('input[name="wpcfe_upload_avatar_nonce"]').val()
                 },
                 dataType: 'json',
                 url : wpcfeAjaxhandler.ajaxurl,
