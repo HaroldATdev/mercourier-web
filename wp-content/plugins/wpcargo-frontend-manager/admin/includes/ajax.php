@@ -108,6 +108,11 @@ function wpcfe_get_option_callback(){
 error_log('📂 [TRACE] ajax.php: Antes de add_action wpcfe_upload_avatar');
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 error_log('📂 [TRACE] ajax.php: Después de add_action wpcfe_upload_avatar - Hook registrado');
+
+function wpcfe_upload_avatar_callback(){
+	error_log('🚀 CALLBACK INICIADO - wpcfe_upload_avatar_callback');
+	
+	// Asegurar que DOING_AJAX está definida para excepto del acceso control
 	if ( !defined('DOING_AJAX') ) {
 		define('DOING_AJAX', true);
 	}
