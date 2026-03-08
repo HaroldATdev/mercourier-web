@@ -193,8 +193,6 @@ jQuery(document).ready(function($){
             }
         }).then(function (resp) {
             var nonceValue = $('input[name="wpcfe_upload_avatar_nonce"]').val();
-            console.log('Nonce value being sent:', nonceValue);
-            console.log('Nonce input elements found:', $('input[name="wpcfe_upload_avatar_nonce"]').length);
             
             $.ajax({
                 type:"POST",
@@ -210,7 +208,6 @@ jQuery(document).ready(function($){
                 },
                 success:function( response ){
                     $('body .wpcfe-spinner').remove();
-                    console.log('Avatar upload response:', response);
                     
                     if( response.success ){
                         $('#user-avatar .photo-container').html('<img alt="" src="' + response.data.avatar_url + '" srcset="' + response.data.avatar_url + '" class="avatar avatar-128 photo photo-inner" height="128" width="128">');
@@ -238,9 +235,6 @@ jQuery(document).ready(function($){
                 },
                 error:function( xhr, status, error ){
                     $('body .wpcfe-spinner').remove();
-                    console.error('AJAX Error Status:', status);
-                    console.error('AJAX Error:', error);
-                    console.error('AJAX Response:', xhr.responseText);
                     
                     var errorMsg = 'Error al cargar el avatar';
                     if(status === 'parsererror'){

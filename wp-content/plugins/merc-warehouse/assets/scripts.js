@@ -73,36 +73,81 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        let html = '<table class="tabla-productos" style="width:100%;border-collapse:collapse;margin-top:20px;">';
-        html += '<thead><tr style="background:#f8f9fa;border-bottom:2px solid #dee2e6;">';
-        html += '<th style="padding:12px;text-align:left;">Producto</th>';
-        html += '<th style="padding:12px;text-align:center;">Cantidad</th>';
-        html += '<th style="padding:12px;text-align:left;">Cliente</th>';
-        html += '<th style="padding:12px;text-align:left;">Creado</th>';
-        html += '<th style="padding:12px;text-align:center;">Estado</th>';
-        if (isAdmin) {
-            html += '<th style="padding:12px;text-align:center;">Acciones</th>';
-        }
-        html += '</tr></thead><tbody>';
-        
-        productos.forEach(prod => {
-            const estadoClass = prod.estado === 'asignado' ? 'badge-asignado' : (prod.estado === 'entregado' ? 'badge-entregado' : 'badge-sin-asignar');
-            const estadoText = prod.estado === 'asignado' ? '🚚 Asignado' : (prod.estado === 'entregado' ? '✅ Entregado' : '📦 Sin Asignar');
-            
-            html += '<tr style="border-bottom:1px solid #ecf0f1;">';
-            html += '<td style="padding:12px;"><strong>' + (prod.nombre || 'Sin nombre') + '</strong></td>';
-            html += '<td style="padding:12px;text-align:center;"><span style="background:#d4edda;color:#155724;padding:4px 8px;border-radius:4px;font-weight:bold;">' + (prod.cantidad || 0) + '</span></td>';
-            html += '<td style="padding:12px;">' + (prod.billing_company || 'N/A') + '</td>';
-            html += '<td style="padding:12px;font-size:13px;color:#7f8c8d;">' + (prod.fecha_creacion || '-') + '</td>';
-            html += '<td style="padding:12px;text-align:center;"><span style="display:inline-block;padding:6px 12px;background:#e9ecef;color:#495057;border-radius:6px;font-size:12px;font-weight:600;">' + estadoText + '</span></td>';
-            if (isAdmin) {
-                html += '<td style="padding:12px;text-align:center;"><button class="btn-edit" onclick="window.editarProducto(' + prod.id + ')">✏️ Editar</button></td>';
-            }
-            html += '</tr>';
+        // Agrupar productos por cliente (billing_company)
+        const grupos = {};
+        productos.forEach(p => {
+            const cliente = (p.billing_company && p.billing_company.trim() !== '') ? p.billing_company.trim() : 'Sin Cliente';
+            if (!grupos[cliente]) grupos[cliente] = [];
+            grupos[cliente].push(p);
         });
         
-        html += '</tbody></table>';
+        let html = '';
+        const clientesOrdenados = Object.keys(grupos).sort();
+        
+        clientesOrdenados.forEach(cliente => {
+            const prods = grupos[cliente];
+            const totalCliente = prods.reduce((a, p) => a + (parseInt(p.cantidad) || 0), 0);
+            const grupoId = 'grupo-' + cliente.replace(/[^a-z0-9]/gi, '_');
+            
+            html += `<div class="grupo-cliente" style="margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">`;
+            html += `<button class="grupo-cliente-header" data-grupo="${grupoId}" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%); color: white; cursor: pointer; user-select: none; font-size: 16px; font-weight: 700; border: none; width: 100%; text-align: left; transition: background 0.3s;">`;
+            html += `👤 ${cliente} <span style="font-size: 13px; font-weight: 400; opacity: 0.85; margin-left: auto;">${prods.length} producto(s) · ${totalCliente} unidades</span>`;
+            html += `<span class="grupo-cliente-chevron" style="font-size: 14px; margin-left: auto; transition: transform 0.25s;">▼</span>`;
+            html += `</button>`;
+            html += `<div class="grupo-cliente-body" id="${grupoId}" style="background: white;">`;
+            
+            // Tabla de productos del grupo
+            html += '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<thead><tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">';
+            html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Producto</th>';
+            html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Cantidad</th>';
+            html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Creado</th>';
+            html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Estado</th>';
+            if (isAdmin) {
+                html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Acciones</th>';
+            }
+            html += '</tr></thead>';
+            html += '<tbody>';
+            
+            prods.forEach((prod, idx) => {
+                const estadoText = prod.estado === 'asignado' ? '🚚 Asignado' : (prod.estado === 'entregado' ? '✅ Entregado' : '📦 Sin Asignar');
+                const bgcolor = idx % 2 === 0 ? 'white' : '#f9f9f9';
+                
+                html += `<tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">`;
+                html += `<td style="padding: 12px 20px;"><strong>${prod.nombre || 'Sin nombre'}</strong></td>`;
+                html += `<td style="padding: 12px 20px; text-align: center;"><span style="display: inline-block; background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px;">${prod.cantidad || 0}</span></td>`;
+                html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${prod.fecha_creacion || '-'}</td>`;
+                html += `<td style="padding: 12px 20px; text-align: center;"><span style="display: inline-block; padding: 6px 12px; background: #e9ecef; color: #495057; border-radius: 6px; font-size: 12px; font-weight: 600;">${estadoText}</span></td>`;
+                if (isAdmin) {
+                    html += `<td style="padding: 12px 20px; text-align: center;"><button class="btn-edit" onclick="window.editarProducto(${prod.id})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;">✏️ Editar</button></td>`;
+                }
+                html += '</tr>';
+            });
+            
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+            html += '</div>';
+        });
+        
         container.innerHTML = html;
+        
+        // Agregar listeners para colapsar/expandir grupos
+        document.querySelectorAll('.grupo-cliente-header').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const grupoId = this.getAttribute('data-grupo');
+                const body = document.getElementById(grupoId);
+                const chevron = this.querySelector('.grupo-cliente-chevron');
+                
+                if (body.style.display === 'none') {
+                    body.style.display = 'block';
+                    chevron.style.transform = 'rotate(0deg)';
+                } else {
+                    body.style.display = 'none';
+                    chevron.style.transform = 'rotate(-90deg)';
+                }
+            });
+        });
     }
     
     function updateStats(productos) {
