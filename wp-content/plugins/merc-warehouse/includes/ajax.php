@@ -117,6 +117,8 @@ function merc_guardar_producto() {
     $cantidad = intval($_POST['cantidad'] ?? 1);
     $cliente_asignado = intval($_POST['cliente_asignado'] ?? 0);
     $peso = floatval($_POST['peso'] ?? 0);
+    $tipo_medida = sanitize_text_field($_POST['tipo_medida'] ?? '');
+    $valor_medida = sanitize_text_field($_POST['valor_medida'] ?? '');
     $largo = floatval($_POST['largo'] ?? 0);
     $ancho = floatval($_POST['ancho'] ?? 0);
     $alto = floatval($_POST['alto'] ?? 0);
@@ -155,6 +157,14 @@ function merc_guardar_producto() {
     
     if ($peso > 0) {
         update_post_meta($product_id, '_merc_producto_peso', $peso);
+    }
+    
+    if (!empty($tipo_medida)) {
+        update_post_meta($product_id, '_merc_producto_tipo_medida', $tipo_medida);
+    }
+    
+    if (!empty($valor_medida)) {
+        update_post_meta($product_id, '_merc_producto_valor_medida', $valor_medida);
     }
     
     if ($largo > 0 || $ancho > 0 || $alto > 0) {
@@ -273,6 +283,8 @@ function merc_obtener_producto() {
         'cantidad' => !empty($c) ? intval($c) : 0,
         'estado' => $estado,
         'peso' => floatval(get_post_meta($product_id, '_merc_producto_peso', true) ?: 0),
+        'tipo_medida' => get_post_meta($product_id, '_merc_producto_tipo_medida', true) ?: '',
+        'valor_medida' => get_post_meta($product_id, '_merc_producto_valor_medida', true) ?: '',
         'largo' => $dimensiones['largo'] ?? 0,
         'ancho' => $dimensiones['ancho'] ?? 0,
         'alto' => $dimensiones['alto'] ?? 0
@@ -335,6 +347,20 @@ function merc_actualizar_producto() {
     $peso = floatval($_POST['peso'] ?? 0);
     if ($peso > 0) {
         update_post_meta($product_id, '_merc_producto_peso', $peso);
+    }
+    
+    $tipo_medida = sanitize_text_field($_POST['tipo_medida'] ?? '');
+    if (!empty($tipo_medida)) {
+        update_post_meta($product_id, '_merc_producto_tipo_medida', $tipo_medida);
+    } else {
+        delete_post_meta($product_id, '_merc_producto_tipo_medida');
+    }
+    
+    $valor_medida = sanitize_text_field($_POST['valor_medida'] ?? '');
+    if (!empty($valor_medida)) {
+        update_post_meta($product_id, '_merc_producto_valor_medida', $valor_medida);
+    } else {
+        delete_post_meta($product_id, '_merc_producto_valor_medida');
     }
     
     $largo = floatval($_POST['largo'] ?? 0);

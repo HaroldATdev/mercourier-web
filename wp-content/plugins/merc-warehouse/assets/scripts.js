@@ -248,6 +248,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                         
                         <div class="form-group" style="padding: 12px 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Tipo de Medida <small>(opcional)</small></label>
+                            <select name="tipo_medida" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                                <option value="">-- Seleccionar --</option>
+                                <option value="talla">Talla</option>
+                                <option value="color">Color</option>
+                                <option value="modelo">Modelo</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📏 Tipo de medida del producto</small>
+                        </div>
+                        
+                        <div class="form-group" style="padding: 12px 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Valor de Medida <small>(opcional)</small></label>
+                            <input type="text" name="valor_medida" placeholder="Ej: S, M, L, XL o 100ml" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📐 Valor específico de la medida (talla, color, etc.)</small>
+                        </div>
+                        
+                        <div class="form-group" style="padding: 12px 20px;">
                             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Dimensiones (cm) <small>(opcional)</small></label>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <input type="number" name="largo" min="0" step="0.1" placeholder="Largo (cm)" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
@@ -471,6 +489,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     
                     <div class="form-group" style="padding: 12px 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Tipo de Medida <small>(opcional)</small></label>
+                        <select id="edit-tipo_medida" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="talla">Talla</option>
+                            <option value="color">Color</option>
+                            <option value="modelo">Modelo</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="padding: 12px 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Valor de Medida <small>(opcional)</small></label>
+                        <input type="text" id="edit-valor_medida" placeholder="Ej: S, M, L, XL o 100ml" value="${producto.valor_medida || ''}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+                    
+                    <div class="form-group" style="padding: 12px 20px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Dimensiones (cm) <small>(opcional)</small></label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <input type="number" id="edit-largo" min="0" step="0.1" placeholder="Largo (cm)" value="${producto.largo || 0}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
@@ -495,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Establecer estado actual
         document.getElementById('edit-estado').value = producto.estado || 'sin_asignar';
+        document.getElementById('edit-tipo_medida').value = producto.tipo_medida || '';
         
         // Cerrar modal
         document.querySelectorAll('.modal-close-btn').forEach(btn => {
@@ -622,6 +657,8 @@ document.addEventListener('DOMContentLoaded', function () {
             cliente_asignado: document.getElementById('edit-cliente').value,
             estado: document.getElementById('edit-estado').value,
             peso: parseFloat(document.getElementById('edit-peso').value) || 0,
+            tipo_medida: document.getElementById('edit-tipo_medida').value,
+            valor_medida: document.getElementById('edit-valor_medida').value,
             largo: parseFloat(document.getElementById('edit-largo').value) || 0,
             ancho: parseFloat(document.getElementById('edit-ancho').value) || 0,
             alto: parseFloat(document.getElementById('edit-alto').value) || 0,
