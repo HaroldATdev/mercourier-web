@@ -57,12 +57,7 @@ jQuery(document).ready(function ($) {
         
         // Mostrar estado del autocompletado según tipo de envío
         var tipo = tipoEnvioGlobal || getTipoEnvio();
-        var tipoLower = (tipo || '').toLowerCase();
-        if (tipoLower === 'normal' || tipoLower === '') {
-            console.log('[ContainerAssign] ✅ AUTOCOMPLETADO ACTIVO (MERC EMPRENDEDOR)');
-        } else {
-            console.log('[ContainerAssign] ⛔ AUTOCOMPLETADO DESACTIVADO (tipo:', tipo, '- solo funciona para MERC EMPRENDEDOR)');
-        }
+        console.log('[ContainerAssign] ✅ AUTOCOMPLETADO ACTIVO para tipo:', tipo || '(pendiente)');
     }
 
     setTimeout(diagnosticoFormulario, 1000);
@@ -195,14 +190,7 @@ jQuery(document).ready(function ($) {
         if (enCurso[campo]) return;
 
         var tipo = tipoEnvioGlobal || getTipoEnvio();
-        
-        // ✅ VALIDACIÓN: Solo ejecutar para MERC EMPRENDEDOR (tipo 'normal')
-        var tipoLower = (tipo || '').toLowerCase();
-        if (tipoLower !== 'normal' && tipoLower !== '') {
-            console.log('[ContainerAssign] ⚠️ Asignación automática DESACTIVADA para tipo:', tipo, '(solo MERC EMPRENDEDOR)');
-            return;
-        }
-        
+
         var selectName = getSelectName(campo);
         if (!selectName) {
             console.log('[ContainerAssign] Campo "' + campo + '" no aplica para tipo:', tipo);
