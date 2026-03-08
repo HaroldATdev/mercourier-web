@@ -105,12 +105,14 @@ function wpcfe_upload_avatar_callback(){
 	// Limpiar cualquier output anterior
 	@ob_end_clean();
 	
-	// Verificar nonce para seguridad
-	check_ajax_referer( 'wpcfe_upload_avatar_action', 'nonce' );
-	
 	// Verificar que el usuario está logueado
 	if ( !is_user_logged_in() ) {
 		wp_send_json_error( array( 'message' => 'User not authenticated' ) );
+	}
+	
+	// Verificar nonce para seguridad (retorna false en lugar de wp_die)
+	if ( !isset( $_POST['nonce'] ) || !wp_verify_nonce( $_POST['nonce'], 'wpcfe_upload_avatar_action' ) ) {
+		wp_send_json_error( array( 'message' => 'Security verification failed. Please refresh the page and try again.' ) );
 	}
 	
 	// Validar campo de imagen
