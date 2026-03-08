@@ -171,7 +171,9 @@ class MERC_Shipment_Table {
 
 			.merc-tienda-card-content {
 				max-height: 2000px;
-				overflow: hidden;
+				overflow-x: auto;
+				overflow-y: hidden;
+				-webkit-overflow-scrolling: touch;
 				transition: max-height 0.3s ease;
 				background: white;
 			}
@@ -183,6 +185,7 @@ class MERC_Shipment_Table {
 
 			.merc-tienda-card-table {
 				width: 100%;
+				min-width: 900px;
 				border-collapse: collapse;
 				margin: 0;
 				background: white;
@@ -215,12 +218,93 @@ class MERC_Shipment_Table {
 				vertical-align: middle;
 				font-size: 13px;
 			}
+
+			/* Responsive: scroll horizontal en móvil */
+			@media (max-width: 768px) {
+				/* NO overflow-x: hidden aquí – el scroll lo maneja .merc-tienda-card-content */
+				.merc-tienda-card-header { font-size: 12px; padding: 8px 10px; }
+				.merc-tienda-card-table thead th,
+				.merc-tienda-card-table tbody td { padding: 5px 7px; font-size: 11px; white-space: nowrap; }
+				.merc-tienda-info strong { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			}
 		</style>
 		<script>
 		(function($) {
 			console.log('🚀 merc-table script loaded');
 
 			let initialized = false;
+
+			/* ── Sync estado de checkboxes globales ─────────────────────── */
+			function updateGlobalCheckboxState() {
+				var total   = $('.wpcfe-shipments').length;
+				var checked = $('.wpcfe-shipments:checked').length;
+				var $gsa    = $('#merc-select-all-global');
+				if (!$gsa.length || total === 0) return;
+				$gsa.prop('checked', checked === total)
+				    .prop('indeterminate', checked > 0 && checked < total);
+				// Sync checkboxes de cada card
+				$('.merc-tienda-card').each(function() {
+					var $c  = $(this);
+					var ct  = $c.find('.wpcfe-shipments').length;
+					var cc  = $c.find('.wpcfe-shipments:checked').length;
+					$c.find('.merc-tienda-checkbox')
+					  .prop('checked', ct > 0 && cc === ct)
+					  .prop('indeterminate', cc > 0 && cc < ct);
+				});
+			}
+
+			/* ── Setup post-accordion: select-all + bulk-print ──────────── */
+			function postAccordionSetup() {
+				// 1. Checkbox "Seleccionar todos" global sobre el accordion
+				if ($('#merc-select-all-global').length === 0) {
+					var $gsa = $('<div style="padding:6px 8px 8px;display:flex;align-items:center;gap:8px;">' +
+						'<input type="checkbox" id="merc-select-all-global" style="width:16px;height:16px;cursor:pointer;">' +
+						'<label for="merc-select-all-global" style="cursor:pointer;margin:0;font-size:13px;font-weight:600;color:#555;">Seleccionar todos los envíos</label>' +
+						'</div>');
+					$('#shipment-history-accordion').prepend($gsa);
+				}
+
+				$('#merc-select-all-global').off('change').on('change', function() {
+					var ck = $(this).prop('checked');
+					$(this).prop('indeterminate', false);
+					$('.merc-tienda-checkbox').prop('checked', ck).prop('indeterminate', false);
+					$('.wpcfe-shipments').prop('checked', ck);
+				});
+
+				// 2. Bulk-print: reemplaza el handler de WPCargo (que usa #shipment-list ya inexistente)
+				if (typeof wpcfeAjaxhandler !== 'undefined') {
+					$('.wpcfe-bulkprint-wrapper').off('click').on('click', '.wpcfe-bulk-print', function(e) {
+						e.preventDefault();
+						var printType = $(this).data('type');
+						var selected  = [];
+						$('.wpcfe-shipments:checked').each(function() { selected.push($(this).val()); });
+						if (selected.length === 0) { alert('Por favor seleccione al menos un envío'); return; }
+						$('body').append('<div class="merc-pdf-spinner" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px 30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:99999;font-size:15px;">Generando PDF...</div>');
+						$.ajax({
+							type: 'POST', url: wpcfeAjaxhandler.ajaxurl,
+							data: { action: 'wpcfe_bulkprint', selectedShipment: selected, printType: printType },
+							success: function(r) {
+								$('body .merc-pdf-spinner').remove();
+								try {
+									var d = JSON.parse(r);
+									if (d && d.file_url) {
+										$('.wpcfe-shipments, .merc-tienda-checkbox').prop('checked', false).prop('indeterminate', false);
+										$('#merc-select-all-global').prop('checked', false).prop('indeterminate', false);
+										var a = document.createElement('a');
+										a.href = d.file_url;
+										a.target = '_blank';
+										a.download = (d.file_name || 'etiquetas') + '.pdf';
+										document.body.appendChild(a);
+										a.click();
+										document.body.removeChild(a);
+									} else { alert('Error al generar el PDF'); }
+								} catch(ex) { alert('Error al procesar la respuesta'); }
+							},
+							error: function() { $('body .merc-pdf-spinner').remove(); alert('Error de conexión'); }
+						});
+					});
+				}
+			}
 
 			function initializeAccordion() {
 				if (initialized) return true;
@@ -273,8 +357,16 @@ class MERC_Shipment_Table {
 				const $headerRow = $table.find('thead tr').first();
 				let headerHtml = '';
 				if ($headerRow.length) {
+					let isFirst = true;
 					$headerRow.find('th').each(function() {
-						headerHtml += '<th>' + $(this).html() + '</th>';
+						if (isFirst) {
+							// Primer TH tiene #wpcfe-select-all: lo neutralizamos para evitar
+							// IDs duplicados. Cada card ya tiene su propio .merc-tienda-checkbox.
+							headerHtml += '<th></th>';
+							isFirst = false;
+						} else {
+							headerHtml += '<th>' + $(this).html() + '</th>';
+						}
 					});
 				}
 
@@ -320,7 +412,9 @@ class MERC_Shipment_Table {
 
 					$header.find('input[type="checkbox"]').on('change', function() {
 						const isChecked = $(this).prop('checked');
+						$(this).prop('indeterminate', false);
 						$innerTbody.find('input[type="checkbox"]').prop('checked', isChecked);
+						updateGlobalCheckboxState();
 					});
 
 					$accordion.append($card);
@@ -338,6 +432,7 @@ class MERC_Shipment_Table {
 				}
 
 				initialized = true;
+				postAccordionSetup();
 				console.log('✅ Accordion generado completamente!');
 			}
 
@@ -358,6 +453,41 @@ class MERC_Shipment_Table {
 			$(document).ready(function() {
 				console.log('📌 Document ready');
 				setTimeout(initializeAccordion, 500);
+
+				// Sync checkbox global cuando cambia cualquier fila individual
+				$(document).on('change', '.wpcfe-shipments', updateGlobalCheckboxState);
+
+				// Print por fila: event delegation desde document (sobrevive al accordion)
+				$(document).on('click.mercPrint', '.print-shipment .dropdown-item', function(e) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					var shipmentID = $(this).data('id');
+					var printType  = $(this).data('type');
+					if (!shipmentID || !printType) return;
+					if (typeof wpcfeAjaxhandler === 'undefined') return;
+					$('body').append('<div class="merc-pdf-spinner" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px 30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:99999;font-size:15px;">Generando PDF...</div>');
+					$.ajax({
+						type: 'POST', url: wpcfeAjaxhandler.ajaxurl,
+						data: { action: 'wpcfe_print_shipment', shipmentID: shipmentID, printType: printType },
+						success: function(r) {
+							$('body .merc-pdf-spinner').remove();
+							try {
+								var d = JSON.parse(r);
+								if (d && d.file_url) {
+									// Usar un enlace temporal para evitar bloqueo de popup-blockers
+									var a = document.createElement('a');
+									a.href = d.file_url;
+									a.target = '_blank';
+									a.download = (d.file_name || 'etiqueta') + '.pdf';
+									document.body.appendChild(a);
+									a.click();
+									document.body.removeChild(a);
+								} else { alert('Error al generar el PDF'); }
+							} catch(ex) { alert('Error al procesar la respuesta del servidor'); }
+						},
+						error: function() { $('body .merc-pdf-spinner').remove(); alert('Error de conexión al generar el PDF'); }
+					});
+				});
 			});
 
 			// Timeout para limpiar observer si no se usa
