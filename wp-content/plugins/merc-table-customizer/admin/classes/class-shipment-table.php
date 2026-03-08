@@ -250,6 +250,9 @@ class MERC_Shipment_Table {
 					$c.find('.merc-tienda-checkbox')
 					  .prop('checked', ct > 0 && cc === ct)
 					  .prop('indeterminate', cc > 0 && cc < ct);
+				$c.find('.merc-card-select-all')
+					  .prop('checked', ct > 0 && cc === ct)
+					  .prop('indeterminate', cc > 0 && cc < ct);
 				});
 			}
 
@@ -268,6 +271,7 @@ class MERC_Shipment_Table {
 					var ck = $(this).prop('checked');
 					$(this).prop('indeterminate', false);
 					$('.merc-tienda-checkbox').prop('checked', ck).prop('indeterminate', false);
+					$('.merc-card-select-all').prop('checked', ck).prop('indeterminate', false);
 					$('.wpcfe-shipments').prop('checked', ck);
 				});
 
@@ -362,7 +366,7 @@ class MERC_Shipment_Table {
 						if (isFirst) {
 							// Primer TH tiene #wpcfe-select-all: lo neutralizamos para evitar
 							// IDs duplicados. Cada card ya tiene su propio .merc-tienda-checkbox.
-							headerHtml += '<th></th>';
+							headerHtml += '<th class="merc-card-select-all-th"><input type="checkbox" class="merc-card-select-all form-check-input" title="Seleccionar todos" style="cursor:pointer;width:16px;height:16px;"></th>';
 							isFirst = false;
 						} else {
 							headerHtml += '<th>' + $(this).html() + '</th>';
@@ -410,10 +414,32 @@ class MERC_Shipment_Table {
 						}
 					});
 
+					// Checkbox en HEADER de la card (barra superior)
 					$header.find('input[type="checkbox"]').on('change', function() {
 						const isChecked = $(this).prop('checked');
 						$(this).prop('indeterminate', false);
-						$innerTbody.find('input[type="checkbox"]').prop('checked', isChecked);
+						$innerTable.find('.merc-card-select-all').prop('checked', isChecked).prop('indeterminate', false);
+						$innerTbody.find('.wpcfe-shipments').prop('checked', isChecked);
+						updateGlobalCheckboxState();
+					});
+
+					// Checkbox en HEADER de la tabla interna (primera columna)
+					$innerTable.find('.merc-card-select-all').on('change', function() {
+						const isChecked = $(this).prop('checked');
+						$(this).prop('indeterminate', false);
+						$header.find('.merc-tienda-checkbox').prop('checked', isChecked).prop('indeterminate', false);
+						$innerTbody.find('.wpcfe-shipments').prop('checked', isChecked);
+						updateGlobalCheckboxState();
+					});
+
+					// Sync encabezados al cambiar filas individuales
+					$innerTbody.on('change', '.wpcfe-shipments', function() {
+						const total   = $innerTbody.find('.wpcfe-shipments').length;
+						const checked = $innerTbody.find('.wpcfe-shipments:checked').length;
+						const allChecked = checked === total && total > 0;
+						const someChecked = checked > 0 && checked < total;
+						$innerTable.find('.merc-card-select-all').prop('checked', allChecked).prop('indeterminate', someChecked);
+						$header.find('.merc-tienda-checkbox').prop('checked', allChecked).prop('indeterminate', someChecked);
 						updateGlobalCheckboxState();
 					});
 
