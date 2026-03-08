@@ -366,7 +366,7 @@ class MERC_Shipment_Table {
 						if (isFirst) {
 							// Primer TH tiene #wpcfe-select-all: lo neutralizamos para evitar
 							// IDs duplicados. Cada card ya tiene su propio .merc-tienda-checkbox.
-							headerHtml += '<th class="merc-card-select-all-th"><input type="checkbox" class="merc-card-select-all form-check-input" title="Seleccionar todos" style="cursor:pointer;width:16px;height:16px;"></th>';
+							headerHtml += '<th class="merc-card-select-all-th" style="text-align:center;padding:8px;"><input type="checkbox" class="merc-card-select-all" title="Seleccionar todos" style="cursor:pointer;width:16px;height:16px;display:inline-block;position:static;margin:0;"></th>';
 							isFirst = false;
 						} else {
 							headerHtml += '<th>' + $(this).html() + '</th>';
