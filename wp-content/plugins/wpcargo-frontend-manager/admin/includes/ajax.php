@@ -104,19 +104,17 @@ add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 add_action( 'wp_ajax_nopriv_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 function wpcfe_upload_avatar_callback(){
 	// Limpiar cualquier output anterior
-	if ( ob_get_level() > 0 ) {
-		ob_end_clean();
-	}
+	@ob_end_clean();
 	
 	// Validar campo de imagen
 	if( empty( $_POST['imageData'] ) ){
-		wp_send_json_error( 'No image data provided', 400 );
+		wp_send_json_error( array( 'message' => 'No image data provided' ) );
 	}
 	
 	// Obtener directorio de cargas
 	$upload_dir = wp_upload_dir();
 	if( isset( $upload_dir['error'] ) && $upload_dir['error'] ){
-		wp_send_json_error( 'Upload directory error', 400 );
+		wp_send_json_error( array( 'message' => 'Upload directory error' ) );
 	}
 	
 	// Procesar imagen base64
@@ -127,13 +125,13 @@ function wpcfe_upload_avatar_callback(){
 	
 	$decoded = base64_decode( $img_data, true );
 	if( false === $decoded ){
-		wp_send_json_error( 'Failed to decode image data', 400 );
+		wp_send_json_error( array( 'message' => 'Failed to decode image data' ) );
 	}
 	
 	// Crear nombre de archivo
 	$user_id = get_current_user_id();
 	if( !$user_id ){
-		wp_send_json_error( 'User not authenticated', 401 );
+		wp_send_json_error( array( 'message' => 'User not authenticated' ) );
 	}
 	
 	$filename = $user_id . '.png';
@@ -143,15 +141,12 @@ function wpcfe_upload_avatar_callback(){
 	// Guardar archivo
 	$saved = file_put_contents( $upload_path . $hashed_filename, $decoded );
 	if( false === $saved ){
-		wp_send_json_error( 'Failed to save image file', 500 );
+		wp_send_json_error( array( 'message' => 'Failed to save image file' ) );
 	}
 	
 	// Requieres funciones necesarias
 	if( !function_exists( 'wp_handle_sideload' ) ) {
 		require_once( ABSPATH . 'wp-admin/includes/file.php' );
-	}
-	if( !function_exists( 'wp_get_current_user' ) ) {
-		require_once( ABSPATH . 'wp-includes/user.php' );
 	}
 	
 	// Preparar archivo para sideload
@@ -167,11 +162,11 @@ function wpcfe_upload_avatar_callback(){
 	$file_return = wp_handle_sideload( $file, array( 'test_form' => false ) );
 	
 	if( isset( $file_return['error'] ) && $file_return['error'] ){
-		wp_send_json_error( $file_return['error'], 400 );
+		wp_send_json_error( array( 'message' => $file_return['error'] ) );
 	}
 	
 	if( !isset( $file_return['file'] ) || empty( $file_return['file'] ) ){
-		wp_send_json_error( 'File upload failed without error message', 400 );
+		wp_send_json_error( array( 'message' => 'File upload failed without error message' ) );
 	}
 	
 	// Crear attachment
@@ -186,7 +181,7 @@ function wpcfe_upload_avatar_callback(){
 	$attach_id = wp_insert_attachment( $attachment_args, $attachment_file );
 	
 	if( is_wp_error( $attach_id ) || !$attach_id ){
-		wp_send_json_error( 'Failed to create attachment', 500 );
+		wp_send_json_error( array( 'message' => 'Failed to create attachment' ) );
 	}
 	
 	// Generar metadata
@@ -199,7 +194,7 @@ function wpcfe_upload_avatar_callback(){
 	// Obtener URL del avatar
 	$avatar_url = wp_get_attachment_url( $attach_id );
 	if( !$avatar_url ){
-		wp_send_json_error( 'Could not retrieve attachment URL', 500 );
+		wp_send_json_error( array( 'message' => 'Could not retrieve attachment URL' ) );
 	}
 	
 	// Guardar en meta del usuario
