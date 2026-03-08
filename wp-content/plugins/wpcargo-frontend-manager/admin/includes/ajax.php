@@ -2,6 +2,12 @@
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
+
+// Definir DOING_AJAX lo antes posible para excepto del acceso control
+if ( !defined('DOING_AJAX') ) {
+    define('DOING_AJAX', true);
+}
+
 add_action( 'wp_ajax_wpcfe_delete_shipment', 'wpcfe_delete_shipment_callback' );
 // add_action( 'wp_ajax_nopriv_wpcfe_delete_shipment', 'wpcfe_delete_shipment_callback' );
 function wpcfe_delete_shipment_callback(){
@@ -102,21 +108,21 @@ function wpcfe_get_option_callback(){
 }
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 function wpcfe_upload_avatar_callback(){
+	// Asegurar que DOING_AJAX está definida para excepto del acceso control
+	if ( !defined('DOING_AJAX') ) {
+		define('DOING_AJAX', true);
+	}
+	
 	// Limpiar cualquier output anterior
 	@ob_end_clean();
 	
-	error_log('=== AVATAR UPLOAD CALLBACK EJECUTÁNDOSE ===');
-	error_log('POST keys: ' . implode(', ', array_keys($_POST)));
-	
 	// Verificar que el usuario está logueado
 	if ( !is_user_logged_in() ) {
-		error_log('ERROR: User not logged in');
 		wp_send_json_error( array( 'message' => 'User not authenticated' ) );
 	}
 	
 	// Validar nonce
 	if ( !isset( $_POST['nonce'] ) || !wp_verify_nonce( $_POST['nonce'], 'wpcfe_upload_avatar_action' ) ) {
-		error_log('ERROR: Nonce verification failed');
 		wp_send_json_error( array( 'message' => 'Security verification failed' ) );
 	}
 	

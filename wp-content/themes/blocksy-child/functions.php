@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Blocksy Child Theme Functions
  *
@@ -6975,6 +6975,12 @@ add_action('wp_footer', function() {
 // Función auxiliar: Verificar si un cliente puede crear envíos hoy según estados
 function merc_cliente_tiene_envios_pendientes_hoy($client_id) {
     global $wpdb;
+    
+    // Excepto solicitudes AJAX del bloqueo manual - solo aplica a páginas frontend
+    if ( defined('DOING_AJAX') && DOING_AJAX ) {
+        error_log("🔄 Solicitud AJAX detectada - sin bloqueo manual aplicado");
+        return false;
+    }
     
     // Obtener la fecha de HOY en formato Y-m-d (usando timezone de WordPress)
     $hoy = current_time('Y-m-d');
