@@ -108,23 +108,31 @@ function wpcfe_get_option_callback(){
 }
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 function wpcfe_upload_avatar_callback(){
+	error_log('🚀 wpcfe_upload_avatar_callback INICIADA');
+	
 	// Asegurar que DOING_AJAX está definida para excepto del acceso control
 	if ( !defined('DOING_AJAX') ) {
 		define('DOING_AJAX', true);
+		error_log('✅ DOING_AJAX definida in callback');
 	}
+	error_log('📌 DOING_AJAX status: ' . (defined('DOING_AJAX') && DOING_AJAX ? 'true' : 'false'));
 	
 	// Limpiar cualquier output anterior
 	@ob_end_clean();
 	
 	// Verificar que el usuario está logueado
 	if ( !is_user_logged_in() ) {
+		error_log('❌ User not logged in');
 		wp_send_json_error( array( 'message' => 'User not authenticated' ) );
 	}
+	error_log('✅ User is logged in: user_id=' . get_current_user_id());
 	
 	// Validar nonce
 	if ( !isset( $_POST['nonce'] ) || !wp_verify_nonce( $_POST['nonce'], 'wpcfe_upload_avatar_action' ) ) {
+		error_log('❌ Nonce verification failed');
 		wp_send_json_error( array( 'message' => 'Security verification failed' ) );
 	}
+	error_log('✅ Nonce verified');
 	
 	// Validar campo de imagen
 	if( empty( $_POST['imageData'] ) ){
@@ -219,6 +227,10 @@ function wpcfe_upload_avatar_callback(){
 	
 	// Guardar en meta del usuario
 	update_user_meta( $user_id, 'wpcargo_user_avatar', $avatar_url );
+	
+	error_log('🎉 ENVIANDO RESPUESTA EXITOSA');
+	error_log('Avatar URL: ' . $avatar_url);
+	error_log('Attachment ID: ' . $attach_id);
 	
 	// Respuesta exitosa
 	wp_send_json_success( array(
