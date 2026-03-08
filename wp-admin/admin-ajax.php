@@ -41,12 +41,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 send_nosniff_header();
 nocache_headers();
 
-error_log('🔹 [AJAX] Punto de partida: REQUEST[action]=' . (isset($_REQUEST['action']) ? sanitize_text_field($_REQUEST['action']) : 'VACIO'));
-
 /** This action is documented in wp-admin/admin.php */
 do_action( 'admin_init' );
-
-error_log('🔹 [AJAX] admin_init ejecutado');
 
 
 $core_actions_get = array(
@@ -180,30 +176,21 @@ add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies'
 
 $action = $_REQUEST['action'];
 
-error_log('🔹 [AJAX] Action: ' . $action);
-error_log('🔹 [AJAX] is_user_logged_in(): ' . (is_user_logged_in() ? 'true' : 'false'));
-error_log('🔹 [AJAX] has_action(wp_ajax_' . $action . '): ' . (has_action("wp_ajax_{$action}") ? 'true' : 'false'));
-
 if ( is_user_logged_in() ) {
 	// If no action is registered, return a Bad Request response.
 	if ( ! has_action( "wp_ajax_{$action}" ) ) {
-		error_log('❌ [AJAX] No hook encontrado para wp_ajax_' . $action . ', devolviendo 0');
 		wp_die( '0', 400 );
 	}
 
-	error_log('✅ [AJAX] Disparando wp_ajax_' . $action);
 	do_action( "wp_ajax_{$action}" );
 } else {
 	// If no action is registered, return a Bad Request response.
 	if ( ! has_action( "wp_ajax_nopriv_{$action}" ) ) {
-		error_log('❌ [AJAX] No hook encontrado para wp_ajax_nopriv_' . $action . ', devolviendo 0');
 		wp_die( '0', 400 );
 	}
 
-	error_log('✅ [AJAX] Disparando wp_ajax_nopriv_' . $action);
 	do_action( "wp_ajax_nopriv_{$action}" );
 }
 
 // Default status.
-error_log('⚠️ [AJAX] Alcanzó wp_die final (0)');
 wp_die( '0' );

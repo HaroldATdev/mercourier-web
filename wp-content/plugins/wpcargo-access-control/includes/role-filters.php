@@ -34,12 +34,8 @@ function wpcac_get_today() {
  * Main template redirect handler - restrict page access
  */
 function wpcac_template_redirect_handler() {
-    error_log('🔍 wpcac_template_redirect_handler ejecutándose');
-    error_log('DOING_AJAX: ' . (defined('DOING_AJAX') && DOING_AJAX ? 'true' : 'false'));
-    
     // Don't perform checks for AJAX/REST/CLI requests
     if (defined('DOING_AJAX') && DOING_AJAX) {
-        error_log('✅ DOING_AJAX detectado, retornando sin bloqueo');
         return;
     }
     if (defined('REST_REQUEST') && REST_REQUEST) {

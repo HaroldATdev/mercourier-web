@@ -32,25 +32,15 @@ define( 'WPCFE_UPDATE_REMOTE', 'updates-7.2'  );
 }
 
 require_once( WPCFE_PATH.'admin/includes/functions.php');
-error_log('✅ functions.php cargado');
 require_once( WPCFE_PATH.'admin/includes/widgets.php');
-error_log('✅ widgets.php cargado');
 require_once( WPCFE_PATH.'admin/includes/language.php');
-error_log('✅ language.php cargado');
 require_once( WPCFE_PATH.'admin/includes/pdf-helper.php');
-error_log('✅ pdf-helper.php cargado');
 require_once( WPCFE_PATH.'admin/includes/country-list.php');
-error_log('✅ country-list.php cargado');
 require_once( WPCFE_PATH.'admin/includes/map.php');
-error_log('✅ map.php cargado');
 require_once( WPCFE_PATH.'admin/includes/hooks.php');
-error_log('✅ hooks.php cargado');
 require_once( WPCFE_PATH.'admin/includes/hooks-shipment.php');
-error_log('✅ hooks-shipment.php cargado');
 require_once( WPCFE_PATH.'admin/includes/print-hooks.php');
-error_log('✅ print-hooks.php cargado');
 require_once( WPCFE_PATH.'admin/includes/ajax.php');
-error_log('✅ ajax.php cargado');
 require_once( WPCFE_PATH.'admin/includes/settings.php');
 require_once( WPCFE_PATH.'admin/classes/class-core.php');
 require_once( WPCFE_PATH.'admin/classes/class-menus.php');
