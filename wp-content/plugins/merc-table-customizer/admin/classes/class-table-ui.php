@@ -203,13 +203,15 @@ class MERC_Table_UI {
                 });
             }
 
-            // "Estado" queda justo después de "Cambio de Producto"
-            moveCol('Cambio de Producto', 'Estado');
+            // "Estado" ya está en posición correcta (viene del template PHP)
 
             // "Número de seguimiento" queda al final
             ['Número de seguimiento', 'Seguimiento', 'Tracking Number', 'Número de Tracking'].forEach(function(c) {
                 moveColToEnd(c);
             });
+
+            // "Print" queda al final (después de Tracking)
+            moveColToEnd('Print');
         }
 
         reordenarColumnas();
@@ -269,7 +271,7 @@ class MERC_Table_UI {
         }
 
         function resaltarFilasReprogramadas() {
-            $('#shipment-list td.shipment-status, table.shipment-list td.shipment-status').each(function() {
+            $('td.shipment-status').each(function() {
                 const $estadoCell = $(this);
                 let estadoActual  = $estadoCell.text().trim();
                 const $select     = $estadoCell.find('.merc-estado-select');
@@ -379,11 +381,10 @@ class MERC_Table_UI {
 
         function convertirEstadoASelect() {
             if (esCliente) { console.log('👤 Usuario es cliente - estados solo en modo lectura'); return; }
-            if ($('#shipment-list, table.shipment-list').length === 0) { console.log('⏭️ Tabla shipment-list no encontrada'); return; }
 
             let contadorConvertidos = 0;
 
-            $('#shipment-list td.shipment-status, table.shipment-list td.shipment-status').each(function() {
+            $('td.shipment-status').each(function() {
                 const $estadoCell = $(this);
                 if ($estadoCell.find('.merc-estado-select').length > 0) return;
                 const estadoActual = $estadoCell.text().trim();
@@ -524,12 +525,13 @@ class MERC_Table_UI {
         setTimeout(agregarBotonesReprogramar, 1500);
 
         setInterval(function() {
-            const $tabla = $('#shipment-list, table.shipment-list');
+            // Funciona tanto con #shipment-list original como con el accordion
+            const $tabla = $('#shipment-history-accordion, #shipment-list, table.shipment-list');
             if ($tabla.length === 0) return;
-            if ($tabla.find('tbody tr').length === 0) return;
+            if ($tabla.find('tbody tr').length === 0 && $tabla.find('td.shipment-status').length === 0) return;
             resaltarFilasReprogramadas();
             const $selects     = $tabla.find('.merc-estado-select');
-            const $estadoCells = $tabla.find('td.shipment-status');
+            const $estadoCells = $('td.shipment-status');
             if ($estadoCells.length > 0 && $selects.length === 0) { console.log('🔄 Convirtiendo estados a SELECT...'); convertirEstadoASelect(); }
             agregarBotonesReprogramar();
         }, 2000);

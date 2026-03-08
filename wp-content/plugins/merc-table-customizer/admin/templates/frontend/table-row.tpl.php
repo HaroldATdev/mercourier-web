@@ -9,12 +9,20 @@
  * @var string $fecha
  * @var string $tipo_html
  * @var string $cambio_html
+ * @var string $estado
  * @var string $motorizo_recojo_html
  * @var string $motorizo_entrega_html
+ *
+ * NOTA: Este template NO incluye el wrapper <tr>. Los TDs se insertan dentro
+ * del <tr> que WPCargo ya abrió mediante el hook wpcfe_shipment_table_data.
  */
 ?>
-<tr class="shipment-row" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>">
-<td><?php echo $actions_html; ?></td>
+<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>">
+	<?php if ( $tienda ) : ?>
+		<strong><?php echo esc_html( $tienda ); ?></strong><br>
+	<?php endif; ?>
+	<?php echo $actions_html; ?>
+</td>
 
 <td><?php echo ! empty( $distrito_recojo )
 	? esc_html( $distrito_recojo )
@@ -30,7 +38,8 @@
 
 <td style="text-align:center;"><?php echo $cambio_html; ?></td>
 
+<td class="shipment-status <?php echo esc_attr( sanitize_title( $estado ) ); ?>"><?php echo esc_html( $estado ); ?></td>
+
 <td><?php echo $motorizo_recojo_html; ?></td>
 
 <td><?php echo $motorizo_entrega_html; ?></td>
-</tr>
