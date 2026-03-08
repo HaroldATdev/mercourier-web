@@ -15,6 +15,13 @@ if ( false !== strpos($_SERVER['REQUEST_URI'], 'admin-ajax.php') ) {
     if ( !defined('WP_DISABLE_FATAL_ERROR_HANDLER') ) {
         define('WP_DISABLE_FATAL_ERROR_HANDLER', true);
     }
+
+    // Immediately load our textdomain now that we know AJAX is running
+    load_plugin_textdomain(
+        'wpcargo-frontend-manager',
+        false,
+        'wpcargo-frontend-manager/languages'
+    );
 }
 
 // Register textdomain path EARLY to avoid just-in-time loading issues later
