@@ -249,14 +249,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                         <div class="form-group" style="padding: 12px 20px;">
                             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Dimensiones (cm) <small>(opcional)</small></label>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <input type="number" name="largo" min="0" step="0.1" placeholder="Largo" style="flex: 1; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                                <span style="color: #7f8c8d;">×</span>
-                                <input type="number" name="ancho" min="0" step="0.1" placeholder="Ancho" style="flex: 1; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                                <span style="color: #7f8c8d;">×</span>
-                                <input type="number" name="alto" min="0" step="0.1" placeholder="Alto" style="flex: 1; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="number" name="largo" min="0" step="0.1" placeholder="Largo (cm)" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                                <input type="number" name="ancho" min="0" step="0.1" placeholder="Ancho (cm)" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                                <input type="number" name="alto" min="0" step="0.1" placeholder="Alto (cm)" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                             </div>
-                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📦 Dimensiones: Largo × Ancho × Alto</small>
+                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📦 Ingresa las dimensiones en centímetros</small>
                         </div>
                     </form>
                     
@@ -474,12 +472,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     
                     <div class="form-group" style="padding: 12px 20px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Dimensiones (cm) <small>(opcional)</small></label>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="number" id="edit-largo" min="0" step="0.1" placeholder="Largo" value="${producto.largo || 0}" style="flex: 1; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                            <span style="color: #7f8c8d;">×</span>
-                            <input type="number" id="edit-ancho" min="0" step="0.1" placeholder="Ancho" value="${producto.ancho || 0}" style="flex: 1; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                            <span style="color: #7f8c8d;">×</span>
-                            <input type="number" id="edit-alto" min="0" step="0.1" placeholder="Alto" value="${producto.alto || 0}" style="flex: 1; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <input type="number" id="edit-largo" min="0" step="0.1" placeholder="Largo (cm)" value="${producto.largo || 0}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            <input type="number" id="edit-ancho" min="0" step="0.1" placeholder="Ancho (cm)" value="${producto.ancho || 0}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            <input type="number" id="edit-alto" min="0" step="0.1" placeholder="Alto (cm)" value="${producto.alto || 0}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                         </div>
                     </div>
                 </form>
