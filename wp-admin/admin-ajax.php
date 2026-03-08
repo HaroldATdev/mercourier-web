@@ -14,35 +14,46 @@
  * @since 2.1.0
  */
 define( 'DOING_AJAX', true );
+error_log('🔴 [AJAX-INIT] admin-ajax.php iniciado');
 if ( ! defined( 'WP_ADMIN' ) ) {
 	define( 'WP_ADMIN', true );
 }
 
 /** Load WordPress Bootstrap */
 require_once dirname( __DIR__ ) . '/wp-load.php';
+error_log('🔴 [AJAX-INIT] wp-load.php cargado');
 
 /** Allow for cross-domain requests (from the front end). */
 send_origin_headers();
+error_log('🔴 [AJAX-INIT] Headers enviados');
 
 header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
 header( 'X-Robots-Tag: noindex' );
 
 // Require a valid action parameter.
 if ( empty( $_REQUEST['action'] ) || ! is_scalar( $_REQUEST['action'] ) ) {
+	error_log('🔴 [AJAX-INIT] No action parameter found');
 	wp_die( '0', 400 );
 }
 
+error_log('🔴 [AJAX-INIT] Action parameter válido: ' . sanitize_text_field($_REQUEST['action']));
+
 /** Load WordPress Administration APIs */
 require_once ABSPATH . 'wp-admin/includes/admin.php';
+error_log('🔴 [AJAX-INIT] admin.php cargado');
 
 /** Load Ajax Handlers for WordPress Core */
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
+error_log('🔴 [AJAX-INIT] ajax-actions.php cargado');
 
 send_nosniff_header();
 nocache_headers();
+error_log('🔴 [AJAX-INIT] Headers de nosniff/nocache establecidos');
 
 /** This action is documented in wp-admin/admin.php */
+error_log('🔴 [AJAX-INIT] Antes de do_action admin_init');
 do_action( 'admin_init' );
+error_log('🔴 [AJAX-INIT] Después de do_action admin_init');
 
 
 $core_actions_get = array(
@@ -176,7 +187,8 @@ add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies'
 
 $action = $_REQUEST['action'];
 
-error_log('🔹 [AJAX] Action: ' . $action);
+error_log('� [AJAX-MAIN] A PUNTO DE EJECUTAR CALLBACKS');
+error_log('�🔹 [AJAX] Action: ' . $action);
 error_log('🔹 [AJAX] is_user_logged_in(): ' . (is_user_logged_in() ? 'true' : 'false'));
 error_log('🔹 [AJAX] has_action(wp_ajax_' . $action . '): ' . (has_action("wp_ajax_{$action}") ? 'true' : 'false'));
 
