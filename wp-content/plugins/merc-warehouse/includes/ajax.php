@@ -16,6 +16,7 @@ function merc_almacen_get_productos() {
     $is_client = in_array('wpcargo_client', (array)$current_user->roles);
     
     if (!is_user_logged_in() || (!$is_admin && !$is_client)) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'No autorizado']);
     }
     
@@ -88,6 +89,7 @@ function merc_almacen_get_productos() {
         );
     }
     
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['productos' => $lista]);
 }
 
@@ -105,6 +107,7 @@ function merc_guardar_producto() {
     $is_admin = current_user_can('manage_options');
     
     if (!is_user_logged_in() || !$is_admin) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'No tienes permisos para crear productos']);
     }
     
@@ -119,6 +122,7 @@ function merc_guardar_producto() {
     $alto = floatval($_POST['alto'] ?? 0);
     
     if (empty($nombre)) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'El nombre del producto es obligatorio']);
     }
     
@@ -134,6 +138,7 @@ function merc_guardar_producto() {
     $product_id = wp_insert_post($post_data);
     
     if (is_wp_error($product_id)) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'Error al crear el producto']);
     }
     
@@ -164,6 +169,7 @@ function merc_guardar_producto() {
     
     error_log("✅ Producto creado: #{$product_id} - {$nombre}");
     
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success([
         'message' => 'Producto creado exitosamente',
         'product_id' => $product_id,
@@ -185,6 +191,7 @@ function merc_obtener_clientes_lista() {
     
     // Permitir a usuarios logueados o admins
     if (!current_user_can('manage_options') && !is_user_logged_in()) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'Debes estar logueado']);
         return;
     }
@@ -221,6 +228,7 @@ function merc_obtener_clientes_lista() {
     
     error_log("📋 Clientes formateados: " . json_encode($lista_clientes));
     
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['clientes' => $lista_clientes]);
 }
 
@@ -230,21 +238,25 @@ function merc_obtener_producto() {
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
         if (!wp_verify_nonce($_POST['nonce'], 'merc_almacen')) {
+            while ( ob_get_level() > 0 ) { ob_end_clean(); }
             wp_send_json_error(['message' => 'Nonce inválido']);
         }
     }
     
     if (!is_user_logged_in()) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'No estás logueado']);
     }
     
     $product_id = intval($_POST['product_id'] ?? 0);
     if (!$product_id) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'ID de producto inválido']);
     }
     
     $producto = get_post($product_id);
     if (!$producto || $producto->post_type !== 'merc_producto') {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'Producto no encontrado']);
     }
     
@@ -265,8 +277,7 @@ function merc_obtener_producto() {
         'ancho' => $dimensiones['ancho'] ?? 0,
         'alto' => $dimensiones['alto'] ?? 0
     );
-    
-    wp_send_json_success($datos);
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }    wp_send_json_success($datos);
 }
 
 // AJAX handler para actualizar un producto
@@ -275,22 +286,26 @@ function merc_actualizar_producto() {
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
         if (!wp_verify_nonce($_POST['nonce'], 'merc_almacen')) {
+            while ( ob_get_level() > 0 ) { ob_end_clean(); }
             wp_send_json_error(['message' => 'Nonce inválido']);
         }
     }
     
     $current_user = wp_get_current_user();
     if (!current_user_can('manage_options')) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'No tienes permisos para editar productos']);
     }
     
     $product_id = intval($_POST['product_id'] ?? 0);
     if (!$product_id) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'ID de producto inválido']);
     }
     
     $producto = get_post($product_id);
     if (!$producto || $producto->post_type !== 'merc_producto') {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'Producto no encontrado']);
     }
     
@@ -337,6 +352,7 @@ function merc_actualizar_producto() {
     
     error_log("✏️ Producto actualizado: #{$product_id} - {$nombre}");
     
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['message' => 'Producto actualizado correctamente']);
 }
 
@@ -346,22 +362,26 @@ function merc_eliminar_producto() {
     // Validar nonce si está presente
     if (isset($_POST['nonce'])) {
         if (!wp_verify_nonce($_POST['nonce'], 'merc_almacen')) {
+            while ( ob_get_level() > 0 ) { ob_end_clean(); }
             wp_send_json_error(['message' => 'Nonce inválido']);
         }
     }
     
     $current_user = wp_get_current_user();
     if (!current_user_can('manage_options')) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'No tienes permisos para eliminar productos']);
     }
     
     $product_id = intval($_POST['product_id'] ?? 0);
     if (!$product_id) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'ID de producto inválido']);
     }
     
     $producto = get_post($product_id);
     if (!$producto || $producto->post_type !== 'merc_producto') {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
         wp_send_json_error(['message' => 'Producto no encontrado']);
     }
     
@@ -370,6 +390,7 @@ function merc_eliminar_producto() {
     
     error_log("🗑️ Producto eliminado: #{$product_id} - {$nombre}");
     
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['message' => 'Producto eliminado correctamente']);
 }
 
