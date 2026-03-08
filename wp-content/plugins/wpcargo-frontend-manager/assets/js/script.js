@@ -192,12 +192,16 @@ jQuery(document).ready(function($){
                 height: 128
             }
         }).then(function (resp) {
+            var nonceValue = $('input[name="wpcfe_upload_avatar_nonce"]').val();
+            console.log('Nonce value being sent:', nonceValue);
+            console.log('Nonce input elements found:', $('input[name="wpcfe_upload_avatar_nonce"]').length);
+            
             $.ajax({
                 type:"POST",
                 data:{
                     action:'wpcfe_upload_avatar',
                     imageData: resp,
-                    nonce: $('input[name="wpcfe_upload_avatar_nonce"]').val()
+                    nonce: nonceValue
                 },
                 dataType: 'json',
                 url : wpcfeAjaxhandler.ajaxurl,
