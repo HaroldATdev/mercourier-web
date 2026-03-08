@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Blocksy Child Theme Functions
  *
@@ -2546,6 +2546,8 @@ function merc_producto_selector_envio($shipment_id) {
                                     $stock = merc_get_product_stock($prod->ID);
                                     $stock = !empty($stock) ? intval($stock) : 0;
                                     $codigo = get_post_meta($prod->ID, '_merc_producto_codigo_barras', true);
+                                    $tipo_medida = get_post_meta($prod->ID, '_merc_producto_tipo_medida', true);
+                                    $dimensiones = get_post_meta($prod->ID, '_merc_producto_dimensiones', true);
                                     $selected = ($prod->ID == $producto_seleccionado) ? 'selected' : '';
                                     
                                     error_log("Renderizando option para producto ID {$prod->ID}");
@@ -2555,6 +2557,8 @@ function merc_producto_selector_envio($shipment_id) {
                                             <?php echo $selected; ?>>
                                         <?php echo esc_html($prod->post_title); ?> - Stock: <?php echo $stock; ?>
                                         <?php if ($codigo): ?> [<?php echo esc_html($codigo); ?>]<?php endif; ?>
+                                        <?php if ($tipo_medida): ?> | Tipo: <?php echo esc_html($tipo_medida); ?><?php endif; ?>
+                                        <?php if (!empty($dimensiones) && is_array($dimensiones)): ?> | Dim: <?php echo intval($dimensiones['largo'] ?? 0) . 'x' . intval($dimensiones['ancho'] ?? 0) . 'x' . intval($dimensiones['alto'] ?? 0); ?> cm<?php endif; ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -2772,6 +2776,8 @@ function merc_custom_producto_selector_template($shipment_id) {
                                     $stock = merc_get_product_stock($prod->ID);
                                     $stock = !empty($stock) ? intval($stock) : 0;
                                     $codigo_barras = get_post_meta($prod->ID, '_merc_producto_codigo_barras', true);
+                                    $tipo_medida = get_post_meta($prod->ID, '_merc_producto_tipo_medida', true);
+                                    $dimensiones = get_post_meta($prod->ID, '_merc_producto_dimensiones', true);
                                     $estado = get_post_meta($prod->ID, '_merc_producto_estado', true);
                                     if (empty($estado)) {
                                         $estado = 'sin_asignar';
@@ -2791,6 +2797,8 @@ function merc_custom_producto_selector_template($shipment_id) {
                                             data-codigo="<?php echo esc_attr($codigo_barras); ?>"
                                             <?php echo $selected; ?>>
                                         <?php echo esc_html($prod->post_title); ?> - Stock: <?php echo $stock; ?><?php echo $codigo_text; ?>
+                                        <?php if ($tipo_medida): ?> | Tipo: <?php echo esc_html($tipo_medida); ?><?php endif; ?>
+                                        <?php if (!empty($dimensiones) && is_array($dimensiones)): ?> | Dim: <?php echo intval($dimensiones['largo'] ?? 0) . 'x' . intval($dimensiones['ancho'] ?? 0) . 'x' . intval($dimensiones['alto'] ?? 0); ?> cm<?php endif; ?>
                                     </option>
                                 <?php endforeach; 
                                 error_log("🔍 DEBUG: Productos disponibles mostrados en select: " . $productos_mostrados);
@@ -13705,10 +13713,14 @@ function merc_envio_producto_callback($post) {
             <?php foreach ($productos as $producto): 
                 $cantidad_disponible = merc_get_product_stock($producto->ID);
                 $cantidad_disponible = !empty($cantidad_disponible) ? intval($cantidad_disponible) : 0;
+                $tipo_medida = get_post_meta($producto->ID, '_merc_producto_tipo_medida', true);
+                $dimensiones = get_post_meta($producto->ID, '_merc_producto_dimensiones', true);
                 $selected = ($producto_id == $producto->ID) ? 'selected' : '';
             ?>
             <option value="<?php echo $producto->ID; ?>" data-cantidad="<?php echo $cantidad_disponible; ?>" <?php echo $selected; ?>>
                 <?php echo esc_html($producto->post_title); ?> (<?php echo $cantidad_disponible; ?> disponibles)
+                <?php if ($tipo_medida): ?> | Tipo: <?php echo esc_html($tipo_medida); ?><?php endif; ?>
+                <?php if (!empty($dimensiones) && is_array($dimensiones)): ?> | Dim: <?php echo intval($dimensiones['largo'] ?? 0) . 'x' . intval($dimensiones['ancho'] ?? 0) . 'x' . intval($dimensiones['alto'] ?? 0); ?> cm<?php endif; ?>
             </option>
             <?php endforeach; ?>
         </select>
