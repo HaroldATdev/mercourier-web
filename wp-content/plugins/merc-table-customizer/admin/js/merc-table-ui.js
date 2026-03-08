@@ -22,28 +22,7 @@
             return idx;
         }
 
-        function moveColumn(afterText, moveText) {
-            var $ths    = $table.find('thead tr:first th');
-            var afterIdx = findThIndexByText($ths, afterText);
-            var moveIdx  = findThIndexByText($ths, moveText);
-            if (afterIdx === -1 || moveIdx === -1 || moveIdx === afterIdx + 1) return;
-
-            var $moveTh  = $ths.eq(moveIdx);
-            var $afterTh = $ths.eq(afterIdx);
-            $moveTh.insertAfter($afterTh);
-
-            $table.find('tbody tr').each(function () {
-                var $cells  = $(this).find('td');
-                var $moveTd  = $cells.eq(moveIdx);
-                var $afterTd = $cells.eq(afterIdx);
-                if ($moveTd.length && $afterTd.length) {
-                    $moveTd.insertAfter($afterTd);
-                }
-            });
-        }
-
-        // "Estado" queda justo después de "Cambio de Producto"
-        moveColumn('Cambio de Producto', 'Estado');
+        // "Estado" ya está en posición correcta (colocado desde el template PHP)
 
         // Columna de seguimiento va al final (última columna)
         function moveColumnToEnd(moveText) {
@@ -65,6 +44,8 @@
             ['Número de seguimiento', 'Seguimiento', 'Tracking Number', 'Número de Tracking'].forEach(function (candidate) {
                 moveColumnToEnd(candidate);
             });
+            // "Print" queda al final (después de Tracking)
+            moveColumnToEnd('Print');
         }
 
         aplicarOrden();

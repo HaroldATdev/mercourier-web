@@ -28,8 +28,7 @@ class MERC_Shipment_Table {
 		remove_action( 'wpcfe_shipment_table_data',   'wpcfe_shipment_table_data_type',     25 );
 		remove_action( 'wpcfe_shipment_table_header', 'wpcfe_shipment_table_header_status', 25 );
 		remove_action( 'wpcfe_shipment_table_data',   'wpcfe_shipment_table_data_status',   25 );
-		remove_action( 'wpcfe_shipment_table_header_action', 'wpcfe_shipment_table_header_action_print', 25 );
-		remove_action( 'wpcfe_shipment_table_data_action',   'wpcfe_shipment_table_action_print',        25 );
+		// Print re-habilitado: se muestra al final de la fila vía wpcfe_shipment_table_data_action
 		// Quitar columna "Container" del plugin wpcargo-shipment-container-add-ons
 		remove_action( 'wpcfe_shipment_table_header', 'wpcsc_shipment_container_table_header', 10 );
 		remove_action( 'wpcfe_shipment_table_data',   'wpcsc_shipment_container_table_data',   10 );
@@ -61,13 +60,14 @@ class MERC_Shipment_Table {
 
 		$tipo_html             = $this->render_tipo( get_post_meta( $shipment_id, 'tipo_envio', true ) );
 		$cambio_html           = $this->render_cambio( get_post_meta( $shipment_id, 'cambio_producto', true ) );
+		$estado                = (string) get_post_meta( $shipment_id, 'wpcargo_status', true );
 		$motorizo_recojo_html  = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo',  true ) );
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
 		$this->render_tpl( 'table-row.tpl.php', compact(
 			'shipment_id', 'tienda', 'actions_html',
 			'distrito_recojo', 'distrito_destino', 'fecha',
-			'tipo_html', 'cambio_html', 'motorizo_recojo_html', 'motorizo_entrega_html'
+			'tipo_html', 'cambio_html', 'estado', 'motorizo_recojo_html', 'motorizo_entrega_html'
 		) );
 	}
 
@@ -227,8 +227,8 @@ class MERC_Shipment_Table {
 
 				console.log('🔍 Buscando tabla con data-tienda...');
 				
-				// Buscar cualquier tabla que tenga filas con data-tienda
-				let $table = $('table:has(tbody tr[data-tienda])').first();
+				// Buscar cualquier tabla que tenga filas con .merc-tienda-cell en un TD
+				let $table = $('table:has(tbody tr td.merc-tienda-cell)').first();
 				
 				if (!$table.length) {
 					console.log('❌ No encontrada tabla con data-tienda');
@@ -252,7 +252,7 @@ class MERC_Shipment_Table {
 
 				$tbody.find('tr').each(function() {
 					const $row = $(this);
-					const tienda = $row.data('tienda') || 'Sin tienda';
+					const tienda = $row.find('.merc-tienda-cell').data('tienda') || $row.data('tienda') || '';
 					
 					if (!tiendas[tienda]) {
 						tiendas[tienda] = [];
@@ -344,8 +344,8 @@ class MERC_Shipment_Table {
 			// Usar MutationObserver para detectar cuando se añade la tabla
 			const observerConfig = { childList: true, subtree: true };
 			const observer = new MutationObserver(function(mutations) {
-				if (!initialized && $('tbody tr[data-tienda]').length > 0) {
-					console.log('👁️ MutationObserver - detectó tabla con data-tienda');
+				if (!initialized && $('tbody tr td.merc-tienda-cell').length > 0) {
+					console.log('👁️ MutationObserver - detectó tabla con .merc-tienda-cell');
 					observer.disconnect();
 					setTimeout(initializeAccordion, 100);
 				}

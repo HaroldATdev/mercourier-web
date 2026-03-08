@@ -3,14 +3,14 @@
  * Plugin Name: DHV Courier – Table Customizer
  * Plugin URI:  https://dhvcourier.com
  * Description: Reorganiza y personaliza las columnas de la tabla de shipments del frontend de WPCargo.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      DHV Courier
  * Text Domain: merc-table-customizer
  * Requires PHP: 8.1
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'MERC_TABLE_VERSION', '1.0.0' );
+define( 'MERC_TABLE_VERSION', '1.1.0' );
 define( 'MERC_TABLE_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'MERC_TABLE_URL',     plugin_dir_url( __FILE__ ) );
 
