@@ -31,23 +31,44 @@ define( 'WPCFE_UPDATE_REMOTE', 'updates-8.1'  );
 define( 'WPCFE_UPDATE_REMOTE', 'updates-7.2'  );
 }
 
+error_log('📂 [TRACE] wpcargo-frontend-manager.php: Plugin iniciando');
+error_log('📂 [TRACE] DOING_AJAX=' . (defined('DOING_AJAX') ? 'true' : 'false'));
+
 require_once( WPCFE_PATH.'admin/includes/functions.php');
+error_log('📂 [TRACE] functions.php cargado');
 require_once( WPCFE_PATH.'admin/includes/widgets.php');
+error_log('📂 [TRACE] widgets.php cargado');
 require_once( WPCFE_PATH.'admin/includes/language.php');
+error_log('📂 [TRACE] language.php cargado');
 require_once( WPCFE_PATH.'admin/includes/pdf-helper.php');
+error_log('📂 [TRACE] pdf-helper.php cargado');
 require_once( WPCFE_PATH.'admin/includes/country-list.php');
+error_log('📂 [TRACE] country-list.php cargado');
 require_once( WPCFE_PATH.'admin/includes/map.php');
+error_log('📂 [TRACE] map.php cargado');
 require_once( WPCFE_PATH.'admin/includes/hooks.php');
+error_log('📂 [TRACE] hooks.php cargado');
 require_once( WPCFE_PATH.'admin/includes/hooks-shipment.php');
+error_log('📂 [TRACE] hooks-shipment.php cargado');
 require_once( WPCFE_PATH.'admin/includes/print-hooks.php');
+error_log('📂 [TRACE] print-hooks.php cargado');
+error_log('📂 [TRACE] wpcargo-frontend-manager.php: Antes de require ajax.php');
 require_once( WPCFE_PATH.'admin/includes/ajax.php');
+error_log('📂 [TRACE] wpcargo-frontend-manager.php: Después de require ajax.php');
 require_once( WPCFE_PATH.'admin/includes/settings.php');
+error_log('📂 [TRACE] settings.php cargado');
 require_once( WPCFE_PATH.'admin/classes/class-core.php');
+error_log('📂 [TRACE] class-core.php cargado');
 require_once( WPCFE_PATH.'admin/classes/class-menus.php');
+error_log('📂 [TRACE] class-menus.php cargado');
 require_once( WPCFE_PATH.'admin/classes/class-scripts.php');
+error_log('📂 [TRACE] class-scripts.php cargado');
 require_once( WPCFE_PATH.'admin/classes/class-pages.php' );
+error_log('📂 [TRACE] class-pages.php cargado');
 require_once( WPCFE_PATH.'admin/classes/class-print.php' );
+error_log('📂 [TRACE] class-print.php cargado');
 require_once( WPCFE_PATH.'admin/classes/database.php' );
+error_log('📂 [TRACE] database.php cargado');
 //** Load Plugin text domain
 add_action( 'init', 'wpc_frontend_manager_load_textdomain' );
 function wpc_frontend_manager_load_textdomain() {

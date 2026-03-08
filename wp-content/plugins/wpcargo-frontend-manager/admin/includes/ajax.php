@@ -3,6 +3,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+error_log('📂 [TRACE] ajax.php: Inicio del archivo');
+
+
 add_action( 'wp_ajax_wpcfe_delete_shipment', 'wpcfe_delete_shipment_callback' );
 // add_action( 'wp_ajax_nopriv_wpcfe_delete_shipment', 'wpcfe_delete_shipment_callback' );
 function wpcfe_delete_shipment_callback(){
@@ -102,22 +105,20 @@ function wpcfe_get_option_callback(){
 	wp_die();
 }
 
+error_log('📂 [TRACE] ajax.php: Antes de add_action wpcfe_upload_avatar');
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
+error_log('📂 [TRACE] ajax.php: Después de add_action wpcfe_upload_avatar - Hook registrado');
 
 function wpcfe_upload_avatar_callback(){
-	// CRITICAL: Clear output buffer completely to prevent any notices/warnings from contaminating JSON
-	while ( ob_get_level() > 0 ) {
-		@ob_end_clean();
-	}
-	
-	// Suppress any remaining errors
-	@error_reporting(0);
-	@ini_set('display_errors', '0');
+	error_log('🚀 CALLBACK INICIADO - wpcfe_upload_avatar_callback');
 	
 	// Asegurar que DOING_AJAX está definida para excepto del acceso control
 	if ( !defined('DOING_AJAX') ) {
 		define('DOING_AJAX', true);
 	}
+	
+	// Limpiar cualquier output anterior
+	@ob_end_clean();
 	
 	// Verificar que el usuario está logueado
 	if ( !is_user_logged_in() ) {
@@ -223,10 +224,7 @@ function wpcfe_upload_avatar_callback(){
 	// Guardar en meta del usuario
 	update_user_meta( $user_id, 'wpcargo_user_avatar', $avatar_url );
 	
-	// Clean output buffer one final time before sending JSON
-	while ( ob_get_level() > 0 ) {
-		@ob_end_clean();
-	}
+	error_log('✅ A PUNTO DE ENVIAR RESPUESTA EXITOSA - Avatar URL: ' . $avatar_url);
 	
 	// Respuesta exitosa
 	wp_send_json_success( array(
