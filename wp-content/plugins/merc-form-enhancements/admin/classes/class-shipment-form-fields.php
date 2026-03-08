@@ -545,16 +545,20 @@ class MERC_Shipment_Form_Fields {
 									style="display:block !important; width:100% !important;">
 									<option value="">-- Selecciona un producto --</option>
 									<?php foreach ( $productos_disponibles as $prod ) :
-										$stock    = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-										$stock    = ! empty( $stock ) ? intval( $stock ) : 0;
-										$codigo   = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
-										$selected = ( $prod->ID == $producto_seleccionado ) ? 'selected' : '';
+										$stock        = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+										$stock        = ! empty( $stock ) ? intval( $stock ) : 0;
+										$codigo       = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
+										$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
+										$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
+										$selected     = ( $prod->ID == $producto_seleccionado ) ? 'selected' : '';
 									?>
 										<option value="<?php echo esc_attr( $prod->ID ); ?>"
 											data-stock="<?php echo esc_attr( $stock ); ?>"
 											<?php echo $selected; ?>>
 											<?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?>
 											<?php if ( $codigo ) : ?> [<?php echo esc_html( $codigo ); ?>]<?php endif; ?>
+											<?php if ( $tipo_medida ) : ?> | Tipo: <?php echo esc_html( $tipo_medida ); ?><?php endif; ?>
+											<?php if ( ! empty( $dimensiones ) && is_array( $dimensiones ) ) : ?> | Dim: <?php echo intval( $dimensiones['largo'] ?? 0 ) . 'x' . intval( $dimensiones['ancho'] ?? 0 ) . 'x' . intval( $dimensiones['alto'] ?? 0 ); ?> cm<?php endif; ?>
 										</option>
 									<?php endforeach; ?>
 								</select>
