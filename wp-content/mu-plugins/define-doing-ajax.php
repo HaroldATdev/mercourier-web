@@ -1,52 +1,36 @@
 <?php
 /**
- * Define DOING_AJAX early for access control bypass
- * Prevent translation loading errors during AJAX
+ * Define DOING_AJAX early and suppress translation notices during AJAX
  * Must-use plugin to load before other plugins
  */
 
-// Define DOING_AJAX if we're accessing admin-ajax.php
-if ( false !== strpos($_SERVER['REQUEST_URI'], 'admin-ajax.php') ) {
-    if ( !defined('DOING_AJAX') ) {
-        define('DOING_AJAX', true);
-    }
-    
-    // For AJAX, set a flag to prevent strict translation loading checks
-    if ( !defined('WP_DISABLE_FATAL_ERROR_HANDLER') ) {
-        define('WP_DISABLE_FATAL_ERROR_HANDLER', true);
-    }
-
-    // Immediately load our textdomain now that we know AJAX is running
-    load_plugin_textdomain(
-        'wpcargo-frontend-manager',
-        false,
-        'wpcargo-frontend-manager/languages'
-    );
+// Detect AJAX requests
+$is_ajax = false;
+if ( false !== strpos( $_SERVER['REQUEST_URI'], 'admin-ajax.php' ) ) {
+    $is_ajax = true;
 }
 
-// Register textdomain path EARLY to avoid just-in-time loading issues later
-add_action( 'muplugins_loaded', function() {
-    global $wp_textdomain_registry;
-    
-    if ( ! isset( $wp_textdomain_registry ) || ! is_object( $wp_textdomain_registry ) ) {
-        return;
-    }
-    
-    // Pre-register the textdomain path so just-in-time loading knows where to find it
-    $wpcfe_path = '/wpcargo-frontend-manager/languages';
-    if ( defined( 'WP_PLUGIN_DIR' ) && file_exists( WP_PLUGIN_DIR . $wpcfe_path ) ) {
-        $wp_textdomain_registry->set( 'wpcargo-frontend-manager', WP_PLUGIN_DIR . $wpcfe_path, 'wpcargo-frontend-manager' );
-    }
-}, 1 );
+// Define DOING_AJAX early
+if ( $is_ajax && !defined('DOING_AJAX') ) {
+    define('DOING_AJAX', true);
+}
 
-// Load textdomain at the appropriate wp_loaded hook
-add_action( 'wp_loaded', function() {
-    if ( !is_textdomain_loaded( 'wpcargo-frontend-manager' ) ) {
-        load_plugin_textdomain( 
-            'wpcargo-frontend-manager', 
-            false, 
+// For AJAX requests, we need to prevent translation loading notices converting to HTML errors
+if ( $is_ajax ) {
+    // Shut down all error display completely for AJAX
+    @error_reporting(0);
+    @ini_set('display_errors', '0');
+    
+    // Suppress error handler for translation errors
+    add_filter( 'doing_it_wrong_trigger_error', '__return_false', 9999 );
+    
+    // Load the textdomain immediately before plugins try to use it
+    if ( function_exists( 'load_plugin_textdomain' ) ) {
+        @load_plugin_textdomain(
+            'wpcargo-frontend-manager',
+            false,
             'wpcargo-frontend-manager/languages'
         );
     }
-}, 999 );
+}
 
