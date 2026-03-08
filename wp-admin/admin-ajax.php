@@ -53,24 +53,40 @@ error_log('🔴 [AJAX-INIT] Headers de nosniff/nocache establecidos');
 /** This action is documented in wp-admin/admin.php */
 error_log('🔴 [AJAX-INIT] Antes de do_action admin_init');
 
-// Evitar que cualquier callback de admin_init cuelgue AJAX
+// For debugging: step through each admin_init callback separately so we can identify the one hanging.
 if ( defined('DOING_AJAX') && DOING_AJAX ) {
-    remove_all_actions('admin_init');
-    error_log('🔴 [AJAX-INIT] Removed all admin_init actions for AJAX');
+    global $wp_filter;
+    if ( isset( $wp_filter['admin_init'] ) && ! empty( $wp_filter['admin_init']->callbacks ) ) {
+        error_log('🔴 [AJAX-INIT] Enumerating admin_init callbacks');
+        foreach ( $wp_filter['admin_init']->callbacks as $priority => $cbs ) {
+            foreach ( $cbs as $cb_id => $cb ) {
+                error_log("🔴 [AJAX-INIT] Will execute callback $cb_id at priority $priority");
+                // attempt call with shutdown monitor
+                register_shutdown_function(function() use ($cb_id) {
+                    $err = error_get_last();
+                    if ( $err ) {
+                        error_log("🔴 [AJAX-INIT] shutdown after callback $cb_id error: {$err['message']} in {$err['file']}:{$err['line']}");
+                    }
+                });
+                try {
+                    call_user_func( $cb['function'] );
+                    error_log("🔴 [AJAX-INIT] finished callback $cb_id");
+                } catch ( Throwable $t ) {
+                    error_log("🔴 [AJAX-INIT] exception in callback $cb_id: " . $t->getMessage());
+                }
+            }
+        }
+    }
+    // done enumerating; skip the normal do_action since we already ran them
+} else {
+    // non-AJAX path
+    do_action( 'admin_init' );
 }
 
-// Para AJAX, usar un timeout simple para evitar bloqueos
-$start_time = microtime(true);
-set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    error_log("🔴 [AJAX-ERROR] $errstr en $errfile:$errline");
-    return false;
-});
-
-do_action( 'admin_init' );
-
+// restore error handler context
 restore_error_handler();
 $elapsed = microtime(true) - $start_time;
-error_log('🔴 [AJAX-INIT] Después de do_action admin_init (' . round($elapsed, 3) . 's)');
+error_log('🔴 [AJAX-INIT] Después de ejecutar admin_init callbacks (' . round($elapsed, 3) . 's)');
 
 
 $core_actions_get = array(
