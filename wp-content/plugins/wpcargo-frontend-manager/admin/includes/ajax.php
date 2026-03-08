@@ -103,81 +103,112 @@ function wpcfe_get_option_callback(){
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 add_action( 'wp_ajax_nopriv_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 function wpcfe_upload_avatar_callback(){
+	// Limpiar cualquier output anterior
+	if ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
+	
+	// Validar campo de imagen
 	if( empty( $_POST['imageData'] ) ){
-		wp_send_json_error( array( 'message' => 'No image data provided' ) );
+		wp_send_json_error( 'No image data provided', 400 );
 	}
 	
-	$upload_dir       = wp_upload_dir();
+	// Obtener directorio de cargas
+	$upload_dir = wp_upload_dir();
 	if( isset( $upload_dir['error'] ) && $upload_dir['error'] ){
-		wp_send_json_error( array( 'message' => 'Upload directory error: ' . $upload_dir['error'] ) );
+		wp_send_json_error( 'Upload directory error', 400 );
 	}
 	
-	$upload_path      = str_replace( '/', DIRECTORY_SEPARATOR, $upload_dir['path'] ) . DIRECTORY_SEPARATOR;
-	$img = $_POST['imageData'];
-	$img = str_replace('data:image/png;base64,', '', $img);
-	$img = str_replace(' ', '+', $img);
-	$decoded          = base64_decode($img);
+	// Procesar imagen base64
+	$img_data = sanitize_text_field( $_POST['imageData'] );
+	$img_data = str_replace('data:image/png;base64,', '', $img_data);
+	$img_data = str_replace('data:image/jpeg;base64,', '', $img_data);
+	$img_data = str_replace(' ', '+', $img_data);
 	
-	if( !$decoded ){
-		wp_send_json_error( array( 'message' => 'Failed to decode image data' ) );
+	$decoded = base64_decode( $img_data, true );
+	if( false === $decoded ){
+		wp_send_json_error( 'Failed to decode image data', 400 );
 	}
 	
-	$filename         = get_current_user_id().'.png';
-	$hashed_filename  = md5( $filename . microtime() ) . '_' . $filename;
-	
-	$image_upload     = file_put_contents( $upload_path . $hashed_filename, $decoded );
-	if( !$image_upload ){
-		wp_send_json_error( array( 'message' => 'Failed to save image to disk' ) );
+	// Crear nombre de archivo
+	$user_id = get_current_user_id();
+	if( !$user_id ){
+		wp_send_json_error( 'User not authenticated', 401 );
 	}
 	
-	//HANDLE UPLOADED FILE
+	$filename = $user_id . '.png';
+	$hashed_filename = md5( $filename . microtime() ) . '_' . $filename;
+	$upload_path = trailingslashit( $upload_dir['path'] );
+	
+	// Guardar archivo
+	$saved = file_put_contents( $upload_path . $hashed_filename, $decoded );
+	if( false === $saved ){
+		wp_send_json_error( 'Failed to save image file', 500 );
+	}
+	
+	// Requieres funciones necesarias
 	if( !function_exists( 'wp_handle_sideload' ) ) {
 		require_once( ABSPATH . 'wp-admin/includes/file.php' );
 	}
 	if( !function_exists( 'wp_get_current_user' ) ) {
-		require_once( ABSPATH . 'wp-includes/pluggable.php' );
+		require_once( ABSPATH . 'wp-includes/user.php' );
 	}
 	
-	$file             = array();
-	$file['error']    = '';
-	$file['tmp_name'] = $upload_path . $hashed_filename;
-	$file['name']     = $hashed_filename;
-	$file['type']     = 'image/png';
-	$file['size']     = filesize( $upload_path . $hashed_filename );
-	
-	$file_return      = wp_handle_sideload( $file, array( 'test_form' => false ) );
-	
-	if( isset( $file_return['error'] ) ){
-		wp_send_json_error( array( 'message' => $file_return['error'] ) );
-	}
-	
-	if( !isset( $file_return['file'] ) ){
-		wp_send_json_error( array( 'message' => 'File upload failed' ) );
-	}
-	
-	$filename = $file_return['file'];
-	$attachment = array(
-		'post_mime_type' => $file_return['type'],
-		'post_title' => preg_replace('/\.[^.]+$/', '', basename($filename)),
-		'post_content' => '',
-		'post_status' => 'inherit',
-		'guid' => $upload_dir['url'] . '/' . basename($filename)
+	// Preparar archivo para sideload
+	$file = array(
+		'error'    => '',
+		'tmp_name' => $upload_path . $hashed_filename,
+		'name'     => $hashed_filename,
+		'type'     => 'image/png',
+		'size'     => filesize( $upload_path . $hashed_filename )
 	);
 	
-	$attach_id = wp_insert_attachment( $attachment, $filename );
-	if( !$attach_id ){
-		wp_send_json_error( array( 'message' => 'Failed to create attachment' ) );
+	// Realizar sideload
+	$file_return = wp_handle_sideload( $file, array( 'test_form' => false ) );
+	
+	if( isset( $file_return['error'] ) && $file_return['error'] ){
+		wp_send_json_error( $file_return['error'], 400 );
 	}
 	
-	require_once(ABSPATH . 'wp-admin/includes/image.php');
-	$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
-	wp_update_attachment_metadata( $attach_id, $attach_data );
+	if( !isset( $file_return['file'] ) || empty( $file_return['file'] ) ){
+		wp_send_json_error( 'File upload failed without error message', 400 );
+	}
+	
+	// Crear attachment
+	$attachment_file = $file_return['file'];
+	$attachment_args = array(
+		'post_mime_type' => $file_return['type'],
+		'post_title'     => sanitize_file_name( $user_id . '-avatar' ),
+		'post_content'   => '',
+		'post_status'    => 'inherit'
+	);
+	
+	$attach_id = wp_insert_attachment( $attachment_args, $attachment_file );
+	
+	if( is_wp_error( $attach_id ) || !$attach_id ){
+		wp_send_json_error( 'Failed to create attachment', 500 );
+	}
+	
+	// Generar metadata
+	if( file_exists( ABSPATH . 'wp-admin/includes/image.php' ) ){
+		require_once( ABSPATH . 'wp-admin/includes/image.php' );
+		$attach_data = wp_generate_attachment_metadata( $attach_id, $attachment_file );
+		wp_update_attachment_metadata( $attach_id, $attach_data );
+	}
+	
+	// Obtener URL del avatar
 	$avatar_url = wp_get_attachment_url( $attach_id );
+	if( !$avatar_url ){
+		wp_send_json_error( 'Could not retrieve attachment URL', 500 );
+	}
 	
-	update_user_meta( get_current_user_id(), 'wpcargo_user_avatar', $avatar_url );
+	// Guardar en meta del usuario
+	update_user_meta( $user_id, 'wpcargo_user_avatar', $avatar_url );
 	
+	// Respuesta exitosa
 	wp_send_json_success( array(
 		'avatar_url' => $avatar_url,
+		'attachment_id' => $attach_id,
 		'message' => 'Avatar uploaded successfully'
 	) );
 }

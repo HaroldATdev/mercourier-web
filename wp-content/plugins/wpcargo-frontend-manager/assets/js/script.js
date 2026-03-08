@@ -201,11 +201,12 @@ jQuery(document).ready(function($){
                 dataType: 'json',
                 url : wpcfeAjaxhandler.ajaxurl,
                 beforeSend:function(){
-                    //** Proccessing
                     $('body').append('<div class="wpcfe-spinner">Loading...</div>');
                 },
                 success:function( response ){
                     $('body .wpcfe-spinner').remove();
+                    console.log('Avatar upload response:', response);
+                    
                     if( response.success ){
                         $('#user-avatar .photo-container').html('<img alt="" src="' + response.data.avatar_url + '" srcset="' + response.data.avatar_url + '" class="avatar avatar-128 photo photo-inner" height="128" width="128">');
                         $('#user-avatar, #upload-avatar-wrapper').toggle();
@@ -218,21 +219,37 @@ jQuery(document).ready(function($){
                             location.reload();
                         });
                     } else {
+                        var errorMsg = 'Error al cargar el avatar';
+                        if( response.data ){
+                            errorMsg = typeof response.data === 'string' ? response.data : response.data.message || errorMsg;
+                        }
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.data || 'Error al cargar el avatar',
+                            text: errorMsg,
                             confirmButtonColor: '#e74c3c'
                         });
                     }
                 },
                 error:function( xhr, status, error ){
                     $('body .wpcfe-spinner').remove();
-                    console.error('AJAX Error:', status, error, xhr);
+                    console.error('AJAX Error Status:', status);
+                    console.error('AJAX Error:', error);
+                    console.error('AJAX Response:', xhr.responseText);
+                    
+                    var errorMsg = 'Error al cargar el avatar';
+                    if(status === 'parsererror'){
+                        errorMsg = 'Error de respuesta del servidor. Por favor intenta de nuevo.';
+                    } else if(status === 'timeout'){
+                        errorMsg = 'Tiempo agotado. Por favor intenta de nuevo.';
+                    } else if(status === 'error'){
+                        errorMsg = 'Error de conexión. Por favor intenta de nuevo.';
+                    }
+                    
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error de conexión',
-                        text: 'Error al cargar el avatar. Por favor intenta de nuevo.',
+                        title: 'Error (' + status + ')',
+                        text: errorMsg,
                         confirmButtonColor: '#e74c3c'
                     });
                 }
