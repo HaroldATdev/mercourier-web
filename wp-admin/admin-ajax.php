@@ -53,6 +53,12 @@ error_log('🔴 [AJAX-INIT] Headers de nosniff/nocache establecidos');
 /** This action is documented in wp-admin/admin.php */
 error_log('🔴 [AJAX-INIT] Antes de do_action admin_init');
 
+// Evitar que cualquier callback de admin_init cuelgue AJAX
+if ( defined('DOING_AJAX') && DOING_AJAX ) {
+    remove_all_actions('admin_init');
+    error_log('🔴 [AJAX-INIT] Removed all admin_init actions for AJAX');
+}
+
 // Para AJAX, usar un timeout simple para evitar bloqueos
 $start_time = microtime(true);
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
