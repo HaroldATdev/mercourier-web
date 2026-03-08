@@ -225,6 +225,12 @@ function wpcfe_upload_avatar_callback(){
 	update_user_meta( $user_id, 'wpcargo_user_avatar', $avatar_url );
 	
 	error_log('✅ A PUNTO DE ENVIAR RESPUESTA EXITOSA - Avatar URL: ' . $avatar_url);
+	error_log('✅ Output buffer level: ' . ob_get_level());
+	
+	// Limpiar todos los buffers antes de enviar JSON
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
 	
 	// Respuesta exitosa
 	wp_send_json_success( array(
