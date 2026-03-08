@@ -109,6 +109,8 @@ function wpcfe_get_option_callback(){
 	wp_die();
 }
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
+error_log('🎣 add_action registrado para wp_ajax_wpcfe_upload_avatar');
+
 function wpcfe_upload_avatar_callback(){
 	error_log('🚀 wpcfe_upload_avatar_callback INICIADA');
 	
@@ -294,3 +296,5 @@ function wpcfe_reset_nsequence_callback(){
 	) );
 	wp_die();
 }
+
+error_log('✅ ajax.php completamente cargado y procesado');
