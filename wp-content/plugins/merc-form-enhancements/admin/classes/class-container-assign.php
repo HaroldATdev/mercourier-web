@@ -34,8 +34,15 @@ class MERC_Container_Assign {
 		$ajaxurl     = admin_url( 'admin-ajax.php' );
 		$debug       = defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false';
 		$js_url      = MERC_FORM_URL . 'admin/assets/js/container-assign.js?ver=' . MERC_FORM_VERSION;
+
+		// Obtener tipo_envio para pasarlo al JS (evita AJAX adicional)
+		if ( $mode === 'update' && $shipment_id ) {
+			$tipo_envio_php = get_post_meta( $shipment_id, 'tipo_envio', true );
+		} else {
+			$tipo_envio_php = isset( $_GET['type'] ) ? sanitize_text_field( $_GET['type'] ) : '';
+		}
 		?>
-		<script>var MercContainerAssign = { ajaxurl: '<?php echo esc_js( $ajaxurl ); ?>', mode: '<?php echo esc_js( $mode ); ?>', shipmentId: <?php echo $shipment_id; ?>, debug: <?php echo $debug; ?> };</script>
+		<script>var MercContainerAssign = { ajaxurl: '<?php echo esc_js( $ajaxurl ); ?>', mode: '<?php echo esc_js( $mode ); ?>', shipmentId: <?php echo $shipment_id; ?>, debug: <?php echo $debug; ?>, tipoEnvio: '<?php echo esc_js( $tipo_envio_php ); ?>' };</script>
 		<script src="<?php echo esc_url( $js_url ); ?>"></script>
 		<?php
 	}

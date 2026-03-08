@@ -19,7 +19,6 @@ jQuery(document).ready(function ($) {
     }
 
     var ajaxurl     = MercContainerAssign.ajaxurl;
-    var modoEdicion = MercContainerAssign.mode === 'update';
     var shipmentId  = MercContainerAssign.shipmentId || 0;
 
     console.log('[ContainerAssign] ✓ Iniciado - Modo:', MercContainerAssign.mode);
@@ -98,22 +97,10 @@ jQuery(document).ready(function ($) {
         return '';
     }
 
-    if (modoEdicion && shipmentId) {
-        // Modo edición: obtener tipo desde la BD
-        $.ajax({
-            url: ajaxurl, type: 'POST', async: false,
-            data: { action: 'merc_get_shipment_data', shipment_id: shipmentId },
-            success: function (r) {
-                if (r && r.success && r.data && r.data.tipo_envio) {
-                    tipoEnvioGlobal = r.data.tipo_envio;
-                }
-            }
-        });
-    } else {
-        tipoEnvioGlobal = getTipoEnvio();
-    }
+    // PHP inyecta el tipo directamente en MercContainerAssign.tipoEnvio (add y update)
+    tipoEnvioGlobal = MercContainerAssign.tipoEnvio || getTipoEnvio();
 
-    // Si no se pudo obtener aún, reintentarlo cuando el hidden input esté disponible
+    // Fallback: si aún no se obtuvo, reintentar con el hidden input (inyectado por tipo-envio-saver.js)
     if (!tipoEnvioGlobal) {
         var intentosTipo = 0;
         var ivTipo = setInterval(function () {
@@ -121,7 +108,7 @@ jQuery(document).ready(function ($) {
             tipoEnvioGlobal = getTipoEnvio();
             if (tipoEnvioGlobal || intentosTipo >= 10) {
                 clearInterval(ivTipo);
-                console.log('[ContainerAssign] tipoEnvio detectado:', tipoEnvioGlobal);
+                console.log('[ContainerAssign] tipoEnvio detectado (fallback):', tipoEnvioGlobal);
             }
         }, 300);
     } else {
@@ -199,7 +186,10 @@ jQuery(document).ready(function ($) {
 
         var $sel = $('select[name="' + selectName + '"]');
         if (!$sel.length) {
-            console.warn('[ContainerAssign] Select no encontrado:', selectName);
+            console.warn('[ContainerAssign] Select no encontrado:', selectName, '— reintentará en próximo ciclo');
+            // Resetear para que el polling pueda reintentar cuando el select esté disponible
+            if (campo === 'destino') lastDestino = '';
+            else lastRecojo = '';
             return;
         }
 
