@@ -52,6 +52,15 @@ error_log('🔴 [AJAX-INIT] Headers de nosniff/nocache establecidos');
 
 /** This action is documented in wp-admin/admin.php */
 error_log('🔴 [AJAX-INIT] Antes de do_action admin_init');
+
+// Usar un shutdown function para capturar errores fatales durante admin_init
+register_shutdown_function(function() {
+	$error = error_get_last();
+	if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+		error_log('🔴 [AJAX-FATAL] Error fatal en admin_init: ' . $error['message'] . ' en ' . $error['file'] . ':' . $error['line']);
+	}
+});
+
 do_action( 'admin_init' );
 error_log('🔴 [AJAX-INIT] Después de do_action admin_init');
 
