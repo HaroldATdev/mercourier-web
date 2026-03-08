@@ -103,51 +103,88 @@ function wpcfe_get_option_callback(){
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 add_action( 'wp_ajax_nopriv_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 function wpcfe_upload_avatar_callback(){
-	$upload_dir       = wp_upload_dir();
-	// @new
-	$upload_path      = str_replace( '/', DIRECTORY_SEPARATOR, $upload_dir['path'] ) . DIRECTORY_SEPARATOR;
-	$img = $_POST['imageData'];
-	$img = str_replace('data:image/png;base64,', '', $img);
-	$img = str_replace(' ', '+', $img);
-	$decoded          = base64_decode($img) ;
-	$filename         = get_current_user_id().'.png';
-	$hashed_filename  = md5( $filename . microtime() ) . '_' . $filename;
-	// @new
-	$image_upload     = file_put_contents( $upload_path . $hashed_filename, $decoded );
-	//HANDLE UPLOADED FILE
-	if( !function_exists( 'wp_handle_sideload' ) ) {
-		require_once( ABSPATH . 'wp-admin/includes/file.php' );
+	try {
+		if( empty( $_POST['imageData'] ) ){
+			wp_send_json_error( 'No image data provided', 'error' );
+		}
+		
+		$upload_dir       = wp_upload_dir();
+		if( isset( $upload_dir['error'] ) && $upload_dir['error'] ){
+			wp_send_json_error( 'Upload directory error: ' . $upload_dir['error'] );
+		}
+		
+		$upload_path      = str_replace( '/', DIRECTORY_SEPARATOR, $upload_dir['path'] ) . DIRECTORY_SEPARATOR;
+		$img = $_POST['imageData'];
+		$img = str_replace('data:image/png;base64,', '', $img);
+		$img = str_replace(' ', '+', $img);
+		$decoded          = base64_decode($img);
+		
+		if( !$decoded ){
+			wp_send_json_error( 'Failed to decode image data' );
+		}
+		
+		$filename         = get_current_user_id().'.png';
+		$hashed_filename  = md5( $filename . microtime() ) . '_' . $filename;
+		
+		$image_upload     = file_put_contents( $upload_path . $hashed_filename, $decoded );
+		if( !$image_upload ){
+			wp_send_json_error( 'Failed to save image to disk' );
+		}
+		
+		//HANDLE UPLOADED FILE
+		if( !function_exists( 'wp_handle_sideload' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/file.php' );
+		}
+		if( !function_exists( 'wp_get_current_user' ) ) {
+			require_once( ABSPATH . 'wp-includes/pluggable.php' );
+		}
+		
+		$file             = array();
+		$file['error']    = '';
+		$file['tmp_name'] = $upload_path . $hashed_filename;
+		$file['name']     = $hashed_filename;
+		$file['type']     = 'image/png';
+		$file['size']     = filesize( $upload_path . $hashed_filename );
+		
+		$file_return      = wp_handle_sideload( $file, array( 'test_form' => false ) );
+		
+		if( isset( $file_return['error'] ) ){
+			wp_send_json_error( $file_return['error'] );
+		}
+		
+		if( !isset( $file_return['file'] ) ){
+			wp_send_json_error( 'File upload failed' );
+		}
+		
+		$filename = $file_return['file'];
+		$attachment = array(
+			'post_mime_type' => $file_return['type'],
+			'post_title' => preg_replace('/\.[^.]+$/', '', basename($filename)),
+			'post_content' => '',
+			'post_status' => 'inherit',
+			'guid' => $upload_dir['url'] . '/' . basename($filename)
+		);
+		
+		$attach_id = wp_insert_attachment( $attachment, $filename );
+		if( !$attach_id ){
+			wp_send_json_error( 'Failed to create attachment' );
+		}
+		
+		require_once(ABSPATH . 'wp-admin/includes/image.php');
+		$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+		wp_update_attachment_metadata( $attach_id, $attach_data );
+		$avatar_url = wp_get_attachment_url( $attach_id );
+		
+		update_user_meta( get_current_user_id(), 'wpcargo_user_avatar', $avatar_url );
+		
+		wp_send_json_success( array(
+			'avatar_url' => $avatar_url,
+			'message' => 'Avatar uploaded successfully'
+		) );
+		
+	} catch( Exception $e ){
+		wp_send_json_error( 'Error: ' . $e->getMessage() );
 	}
-	// Without that I'm getting a debug error!?
-	if( !function_exists( 'wp_get_current_user' ) ) {
-		require_once( ABSPATH . 'wp-includes/pluggable.php' );
-	}
-	// @new
-	$file             = array();
-	$file['error']    = '';
-	$file['tmp_name'] = $upload_path . $hashed_filename;
-	$file['name']     = $hashed_filename;
-	$file['type']     = 'image/png';
-	$file['size']     = filesize( $upload_path . $hashed_filename );
-	// upload file to server
-	// @new use $file instead of $image_upload
-	$file_return      = wp_handle_sideload( $file, array( 'test_form' => false ) );
-	$filename = $file_return['file'];
-	$attachment = array(
-		'post_mime_type' => $file_return['type'],
-		'post_title' => preg_replace('/\.[^.]+$/', '', basename($filename)),
-		'post_content' => '',
-		'post_status' => 'inherit',
-		'guid' => $wp_upload_dir['url'] . '/' . basename($filename)
-	);
-	$attach_id = wp_insert_attachment( $attachment, $filename );
-	require_once(ABSPATH . 'wp-admin/includes/image.php');
-	$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
-	wp_update_attachment_metadata( $attach_id, $attach_data );
-	$avatar_url = wp_get_attachment_url( $attach_id );
-	update_user_meta( get_current_user_id(), 'wpcargo_user_avatar', $avatar_url );
-	echo '<img alt="" src="'.$avatar_url.'" srcset="'.$avatar_url.'" class="avatar avatar-128 photo photo-inner" height="128" width="128">';
-	wp_die();
 }
 add_filter ('get_avatar', 'wpcfe_override_avatar', 10, 6 );
 function wpcfe_override_avatar ($avatar_html, $userid, $size, $default, $alt, $args ) {

@@ -198,16 +198,43 @@ jQuery(document).ready(function($){
                     action:'wpcfe_upload_avatar',
                     imageData: resp,
                 },
+                dataType: 'json',
                 url : wpcfeAjaxhandler.ajaxurl,
                 beforeSend:function(){
                     //** Proccessing
                     $('body').append('<div class="wpcfe-spinner">Loading...</div>');
                 },
                 success:function( response ){
-                    $('#user-avatar .photo-container').html(response);
-                    $('#user-avatar, #upload-avatar-wrapper').toggle();
                     $('body .wpcfe-spinner').remove();
-					location.reload();
+                    if( response.success ){
+                        $('#user-avatar .photo-container').html('<img alt="" src="' + response.data.avatar_url + '" srcset="' + response.data.avatar_url + '" class="avatar avatar-128 photo photo-inner" height="128" width="128">');
+                        $('#user-avatar, #upload-avatar-wrapper').toggle();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: 'Avatar cargado correctamente',
+                            confirmButtonColor: '#28a745'
+                        }).then(function() {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.data || 'Error al cargar el avatar',
+                            confirmButtonColor: '#e74c3c'
+                        });
+                    }
+                },
+                error:function( xhr, status, error ){
+                    $('body .wpcfe-spinner').remove();
+                    console.error('AJAX Error:', status, error, xhr);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'Error al cargar el avatar. Por favor intenta de nuevo.',
+                        confirmButtonColor: '#e74c3c'
+                    });
                 }
             });
         });
