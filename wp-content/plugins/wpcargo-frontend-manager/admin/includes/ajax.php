@@ -3,6 +3,8 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+error_log('📂 ajax.php cargado - POST action: ' . (isset($_POST['action']) ? sanitize_text_field($_POST['action']) : 'NO ACTION'));
+
 // Definir DOING_AJAX lo antes posible para excepto del acceso control
 if ( !defined('DOING_AJAX') ) {
     define('DOING_AJAX', true);
