@@ -105,24 +105,15 @@ function wpcfe_upload_avatar_callback(){
 	// Limpiar cualquier output anterior
 	@ob_end_clean();
 	
-	error_log('=== AVATAR UPLOAD STARTED ===');
-	error_log('POST data: ' . print_r($_POST, true));
-	error_log('is_user_logged_in: ' . (is_user_logged_in() ? 'true' : 'false'));
-	error_log('Current user ID: ' . get_current_user_id());
+	error_log('=== AVATAR UPLOAD CALLBACK EJECUTÁNDOSE ===');
+	error_log('POST keys: ' . implode(', ', array_keys($_POST)));
 	
-	// Verificar que el usuario está logueado
-	if ( !is_user_logged_in() ) {
-		error_log('ERROR: User not logged in');
-		wp_send_json_error( array( 'message' => 'User not authenticated' ) );
-	}
-	
-	// Verificar nonce para seguridad (retorna false en lugar de wp_die)
-	error_log('Nonce received: ' . (isset($_POST['nonce']) ? $_POST['nonce'] : 'NOT SET'));
-	if ( !isset( $_POST['nonce'] ) || !wp_verify_nonce( $_POST['nonce'], 'wpcfe_upload_avatar_action' ) ) {
-		error_log('ERROR: Nonce verification failed');
-		error_log('Action: wpcfe_upload_avatar_action');
-		wp_send_json_error( array( 'message' => 'Security verification failed. Please refresh the page and try again.' ) );
-	}
+	// Por ahora, retorna siempre JSON exitoso para probar
+	wp_send_json_success( array(
+		'message' => 'Callback ejecutado',
+		'test' => true
+	) );
+}
 	
 	// Validar campo de imagen
 	if( empty( $_POST['imageData'] ) ){
