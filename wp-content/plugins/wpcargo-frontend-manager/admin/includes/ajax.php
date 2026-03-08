@@ -108,12 +108,17 @@ function wpcfe_upload_avatar_callback(){
 	error_log('=== AVATAR UPLOAD CALLBACK EJECUTÁNDOSE ===');
 	error_log('POST keys: ' . implode(', ', array_keys($_POST)));
 	
-	// Por ahora, retorna siempre JSON exitoso para probar
-	wp_send_json_success( array(
-		'message' => 'Callback ejecutado',
-		'test' => true
-	) );
-}
+	// Verificar que el usuario está logueado
+	if ( !is_user_logged_in() ) {
+		error_log('ERROR: User not logged in');
+		wp_send_json_error( array( 'message' => 'User not authenticated' ) );
+	}
+	
+	// Validar nonce
+	if ( !isset( $_POST['nonce'] ) || !wp_verify_nonce( $_POST['nonce'], 'wpcfe_upload_avatar_action' ) ) {
+		error_log('ERROR: Nonce verification failed');
+		wp_send_json_error( array( 'message' => 'Security verification failed' ) );
+	}
 	
 	// Validar campo de imagen
 	if( empty( $_POST['imageData'] ) ){
