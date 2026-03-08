@@ -104,6 +104,7 @@ function wpcfe_get_option_callback(){
 add_action( 'wp_ajax_wpcfe_upload_avatar', 'wpcfe_upload_avatar_callback' );
 
 function wpcfe_upload_avatar_callback(){
+	error_log('🚀 CALLBACK INICIADO - wpcfe_upload_avatar_callback');
 	
 	// Asegurar que DOING_AJAX está definida para excepto del acceso control
 	if ( !defined('DOING_AJAX') ) {
@@ -216,6 +217,8 @@ function wpcfe_upload_avatar_callback(){
 	
 	// Guardar en meta del usuario
 	update_user_meta( $user_id, 'wpcargo_user_avatar', $avatar_url );
+	
+	error_log('✅ A PUNTO DE ENVIAR RESPUESTA EXITOSA - Avatar URL: ' . $avatar_url);
 	
 	// Respuesta exitosa
 	wp_send_json_success( array(
