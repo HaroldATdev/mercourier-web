@@ -176,13 +176,20 @@ add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies'
 
 $action = $_REQUEST['action'];
 
+error_log('🔹 [AJAX] Action: ' . $action);
+error_log('🔹 [AJAX] is_user_logged_in(): ' . (is_user_logged_in() ? 'true' : 'false'));
+error_log('🔹 [AJAX] has_action(wp_ajax_' . $action . '): ' . (has_action("wp_ajax_{$action}") ? 'true' : 'false'));
+
 if ( is_user_logged_in() ) {
 	// If no action is registered, return a Bad Request response.
 	if ( ! has_action( "wp_ajax_{$action}" ) ) {
+		error_log('❌ [AJAX] No hook encontrado para wp_ajax_' . $action);
 		wp_die( '0', 400 );
 	}
 
+	error_log('✅ [AJAX] A PUNTO DE DISPARAR wp_ajax_' . $action);
 	do_action( "wp_ajax_{$action}" );
+	error_log('❌ [AJAX] REGRESÓ DE do_action sin ejecutar callback');
 } else {
 	// If no action is registered, return a Bad Request response.
 	if ( ! has_action( "wp_ajax_nopriv_{$action}" ) ) {
