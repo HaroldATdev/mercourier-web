@@ -231,7 +231,6 @@ add_shortcode('merc_almacen_productos', function() {
             .then(res => {
                 console.log('✅ Respuesta AJAX:', res);
                 if (res.success && res.data && res.data.clientes) {
-                    console.log('👥 Clientes recibidos:', res.data.clientes.length);
                     
                     // Limpiar opciones previas (excepto la vacía)
                     while (select.options.length > 1) {
@@ -243,7 +242,6 @@ add_shortcode('merc_almacen_productos', function() {
                         option.value = cliente.id;
                         option.textContent = cliente.nombre;
                         select.appendChild(option);
-                        console.log('✓ Cliente agregado:', cliente.nombre);
                     });
                     
                     // Inicializar el custom select
