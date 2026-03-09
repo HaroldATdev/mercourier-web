@@ -1,0 +1,20 @@
+# WordPress Core
+wp-config.php
+wp-content/backup-db/
+wp-content/backups/
+wp-content/upgrade/
+wp-content/cache/
+
+# Logs de error (Lo que te salía en el status)
+*.log
+wp-content/debug.log
+wp-content/merc_logs/*.log
+
+# Archivos de sistema y temporales
+.DS_Store
+thumbs.db
+node_modules/
+.env
+
+# Elementor y archivos generados
+wp-content/uploads/elementor/
