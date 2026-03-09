@@ -73,10 +73,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        // Agrupar productos por cliente (billing_company)
+        // Agrupar productos por cliente (billing_company o cliente_nombre)
         const grupos = {};
         productos.forEach(p => {
-            const cliente = (p.billing_company && p.billing_company.trim() !== '') ? p.billing_company.trim() : 'Sin Cliente';
+            let cliente = '';
+            if (p.billing_company && p.billing_company.trim() !== '') {
+                cliente = p.billing_company.trim();
+            } else if (p.cliente_nombre && p.cliente_nombre.trim() !== '') {
+                cliente = p.cliente_nombre.trim();
+            } else {
+                cliente = 'Sin Cliente';
+            }
             if (!grupos[cliente]) grupos[cliente] = [];
             grupos[cliente].push(p);
         });
@@ -757,4 +764,5 @@ document.addEventListener('DOMContentLoaded', function () {
         cargarProductos();
     };
 });
+
 

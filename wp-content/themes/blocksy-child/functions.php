@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Blocksy Child Theme Functions
  *
@@ -2849,8 +2849,6 @@ function merc_add_update_button_validation() {
             // 3. VALIDAR ESTADO (obligatorio y no puede estar vacío)
             var estadoSeleccionado = $('select[name="status"]').val() || $('input[name="status"]').val() || $('.status').val() || '';
             
-            // Debug log
-            console.log('Estado seleccionado:', estadoSeleccionado);
             
             if (!estadoSeleccionado || estadoSeleccionado === '' || estadoSeleccionado === 'Seleccionar' || estadoSeleccionado === 'Pendiente') {
                 errores.push('Debe seleccionar un estado válido (no puede ser Pendiente)');

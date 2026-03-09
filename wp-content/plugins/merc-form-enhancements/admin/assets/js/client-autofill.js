@@ -19,9 +19,11 @@ jQuery(document).ready(function ($) {
     var nonce   = MercClientAutofill.nonce;
 
     console.log('[ClientAutofill] ✓ Iniciado');
+    console.log('[ClientAutofill] Esperando detección de cliente...');
 
     var ultimoClienteId = '';   // Para detectar cambios por polling
     var cargando        = false; // Evitar llamadas simultáneas
+    var clienteAutomatico = false; // Indica si el cliente ya está predefinido (caso cliente normal)
 
     /* ══════════════════════════════════════════════════════════════
      * DIAGNÓSTICO: Encontrar campos en el formulario
@@ -192,8 +194,30 @@ jQuery(document).ready(function ($) {
      * AJAX
      * ══════════════════════════════════════════════════════════════ */
 
-    function cargarDatosCliente(userId) {
-        if (!userId || userId === '0' || userId === '' || userId === ultimoClienteId || cargando) return;
+    function cargarDatosCliente(userId, forzar) {
+        console.log('[ClientAutofill] 🔎 cargarDatosCliente() llamado con userId:', userId, '| forzar:', forzar);
+        console.log('[ClientAutofill]    ultimoClienteId:', ultimoClienteId, '| cargando:', cargando);
+
+        if (!userId) {
+            console.log('[ClientAutofill] ⚠️ userId vacío, deteniendo');
+            return;
+        }
+        if (userId === '0') {
+            console.log('[ClientAutofill] ⚠️ userId es "0", deteniendo');
+            return;
+        }
+        if (userId === '') {
+            console.log('[ClientAutofill] ⚠️ userId es string vacío, deteniendo');
+            return;
+        }
+        if (!forzar && userId === ultimoClienteId) {
+            console.log('[ClientAutofill] ℹ️ userId igual a ultimoClienteId, evitando duplicados');
+            return;
+        }
+        if (cargando) {
+            console.log('[ClientAutofill] ⚠️ Ya está cargando, ignorando duplicado');
+            return;
+        }
 
         console.log('[ClientAutofill] ───> Cargando datos para userId:', userId);
         cargando = true;
@@ -209,18 +233,35 @@ jQuery(document).ready(function ($) {
                 ultimoClienteId = userId;
                 var numCampos = rellenarRemitente(resp.data);
                 if (numCampos > 0) {
+                    console.log('[ClientAutofill] ✅ Éxito: ' + numCampos + ' campos rellenados');
                     toast('✅ Datos del remitente cargados (' + numCampos + ' campos)', '#4CAF50');
                 } else {
+                    console.warn('[ClientAutofill] ⚠️ Respuesta recibida pero sin data para rellenar');
                     toast('⚠️ No se pudieron rellenar los campos', '#f39c12');
                 }
             } else {
-                console.warn('[ClientAutofill] Respuesta sin datos:', resp);
+                console.warn('[ClientAutofill] ⚠️ Respuesta sin datos:', resp);
+                if (resp && resp.data && resp.data.message) {
+                    console.error('[ClientAutofill] Mensaje del servidor:', resp.data.message);
+                }
                 toast('⚠️ Sin datos para este cliente', '#f39c12');
             }
         })
         .fail(function (xhr) {
-            console.error('[ClientAutofill] ❌ Error AJAX:', xhr.status, xhr.responseText);
-            toast('❌ Error al cargar datos del cliente', '#e74c3c');
+            console.error('[ClientAutofill] ❌ Error AJAX status:', xhr.status);
+            console.error('[ClientAutofill] Response text:', xhr.responseText);
+            var msg = xhr.responseText || 'Error desconocido';
+            console.error('[ClientAutofill] Intentando parsear error...');
+            try {
+                var parsed = JSON.parse(xhr.responseText);
+                console.error('[ClientAutofill] Error JSON:', parsed);
+                if (parsed.data && parsed.data.message) {
+                    msg = parsed.data.message;
+                }
+            } catch(e) {
+                console.error('[ClientAutofill] No se pudo parsear como JSON:', e.message);
+            }
+            toast('❌ ' + msg, '#e74c3c');
         })
         .always(function () {
             cargando = false;
@@ -253,6 +294,61 @@ jQuery(document).ready(function ($) {
         }
         return $();
     }
+
+    /* ══════════════════════════════════════════════════════════════
+     * DETECTAR CLIENTE INICIAL (al cargar la página)
+     * ══════════════════════════════════════════════════════════════ */
+
+    function detectarClienteInicial() {
+        console.log('[ClientAutofill] 🔍 Detectando cliente inicial...');
+        
+        // CASO 1: Input hidden (cliente predefinido para cliente normal)
+        var $inputHidden = $('input[type="hidden"][name="registered_shipper"], input[type="hidden"][id="registered_shipper"]').first();
+        console.log('[ClientAutofill] 📍 Buscando input hidden... encontrados:', $inputHidden.length);
+        
+        if ($inputHidden.length) {
+            var clienteId = $inputHidden.val();
+            console.log('[ClientAutofill] ✓ Input hidden encontrado: registered_shipper');
+            console.log('[ClientAutofill] │  Nombre:', $inputHidden.attr('name'));
+            console.log('[ClientAutofill] │  ID:', $inputHidden.attr('id'));
+            console.log('[ClientAutofill] └─ Valor:', clienteId || '(vacío)');
+            
+            if (clienteId && clienteId !== '' && clienteId !== '0') {
+                console.log('[ClientAutofill] ✓ Cliente predefinido (input hidden): ' + clienteId);
+                console.log('[ClientAutofill] 📞 Llamando a cargarDatosCliente(' + clienteId + ')...');
+                cargarDatosCliente(clienteId, true); // true = forzar carga (es inicial)
+                clienteAutomatico = true;
+                console.log('[ClientAutofill] ✓ detectarClienteInicial() terminado (input hidden)');
+                return;
+            } else {
+                console.log('[ClientAutofill] ⚠️ Input hidden vacío o valor 0, continuando...');
+            }
+        }
+        
+        // CASO 2: Select de cliente (admin/operador selecciona cliente)
+        var $sel = getClientSelect();
+        
+        if ($sel.length) {
+            var clienteId = $sel.val();
+            console.log('[ClientAutofill] ✓ Select encontrado:', $sel.attr('name') || $sel.attr('id'));
+            console.log('[ClientAutofill] └─ Valor inicial:', clienteId || '(vacío)');
+            
+            // Si hay un valor inicial, cargar datos del cliente
+            if (clienteId && clienteId !== '' && clienteId !== '0') {
+                console.log('[ClientAutofill] ✓ Cliente predefinido (select): ' + clienteId);
+                ultimoClienteId = clienteId;
+                cargarDatosCliente(clienteId);
+                clienteAutomatico = true;
+            }
+        } else {
+            console.log('[ClientAutofill] ⚠️ No se encontró select de cliente');
+            console.log('[ClientAutofill] ℹ️ Esto es normal si eres un cliente normal (sin opción de elegir)');
+            clienteAutomatico = true; // Marca que el cliente es automático (predefinido por PHP)
+        }
+    }
+
+    // Ejecutar detección de cliente inicial después de 500ms
+    setTimeout(detectarClienteInicial, 500);
 
     // Listener estándar change (nativo y jQuery) - SELECTORES AMPLIOS
     $(document).on('change', '#registered_client, select[name="registered_shipper"], select[id*="client"], select[name*="client"], select[name*="shipper"]', function () {
@@ -316,3 +412,4 @@ jQuery(document).ready(function ($) {
         }, 4000);
     }
 });
+

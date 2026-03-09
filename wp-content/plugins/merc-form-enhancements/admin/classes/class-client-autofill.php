@@ -62,7 +62,10 @@ class MERC_Client_Autofill {
 	/* ── AJAX: retornar datos del cliente por ID ─────────────────────── */
 
 	public function get_client_data_ajax(): void {
-		check_ajax_referer( 'merc_get_client_data', 'nonce' );
+		// Validar nonce manualmente para devolver error JSON si falla
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_get_client_data' ) ) {
+			wp_send_json_error( [ 'message' => 'Nonce inválido o expirado' ] );
+		}
 
 		if ( ! current_user_can( 'read' ) ) {
 			wp_send_json_error( [ 'message' => 'Sin permisos' ] );
@@ -96,4 +99,5 @@ class MERC_Client_Autofill {
 }
 
 new MERC_Client_Autofill();
+
 

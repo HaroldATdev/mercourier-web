@@ -21,6 +21,51 @@ class MERC_Table_UI {
     public function __construct() {
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
         add_action( 'wp_footer',          [ $this, 'render_footer_scripts' ] );
+        
+        // 🔒 Permitir que admins firmen envíos (firma) como motorizado
+        add_filter( 'warcargo_pod_roles_can_sign', [ $this, 'extend_signature_roles' ], 10, 1 );
+        add_filter( 'wpcpod_route_allowed_user', [ $this, 'extend_route_allowed_user' ], 10, 1 );
+        
+        // 🔐 AJAX handler para que admins accedan a formulario de firma
+        add_action( 'wp_ajax_show_signaturepad_admin', [ $this, 'show_signaturepad_for_all_roles' ] );
+        add_action( 'wp_ajax_nopriv_show_signaturepad_admin', [ $this, 'show_signaturepad_for_all_roles' ] );
+    }
+
+    /**
+     * Extender roles que pueden firmar envíos (POD Signature)
+     * Por defecto solo 'wpcargo_driver', agregamos 'administrator' para admin
+     * 
+     * Nota: Las capacidades como 'manage_options' no son roles, son capabilities.
+     * En WordPress, los admins tienen el rol 'administrator'.
+     */
+    public function extend_signature_roles( $roles ) {
+        if ( ! is_array( $roles ) ) {
+            $roles = [];
+        }
+        
+        // Agregar 'administrator' a los roles que pueden firmar
+        if ( ! in_array( 'administrator', $roles, true ) ) {
+            $roles[] = 'administrator';
+        }
+        
+        return $roles;
+    }
+
+    /**
+     * Extender usuarios permitidos para routes
+     * Verifica quién puede acceder al planificador de rutas y firma
+     */
+    public function extend_route_allowed_user( $allowed_roles ) {
+        if ( ! is_array( $allowed_roles ) ) {
+            $allowed_roles = [];
+        }
+        
+        // Agregar 'administrator' a los roles permitidos
+        if ( ! in_array( 'administrator', $allowed_roles, true ) ) {
+            $allowed_roles[] = 'administrator';
+        }
+        
+        return $allowed_roles;
     }
 
     /* ── Encolar JS de reordenamiento de columnas ────────────────────── */
@@ -117,6 +162,13 @@ class MERC_Table_UI {
     tr.merc-estado-anulado td { color: #b71c1c !important; font-weight: 600 !important; }
     tr.merc-estado-anulado td:first-child::before { content: '🗑️ '; font-size: 16px; margin-right: 5px; }
 
+    /* 🔐 ADMIN SIGNATURE BYPASS - Force button visibility */
+    button.wpcod_pod_signature {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
     .merc-btn-reprogramar {
         background: #ff5722; color: white; border: none; padding: 8px 16px;
         border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
@@ -165,7 +217,81 @@ class MERC_Table_UI {
     <script>
     jQuery(document).ready(function($) {
 
-        // ── Reordenar columnas ─────────────────────────────────────────────
+        // 🔐 ADMIN & DRIVER SIGNATURE BYPASS - Interceptar clicks en botón de firma para admins y motorizados
+        const isAdmin = <?php echo current_user_can('manage_options') ? 'true' : 'false'; ?>;
+        const isDriver = <?php echo in_array('wpcargo_driver', wp_get_current_user()->roles) ? 'true' : 'false'; ?>;
+        const canSign = isAdmin || isDriver;
+        
+        console.log('🔐 isAdmin:', isAdmin, '| isDriver:', isDriver, '| canSign:', canSign);
+        
+        if (canSign) {
+            
+            // Interceptar cualquier click en botones de firma
+            $(document).on('click.mercSignature', 'button.wpcod_pod_signature, .show-signaturepad, button[data-target="#wpc_pod_signature-modal"]', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                
+                const $row = $(this).closest('tr');
+                
+                // Obtener ID del envío - esto es todo lo que necesita el backend
+                let shipmentID = $(this).data('id') || 
+                                 $(this).data('shipment-id') || 
+                                 $row.data('shipment-id') ||
+                                 $row.attr('id')?.match(/\d+/)?.[0];
+                
+                console.log('📝 Shipment ID:', shipmentID);
+                
+                if (!shipmentID) {
+                    alert('❌ No se pudo identificar el envío');
+                    return false;
+                }
+                
+                // Realizar AJAX para cargar formulario
+                $.ajax({
+                    type: "POST",
+                    data: {
+                        action: 'show_signaturepad_admin',
+                        sid: shipmentID
+                    },
+                    url: "<?php echo admin_url('admin-ajax.php'); ?>",
+                    beforeSend: function() {
+                        console.log('📝 Loading signature form...');
+                        $('body').append('<div class="wpcargo-loading">Cargando formulario...</div>');
+                    },
+                    success: function(response) {
+                        console.log('✅ Signature form loaded');
+                        $('body .wpcargo-loading').remove();
+                        
+                        const $modal = $('#wpc_pod_signature-modal');
+                        if (!$modal.length) {
+                            alert('❌ Modal no encontrado');
+                            return;
+                        }
+                        
+                        $modal.find('.modal-body').html(response);
+                        
+                        // Mostrar modal con Bootstrap
+                        if (typeof $ !== 'undefined' && $.fn.modal) {
+                            $modal.modal('show');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error loading signature form:', error);
+                        console.error('📋 Response:', xhr.responseText);
+                        $('body .wpcargo-loading').remove();
+                        alert('❌ Error: ' + error);
+                    }
+                });
+                
+                return false;
+            });
+        } else {
+            console.log('ℹ️ User cannot sign - No signature interception');
+        }
+
+        // ── Reordenar columnas ────────────────────────────────────────────
         function reordenarColumnas() {
             var $table = $('#shipment-list');
             if (!$table.length) return;
@@ -278,7 +404,6 @@ class MERC_Table_UI {
                 if ($select.length > 0) { estadoActual = $select.val() || $select.find('option:selected').text().trim(); }
                 setRowStateClass($estadoCell.closest('tr'), estadoActual);
             });
-            console.log('🎨 Filas resaltadas por estado');
         }
         setTimeout(resaltarFilasReprogramadas, 100);
 
@@ -784,6 +909,219 @@ class MERC_Table_UI {
     });
     </script>
         <?php
+    }
+
+    /**
+     * Manejador AJAX para cargar el formulario de firma del plugin POD
+     * Usa el template original del plugin pero permitiendo acceso a admins
+     */
+    public function show_signaturepad_for_all_roles() {
+        global $wpcargo; // ✅ Obtener objeto global del plugin WPCargo
+        
+        error_log( '=== DEBUG: show_signaturepad_for_all_roles() INICIADO ===' );
+        error_log( 'DEBUG: $wpcargo disponible: ' . ( isset( $wpcargo ) && $wpcargo ? 'YES' : 'NO' ) );
+        
+        // Configurar error handler personalizado para capturar todos los errores
+        $error_handler_backup = set_error_handler( function( $errno, $errstr, $errfile, $errline ) {
+            error_log( "DEBUG: Error capturado - [$errno] $errstr en $errfile:$errline" );
+            return true; // Suprimir el error
+        });
+        
+        try {
+            // ✅ Validar permisos - puede ser admin o motorizado
+            $user = wp_get_current_user();
+            error_log( 'DEBUG: Usuario actual: ' . $user->user_login . ' | Roles: ' . implode( ',', $user->roles ) );
+            
+            $can_manage = current_user_can( 'manage_options' );
+            $is_driver = in_array( 'wpcargo_driver', $user->roles );
+            
+            error_log( 'DEBUG: can_manage_options=' . ( $can_manage ? 'YES' : 'NO' ) . ' | is_driver=' . ( $is_driver ? 'YES' : 'NO' ) );
+            
+            $can_access = $can_manage || $is_driver;
+            
+            if ( ! $can_access ) {
+                error_log( 'DEBUG: Acceso denegado - usuario sin permisos' );
+                restore_error_handler();
+                wp_die( 'Acceso denegado' );
+            }
+
+            // ✅ Obtener ID del envío
+            $shipment_id = isset( $_POST['sid'] ) ? intval( $_POST['sid'] ) : 0;
+            error_log( 'DEBUG: shipment_id recibido: ' . $shipment_id );
+            
+            // Obtener datos adicionales del shipper y receiver si se envían
+            $pod_shipper = isset( $_POST['pod_shipper'] ) ? sanitize_text_field( $_POST['pod_shipper'] ) : '';
+            $pod_receiver = isset( $_POST['pod_receiver'] ) ? sanitize_text_field( $_POST['pod_receiver'] ) : '';
+            error_log( 'DEBUG: pod_shipper recibido: ' . ( $pod_shipper ? $pod_shipper : 'EMPTY' ) );
+            error_log( 'DEBUG: pod_receiver recibido: ' . ( $pod_receiver ? $pod_receiver : 'EMPTY' ) );
+            
+            if ( ! $shipment_id ) {
+                error_log( 'DEBUG: ID inválido - shipment_id es 0' );
+                restore_error_handler();
+                wp_die( 'ID inválido' );
+            }
+
+            // ✅ Verificar que exista el envío
+            $shipment = get_post( $shipment_id );
+            error_log( 'DEBUG: Shipment encontrado: ' . ( $shipment ? 'YES' : 'NO' ) );
+            if ( $shipment ) {
+                error_log( 'DEBUG: Shipment post_type: ' . $shipment->post_type );
+                error_log( 'DEBUG: Shipment title: ' . $shipment->post_title );
+            }
+            
+            if ( ! $shipment || $shipment->post_type !== 'wpcargo_shipment' ) {
+                error_log( 'DEBUG: Envío no encontrado o tipo incorrecto' );
+                restore_error_handler();
+                wp_die( 'Envío no encontrado' );
+            }
+
+            // ✅ Verificar que el plugin POD esté activo
+            $pod_path_exists = defined( 'WPCARGO_POD_PATH' );
+            error_log( 'DEBUG: WPCARGO_POD_PATH definido: ' . ( $pod_path_exists ? 'YES' : 'NO' ) );
+            
+            if ( ! $pod_path_exists ) {
+                error_log( 'DEBUG: Plugin POD no disponible' );
+                restore_error_handler();
+                wp_die( 'Plugin POD no disponible' );
+            }
+
+            error_log( 'DEBUG: WPCARGO_POD_PATH = ' . WPCARGO_POD_PATH );
+
+            // ✅ Cargar funciones necesarias del plugin POD
+            error_log( '--- DEBUG: Cargando funciones del plugin POD ---' );
+            
+            if ( ! function_exists( 'wpcpod_signature_field_list' ) ) {
+                $functions_file = WPCARGO_POD_PATH . 'templates/functions.php';
+                error_log( 'DEBUG: Intentando cargar: ' . $functions_file );
+                if ( file_exists( $functions_file ) ) {
+                    require_once( $functions_file );
+                    error_log( 'DEBUG: ✓ wpcpod_signature_field_list cargada' );
+                } else {
+                    error_log( 'DEBUG: ✗ Archivo no existe: ' . $functions_file );
+                }
+            } else {
+                error_log( 'DEBUG: ✓ wpcpod_signature_field_list ya existe' );
+            }
+            
+            if ( ! function_exists( 'wpcargo_history_order' ) ) {
+                $admin_functions_file = WPCARGO_POD_PATH . 'admin/includes/functions.php';
+                error_log( 'DEBUG: Intentando cargar: ' . $admin_functions_file );
+                if ( file_exists( $admin_functions_file ) ) {
+                    require_once( $admin_functions_file );
+                    error_log( 'DEBUG: ✓ wpcargo_history_order cargada' );
+                } else {
+                    error_log( 'DEBUG: ✗ Archivo no existe: ' . $admin_functions_file );
+                }
+            } else {
+                error_log( 'DEBUG: ✓ wpcargo_history_order ya existe' );
+            }
+
+            // ✅ Preparar variables para el template
+            error_log( '--- DEBUG: Preparando variables para el template ---' );
+            $get_sid = $shipment_id;
+            $get_pod_img = get_post_meta( $get_sid, 'wpcargo-pod-image', true );
+            $pod_signature = get_post_meta( $get_sid, 'wpcargo-pod-signature', true );
+            
+            error_log( 'DEBUG: get_pod_img = ' . ( $get_pod_img ? 'YES' : 'EMPTY' ) );
+            error_log( 'DEBUG: pod_signature = ' . ( $pod_signature ? 'YES' : 'EMPTY' ) );
+            
+            $shipment_update = maybe_unserialize( get_post_meta( $get_sid, 'wpcargo_shipments_update', true ) );
+            $is_shipment_update_array = is_array( $shipment_update );
+            error_log( 'DEBUG: shipment_update es array: ' . ( $is_shipment_update_array ? 'YES' : 'NO' ) );
+            
+            if ( $is_shipment_update_array && function_exists( 'wpcargo_history_order' ) ) {
+                $history = wpcargo_history_order( $shipment_update );
+                $shipment_update = isset( $history[0] ) ? $history[0] : array();
+                error_log( 'DEBUG: wpcargo_history_order aplicada' );
+            } else {
+                error_log( 'DEBUG: wpcargo_history_order NO aplicada' );
+                $shipment_update = array();
+            }
+
+            // ✅ Obtener estado del envío para el header
+            $wpcargo_get_status = get_post_meta( $get_sid, 'wpcargo_status', true );
+            error_log( 'DEBUG: wpcargo_get_status = ' . ( $wpcargo_get_status ? $wpcargo_get_status : 'EMPTY' ) );
+            
+            // ✅ Cargar opciones del plugin POD para shipper y receiver
+            $options = get_option( 'wpcargo_pod_option_settings' );
+            $shipper_selected_option = array();
+            $receiver_selected_option = array();
+            
+            if ( ! empty( $options ) && array_key_exists( 'shipper_fields', $options ) ) {
+                $shipper_selected_option = $options['shipper_fields'];
+                error_log( 'DEBUG: shipper_selected_option cargada: ' . count( $shipper_selected_option ) . ' campos' );
+            } else {
+                error_log( 'DEBUG: shipper_selected_option vacía' );
+            }
+            
+            if ( ! empty( $options ) && array_key_exists( 'receiver_fields', $options ) ) {
+                $receiver_selected_option = $options['receiver_fields'];
+                error_log( 'DEBUG: receiver_selected_option cargada: ' . count( $receiver_selected_option ) . ' campos' );
+            } else {
+                error_log( 'DEBUG: receiver_selected_option vacía' );
+            }
+
+            // ✅ Cargar el template original del plugin POD
+            error_log( '--- DEBUG: Cargando templates del plugin POD ---' );
+            ob_start();
+            
+            // Detectar si tiene custom fields plugin
+            $has_cf_plugin = is_plugin_active( 'wpcargo-custom-field-addons/wpcargo-custom-field.php' );
+            error_log( 'DEBUG: Custom Fields addon activo: ' . ( $has_cf_plugin ? 'YES' : 'NO' ) );
+            
+            // Incluir el template del header (ahora con $wpcargo disponible)
+            if ( $has_cf_plugin ) {
+                $header_file = WPCARGO_POD_PATH . 'templates/wpc-pod-sign-header-cf.tpl.php';
+                error_log( 'DEBUG: Intentando cargar header CF: ' . $header_file );
+            } else {
+                $header_file = WPCARGO_POD_PATH . 'templates/wpc-pod-sign-header.tpl.php';
+                error_log( 'DEBUG: Intentando cargar header: ' . $header_file );
+            }
+            
+            if ( file_exists( $header_file ) ) {
+                @include( $header_file );
+                error_log( 'DEBUG: ✓ Header incluido' );
+            } else {
+                error_log( 'DEBUG: ✗ Header no existe: ' . $header_file );
+            }
+            
+            // Incluir el form de firma
+            $sig_form_file = WPCARGO_POD_PATH . 'templates/wpc-pod-signature-form.tpl.php';
+            error_log( 'DEBUG: Intentando cargar signature form: ' . $sig_form_file );
+            if ( file_exists( $sig_form_file ) ) {
+                @include( $sig_form_file );
+                error_log( 'DEBUG: ✓ Signature form incluido' );
+            } else {
+                error_log( 'DEBUG: ✗ Signature form no existe' );
+            }
+            
+            // Incluir imágenes y resto del formulario
+            $sign_file = WPCARGO_POD_PATH . 'templates/wpc-pod-sign.tpl.php';
+            error_log( 'DEBUG: Intentando cargar sign template: ' . $sign_file );
+            if ( file_exists( $sign_file ) ) {
+                @include( $sign_file );
+                error_log( 'DEBUG: ✓ Sign template incluido' );
+            } else {
+                error_log( 'DEBUG: ✗ Sign template no existe' );
+            }
+            
+            $html = ob_get_clean();
+            error_log( 'DEBUG: HTML final length: ' . strlen( $html ) );
+            error_log( '=== DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===' );
+            
+            // Restaurar error handler
+            restore_error_handler();
+            
+            echo $html;
+            wp_die();
+            
+        } catch ( \Exception $e ) {
+            error_log( 'DEBUG: EXCEPTION: ' . $e->getMessage() );
+            restore_error_handler();
+            ob_end_clean();
+            echo '<p>Error: ' . esc_html( $e->getMessage() ) . '</p>';
+            wp_die();
+        }
     }
 }
 

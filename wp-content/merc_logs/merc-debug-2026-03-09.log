@@ -1,0 +1,683 @@
+[09-Mar-2026 12:48:02 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:48:03 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:48:03 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:48:04 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 12:48:04 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 12:48:04 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:04 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 12:48:04 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:04 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 12:48:04 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:48:06 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 12:48:06 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 12:48:06 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:06 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 12:48:06 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:48:06 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 12:48:06 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 12:48:06 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 12:48:06 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 12:48:06 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 12:48:06 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 12:48:06 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 12:48:06 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 12:48:06 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 12:48:06 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7263]
+[09-Mar-2026 12:48:06 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:06 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 12:48:06 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 12:48:06 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 12:48:06 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 12:48:07 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 12:48:07 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 12:48:07 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:48:07 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7264,7263,7262,7261,7256,7255,7254,7253,7252,7251,7250,7249,7248,7247,7246,7245,7244,7243,7242,7241,7240,7239,7238,7237]
+[09-Mar-2026 12:48:07 UTC]   Shipment 7264: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7264: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 12:48:07 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7262: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7262: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7261: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7261: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7256: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7256: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7255: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7255: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7254: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7254: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7253: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7253: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7252: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7252: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7251: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7251: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7250: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7250: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7249: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7249: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7248: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7248: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7247: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7247: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7246: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7246: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7245: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7245: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7244: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7244: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7243: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7243: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7242: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7242: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7241: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7241: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7240: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7240: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7239: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7239: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7238: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7238: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC]   Shipment 7237: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:48:07 UTC]   Shipment 7237: motorizo_recojo ID = ''
+[09-Mar-2026 12:48:07 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 12:48:07 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 12:48:10 UTC] === DEBUG: show_signaturepad_for_all_roles() INICIADO ===
+[09-Mar-2026 12:48:10 UTC] DEBUG: $wpcargo disponible: YES
+[09-Mar-2026 12:48:10 UTC] DEBUG: Usuario actual: moto@gmail.com | Roles: wpcargo_driver
+[09-Mar-2026 12:48:10 UTC] DEBUG: can_manage_options=NO | is_driver=YES
+[09-Mar-2026 12:48:10 UTC] DEBUG: shipment_id recibido: 7263
+[09-Mar-2026 12:48:10 UTC] DEBUG: Shipment encontrado: YES
+[09-Mar-2026 12:48:10 UTC] DEBUG: Shipment post_type: wpcargo_shipment
+[09-Mar-2026 12:48:10 UTC] DEBUG: Shipment title: MERC-000829
+[09-Mar-2026 12:48:10 UTC] DEBUG: WPCARGO_POD_PATH definido: YES
+[09-Mar-2026 12:48:10 UTC] DEBUG: WPCARGO_POD_PATH = /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/
+[09-Mar-2026 12:48:10 UTC] --- DEBUG: Cargando funciones del plugin POD ---
+[09-Mar-2026 12:48:10 UTC] DEBUG: ✓ wpcpod_signature_field_list ya existe
+[09-Mar-2026 12:48:10 UTC] DEBUG: ✓ wpcargo_history_order ya existe
+[09-Mar-2026 12:48:10 UTC] --- DEBUG: Preparando variables para el template ---
+[09-Mar-2026 12:48:10 UTC] DEBUG: get_pod_img = EMPTY
+[09-Mar-2026 12:48:10 UTC] DEBUG: pod_signature = EMPTY
+[09-Mar-2026 12:48:10 UTC] DEBUG: shipment_update es array: YES
+[09-Mar-2026 12:48:10 UTC] DEBUG: wpcargo_history_order aplicada
+[09-Mar-2026 12:48:10 UTC] DEBUG: wpcargo_get_status = EN RUTA
+[09-Mar-2026 12:48:10 UTC] --- DEBUG: Cargando templates del plugin POD ---
+[09-Mar-2026 12:48:10 UTC] DEBUG: Custom Fields addon activo: YES
+[09-Mar-2026 12:48:10 UTC] DEBUG: Intentando cargar header CF: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign-header-cf.tpl.php
+[09-Mar-2026 12:48:10 UTC] DEBUG: ✓ Header incluido
+[09-Mar-2026 12:48:10 UTC] DEBUG: Intentando cargar signature form: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-signature-form.tpl.php
+[09-Mar-2026 12:48:10 UTC] DEBUG: ✓ Signature form incluido
+[09-Mar-2026 12:48:10 UTC] DEBUG: Intentando cargar sign template: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign.tpl.php
+[09-Mar-2026 12:48:10 UTC] DEBUG: ✓ Sign template incluido
+[09-Mar-2026 12:48:10 UTC] DEBUG: HTML final length: 37538
+[09-Mar-2026 12:48:10 UTC] === DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===
+[09-Mar-2026 12:51:36 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7263]
+[09-Mar-2026 12:51:36 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:51:36 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 12:51:36 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 12:51:36 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 12:51:36 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 12:51:36 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 12:51:36 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 12:51:36 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 12:51:36 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 12:51:36 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 12:51:36 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 12:51:36 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 12:51:36 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 12:51:36 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 12:53:03 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7263]
+[09-Mar-2026 12:53:03 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 12:53:03 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 12:53:03 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 12:53:03 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 12:53:03 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 12:53:03 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 12:53:03 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 12:53:03 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 12:53:03 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 12:53:03 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 12:53:03 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 12:53:03 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 12:53:03 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 12:53:03 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 12:53:05 UTC] === DEBUG: show_signaturepad_for_all_roles() INICIADO ===
+[09-Mar-2026 12:53:05 UTC] DEBUG: $wpcargo disponible: YES
+[09-Mar-2026 12:53:05 UTC] DEBUG: Usuario actual: moto@gmail.com | Roles: wpcargo_driver
+[09-Mar-2026 12:53:05 UTC] DEBUG: can_manage_options=NO | is_driver=YES
+[09-Mar-2026 12:53:05 UTC] DEBUG: shipment_id recibido: 7263
+[09-Mar-2026 12:53:05 UTC] DEBUG: pod_shipper recibido: EMPTY
+[09-Mar-2026 12:53:05 UTC] DEBUG: pod_receiver recibido: EMPTY
+[09-Mar-2026 12:53:05 UTC] DEBUG: Shipment encontrado: YES
+[09-Mar-2026 12:53:05 UTC] DEBUG: Shipment post_type: wpcargo_shipment
+[09-Mar-2026 12:53:05 UTC] DEBUG: Shipment title: MERC-000829
+[09-Mar-2026 12:53:05 UTC] DEBUG: WPCARGO_POD_PATH definido: YES
+[09-Mar-2026 12:53:05 UTC] DEBUG: WPCARGO_POD_PATH = /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/
+[09-Mar-2026 12:53:05 UTC] --- DEBUG: Cargando funciones del plugin POD ---
+[09-Mar-2026 12:53:05 UTC] DEBUG: ✓ wpcpod_signature_field_list ya existe
+[09-Mar-2026 12:53:05 UTC] DEBUG: ✓ wpcargo_history_order ya existe
+[09-Mar-2026 12:53:05 UTC] --- DEBUG: Preparando variables para el template ---
+[09-Mar-2026 12:53:05 UTC] DEBUG: get_pod_img = EMPTY
+[09-Mar-2026 12:53:05 UTC] DEBUG: pod_signature = EMPTY
+[09-Mar-2026 12:53:05 UTC] DEBUG: shipment_update es array: YES
+[09-Mar-2026 12:53:05 UTC] DEBUG: wpcargo_history_order aplicada
+[09-Mar-2026 12:53:05 UTC] DEBUG: wpcargo_get_status = EN RUTA
+[09-Mar-2026 12:53:05 UTC] --- DEBUG: Cargando templates del plugin POD ---
+[09-Mar-2026 12:53:05 UTC] DEBUG: Custom Fields addon activo: YES
+[09-Mar-2026 12:53:05 UTC] DEBUG: Intentando cargar header CF: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign-header-cf.tpl.php
+[09-Mar-2026 12:53:05 UTC] DEBUG: ✓ Header incluido
+[09-Mar-2026 12:53:05 UTC] DEBUG: Intentando cargar signature form: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-signature-form.tpl.php
+[09-Mar-2026 12:53:05 UTC] DEBUG: ✓ Signature form incluido
+[09-Mar-2026 12:53:05 UTC] DEBUG: Intentando cargar sign template: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign.tpl.php
+[09-Mar-2026 12:53:05 UTC] DEBUG: ✓ Sign template incluido
+[09-Mar-2026 12:53:05 UTC] DEBUG: HTML final length: 37538
+[09-Mar-2026 12:53:05 UTC] === DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===
+[09-Mar-2026 12:56:02 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:56:04 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/includes/class-hostinger-ai-assistant-helper.php on line 28
+[09-Mar-2026 12:56:06 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:56:08 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 12:56:08 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 12:56:08 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:08 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 12:56:08 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:08 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 12:56:08 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:56:08 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 12:56:08 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 12:56:08 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:08 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 12:56:08 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:56:09 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 12:56:09 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:56:09 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:09 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:56:09 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:09 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:56:09 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:09 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 12:56:09 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:56:40 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:56:42 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 12:56:42 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 12:56:42 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:42 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 12:56:42 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:42 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 12:56:42 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:56:43 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 12:56:43 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 12:56:43 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:43 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 12:56:43 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:56:43 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 12:56:43 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:56:43 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:43 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:56:43 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:43 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 12:56:43 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 12:56:43 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 12:56:43 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 12:58:01 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:58:06 UTC] 📋 Obteniendo clientes - Total: 120
+[09-Mar-2026 12:58:06 UTC] 📋 Clientes formateados: [{"id":"64","nombre":"Accesorios y novedades ayme (Gabriela ayme Quispe)"},{"id":"84","nombre":"Antho Moda (Mary cielo Cardozo Del Castillo)"},{"id":"104","nombre":"M\u00eda Salud Natural (Aimee Arias Escalona)"},{"id":"141","nombre":"atec store (alexander la rosa aronaca)"},{"id":"101","nombre":"ALE&CLAU STORE (Fiorela Gamarra)"},{"id":"119","nombre":"Sin Empresa (Alexandra Ponce Matamoros)"},{"id":"62","nombre":"Vainilla accesorios y detalles (Andrea Carla Delgado Lopez)"},{"id":"142","nombre":"ALAR (Anderson Balarezo)"},{"id":"114","nombre":"MAB STORE (Andrea lussiana Orme\u00f1o Zafra)"},{"id":"125","nombre":"Sin Empresa (Angela Pozada)"},{"id":"51","nombre":"Jabones Esencial Y Detalles (Johana Araceli Baz\u00e1n Cruzate)"},{"id":"149","nombre":"Par\u00eds impor (Meyson gonzalo)"},{"id":"147","nombre":"Belidoc (Yoko Aponte)"},{"id":"129","nombre":"BENDAN STORE (BERNE PEZUA)"},{"id":"54","nombre":"VonnCosmetics (Brian Flores)"},{"id":"131","nombre":"dinico (brigitte vasquez)"},{"id":"151","nombre":"Vale Store (Diego Cahui Leon)"},{"id":"85","nombre":"El Placer de Comprar (Xiomara Guillen)"},{"id":"67","nombre":"Mayo joyas (Am\u00e9rica Cardoza Pulache)"},{"id":"155","nombre":"- (Carmen Garcia)"},{"id":"55","nombre":"Mi tocador (Cintia Paola Quispe Huaman)"},{"id":"122","nombre":"COPREGA S.A.C. (LINDA CELESTE VILLOSLADA TAMBRA)"},{"id":"113","nombre":"FARIA NATURALS SAC (CAROLINA BAUTISTA LLONTOP)"},{"id":"145","nombre":"PRACTI PLUS (Alejandro Pinto)"},{"id":"95","nombre":"Meliz Moda (Melissa Torres)"},{"id":"63","nombre":"Coripec (Corina Nachi)"},{"id":"105","nombre":"Moda N\u00e1poles (Neliza Cuba)"},{"id":"100","nombre":"Valubeauty (Valeria Caycho)"},{"id":"59","nombre":"Milka joyas (Daniela Gutierrez Villanueva)"},{"id":"102","nombre":"Ta chingon (Darien abel Rojas matamoros)"},{"id":"166","nombre":"Independiente (Delia Quispe)"},{"id":"71","nombre":"celybeauty sal\u00f3n (celi diaz culqui)"},{"id":"124","nombre":"Nekotienda (Gino Pari)"},{"id":"128","nombre":"VIDBOX  PERU (Edwin Orlando Vides Bernilla)"},{"id":"40","nombre":"My Baby grissel (evelyn laura alvarez)"},{"id":"115","nombre":"Puky puky (Evelyn Hurtado)"},{"id":"121","nombre":"Enjoya (Sandra Flores)"},{"id":"139","nombre":"Sharka (Fabrizio Leon)"},{"id":"134","nombre":"Askimport (Luisaura Faneite)"},{"id":"49","nombre":"FEMME ACCESORIOS (Consuelo Guzm\u00e1n)"},{"id":"43","nombre":"Phoenix store (Luis angel Fern\u00e1ndez)"},{"id":"61","nombre":"Sin Empresa (Gabriel Sandoval Niebles)"},{"id":"58","nombre":"Mossa Hand Made (Gaby Masiel Lopez Garcia)"},{"id":"178","nombre":"Sin Empresa (Henry Tiburcio)"},{"id":"161","nombre":"GRUPO DOBLE L (ANTHONY PINTO COLLINS)"},{"id":"81","nombre":"Halley Store (Norma Elizabeth Aranda Bautista)"},{"id":"88","nombre":"HERC ORIGINALS (HANS ERICK RARAZ CONDOR)"},{"id":"118","nombre":"ITDEV (Harold Alvarado)"},{"id":"37","nombre":"Mosorini (Heiner Lopez)"},{"id":"163","nombre":"BioFactory Feed (IRENE Herrera Perez)"},{"id":"77","nombre":"Halo Corporation (Karolin Mejia Pajuelo)"},{"id":"146","nombre":"google (StephensakLX StephensakLX)"},{"id":"74","nombre":"jaredshoepremium (Jared Sotomayor Aliaga)"},{"id":"65","nombre":"Santo Cerdo (Henry Altamirano)"},{"id":"78","nombre":"Glow queen (Jean Pierre Yupanqui Camarena)"},{"id":"135","nombre":"11:11 ropa & Accesorios (Jhanira Palacios)"},{"id":"57","nombre":"PEFRED SAB (Jesis Camacho)"},{"id":"171","nombre":"Nuttop (Johanna Murillo Noa)"},{"id":"80","nombre":"Sochie Store (Joe Edher Soto Figueroa)"},{"id":"35","nombre":"1388 DISE\u00d1O (JOSE DEL AGUILA)"},{"id":"87","nombre":"ironsolution (Jordis Posada)"},{"id":"156","nombre":"Importadora Jorge Managerpe (jorge jean pool ramirez vasquez)"},{"id":"73","nombre":"Joyeria Dharma (Alisson Sig\u00fce\u00f1as)"},{"id":"89","nombre":"Woofy Pet Shop (Kevin Conde)"},{"id":"173","nombre":"KM IMPLEMENTOS  (KAREN MORAN)"},{"id":"83","nombre":"KOVA (LEYDI ROSALES PALACIOS)"},{"id":"86","nombre":"KOVA (LEYDI ROSALES PALACIOS)"},{"id":"94","nombre":"Estefis Boutique (Ledy Mata)"},{"id":"174","nombre":" LEIDYVALDIVIA.OFICIAL  (Leidy Valdivia)"},{"id":"97","nombre":"LEP IMPORT SAC (Leonardo pantoja)"},{"id":"153","nombre":"Fundas endisa  (VILCHEZ LISNER)"},{"id":"170","nombre":"prettywomancosmetics (liz castillo)"},{"id":"96","nombre":"Lu import (Lucero Porras)"},{"id":"99","nombre":"HappyBoy (Lurdes Sarmiento)"},{"id":"169","nombre":"Pink Store  (Marcia Espinoza Moreno)"},{"id":"106","nombre":"Mia Salud Natural  (Mariella More)"},{"id":"79","nombre":"TODO EN UNO PERU (Marllory Llanco)"},{"id":"68","nombre":"DidacticosL&L (Elizabeth Ver\u00f3nica Martinez Vega)"},{"id":"160","nombre":"Yomalef Store (Maryori Jaramillo)"},{"id":"103","nombre":"Xamashop (Mery MEZA LUCIO)"},{"id":"123","nombre":"Queen Keratin  (Milagro Ramirez)"},{"id":"33","nombre":"MISTER BREWER (DIEGO APACLLA RIVERA)"},{"id":"132","nombre":"Garritas (Mundo Garritas Kids)"},{"id":"69","nombre":"Naty's Divine store (Nataly Gonzales)"},{"id":"82","nombre":"Puky Puky (Nelson Delgado)"},{"id":"53","nombre":"Wow novedades (Edgar Garc\u00eda cayampi)"},{"id":"159","nombre":"Modi Store (yheraldin Milagros Bazan)"},{"id":"167","nombre":"TLG CONFECCI\u00d3NES  (JULEISY NU\u00d1EZ PAY\u00c1C)"},{"id":"107","nombre":"Briciel (Nayeli Malpica)"},{"id":"150","nombre":"pamela (pamela ascate)"},{"id":"45","nombre":"Lista 21  (Patricia Elizabeth La rosa Cusirramos)"},{"id":"75","nombre":"HALLOWEEN STORE PER\u00da (PEDRO LIMO MILLONES)"},{"id":"136","nombre":"Pixxelapp (Jhosep Adrian)"},{"id":"175","nombre":"Sophiastore (Paola Estefany zavala Aguilar)"},{"id":"112","nombre":"Q boni\u00b4s (Lucy Bonnett)"},{"id":"98","nombre":"Farmacia Hogar  (Hector Rebaza)"},{"id":"172","nombre":"MyE (Rosa Diaz)"},{"id":"110","nombre":"Solfit - ropa deportiva femenina  (Samira Solagen Orozco Daza)"},{"id":"126","nombre":"SUBLIMACION XTREMA (Yensi Aquino)"},{"id":"168","nombre":"PRISCILLA (ROSA SANDOVAL)"},{"id":"143","nombre":"SCT IMPORT (Jean Carlos Huamantinco Lude\u00f1a)"},{"id":"60","nombre":"Bmqhatu (Sheidy Due\u00f1as Vargas)"},{"id":"157","nombre":"Ninguna (Shirley Johana Santillan Zavaleta)"},{"id":"127","nombre":"Angels Store (Sol Lozano)"},{"id":"90","nombre":"Yemi Yumi (Stefany Sanchez marticorena)"},{"id":"162","nombre":"Sombreros y dise\u00f1os peruanos sac  (Danny Conza Salcedo)"},{"id":"76","nombre":"Taliz Store (Lizbeth Ortega Rodr\u00edguez)"},{"id":"72","nombre":"Todopersonalizado (Yesi Anthuane PALACIOS marroquin)"},{"id":"70","nombre":"PRO LAB SUPLEMENTS (Carlos Cabrera)"},{"id":"140","nombre":"Katari Glow Store eirl  (Marcia Thalia Gutierrez Hijumq)"},{"id":"92","nombre":"COLIBRI (COLIBRI)"},{"id":"158","nombre":"Majestic (PATRICIA MU\u00d1OZ)"},{"id":"22","nombre":"Sin Empresa (victor castillo)"},{"id":"66","nombre":"JJPERU (Waldir Lizana L.)"},{"id":"56","nombre":"Engrietesy (Yanella Costilla)"},{"id":"152","nombre":"ECOMMERCE TEXTIL S.A.C. (Kevin tornero)"},{"id":"108","nombre":"Mia Salud Natural (yarenis ruiz Rodriguez)"},{"id":"91","nombre":"ZAIRE STORE  (Rosa Saire)"},{"id":"165","nombre":"JP Art\u00edculos para el hogar  (Zenaida Aron\u00e9s Mallma)"},{"id":"154","nombre":"google (FrankExpofVK FrankExpofVK)"}]
+[09-Mar-2026 12:58:37 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:58:38 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:58:38 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 12:58:39 UTC] 📋 Obteniendo clientes - Total: 120
+[09-Mar-2026 12:58:39 UTC] 📋 Clientes formateados: [{"id":"64","nombre":"Accesorios y novedades ayme (Gabriela ayme Quispe)"},{"id":"84","nombre":"Antho Moda (Mary cielo Cardozo Del Castillo)"},{"id":"104","nombre":"M\u00eda Salud Natural (Aimee Arias Escalona)"},{"id":"141","nombre":"atec store (alexander la rosa aronaca)"},{"id":"101","nombre":"ALE&CLAU STORE (Fiorela Gamarra)"},{"id":"119","nombre":"Sin Empresa (Alexandra Ponce Matamoros)"},{"id":"62","nombre":"Vainilla accesorios y detalles (Andrea Carla Delgado Lopez)"},{"id":"142","nombre":"ALAR (Anderson Balarezo)"},{"id":"114","nombre":"MAB STORE (Andrea lussiana Orme\u00f1o Zafra)"},{"id":"125","nombre":"Sin Empresa (Angela Pozada)"},{"id":"51","nombre":"Jabones Esencial Y Detalles (Johana Araceli Baz\u00e1n Cruzate)"},{"id":"149","nombre":"Par\u00eds impor (Meyson gonzalo)"},{"id":"147","nombre":"Belidoc (Yoko Aponte)"},{"id":"129","nombre":"BENDAN STORE (BERNE PEZUA)"},{"id":"54","nombre":"VonnCosmetics (Brian Flores)"},{"id":"131","nombre":"dinico (brigitte vasquez)"},{"id":"151","nombre":"Vale Store (Diego Cahui Leon)"},{"id":"85","nombre":"El Placer de Comprar (Xiomara Guillen)"},{"id":"67","nombre":"Mayo joyas (Am\u00e9rica Cardoza Pulache)"},{"id":"155","nombre":"- (Carmen Garcia)"},{"id":"55","nombre":"Mi tocador (Cintia Paola Quispe Huaman)"},{"id":"122","nombre":"COPREGA S.A.C. (LINDA CELESTE VILLOSLADA TAMBRA)"},{"id":"113","nombre":"FARIA NATURALS SAC (CAROLINA BAUTISTA LLONTOP)"},{"id":"145","nombre":"PRACTI PLUS (Alejandro Pinto)"},{"id":"95","nombre":"Meliz Moda (Melissa Torres)"},{"id":"63","nombre":"Coripec (Corina Nachi)"},{"id":"105","nombre":"Moda N\u00e1poles (Neliza Cuba)"},{"id":"100","nombre":"Valubeauty (Valeria Caycho)"},{"id":"59","nombre":"Milka joyas (Daniela Gutierrez Villanueva)"},{"id":"102","nombre":"Ta chingon (Darien abel Rojas matamoros)"},{"id":"166","nombre":"Independiente (Delia Quispe)"},{"id":"71","nombre":"celybeauty sal\u00f3n (celi diaz culqui)"},{"id":"124","nombre":"Nekotienda (Gino Pari)"},{"id":"128","nombre":"VIDBOX  PERU (Edwin Orlando Vides Bernilla)"},{"id":"40","nombre":"My Baby grissel (evelyn laura alvarez)"},{"id":"115","nombre":"Puky puky (Evelyn Hurtado)"},{"id":"121","nombre":"Enjoya (Sandra Flores)"},{"id":"139","nombre":"Sharka (Fabrizio Leon)"},{"id":"134","nombre":"Askimport (Luisaura Faneite)"},{"id":"49","nombre":"FEMME ACCESORIOS (Consuelo Guzm\u00e1n)"},{"id":"43","nombre":"Phoenix store (Luis angel Fern\u00e1ndez)"},{"id":"61","nombre":"Sin Empresa (Gabriel Sandoval Niebles)"},{"id":"58","nombre":"Mossa Hand Made (Gaby Masiel Lopez Garcia)"},{"id":"178","nombre":"Sin Empresa (Henry Tiburcio)"},{"id":"161","nombre":"GRUPO DOBLE L (ANTHONY PINTO COLLINS)"},{"id":"81","nombre":"Halley Store (Norma Elizabeth Aranda Bautista)"},{"id":"88","nombre":"HERC ORIGINALS (HANS ERICK RARAZ CONDOR)"},{"id":"118","nombre":"ITDEV (Harold Alvarado)"},{"id":"37","nombre":"Mosorini (Heiner Lopez)"},{"id":"163","nombre":"BioFactory Feed (IRENE Herrera Perez)"},{"id":"77","nombre":"Halo Corporation (Karolin Mejia Pajuelo)"},{"id":"146","nombre":"google (StephensakLX StephensakLX)"},{"id":"74","nombre":"jaredshoepremium (Jared Sotomayor Aliaga)"},{"id":"65","nombre":"Santo Cerdo (Henry Altamirano)"},{"id":"78","nombre":"Glow queen (Jean Pierre Yupanqui Camarena)"},{"id":"135","nombre":"11:11 ropa & Accesorios (Jhanira Palacios)"},{"id":"57","nombre":"PEFRED SAB (Jesis Camacho)"},{"id":"171","nombre":"Nuttop (Johanna Murillo Noa)"},{"id":"80","nombre":"Sochie Store (Joe Edher Soto Figueroa)"},{"id":"35","nombre":"1388 DISE\u00d1O (JOSE DEL AGUILA)"},{"id":"87","nombre":"ironsolution (Jordis Posada)"},{"id":"156","nombre":"Importadora Jorge Managerpe (jorge jean pool ramirez vasquez)"},{"id":"73","nombre":"Joyeria Dharma (Alisson Sig\u00fce\u00f1as)"},{"id":"89","nombre":"Woofy Pet Shop (Kevin Conde)"},{"id":"173","nombre":"KM IMPLEMENTOS  (KAREN MORAN)"},{"id":"83","nombre":"KOVA (LEYDI ROSALES PALACIOS)"},{"id":"86","nombre":"KOVA (LEYDI ROSALES PALACIOS)"},{"id":"94","nombre":"Estefis Boutique (Ledy Mata)"},{"id":"174","nombre":" LEIDYVALDIVIA.OFICIAL  (Leidy Valdivia)"},{"id":"97","nombre":"LEP IMPORT SAC (Leonardo pantoja)"},{"id":"153","nombre":"Fundas endisa  (VILCHEZ LISNER)"},{"id":"170","nombre":"prettywomancosmetics (liz castillo)"},{"id":"96","nombre":"Lu import (Lucero Porras)"},{"id":"99","nombre":"HappyBoy (Lurdes Sarmiento)"},{"id":"169","nombre":"Pink Store  (Marcia Espinoza Moreno)"},{"id":"106","nombre":"Mia Salud Natural  (Mariella More)"},{"id":"79","nombre":"TODO EN UNO PERU (Marllory Llanco)"},{"id":"68","nombre":"DidacticosL&L (Elizabeth Ver\u00f3nica Martinez Vega)"},{"id":"160","nombre":"Yomalef Store (Maryori Jaramillo)"},{"id":"103","nombre":"Xamashop (Mery MEZA LUCIO)"},{"id":"123","nombre":"Queen Keratin  (Milagro Ramirez)"},{"id":"33","nombre":"MISTER BREWER (DIEGO APACLLA RIVERA)"},{"id":"132","nombre":"Garritas (Mundo Garritas Kids)"},{"id":"69","nombre":"Naty's Divine store (Nataly Gonzales)"},{"id":"82","nombre":"Puky Puky (Nelson Delgado)"},{"id":"53","nombre":"Wow novedades (Edgar Garc\u00eda cayampi)"},{"id":"159","nombre":"Modi Store (yheraldin Milagros Bazan)"},{"id":"167","nombre":"TLG CONFECCI\u00d3NES  (JULEISY NU\u00d1EZ PAY\u00c1C)"},{"id":"107","nombre":"Briciel (Nayeli Malpica)"},{"id":"150","nombre":"pamela (pamela ascate)"},{"id":"45","nombre":"Lista 21  (Patricia Elizabeth La rosa Cusirramos)"},{"id":"75","nombre":"HALLOWEEN STORE PER\u00da (PEDRO LIMO MILLONES)"},{"id":"136","nombre":"Pixxelapp (Jhosep Adrian)"},{"id":"175","nombre":"Sophiastore (Paola Estefany zavala Aguilar)"},{"id":"112","nombre":"Q boni\u00b4s (Lucy Bonnett)"},{"id":"98","nombre":"Farmacia Hogar  (Hector Rebaza)"},{"id":"172","nombre":"MyE (Rosa Diaz)"},{"id":"110","nombre":"Solfit - ropa deportiva femenina  (Samira Solagen Orozco Daza)"},{"id":"126","nombre":"SUBLIMACION XTREMA (Yensi Aquino)"},{"id":"168","nombre":"PRISCILLA (ROSA SANDOVAL)"},{"id":"143","nombre":"SCT IMPORT (Jean Carlos Huamantinco Lude\u00f1a)"},{"id":"60","nombre":"Bmqhatu (Sheidy Due\u00f1as Vargas)"},{"id":"157","nombre":"Ninguna (Shirley Johana Santillan Zavaleta)"},{"id":"127","nombre":"Angels Store (Sol Lozano)"},{"id":"90","nombre":"Yemi Yumi (Stefany Sanchez marticorena)"},{"id":"162","nombre":"Sombreros y dise\u00f1os peruanos sac  (Danny Conza Salcedo)"},{"id":"76","nombre":"Taliz Store (Lizbeth Ortega Rodr\u00edguez)"},{"id":"72","nombre":"Todopersonalizado (Yesi Anthuane PALACIOS marroquin)"},{"id":"70","nombre":"PRO LAB SUPLEMENTS (Carlos Cabrera)"},{"id":"140","nombre":"Katari Glow Store eirl  (Marcia Thalia Gutierrez Hijumq)"},{"id":"92","nombre":"COLIBRI (COLIBRI)"},{"id":"158","nombre":"Majestic (PATRICIA MU\u00d1OZ)"},{"id":"22","nombre":"Sin Empresa (victor castillo)"},{"id":"66","nombre":"JJPERU (Waldir Lizana L.)"},{"id":"56","nombre":"Engrietesy (Yanella Costilla)"},{"id":"152","nombre":"ECOMMERCE TEXTIL S.A.C. (Kevin tornero)"},{"id":"108","nombre":"Mia Salud Natural (yarenis ruiz Rodriguez)"},{"id":"91","nombre":"ZAIRE STORE  (Rosa Saire)"},{"id":"165","nombre":"JP Art\u00edculos para el hogar  (Zenaida Aron\u00e9s Mallma)"},{"id":"154","nombre":"google (FrankExpofVK FrankExpofVK)"}]
+[09-Mar-2026 13:00:53 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 13:00:53 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 13:00:53 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 13:00:53 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 13:00:53 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 13:00:53 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 13:00:53 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 13:00:53 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 13:00:53 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 13:00:53 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7263]
+[09-Mar-2026 13:00:53 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:00:53 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 13:00:53 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 13:00:53 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 13:00:53 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 13:01:06 UTC] === DEBUG: show_signaturepad_for_all_roles() INICIADO ===
+[09-Mar-2026 13:01:06 UTC] DEBUG: $wpcargo disponible: YES
+[09-Mar-2026 13:01:06 UTC] DEBUG: Usuario actual: moto@gmail.com | Roles: wpcargo_driver
+[09-Mar-2026 13:01:06 UTC] DEBUG: can_manage_options=NO | is_driver=YES
+[09-Mar-2026 13:01:06 UTC] DEBUG: shipment_id recibido: 7263
+[09-Mar-2026 13:01:06 UTC] DEBUG: pod_shipper recibido: EMPTY
+[09-Mar-2026 13:01:06 UTC] DEBUG: pod_receiver recibido: EMPTY
+[09-Mar-2026 13:01:06 UTC] DEBUG: Shipment encontrado: YES
+[09-Mar-2026 13:01:06 UTC] DEBUG: Shipment post_type: wpcargo_shipment
+[09-Mar-2026 13:01:06 UTC] DEBUG: Shipment title: MERC-000829
+[09-Mar-2026 13:01:06 UTC] DEBUG: WPCARGO_POD_PATH definido: YES
+[09-Mar-2026 13:01:06 UTC] DEBUG: WPCARGO_POD_PATH = /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/
+[09-Mar-2026 13:01:06 UTC] --- DEBUG: Cargando funciones del plugin POD ---
+[09-Mar-2026 13:01:06 UTC] DEBUG: ✓ wpcpod_signature_field_list ya existe
+[09-Mar-2026 13:01:06 UTC] DEBUG: ✓ wpcargo_history_order ya existe
+[09-Mar-2026 13:01:06 UTC] --- DEBUG: Preparando variables para el template ---
+[09-Mar-2026 13:01:06 UTC] DEBUG: get_pod_img = EMPTY
+[09-Mar-2026 13:01:06 UTC] DEBUG: pod_signature = EMPTY
+[09-Mar-2026 13:01:06 UTC] DEBUG: shipment_update es array: YES
+[09-Mar-2026 13:01:06 UTC] DEBUG: wpcargo_history_order aplicada
+[09-Mar-2026 13:01:06 UTC] DEBUG: wpcargo_get_status = EN RUTA
+[09-Mar-2026 13:01:06 UTC] --- DEBUG: Cargando templates del plugin POD ---
+[09-Mar-2026 13:01:06 UTC] DEBUG: Custom Fields addon activo: YES
+[09-Mar-2026 13:01:06 UTC] DEBUG: Intentando cargar header CF: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign-header-cf.tpl.php
+[09-Mar-2026 13:01:06 UTC] DEBUG: ✓ Header incluido
+[09-Mar-2026 13:01:06 UTC] DEBUG: Intentando cargar signature form: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-signature-form.tpl.php
+[09-Mar-2026 13:01:06 UTC] DEBUG: ✓ Signature form incluido
+[09-Mar-2026 13:01:06 UTC] DEBUG: Intentando cargar sign template: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign.tpl.php
+[09-Mar-2026 13:01:06 UTC] DEBUG: ✓ Sign template incluido
+[09-Mar-2026 13:01:06 UTC] DEBUG: HTML final length: 37444
+[09-Mar-2026 13:01:06 UTC] === DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===
+[09-Mar-2026 13:02:25 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:02:27 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 13:02:27 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 13:02:27 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 13:02:27 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 13:02:27 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 13:02:27 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 13:02:27 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:02:28 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 13:02:28 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 13:02:28 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 13:02:28 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 13:02:28 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:02:29 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 13:02:29 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:02:29 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 13:02:29 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:02:29 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 13:02:29 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:02:29 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 13:02:29 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 13:02:29 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:05:49 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:05:50 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/includes/class-hostinger-ai-assistant-helper.php on line 28
+[09-Mar-2026 13:06:09 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:06:10 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/includes/class-hostinger-ai-assistant-helper.php on line 28
+[09-Mar-2026 13:06:13 UTC] 🔁 wpcac_apply_skip_to_all_clients: ENABLE 120 clientes procesados
+[09-Mar-2026 13:06:13 UTC] ✅ Admin activó bypass de bloqueos para hoy (form): 2026-03-09
+[09-Mar-2026 13:06:14 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:06:15 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/includes/class-hostinger-ai-assistant-helper.php on line 28
+[09-Mar-2026 13:25:38 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7263]
+[09-Mar-2026 13:25:38 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:25:38 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 13:25:38 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 13:25:38 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 13:25:38 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 13:25:38 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 13:25:38 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 13:25:38 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 13:25:38 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 13:25:38 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 13:25:38 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 13:25:38 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 13:25:38 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 13:25:38 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 13:25:40 UTC] === DEBUG: show_signaturepad_for_all_roles() INICIADO ===
+[09-Mar-2026 13:25:40 UTC] DEBUG: $wpcargo disponible: YES
+[09-Mar-2026 13:25:40 UTC] DEBUG: Usuario actual: moto@gmail.com | Roles: wpcargo_driver
+[09-Mar-2026 13:25:40 UTC] DEBUG: can_manage_options=NO | is_driver=YES
+[09-Mar-2026 13:25:40 UTC] DEBUG: shipment_id recibido: 7263
+[09-Mar-2026 13:25:40 UTC] DEBUG: pod_shipper recibido: EMPTY
+[09-Mar-2026 13:25:40 UTC] DEBUG: pod_receiver recibido: EMPTY
+[09-Mar-2026 13:25:40 UTC] DEBUG: Shipment encontrado: YES
+[09-Mar-2026 13:25:40 UTC] DEBUG: Shipment post_type: wpcargo_shipment
+[09-Mar-2026 13:25:40 UTC] DEBUG: Shipment title: MERC-000829
+[09-Mar-2026 13:25:40 UTC] DEBUG: WPCARGO_POD_PATH definido: YES
+[09-Mar-2026 13:25:40 UTC] DEBUG: WPCARGO_POD_PATH = /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/
+[09-Mar-2026 13:25:40 UTC] --- DEBUG: Cargando funciones del plugin POD ---
+[09-Mar-2026 13:25:40 UTC] DEBUG: ✓ wpcpod_signature_field_list ya existe
+[09-Mar-2026 13:25:40 UTC] DEBUG: ✓ wpcargo_history_order ya existe
+[09-Mar-2026 13:25:40 UTC] --- DEBUG: Preparando variables para el template ---
+[09-Mar-2026 13:25:40 UTC] DEBUG: get_pod_img = EMPTY
+[09-Mar-2026 13:25:40 UTC] DEBUG: pod_signature = EMPTY
+[09-Mar-2026 13:25:40 UTC] DEBUG: shipment_update es array: YES
+[09-Mar-2026 13:25:40 UTC] DEBUG: wpcargo_history_order aplicada
+[09-Mar-2026 13:25:40 UTC] DEBUG: wpcargo_get_status = EN RUTA
+[09-Mar-2026 13:25:40 UTC] --- DEBUG: Cargando templates del plugin POD ---
+[09-Mar-2026 13:25:40 UTC] DEBUG: Custom Fields addon activo: YES
+[09-Mar-2026 13:25:40 UTC] DEBUG: Intentando cargar header CF: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign-header-cf.tpl.php
+[09-Mar-2026 13:25:40 UTC] DEBUG: ✓ Header incluido
+[09-Mar-2026 13:25:40 UTC] DEBUG: Intentando cargar signature form: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-signature-form.tpl.php
+[09-Mar-2026 13:25:40 UTC] DEBUG: ✓ Signature form incluido
+[09-Mar-2026 13:25:40 UTC] DEBUG: Intentando cargar sign template: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign.tpl.php
+[09-Mar-2026 13:25:40 UTC] DEBUG: ✓ Sign template incluido
+[09-Mar-2026 13:25:40 UTC] DEBUG: HTML final length: 37444
+[09-Mar-2026 13:25:40 UTC] === DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===
+[09-Mar-2026 13:26:41 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:26:43 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:26:43 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:26:43 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 13:26:43 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 13:26:43 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 13:26:43 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 13:26:43 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 13:26:43 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 13:26:43 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:26:44 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 13:26:44 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 13:26:44 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 13:26:44 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 13:26:44 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:26:44 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 13:26:44 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:26:44 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 13:26:44 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:26:44 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 13:26:44 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:26:44 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 13:26:44 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 13:26:44 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:26:58 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:26:59 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:27:00 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:27:00 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 13:27:00 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 13:27:00 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:00 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 13:27:00 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:00 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 13:27:00 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:27:01 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 13:27:01 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 13:27:01 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:01 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 13:27:01 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:27:02 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 13:27:02 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:27:02 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:02 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:27:02 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:02 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:27:02 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:02 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 13:27:02 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:27:03 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7264,7263,7262,7261,7256,7255,7254,7253,7252,7251,7250,7249,7248,7247,7246,7245,7244,7243,7242,7241,7240,7239,7238,7237]
+[09-Mar-2026 13:27:03 UTC]   Shipment 7264: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7264: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 13:27:03 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7262: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7262: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7261: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7261: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7256: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7256: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7255: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7255: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7254: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7254: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7253: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7253: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7252: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7252: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7251: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7251: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7250: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7250: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7249: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7249: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7248: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7248: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7247: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7247: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7246: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7246: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7245: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7245: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7244: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7244: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7243: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7243: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7242: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7242: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7241: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7241: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7240: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7240: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7239: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7239: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7238: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7238: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC]   Shipment 7237: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:27:03 UTC]   Shipment 7237: motorizo_recojo ID = ''
+[09-Mar-2026 13:27:03 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 13:27:03 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 13:27:17 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:27:17 UTC] MERC_DEBUG_META_UPDATE - meta_id=48289 post_id=7263 meta_key=_wpcfe_seen_1 meta_value=2026-03-09 08:27:17
+[09-Mar-2026 13:27:17 UTC] MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)
+[09-Mar-2026 13:27:17 UTC] ⚠️ Tipo de envío no es full_fitment, saltando selector de productos
+[09-Mar-2026 13:27:17 UTC] 🔍 [CONTAINER_DETAILS] Envío #7263 | tipo_envio desde POST: NO | tipo_envio desde meta: normal | tipo_envio final: normal | es_merc: YES
+[09-Mar-2026 13:27:19 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 13:27:19 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 13:27:19 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 13:27:19 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 13:27:19 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 13:27:19 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 13:27:19 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 13:27:19 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 13:27:19 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 13:27:36 UTC] === DEBUG: show_signaturepad_for_all_roles() INICIADO ===
+[09-Mar-2026 13:27:36 UTC] DEBUG: $wpcargo disponible: YES
+[09-Mar-2026 13:27:36 UTC] DEBUG: Usuario actual: mercourier2019@gmail.com | Roles: administrator
+[09-Mar-2026 13:27:36 UTC] DEBUG: can_manage_options=YES | is_driver=NO
+[09-Mar-2026 13:27:36 UTC] DEBUG: shipment_id recibido: 7263
+[09-Mar-2026 13:27:36 UTC] DEBUG: pod_shipper recibido: EMPTY
+[09-Mar-2026 13:27:36 UTC] DEBUG: pod_receiver recibido: EMPTY
+[09-Mar-2026 13:27:36 UTC] DEBUG: Shipment encontrado: YES
+[09-Mar-2026 13:27:36 UTC] DEBUG: Shipment post_type: wpcargo_shipment
+[09-Mar-2026 13:27:36 UTC] DEBUG: Shipment title: MERC-000829
+[09-Mar-2026 13:27:36 UTC] DEBUG: WPCARGO_POD_PATH definido: YES
+[09-Mar-2026 13:27:36 UTC] DEBUG: WPCARGO_POD_PATH = /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/
+[09-Mar-2026 13:27:36 UTC] --- DEBUG: Cargando funciones del plugin POD ---
+[09-Mar-2026 13:27:36 UTC] DEBUG: ✓ wpcpod_signature_field_list ya existe
+[09-Mar-2026 13:27:36 UTC] DEBUG: ✓ wpcargo_history_order ya existe
+[09-Mar-2026 13:27:36 UTC] --- DEBUG: Preparando variables para el template ---
+[09-Mar-2026 13:27:36 UTC] DEBUG: get_pod_img = EMPTY
+[09-Mar-2026 13:27:36 UTC] DEBUG: pod_signature = EMPTY
+[09-Mar-2026 13:27:36 UTC] DEBUG: shipment_update es array: YES
+[09-Mar-2026 13:27:36 UTC] DEBUG: wpcargo_history_order aplicada
+[09-Mar-2026 13:27:36 UTC] DEBUG: wpcargo_get_status = EN RUTA
+[09-Mar-2026 13:27:36 UTC] --- DEBUG: Cargando templates del plugin POD ---
+[09-Mar-2026 13:27:36 UTC] DEBUG: Custom Fields addon activo: YES
+[09-Mar-2026 13:27:36 UTC] DEBUG: Intentando cargar header CF: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign-header-cf.tpl.php
+[09-Mar-2026 13:27:36 UTC] DEBUG: ✓ Header incluido
+[09-Mar-2026 13:27:36 UTC] DEBUG: Intentando cargar signature form: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-signature-form.tpl.php
+[09-Mar-2026 13:27:37 UTC] DEBUG: ✓ Signature form incluido
+[09-Mar-2026 13:27:37 UTC] DEBUG: Intentando cargar sign template: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign.tpl.php
+[09-Mar-2026 13:27:37 UTC] DEBUG: ✓ Sign template incluido
+[09-Mar-2026 13:27:37 UTC] DEBUG: HTML final length: 37548
+[09-Mar-2026 13:27:37 UTC] === DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===
+[09-Mar-2026 13:34:37 UTC] 📥 [GET_SHIPMENT_DATA_AJAX] Solicitud recibida para Envío #7263
+[09-Mar-2026 13:34:37 UTC]    🔹 Estado Actual Meta: 'EN RUTA'
+[09-Mar-2026 13:34:37 UTC]    🔹 Estado Anterior Meta: ''
+[09-Mar-2026 13:34:37 UTC]    ℹ️  No hay estado anterior en meta, buscando en historial...
+[09-Mar-2026 13:34:37 UTC]    🔹 Historial recuperado: 1 registros
+[09-Mar-2026 13:34:37 UTC]    ✅ Historial ordenado con wpcargo_history_order
+[09-Mar-2026 13:34:37 UTC]    ✅ Historial ordenado: 1 registros
+[09-Mar-2026 13:34:37 UTC]    ✅ Solo hay 1 registro, usando como estado anterior: 'EN RUTA'
+[09-Mar-2026 13:34:37 UTC] 🔍 [GET_SHIPMENT_DATA_RESULT] Envío #7263 - Actual: 'EN RUTA' | Anterior: 'EN RUTA'
+[09-Mar-2026 13:34:37 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7263]
+[09-Mar-2026 13:34:37 UTC]   Shipment 7263: distrito_recojo = 'Puente Piedra'
+[09-Mar-2026 13:34:37 UTC]   Shipment 7263: motorizo_recojo ID = '120'
+[09-Mar-2026 13:34:37 UTC]     Motorizado 120: first_name='Moto', last_name='Moto', nombre='Moto Moto'
+[09-Mar-2026 13:34:37 UTC] ✅ RESULTADO - distritos: ["Puente Piedra"]
+[09-Mar-2026 13:34:37 UTC] ✅ RESULTADO - motorizados: ["Moto Moto"]
+[09-Mar-2026 13:34:39 UTC] === DEBUG: show_signaturepad_for_all_roles() INICIADO ===
+[09-Mar-2026 13:34:39 UTC] DEBUG: $wpcargo disponible: YES
+[09-Mar-2026 13:34:39 UTC] DEBUG: Usuario actual: moto@gmail.com | Roles: wpcargo_driver
+[09-Mar-2026 13:34:39 UTC] DEBUG: can_manage_options=NO | is_driver=YES
+[09-Mar-2026 13:34:39 UTC] DEBUG: shipment_id recibido: 7263
+[09-Mar-2026 13:34:39 UTC] DEBUG: pod_shipper recibido: EMPTY
+[09-Mar-2026 13:34:39 UTC] DEBUG: pod_receiver recibido: EMPTY
+[09-Mar-2026 13:34:39 UTC] DEBUG: Shipment encontrado: YES
+[09-Mar-2026 13:34:39 UTC] DEBUG: Shipment post_type: wpcargo_shipment
+[09-Mar-2026 13:34:39 UTC] DEBUG: Shipment title: MERC-000829
+[09-Mar-2026 13:34:39 UTC] DEBUG: WPCARGO_POD_PATH definido: YES
+[09-Mar-2026 13:34:39 UTC] DEBUG: WPCARGO_POD_PATH = /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/
+[09-Mar-2026 13:34:39 UTC] --- DEBUG: Cargando funciones del plugin POD ---
+[09-Mar-2026 13:34:39 UTC] DEBUG: ✓ wpcpod_signature_field_list ya existe
+[09-Mar-2026 13:34:39 UTC] DEBUG: ✓ wpcargo_history_order ya existe
+[09-Mar-2026 13:34:39 UTC] --- DEBUG: Preparando variables para el template ---
+[09-Mar-2026 13:34:39 UTC] DEBUG: get_pod_img = EMPTY
+[09-Mar-2026 13:34:39 UTC] DEBUG: pod_signature = EMPTY
+[09-Mar-2026 13:34:39 UTC] DEBUG: shipment_update es array: YES
+[09-Mar-2026 13:34:39 UTC] DEBUG: wpcargo_history_order aplicada
+[09-Mar-2026 13:34:39 UTC] DEBUG: wpcargo_get_status = EN RUTA
+[09-Mar-2026 13:34:39 UTC] DEBUG: shipper_selected_option cargada: 4 campos
+[09-Mar-2026 13:34:39 UTC] DEBUG: receiver_selected_option cargada: 5 campos
+[09-Mar-2026 13:34:39 UTC] --- DEBUG: Cargando templates del plugin POD ---
+[09-Mar-2026 13:34:39 UTC] DEBUG: Custom Fields addon activo: YES
+[09-Mar-2026 13:34:39 UTC] DEBUG: Intentando cargar header CF: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign-header-cf.tpl.php
+[09-Mar-2026 13:34:39 UTC] DEBUG: ✓ Header incluido
+[09-Mar-2026 13:34:39 UTC] DEBUG: Intentando cargar signature form: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-signature-form.tpl.php
+[09-Mar-2026 13:34:39 UTC] DEBUG: ✓ Signature form incluido
+[09-Mar-2026 13:34:39 UTC] DEBUG: Intentando cargar sign template: /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/wpcargo-pod-addons/templates/wpc-pod-sign.tpl.php
+[09-Mar-2026 13:34:39 UTC] DEBUG: ✓ Sign template incluido
+[09-Mar-2026 13:34:39 UTC] DEBUG: HTML final length: 38620
+[09-Mar-2026 13:34:39 UTC] === DEBUG: show_signaturepad_for_all_roles() COMPLETADO ===
+[09-Mar-2026 13:35:48 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:35:49 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:35:49 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 13:35:49 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 13:35:49 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 13:35:49 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 13:35:49 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 13:35:49 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 13:35:49 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 13:35:49 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:35:50 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 13:35:50 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 13:35:50 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 13:35:50 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 13:35:50 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 13:35:51 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 13:35:51 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:35:51 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 13:35:51 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:35:51 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 13:35:51 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 13:35:51 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 13:35:51 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 13:35:51 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 14:01:36 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 14:01:38 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7282,7281]
+[09-Mar-2026 14:01:38 UTC]   Shipment 7282: distrito_recojo = 'Comas'
+[09-Mar-2026 14:01:38 UTC]   Shipment 7282: motorizo_recojo ID = ''
+[09-Mar-2026 14:01:38 UTC]   Shipment 7281: distrito_recojo = 'Comas'
+[09-Mar-2026 14:01:38 UTC]   Shipment 7281: motorizo_recojo ID = ''
+[09-Mar-2026 14:01:38 UTC] ✅ RESULTADO - distritos: ["Comas"]
+[09-Mar-2026 14:01:38 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 14:01:39 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7279]
+[09-Mar-2026 14:01:39 UTC]   Shipment 7279: distrito_recojo = 'San Juan de Lurigancho'
+[09-Mar-2026 14:01:39 UTC]   Shipment 7279: motorizo_recojo ID = ''
+[09-Mar-2026 14:01:39 UTC] ✅ RESULTADO - distritos: ["San Juan de Lurigancho"]
+[09-Mar-2026 14:01:39 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 14:01:40 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7278,7277,7276]
+[09-Mar-2026 14:01:40 UTC]   Shipment 7278: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 14:01:40 UTC]   Shipment 7278: motorizo_recojo ID = ''
+[09-Mar-2026 14:01:40 UTC]   Shipment 7277: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 14:01:40 UTC]   Shipment 7277: motorizo_recojo ID = ''
+[09-Mar-2026 14:01:40 UTC]   Shipment 7276: distrito_recojo = 'Villa El Salvador'
+[09-Mar-2026 14:01:40 UTC]   Shipment 7276: motorizo_recojo ID = ''
+[09-Mar-2026 14:01:40 UTC] ✅ RESULTADO - distritos: ["Villa El Salvador"]
+[09-Mar-2026 14:01:40 UTC] ✅ RESULTADO - motorizados: []
+[09-Mar-2026 14:03:14 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:14 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:14 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:14 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:23 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:23 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:23 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:23 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:23 UTC] ⚠️ Tipo de envío no es full_fitment, saltando selector de productos
+[09-Mar-2026 14:03:23 UTC] 💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para 2026-03-09 - Permitido por script
+[09-Mar-2026 14:03:23 UTC] 💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para 2026-03-09 - Permitido por script
+[09-Mar-2026 14:03:23 UTC] 💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para 2026-03-09 - Permitido por script
+[09-Mar-2026 14:03:32 UTC] 💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para 2026-03-09 - Permitido por script
+[09-Mar-2026 14:03:32 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:32 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:32 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:32 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:03:32 UTC] ⚠️ Tipo de envío no es full_fitment, saltando selector de productos
+[09-Mar-2026 14:03:34 UTC] 🔍 [AJAX] Consultando desbloqueo parcial para NORMAL | caller=158 query_user=158
+[09-Mar-2026 14:03:34 UTC]    Meta key: merc_desbloqueo_parcial_NORMAL
+[09-Mar-2026 14:03:34 UTC]    Unlock info: ""
+[09-Mar-2026 14:03:34 UTC]    Force date: 
+[09-Mar-2026 14:03:34 UTC] 🔄 [RESETEO DIARIO] Usuario 158 | Fecha: 2026-03-09
+[09-Mar-2026 14:05:42 UTC] 🔒 [PRE-INSERT] Verificando unicidad de tracking: MERC-000837
+[09-Mar-2026 14:05:42 UTC] ✅ [PRE-INSERT] Tracking único: MERC-000837
+[09-Mar-2026 14:05:42 UTC] ✅ Iniciando guardado de producto para envío #7283
+[09-Mar-2026 14:05:42 UTC]    📝 Tipo obtenido desde REQUEST[type]: normal
+[09-Mar-2026 14:05:42 UTC] 📦 Datos recibidos - Producto ID: 0, Cantidad: 1, Tipo: 'normal', Es Full Fitment: NO
+[09-Mar-2026 14:05:42 UTC] 🔍 ASIGNACIÓN ESTADO - Iniciando para envío #7283
+[09-Mar-2026 14:05:42 UTC]    ✅ Tipo ya estaba en meta: normal
+[09-Mar-2026 14:05:42 UTC]    Tipo normalizado: 'normal'
+[09-Mar-2026 14:05:42 UTC] 📦 MERC EMPRENDEDOR detectado
+[09-Mar-2026 14:05:42 UTC]    Estados de recojo configurados: 1
+[09-Mar-2026 14:05:42 UTC]    Primer estado de recojo: 'PENDIENTE'
+[09-Mar-2026 14:05:42 UTC] ✅ ASIGNACIÓN ESTADO - EMPRENDEDOR detectado: '' → 'PENDIENTE' (verificado: 'PENDIENTE')
+[09-Mar-2026 14:05:42 UTC] 🔍 Full Fitment verificación #7283 - Tipo: 'normal' -> Es full fitment: NO
+[09-Mar-2026 14:05:42 UTC] ⏭️ Full Fitment #7283 - NO es full fitment, saltando
+[09-Mar-2026 14:05:42 UTC] ✅ [MERC_FORCE_DECIMAL] Shipment #7283 wpcargo_total_cobrar forced to 89.00
+[09-Mar-2026 14:05:42 UTC] 🔍 AUTO-ASIGNACIÓN INICIADA - Envío #7283
+[09-Mar-2026 14:05:42 UTC] 📦 AUTO-ASIGNACIÓN - Tipo de envío: normal
+[09-Mar-2026 14:05:42 UTC] 🎯 AUTO-ASIGNACIÓN - EMPRENDEDOR detectado, distrito recojo: Lince → contenedor de RECOJO
+[09-Mar-2026 14:05:42 UTC]    ✅ Coincidencia por subcadena: 'LINCE' encontrado en 'RUTA CENTRO 6 ( MAGDALENA – JESUS MARIA – LINCE – SAN ISIDRO)'
+[09-Mar-2026 14:05:42 UTC] ✅ Auto-asignación - Envío #7283: shipment_container_recojo #3724 asignado
+[09-Mar-2026 14:05:42 UTC] 📍 Auto-asignación EMPRENDEDOR - Validando contenedores para RECOJO y ENTREGA...
+[09-Mar-2026 14:05:42 UTC] 📍 Auto-asignación EMPRENDEDOR - Asignando contenedor de ENTREGA para: San Martin de Porres
+[09-Mar-2026 14:05:42 UTC] ✅ Auto-asignación EMPRENDEDOR - Envío #7283: shipment_container_entrega #3721 asignado para entrega en San Martin de Porres
+[09-Mar-2026 14:05:42 UTC] 🔍 VERIFICACIÓN - shipment_container_entrega para envío #7283: ✅ Encontrado en BD: 3721
+[09-Mar-2026 14:05:42 UTC] 🔚 [FINAL_VERIFICATION] Envío #7283 | Tipo: normal | Distrito:  | Costo: 10.00
+[09-Mar-2026 14:05:42 UTC] PHP Warning:  file_exists(): open_basedir restriction in effect. File(/home/diffmerc/.api_token) is not within the allowed path(s): (/home/diffmerc/.composer:/home/diffmerc/web/mercourier.com/public_html:/home/diffmerc/web/mercourier.com/private:/home/diffmerc/web/mercourier.com/public_shtml:/home/diffmerc/tmp:/tmp:/var/www/html:/bin:/usr/bin:/usr/local/bin:/usr/share:/opt) in /home/diffmerc/web/mercourier.com/public_html/wp-content/plugins/hostinger-ai-assistant/vendor/hostinger/hostinger-wp-helper/src/Utils.php on line 84
+[09-Mar-2026 14:05:43 UTC] 
+🎯 [HOOK: after_wpcfe_save_shipment] DISPARADO para envío #7283
+[09-Mar-2026 14:05:43 UTC] 
+🔧 [ASIGNAR ESTADO FINAL] Ejecutando para envío #7283
+[09-Mar-2026 14:05:43 UTC]    📦 Tipo de envío: normal
+[09-Mar-2026 14:05:43 UTC]    📌 Estado actual en BD: PENDIENTE
+[09-Mar-2026 14:05:43 UTC]    📦 Tipo NORMAL/EMPRENDEDOR - Verificando estado
+[09-Mar-2026 14:05:43 UTC] 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🆕 AUTO-ASIGNAR MOTORIZADO (Nuevo Envío)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[09-Mar-2026 14:05:43 UTC] 📝 Hook ejecutado para envío: #7283
+[09-Mar-2026 14:05:43 UTC] 👤 Usuario (registered_shipper): 158
+[09-Mar-2026 14:05:43 UTC] 🔍 Buscando 'merc_motorizo_recojo_default' para usuario #158...
+[09-Mar-2026 14:05:43 UTC]    Valor encontrado: VACÍO/NO EXISTE
+[09-Mar-2026 14:05:43 UTC] ℹ️ Usuario #158 NO tiene motorizado default configurado
+[09-Mar-2026 14:05:43 UTC] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[09-Mar-2026 14:05:43 UTC] 💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para 2026-03-09 - Permitido por script
+[09-Mar-2026 14:05:43 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:43 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:43 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:43 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:43 UTC] ⚠️ Tipo de envío no es full_fitment, saltando selector de productos
+[09-Mar-2026 14:05:45 UTC] 🔍 [AJAX] Consultando desbloqueo parcial para NORMAL | caller=158 query_user=158
+[09-Mar-2026 14:05:45 UTC]    Meta key: merc_desbloqueo_parcial_NORMAL
+[09-Mar-2026 14:05:45 UTC]    Unlock info: ""
+[09-Mar-2026 14:05:45 UTC]    Force date: 
+[09-Mar-2026 14:05:45 UTC] 🔄 [RESETEO DIARIO] Usuario 158 | Fecha: 2026-03-09
+[09-Mar-2026 14:05:48 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:48 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:48 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:48 UTC] 🔓 DESBLOQUEO MANUAL ACTIVO: Cliente #158 puede crear 9999 envío(s) más hoy
+[09-Mar-2026 14:05:49 UTC] 🔍 ajax_get_shipment_summary START - shipment_ids: [7283]
+[09-Mar-2026 14:05:49 UTC]   Shipment 7283: distrito_recojo = 'Lince'
+[09-Mar-2026 14:05:49 UTC]   Shipment 7283: motorizo_recojo ID = ''
+[09-Mar-2026 14:05:49 UTC] ✅ RESULTADO - distritos: ["Lince"]
+[09-Mar-2026 14:05:49 UTC] ✅ RESULTADO - motorizados: []

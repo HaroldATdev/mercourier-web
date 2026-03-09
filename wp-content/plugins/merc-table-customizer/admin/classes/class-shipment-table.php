@@ -17,6 +17,7 @@ class MERC_Shipment_Table {
 		add_action( 'wpcfe_shipment_table_header', [ $this, 'custom_header' ],          99 );
 		add_action( 'wpcfe_shipment_table_data',   [ $this, 'custom_data' ],            99 );
 		add_action( 'wp_footer',                   [ $this, 'enqueue_table_scripts' ],  99 );
+		add_action( 'wp_ajax_merc_get_shipment_summary', [ $this, 'ajax_get_shipment_summary' ] );
 	}
 
 	/* ── Quitar columnas default ─────────────────────────────────────── */
@@ -45,6 +46,29 @@ class MERC_Shipment_Table {
 	public function custom_data( int $shipment_id ): void {
 		$tienda      = get_post_meta( $shipment_id, 'wpcargo_tiendaname', true );
 
+		// Si tienda está vacía, usar nombre y apellido del cliente
+		if ( empty( $tienda ) ) {
+			$cliente_id = get_post_meta( $shipment_id, 'registered_shipper', true );
+			if ( ! empty( $cliente_id ) ) {
+				$billing_company = get_user_meta( intval( $cliente_id ), 'billing_company', true );
+				if ( ! empty( $billing_company ) ) {
+					$tienda = $billing_company;
+				} else {
+					$first_name = get_user_meta( intval( $cliente_id ), 'first_name', true );
+					$last_name  = get_user_meta( intval( $cliente_id ), 'last_name', true );
+					$nombre_completo = trim( $first_name . ' ' . $last_name );
+					if ( ! empty( $nombre_completo ) ) {
+						$tienda = $nombre_completo;
+					} else {
+						$user = get_userdata( intval( $cliente_id ) );
+						if ( $user ) {
+							$tienda = $user->display_name;
+						}
+					}
+				}
+			}
+		}
+
 		$action_rows  = function_exists( 'wpcfe_shipment_action_rows' ) ? wpcfe_shipment_action_rows( $shipment_id ) : [];
 		$actions_html = ! empty( $action_rows )
 			? '<div class="wpcfe-action-row" style="margin-top:6px;">' . implode( ' | ', $action_rows ) . '</div>'
@@ -61,13 +85,21 @@ class MERC_Shipment_Table {
 		$tipo_html             = $this->render_tipo( get_post_meta( $shipment_id, 'tipo_envio', true ) );
 		$cambio_html           = $this->render_cambio( get_post_meta( $shipment_id, 'cambio_producto', true ) );
 		$estado                = (string) get_post_meta( $shipment_id, 'wpcargo_status', true );
-		$motorizo_recojo_html  = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo',  true ) );
+		
+		// Cliente asignado al envío
+		$cliente_id = get_post_meta( $shipment_id, 'registered_shipper', true );
+		
+		// Motorizado de recojo: obtener ID y nombre limpio
+		$motorizo_recojo_id    = get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', true );
+		$motorizo_recojo_html  = $this->render_driver( $motorizo_recojo_id );
+		
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
 		$this->render_tpl( 'table-row.tpl.php', compact(
 			'shipment_id', 'tienda', 'actions_html',
 			'distrito_recojo', 'distrito_destino', 'fecha',
-			'tipo_html', 'cambio_html', 'estado', 'motorizo_recojo_html', 'motorizo_entrega_html'
+			'tipo_html', 'cambio_html', 'estado', 'motorizo_recojo_html', 'motorizo_entrega_html',
+			'cliente_id'
 		) );
 	}
 
@@ -99,14 +131,20 @@ class MERC_Shipment_Table {
 			: '<span style="background:#2e7d32;color:#fff;padding:4px 12px;border-radius:14px;font-weight:bold;font-size:11px;">NO</span>';
 	}
 
-	private function render_driver( $user_id ): string {
-		if ( empty( $user_id ) ) return '<span style="color:#999;">-</span>';
+	private function get_driver_name( $user_id ): string {
+		if ( empty( $user_id ) ) return '';
 		$nombre = trim( get_user_meta( $user_id, 'first_name', true ) . ' ' . get_user_meta( $user_id, 'last_name', true ) );
 		if ( empty( $nombre ) ) {
 			$u = get_userdata( $user_id );
-			$nombre = $u ? $u->display_name : '-';
+			$nombre = $u ? $u->display_name : '';
 		}
-		return esc_html( $nombre );
+		return $nombre;
+	}
+
+	private function render_driver( $user_id ): string {
+		if ( empty( $user_id ) ) return '<span style="color:#999;">-</span>';
+		$nombre = $this->get_driver_name( $user_id );
+		return ! empty( $nombre ) ? esc_html( $nombre ) : '<span style="color:#999;">-</span>';
 	}
 
 	/* ── Enqueue CSS/JS para accordion de tiendas ───────────────────── */
@@ -130,7 +168,7 @@ class MERC_Shipment_Table {
 			}
 
 			.merc-tienda-card-header {
-				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+				background: linear-gradient(135deg, #8e0205 0%, #350000 100%);
 				color: white;
 				padding: 12px 16px;
 				cursor: pointer;
@@ -144,7 +182,7 @@ class MERC_Shipment_Table {
 			}
 
 			.merc-tienda-card-header:hover {
-				background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+				background: linear-gradient(135deg, #a10251 0%, #8e0205 100%);
 			}
 
 			.merc-tienda-info {
@@ -382,10 +420,62 @@ class MERC_Shipment_Table {
 				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
 				const rowsForTienda = tiendas[tienda];
 
+				// Recopilar shipment IDs específicos de las filas agrupadas
+				const shipmentIds = [];
+				rowsForTienda.forEach(function($row) {
+					// El shipment_id está en data-shipment-id o en el primer TD (merc-tienda-cell) como data-shipment-id
+					const shipmentId = $row.find('.merc-tienda-cell').data('shipment-id') || $row.data('shipment-id');
+					if (shipmentId) {
+						shipmentIds.push(shipmentId);
+					}
+				});
+				
+				console.log('📍 Tienda: ' + tienda + ' | Shipment IDs: ' + JSON.stringify(shipmentIds));
+				
+				// Obtener distritos y motorizados vía AJAX usando los shipment IDs específicos
+				const distritos = new Set();
+				const motorizados = new Set();
+				
+				if (shipmentIds.length > 0) {
+					// Hacer AJAX para obtener datos agrupados
+					$.ajax({
+						type: 'POST',
+						url: ajaxurl,
+						async: false, // Sincrónico para no complicar el flow
+						data: {
+							action: 'merc_get_shipment_summary',
+							shipment_ids: shipmentIds
+						},
+						success: function(resp) {
+							console.log('✅ AJAX SUCCESS para ' + tienda + ':', resp);
+							if (resp.success && resp.data) {
+								if (resp.data.distritos && resp.data.distritos.length) {
+									resp.data.distritos.forEach(function(d) { distritos.add(d); });
+								}
+								if (resp.data.motorizados && resp.data.motorizados.length) {
+									resp.data.motorizados.forEach(function(m) { motorizados.add(m); });
+								}
+							}
+						},
+						error: function(err) {
+							console.error('❌ AJAX ERROR para ' + tienda + ':', err);
+						}
+					});
+				}
+				// Construir información adicional
+				let infoAdicional = '';
+				if (distritos.size > 0) {
+					infoAdicional += '<br><small style="opacity:0.7;">📍 Distritos: ' + Array.from(distritos).join(', ') + '</small>';
+				}
+				if (motorizados.size > 0) {
+					infoAdicional += '<br><small style="opacity:0.7;">🚗 Motorizado(s): ' + Array.from(motorizados).join(', ') + '</small>';
+				}
+
 				const $header = $('<div class="merc-tienda-card-header"></div>').html(
 					'<div class="merc-tienda-info">' +
 					'<strong>' + tienda + '</strong>' +
 					'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
+					infoAdicional +
 					'</div>' +
 					'<span class="merc-tienda-icon">▼</span>'
 				);
@@ -519,6 +609,70 @@ class MERC_Shipment_Table {
 		</script>
 		<?php
 	}
+
+	/* ── AJAX: obtener distritos y motorizados para shipments específicos ────────── */
+
+	public function ajax_get_shipment_summary(): void {
+		if ( ! current_user_can( 'read' ) ) {
+			wp_send_json_error( 'Sin permisos' );
+		}
+
+		$shipment_ids = isset( $_POST['shipment_ids'] ) ? array_map( 'intval', (array) $_POST['shipment_ids'] ) : [];
+		if ( empty( $shipment_ids ) ) {
+			wp_send_json_error( 'Sin shipment IDs' );
+		}
+
+		error_log( '🔍 ajax_get_shipment_summary START - shipment_ids: ' . json_encode( $shipment_ids ) );
+
+		$distritos = [];
+		$motorizados = [];
+
+		// Para cada shipment específico, obtener distrito y motorizado
+		foreach ( $shipment_ids as $shipment_id ) {
+			$shipment_id = intval( $shipment_id );
+			
+			$distrito = get_post_meta( $shipment_id, 'wpcargo_distrito_recojo', true );
+			error_log( "  Shipment {$shipment_id}: distrito_recojo = '{$distrito}'" );
+			
+			if ( ! empty( $distrito ) && $distrito !== '-' ) {
+				$distritos[] = $distrito;
+			}
+
+			$moto_id = get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', true );
+			error_log( "  Shipment {$shipment_id}: motorizo_recojo ID = '{$moto_id}'" );
+			
+			if ( ! empty( $moto_id ) ) {
+				$moto_id = intval( $moto_id );
+				$first_name = get_user_meta( $moto_id, 'first_name', true );
+				$last_name = get_user_meta( $moto_id, 'last_name', true );
+				$nombre = trim( $first_name . ' ' . $last_name );
+				
+				error_log( "    Motorizado {$moto_id}: first_name='{$first_name}', last_name='{$last_name}', nombre='{$nombre}'" );
+				
+				if ( empty( $nombre ) ) {
+					$u = get_userdata( $moto_id );
+					$nombre = $u ? $u->display_name : '';
+					error_log( "    Fallback display_name: '{$nombre}'" );
+				}
+				if ( ! empty( $nombre ) ) {
+					$motorizados[] = $nombre;
+				}
+			}
+		}
+
+		// Obtener únicos
+		$distritos = array_unique( array_filter( $distritos ) );
+		$motorizados = array_unique( array_filter( $motorizados ) );
+
+		error_log( '✅ RESULTADO - distritos: ' . json_encode( array_values( $distritos ) ) );
+		error_log( '✅ RESULTADO - motorizados: ' . json_encode( array_values( $motorizados ) ) );
+
+		wp_send_json_success( [
+			'distritos' => array_values( $distritos ),
+			'motorizados' => array_values( $motorizados )
+		] );
+	}
 }
 
 new MERC_Shipment_Table();
+

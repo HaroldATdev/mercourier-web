@@ -17,16 +17,14 @@
  * del <tr> que WPCargo ya abrió mediante el hook wpcfe_shipment_table_data.
  */
 ?>
-<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>">
+<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>" data-cliente-id="<?php echo esc_attr( $cliente_id ?: '' ); ?>" data-shipment-id="<?php echo esc_attr( $shipment_id ); ?>">
 	<?php if ( $tienda ) : ?>
 		<strong><?php echo esc_html( $tienda ); ?></strong><br>
 	<?php endif; ?>
 	<?php echo $actions_html; ?>
 </td>
 
-<td><?php echo ! empty( $distrito_recojo )
-	? esc_html( $distrito_recojo )
-	: '<span style="color:#999;">N/A</span>'; ?></td>
+
 
 <td><?php echo ! empty( $distrito_destino )
 	? esc_html( $distrito_destino )
@@ -40,6 +38,6 @@
 
 <td class="shipment-status <?php echo esc_attr( sanitize_title( $estado ) ); ?>"><?php echo esc_html( $estado ); ?></td>
 
-<td><?php echo $motorizo_recojo_html; ?></td>
 
 <td><?php echo $motorizo_entrega_html; ?></td>
+

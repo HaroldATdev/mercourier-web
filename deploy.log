@@ -1145,3 +1145,685 @@ hint: or --ff-only on the command line to override the configured default per
 hint: invocation.
 fatal: Need to specify how to reconcile divergent branches.
 
+[2026-03-07 14:14:39]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-07 15:34:20]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+Already up to date.
+
+[2026-03-07 16:33:18]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   714838cd..8e9af6ef  main       -> origin/main
+Updating 714838cd..8e9af6ef
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 69 +++++++++++++++++++++-
+ .../admin/templates/frontend/table-header.tpl.php  |  1 -
+ .../admin/templates/frontend/table-row.tpl.php     |  8 ++-
+ .../templates/frontend/table-tienda-header.tpl.php | 16 +++++
+ 4 files changed, 89 insertions(+), 5 deletions(-)
+ create mode 100644 wp-content/plugins/merc-table-customizer/admin/templates/frontend/table-tienda-header.tpl.php
+
+[2026-03-07 16:35:45]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8e9af6ef..f226ea56  main       -> origin/main
+Updating 8e9af6ef..f226ea56
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 125 ++++++++++++++-------
+ 1 file changed, 87 insertions(+), 38 deletions(-)
+
+[2026-03-07 16:39:30]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   f226ea56..90eb5382  main       -> origin/main
+Updating f226ea56..90eb5382
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 185 +++++++++++++++------
+ 1 file changed, 133 insertions(+), 52 deletions(-)
+
+[2026-03-07 16:41:02]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   90eb5382..530e408f  main       -> origin/main
+Updating 90eb5382..530e408f
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 220 ++++++++++++---------
+ 1 file changed, 129 insertions(+), 91 deletions(-)
+
+[2026-03-07 16:44:37]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   530e408f..905620d2  main       -> origin/main
+Updating 530e408f..905620d2
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 195 ++++++++++-----------
+ 1 file changed, 97 insertions(+), 98 deletions(-)
+
+[2026-03-07 16:47:21]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   905620d2..611c1c38  main       -> origin/main
+Updating 905620d2..611c1c38
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 62 ++++++++++++++++------
+ 1 file changed, 46 insertions(+), 16 deletions(-)
+
+[2026-03-07 16:49:44]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   611c1c38..ad7b6a43  main       -> origin/main
+Updating 611c1c38..ad7b6a43
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 113 ++++++++++-----------
+ 1 file changed, 53 insertions(+), 60 deletions(-)
+
+[2026-03-07 16:53:52]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   ad7b6a43..20b2b6b6  main       -> origin/main
+Updating ad7b6a43..20b2b6b6
+Fast-forward
+ .../admin/templates/frontend/table-header.tpl.php                     | 1 +
+ .../merc-table-customizer/admin/templates/frontend/table-row.tpl.php  | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+[2026-03-07 16:57:32]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   20b2b6b6..b385a687  main       -> origin/main
+Updating 20b2b6b6..b385a687
+Fast-forward
+ .../merc-table-customizer/admin/templates/frontend/table-header.tpl.php  | 1 -
+ 1 file changed, 1 deletion(-)
+
+[2026-03-07 17:01:09]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b385a687..e2915a05  main       -> origin/main
+Updating b385a687..e2915a05
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 255 +--------------------
+ .../admin/templates/frontend/table-header.tpl.php  |   2 +
+ .../admin/templates/frontend/table-row.tpl.php     |   2 +
+ 3 files changed, 6 insertions(+), 253 deletions(-)
+
+[2026-03-07 17:04:25]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   e2915a05..e0fc5fd7  main       -> origin/main
+Updating e2915a05..e0fc5fd7
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 86 +++++++++++++++++++++-
+ 1 file changed, 84 insertions(+), 2 deletions(-)
+
+[2026-03-07 17:06:42]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   e0fc5fd7..fee4b91f  main       -> origin/main
+Updating e0fc5fd7..fee4b91f
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 269 +++++++++++++++++----
+ .../admin/templates/frontend/table-header.tpl.php  |   2 -
+ .../admin/templates/frontend/table-row.tpl.php     |   2 -
+ 3 files changed, 219 insertions(+), 54 deletions(-)
+
+[2026-03-07 17:09:38]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   fee4b91f..15438fcd  main       -> origin/main
+Updating fee4b91f..15438fcd
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 43 ++++++++--------------
+ 1 file changed, 16 insertions(+), 27 deletions(-)
+
+[2026-03-07 17:10:30]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   15438fcd..b743255d  main       -> origin/main
+Updating 15438fcd..b743255d
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+[2026-03-07 17:13:06]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b743255d..84c6e5cf  main       -> origin/main
+Updating b743255d..84c6e5cf
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 51 ++++++++++------------
+ 1 file changed, 22 insertions(+), 29 deletions(-)
+
+[2026-03-07 17:14:09]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   84c6e5cf..c84c66e1  main       -> origin/main
+Updating 84c6e5cf..c84c66e1
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 27 ++++++++++++++--------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
+
+[2026-03-07 17:16:25]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   c84c66e1..92e2a1e2  main       -> origin/main
+Updating c84c66e1..92e2a1e2
+Fast-forward
+ .../admin/classes/class-shipment-table.php                | 15 +++++++++++----
+ .../merc-table-customizer/admin/js/merc-table-ui.js       |  6 ++++++
+ 2 files changed, 17 insertions(+), 4 deletions(-)
+
+[2026-03-07 17:24:09]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   92e2a1e2..677dacdf  main       -> origin/main
+Updating 92e2a1e2..677dacdf
+Fast-forward
+ .../admin/classes/class-shipment-table.php                     | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+[2026-03-07 17:25:47]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   677dacdf..82488ebb  main       -> origin/main
+Updating 677dacdf..82488ebb
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php        | 2 ++
+ 1 file changed, 2 insertions(+)
+
+[2026-03-08 00:59:28]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   82488ebb..7506b11a  main       -> origin/main
+Updating 82488ebb..7506b11a
+Fast-forward
+ .../admin/assets/js/container-assign.js                  | 16 ++--------------
+ .../admin/classes/class-container-assign.php             |  9 ---------
+ 2 files changed, 2 insertions(+), 23 deletions(-)
+
+[2026-03-08 01:29:57]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7506b11a..0a83b85a  main       -> origin/main
+Updating 7506b11a..0a83b85a
+Fast-forward
+ .../admin/assets/js/container-assign.js            | 26 +++++++---------------
+ .../admin/classes/class-container-assign.php       |  9 +++++++-
+ .../merc-form-enhancements.php                     |  4 ++--
+ 3 files changed, 18 insertions(+), 21 deletions(-)
+
+[2026-03-08 02:05:05]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   0a83b85a..7e92a53a  main       -> origin/main
+Updating 0a83b85a..7e92a53a
+Fast-forward
+ .../admin/classes/class-shipment-table.php         | 16 +++++++-------
+ .../admin/classes/class-table-ui.php               | 18 +++++++++-------
+ .../admin/js/merc-table-ui.js                      | 25 +++-------------------
+ .../admin/templates/frontend/table-header.tpl.php  |  2 ++
+ .../admin/templates/frontend/table-row.tpl.php     | 15 ++++++++++---
+ .../merc-table-customizer.php                      |  4 ++--
+ 6 files changed, 37 insertions(+), 43 deletions(-)
+
+[2026-03-08 02:50:49]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7e92a53a..f84844b1  main       -> origin/main
+Updating 7e92a53a..f84844b1
+Fast-forward
+ fix_print.py                                       |  23 ++++
+ .../admin/classes/class-shipment-table.php         | 134 ++++++++++++++++++++-
+ .../merc-table-customizer.php                      |   4 +-
+ 3 files changed, 157 insertions(+), 4 deletions(-)
+ create mode 100644 fix_print.py
+
+[2026-03-08 03:20:11]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   f84844b1..7a804aef  main       -> origin/main
+Updating f84844b1..7a804aef
+Fast-forward
+ fix_checkbox.py                                    | 114 +++++++++++++++++++++
+ .../admin/classes/class-shipment-table.php         |  30 +++++-
+ .../merc-table-customizer.php                      |   4 +-
+ 3 files changed, 144 insertions(+), 4 deletions(-)
+ create mode 100644 fix_checkbox.py
+
+[2026-03-08 03:25:50]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7a804aef..4261af52  main       -> origin/main
+Updating 7a804aef..4261af52
+Fast-forward
+ .../merc-table-customizer/admin/classes/class-shipment-table.php      | 2 +-
+ wp-content/plugins/merc-table-customizer/merc-table-customizer.php    | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+[2026-03-08 03:36:45]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4261af52..f2f2c740  main       -> origin/main
+Updating 4261af52..f2f2c740
+Fast-forward
+ fix_all.py                                         | 123 +++++++++++++++++++++
+ .../admin/classes/class-shipment-table.php         |  78 ++++++++-----
+ .../merc-table-customizer.php                      |   4 +-
+ 3 files changed, 173 insertions(+), 32 deletions(-)
+ create mode 100644 fix_all.py
+
+[2026-03-08 03:46:25]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   f2f2c740..61239a11  main       -> origin/main
+Updating f2f2c740..61239a11
+Fast-forward
+ fix_cb.py                                          | 231 +++++++++++++++++++++
+ .../admin/classes/class-shipment-table.php         |  63 ++----
+ .../merc-table-customizer.php                      |   4 +-
+ 3 files changed, 251 insertions(+), 47 deletions(-)
+ create mode 100644 fix_cb.py
+
+[2026-03-08 10:12:59]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   61239a11..b1447b1a  main       -> origin/main
+Updating 61239a11..b1447b1a
+Fast-forward
+ .../plugins/elementor/modules/lazyload/module.php  | 46 +++++++++++-----------
+ 1 file changed, 24 insertions(+), 22 deletions(-)
+
+[2026-03-08 10:16:40]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b1447b1a..5d1eb4de  main       -> origin/main
+Updating b1447b1a..5d1eb4de
+Fast-forward
+ .../admin/includes/ajax.php                        | 125 +++++++++++++--------
+ .../wpcargo-frontend-manager/assets/js/script.js   |  33 +++++-
+ 2 files changed, 111 insertions(+), 47 deletions(-)
+
+[2026-03-08 10:17:45]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   5d1eb4de..243e05ed  main       -> origin/main
+Updating 5d1eb4de..243e05ed
+Fast-forward
+ .../admin/includes/ajax.php                        | 157 ++++++++++-----------
+ 1 file changed, 76 insertions(+), 81 deletions(-)
+
+[2026-03-08 10:19:28]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   243e05ed..91394af7  main       -> origin/main
+Updating 243e05ed..91394af7
+Fast-forward
+ .../admin/includes/ajax.php                        | 113 +++++++++++++--------
+ .../wpcargo-frontend-manager/assets/js/script.js   |  27 ++++-
+ 2 files changed, 94 insertions(+), 46 deletions(-)
+
+[2026-03-08 10:20:52]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   91394af7..03259925  main       -> origin/main
+Updating 91394af7..03259925
+Fast-forward
+ .../admin/includes/ajax.php                        | 25 +++++++++-------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
+
+[2026-03-08 10:30:27]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   03259925..4e5d3aa8  main       -> origin/main
+Updating 03259925..4e5d3aa8
+Fast-forward
+ .../plugins/wpcargo-frontend-manager/admin/includes/ajax.php   | 10 ++++++++++
+ .../plugins/wpcargo-frontend-manager/assets/js/script.js       |  1 +
+ .../plugins/wpcargo-frontend-manager/templates/account.tpl.php |  1 +
+ .../plugins/wpcargo-frontend-manager/templates/profile.tpl.php |  1 +
+ 4 files changed, 13 insertions(+)
+
+[2026-03-08 10:33:55]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4e5d3aa8..b2e1c022  main       -> origin/main
+Updating 4e5d3aa8..b2e1c022
+Fast-forward
+ wp-content/plugins/wpcargo-frontend-manager/admin/includes/ajax.php | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+[2026-03-08 10:38:30]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b2e1c022..b69ed969  main       -> origin/main
+Updating b2e1c022..b69ed969
+Fast-forward
+ .../plugins/wpcargo-frontend-manager/admin/includes/ajax.php      | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+[2026-03-08 10:40:07]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b69ed969..8f0f1b91  main       -> origin/main
+Updating b69ed969..8f0f1b91
+Fast-forward
+ .../plugins/wpcargo-frontend-manager/admin/includes/ajax.php     | 9 +++++++++
+ wp-content/plugins/wpcargo-frontend-manager/assets/js/script.js  | 6 +++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+[2026-03-08 10:42:24]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8f0f1b91..458abcdd  main       -> origin/main
+Updating 8f0f1b91..458abcdd
+Fast-forward
+ .../admin/includes/ajax.php                        | 25 +++++++---------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
+
+[2026-03-08 10:43:29]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   458abcdd..d3de0100  main       -> origin/main
+Updating 458abcdd..d3de0100
+Fast-forward
+ .../wpcargo-frontend-manager/admin/includes/ajax.php    | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+[2026-03-08 10:47:50]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   d3de0100..9ee2ba1a  main       -> origin/main
+Updating d3de0100..9ee2ba1a
+Fast-forward
+ .../wpcargo-frontend-manager/admin/includes/ajax.php     | 16 +++++++++++-----
+ wp-content/themes/blocksy-child/functions.php            |  8 +++++++-
+ 2 files changed, 18 insertions(+), 6 deletions(-)
+
+[2026-03-08 10:49:19]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   9ee2ba1a..75e185d5  main       -> origin/main
+Updating 9ee2ba1a..75e185d5
+Fast-forward
+ wp-content/mu-plugins/define-doing-ajax.php             | 17 +++++++++++++++++
+ .../wpcargo-frontend-manager/admin/includes/ajax.php    | 12 ++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100644 wp-content/mu-plugins/define-doing-ajax.php
+
+[2026-03-08 10:53:22]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   75e185d5..fc854347  main       -> origin/main
+Updating 75e185d5..fc854347
+Fast-forward
+ wp-content/plugins/wpcargo-frontend-manager/admin/includes/ajax.php | 2 ++
+ 1 file changed, 2 insertions(+)
+
+[2026-03-08 10:55:48]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   fc854347..2e0c2b17  main       -> origin/main
+Updating fc854347..2e0c2b17
+Fast-forward
+ wp-content/plugins/wpcargo-frontend-manager/admin/includes/ajax.php | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+[2026-03-08 10:59:52]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   2e0c2b17..a610d3aa  main       -> origin/main
+Updating 2e0c2b17..a610d3aa
+Fast-forward
+ wp-admin/admin-ajax.php                            | 30 ++++++++++------------
+ wp-content/mu-plugins/debug-ajax.php               | 20 +++++++++++++++
+ .../includes/role-filters.php                      |  4 +++
+ .../wpcargo-frontend-manager.php                   | 10 ++++++++
+ 4 files changed, 48 insertions(+), 16 deletions(-)
+ create mode 100644 wp-content/mu-plugins/debug-ajax.php
+
+[2026-03-08 11:08:04]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   a610d3aa..2cdff5d4  main       -> origin/main
+Updating a610d3aa..2cdff5d4
+Fast-forward
+ wp-admin/admin-ajax.php                              | 13 -------------
+ wp-content/mu-plugins/define-doing-ajax.php          | 16 ++++++++++++----
+ .../wpcargo-access-control/includes/role-filters.php |  4 ----
+ .../wpcargo-frontend-manager/admin/includes/ajax.php | 20 --------------------
+ .../wpcargo-frontend-manager.php                     | 10 ----------
+ 5 files changed, 12 insertions(+), 51 deletions(-)
+
+[2026-03-08 11:13:44]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   2cdff5d4..9ec9a452  main       -> origin/main
+Updating 2cdff5d4..9ec9a452
+Fast-forward
+ wp-content/mu-plugins/define-doing-ajax.php        | 30 ++++++++++++++++++----
+ .../admin/includes/ajax.php                        |  3 +++
+ 2 files changed, 28 insertions(+), 5 deletions(-)
+
+[2026-03-08 11:38:27]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   9ec9a452..7c62b69d  main       -> origin/main
+Updating 9ec9a452..7c62b69d
+Fast-forward
+ .../admin/includes/ajax.php                         | 11 ++++++-----
+ .../wpcargo-frontend-manager.php                    | 21 +++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 5 deletions(-)
+
+[2026-03-08 11:41:43]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   7c62b69d..9a0e9133  main       -> origin/main
+Updating 7c62b69d..9a0e9133
+Fast-forward
+ wp-content/plugins/wpcargo-frontend-manager/admin/includes/ajax.php | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+[2026-03-08 11:43:56]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   9a0e9133..d2804d2a  main       -> origin/main
+Updating 9a0e9133..d2804d2a
+Fast-forward
+ wp-admin/admin-ajax.php | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+[2026-03-08 11:50:28]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   d2804d2a..8388ddad  main       -> origin/main
+Updating d2804d2a..8388ddad
+Fast-forward
+ wp-admin/admin-ajax.php | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+[2026-03-08 12:05:40]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   8388ddad..b818c064  main       -> origin/main
+Updating 8388ddad..b818c064
+Fast-forward
+ wp-admin/admin-ajax.php | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+[2026-03-08 12:10:03]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b818c064..0cce96a7  main       -> origin/main
+Updating b818c064..0cce96a7
+Fast-forward
+ wp-admin/admin-ajax.php | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+[2026-03-08 12:20:17]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   0cce96a7..95d8be82  main       -> origin/main
+Updating 0cce96a7..95d8be82
+Fast-forward
+ wp-admin/admin-ajax.php | 40 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
+
+[2026-03-08 12:21:32]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   95d8be82..2548e003  main       -> origin/main
+Updating 95d8be82..2548e003
+Fast-forward
+ wp-content/mu-plugins/define-doing-ajax.php | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+[2026-03-08 12:22:56]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   2548e003..6326d1d8  main       -> origin/main
+Updating 2548e003..6326d1d8
+Fast-forward
+ wp-admin/admin-ajax.php | 35 +++++++----------------------------
+ 1 file changed, 7 insertions(+), 28 deletions(-)
+
+[2026-03-08 12:30:53]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   6326d1d8..3f512fe7  main       -> origin/main
+Updating 6326d1d8..3f512fe7
+Fast-forward
+ wp-admin/admin-ajax.php                            | 31 ----------------------
+ .../admin/includes/ajax.php                        |  4 ---
+ .../wpcargo-frontend-manager.php                   | 21 ---------------
+ 3 files changed, 56 deletions(-)
+
+[2026-03-08 12:32:56]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   3f512fe7..6a02f0eb  main       -> origin/main
+Updating 3f512fe7..6a02f0eb
+Fast-forward
+ wp-content/mu-plugins/define-doing-ajax.php        | 60 ++++++++--------------
+ .../admin/includes/ajax.php                        | 20 +++++---
+ 2 files changed, 35 insertions(+), 45 deletions(-)
+
+[2026-03-08 12:34:41]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   6a02f0eb..c3cf2a68  main       -> origin/main
+Updating 6a02f0eb..c3cf2a68
+Fast-forward
+ wp-admin/admin-ajax.php                            | 31 +++++++++++
+ wp-content/mu-plugins/define-doing-ajax.php        | 60 ++++++++++++++--------
+ .../admin/includes/ajax.php                        | 22 ++++----
+ .../wpcargo-frontend-manager.php                   | 21 ++++++++
+ 4 files changed, 100 insertions(+), 34 deletions(-)
+
+[2026-03-08 12:39:06]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   c3cf2a68..4398e228  main       -> origin/main
+Updating c3cf2a68..4398e228
+Fast-forward
+ wp-content/plugins/wpcargo-frontend-manager/admin/includes/ajax.php | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+[2026-03-08 13:39:58]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   4398e228..fecc6a3c  main       -> origin/main
+Updating 4398e228..fecc6a3c
+Fast-forward
+ wp-admin/admin-ajax.php                            | 26 -------
+ wp-content/mu-plugins/debug-ajax.php               | 20 -----
+ .../plugins/merc-warehouse/assets/scripts.js       | 91 ++++++++++++++++------
+ .../admin/includes/ajax.php                        | 11 ---
+ .../wpcargo-frontend-manager/assets/js/script.js   |  6 --
+ 5 files changed, 68 insertions(+), 86 deletions(-)
+ delete mode 100644 wp-content/mu-plugins/debug-ajax.php
+
+[2026-03-08 15:13:22]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   fecc6a3c..489a4b3f  main       -> origin/main
+Updating fecc6a3c..489a4b3f
+Fast-forward
+ .../plugins/merc-warehouse/includes/ajax.php       | 25 ++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+[2026-03-08 15:55:47]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   489a4b3f..b93364be  main       -> origin/main
+Updating 489a4b3f..b93364be
+Fast-forward
+ bomfiles.txt                                       |  0
+ find_bom.py                                        | 74 ++++++++++++++++++++++
+ .../dompdf/I18N/Arabic/Examples/CompressStr.php    |  2 +-
+ .../dompdf/I18N/Arabic/Examples/Identifier.php     |  2 +-
+ wp-content/themes/blocksy-child/functions.php      |  2 +-
+ 5 files changed, 77 insertions(+), 3 deletions(-)
+ create mode 100644 bomfiles.txt
+ create mode 100644 find_bom.py
+
+[2026-03-08 16:41:32]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b93364be..74576d3d  main       -> origin/main
+Updating b93364be..74576d3d
+Fast-forward
+ .../plugins/merc-warehouse/assets/scripts.js       | 22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
+
+[2026-03-08 20:51:54]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   74576d3d..272db6e5  main       -> origin/main
+Updating 74576d3d..272db6e5
+Fast-forward
+ .../plugins/merc-warehouse/assets/scripts.js       | 37 ++++++++++++++++++++++
+ .../plugins/merc-warehouse/includes/ajax.php       | 26 +++++++++++++++
+ 2 files changed, 63 insertions(+)
+
+[2026-03-08 20:59:58]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   272db6e5..b6769ed0  main       -> origin/main
+Updating 272db6e5..b6769ed0
+Fast-forward
+ wp-content/plugins/merc-warehouse/includes/shortcodes.php | 2 --
+ 1 file changed, 2 deletions(-)
+
+[2026-03-08 21:54:38]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   b6769ed0..ef85936a  main       -> origin/main
+Updating b6769ed0..ef85936a
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+[2026-03-08 22:03:25]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   ef85936a..87c6ef91  main       -> origin/main
+Updating ef85936a..87c6ef91
+Fast-forward
+ wp-content/themes/blocksy-child/functions.php | 215 +-------------------------
+ 1 file changed, 1 insertion(+), 214 deletions(-)
+
+[2026-03-08 22:09:34]
+From github.com:HaroldATdev/mercourier-web
+ * branch              main       -> FETCH_HEAD
+   87c6ef91..77c2f42f  main       -> origin/main
+Updating 87c6ef91..77c2f42f
+Fast-forward
+ .../admin/classes/class-shipment-form-fields.php   |  12 +-
+ wp-content/themes/blocksy-child/functions.php      | 162 +--------------------
+ 2 files changed, 9 insertions(+), 165 deletions(-)
+

@@ -60,6 +60,7 @@ function merc_almacen_get_productos() {
         
         // Obtener billing_company del cliente asignado
         $billing_company = '';
+        $cliente_nombre = '';
         if ($cliente_meta) {
             $bc = get_user_meta(intval($cliente_meta), 'billing_company', true);
             if (!empty($bc)) {
@@ -73,6 +74,14 @@ function merc_almacen_get_productos() {
                     $billing_company = $u ? $u->display_name : 'Sin nombre';
                 }
             }
+            // También guardar nombre completo como fallback
+            $fn = get_user_meta(intval($cliente_meta), 'first_name', true);
+            $ln = get_user_meta(intval($cliente_meta), 'last_name', true);
+            $cliente_nombre = trim($fn . ' ' . $ln);
+            if (empty($cliente_nombre)) {
+                $u = get_userdata(intval($cliente_meta));
+                $cliente_nombre = $u ? $u->display_name : 'Sin nombre';
+            }
         }
 
         $lista[] = array(
@@ -81,6 +90,7 @@ function merc_almacen_get_productos() {
             'codigo_barras' => get_post_meta($p->ID, '_merc_producto_codigo_barras', true),
             'cliente_asignado' => $cliente_meta,
             'billing_company' => $billing_company,
+            'cliente_nombre' => $cliente_nombre,
             'cantidad' => !empty($c) ? intval($c) : 0,
             'fecha_creacion' => get_the_date('d/m/Y H:i', $p->ID),
             'fecha_modificacion' => get_the_modified_date('d/m/Y H:i', $p->ID),
@@ -419,4 +429,5 @@ function merc_eliminar_producto() {
     while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['message' => 'Producto eliminado correctamente']);
 }
+
 
