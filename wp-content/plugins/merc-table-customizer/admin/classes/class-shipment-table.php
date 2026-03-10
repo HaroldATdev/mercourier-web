@@ -6,6 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Reorganiza columnas de la tabla de shipments del frontend WPCargo.
  * El HTML vive en admin/templates/frontend/table-*.tpl.php.
  */
+if ( ! class_exists( 'MERC_Shipment_Table' ) ) {
+
 class MERC_Shipment_Table {
 
 	private string $tpl_path;
@@ -281,8 +283,8 @@ class MERC_Shipment_Table {
 
 			/* ── Sync estado de checkboxes globales ─────────────────────── */
 			function updateGlobalCheckboxState() {
-				var total   = $('.wpcfe-shipments').length;
-				var checked = $('.wpcfe-shipments:checked').length;
+				var total   = $('.merc-ship-ui').length;
+				var checked = $('.merc-ship-ui:checked').length;
 				var $gsa    = $('#merc-select-all-global');
 				if (!$gsa.length || total === 0) return;
 				$gsa.prop('checked', checked === total)
@@ -290,8 +292,8 @@ class MERC_Shipment_Table {
 				// Sync checkboxes de cada card
 				$('.merc-tienda-card').each(function() {
 					var $c  = $(this);
-					var ct  = $c.find('.wpcfe-shipments').length;
-					var cc  = $c.find('.wpcfe-shipments:checked').length;
+					var ct  = $c.find('.merc-ship-ui').length;
+					var cc  = $c.find('.merc-ship-ui:checked').length;
 					$c.find('.merc-card-select-all')
 					  .prop('checked', ct > 0 && cc === ct)
 					  .prop('indeterminate', cc > 0 && cc < ct);
@@ -313,7 +315,8 @@ class MERC_Shipment_Table {
 					var ck = $(this).prop('checked');
 					$(this).prop('indeterminate', false);
 					$('.merc-card-select-all').prop('checked', ck).prop('indeterminate', false);
-					$('.wpcfe-shipments').prop('checked', ck);
+					$('.merc-ship-ui').prop('checked', ck);
+					$('#shipment-list .wpcfe-shipments').prop('checked', ck);
 				});
 
 				// 2. Bulk-print: reemplaza el handler de WPCargo (que usa #shipment-list ya inexistente)
@@ -322,7 +325,7 @@ class MERC_Shipment_Table {
 						e.preventDefault();
 						var printType = $(this).data('type');
 						var selected  = [];
-						$('.wpcfe-shipments:checked').each(function() { selected.push($(this).val()); });
+						$('.merc-ship-ui:checked').each(function() { selected.push($(this).val()); });
 						if (selected.length === 0) { alert('Por favor seleccione al menos un envío'); return; }
 						$('body').append('<div class="merc-pdf-spinner" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px 30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:99999;font-size:15px;">Generando PDF...</div>');
 						$.ajax({
@@ -333,7 +336,7 @@ class MERC_Shipment_Table {
 								try {
 									var d = JSON.parse(r);
 									if (d && d.file_url) {
-										$('.wpcfe-shipments, .merc-tienda-checkbox').prop('checked', false).prop('indeterminate', false);
+										$('.merc-ship-ui, .wpcfe-shipments, .merc-tienda-checkbox').prop('checked', false).prop('indeterminate', false);
 										$('#merc-select-all-global').prop('checked', false).prop('indeterminate', false);
 										var a = document.createElement('a');
 										a.href = d.file_url;
@@ -349,6 +352,7 @@ class MERC_Shipment_Table {
 						});
 					});
 				}
+
 			}
 
 			function initializeAccordion() {
@@ -387,7 +391,9 @@ class MERC_Shipment_Table {
 						tiendas[tienda] = [];
 						orden.push(tienda);
 					}
-					tiendas[tienda].push($row.clone());
+					var $cloned = $row.clone();
+					$cloned.find('.wpcfe-shipments').removeClass('wpcfe-shipments').addClass('merc-ship-ui');
+					tiendas[tienda].push($cloned);
 				});
 
 				console.log('📊 Tiendas agrupadas:', orden.length);
@@ -508,16 +514,10 @@ class MERC_Shipment_Table {
 					$accordion.append($card);
 				});
 
-				// Reemplazar tabla y marcar wrapper para evitar procesamiento posterior
-				const $wrapper = $table.closest('#shipment-history-list') || $table.closest('.table-responsive') || $table.parent();
-				
-				if ($wrapper.length) {
-					// Reemplazar contenido del wrapper para que otros scripts no procesen tablas antiguas
-					$wrapper.html($accordion);
-					$wrapper.addClass('merc-accordion-processed'); // Marcar para que otros scripts salten
-				} else {
-					$table.replaceWith($accordion);
-				}
+				// Mantener tabla original OCULTA en el DOM -- WPCargo necesita '#shipment-list'
+				// para sus handlers de bulk actions. El accordion se inserta antes de ella.
+				$table.before($accordion);
+				$table.hide().addClass('merc-accordion-processed').attr('aria-hidden', 'true');
 
 				initialized = true;
 				postAccordionSetup();
@@ -542,26 +542,43 @@ class MERC_Shipment_Table {
 				console.log('📌 Document ready');
 				setTimeout(initializeAccordion, 500);
 
+				// ── Cuando WPCargo cierra #shipmentBulkUpdateModal llama reset_selected_shipment()
+				// que desmarca .wpcfe-shipments en la tabla oculta. Re-sincronizamos desde el
+				// estado del accordion para preservar la selección del usuario. ──
+				$(document).on('hidden.bs.modal', '#shipmentBulkUpdateModal', function() {
+					setTimeout(function() {
+						$('.merc-ship-ui:checked').each(function() {
+							$('#shipment-list .wpcfe-shipments[value="' + $(this).val() + '"]').prop('checked', true);
+						});
+					}, 0);
+				});
+
 				// ── Checkbox select-all de cada card (delegado desde document) ──────
 				$(document).on('change', '.merc-card-select-all', function() {
 					var $cb = $(this);
 					var isChecked = $cb.prop('checked');
 					$cb.prop('indeterminate', false);
 					var $card = $cb.closest('.merc-tienda-card');
-					$card.find('.wpcfe-shipments').prop('checked', isChecked);
+					$card.find('.merc-ship-ui').prop('checked', isChecked);
+					$card.find('.merc-ship-ui').each(function() {
+						$('#shipment-list .wpcfe-shipments[value="' + $(this).val() + '"]').prop('checked', isChecked);
+					});
 					updateGlobalCheckboxState();
 				});
 
 				// ── Sync encabezado al cambiar fila individual ──────────────────────
-				$(document).on('change', '.wpcfe-shipments', function() {
+				$(document).on('change', '.merc-ship-ui', function() {
+					var id  = $(this).val();
+					var ck  = $(this).prop('checked');
+					$('#shipment-list .wpcfe-shipments[value="' + id + '"]').prop('checked', ck);
 					var $card = $(this).closest('.merc-tienda-card');
 					updateGlobalCheckboxState();
 					if (!$card.length) return;
-					var total   = $card.find('.wpcfe-shipments').length;
-					var checked = $card.find('.wpcfe-shipments:checked').length;
-					var allCk   = checked === total && total > 0;
-					var someCk  = checked > 0 && checked < total;
-					$card.find('.merc-card-select-all').prop('checked', allCk).prop('indeterminate', someCk);
+					var total = $card.find('.merc-ship-ui').length;
+					var cnt   = $card.find('.merc-ship-ui:checked').length;
+					$card.find('.merc-card-select-all')
+						.prop('checked', cnt === total && total > 0)
+						.prop('indeterminate', cnt > 0 && cnt < total);
 				});
 
 				// Print por fila: event delegation desde document (sobrevive al accordion)
@@ -622,7 +639,6 @@ class MERC_Shipment_Table {
 			wp_send_json_error( 'Sin shipment IDs' );
 		}
 
-		error_log( '🔍 ajax_get_shipment_summary START - shipment_ids: ' . json_encode( $shipment_ids ) );
 
 		$distritos = [];
 		$motorizados = [];
@@ -632,14 +648,12 @@ class MERC_Shipment_Table {
 			$shipment_id = intval( $shipment_id );
 			
 			$distrito = get_post_meta( $shipment_id, 'wpcargo_distrito_recojo', true );
-			error_log( "  Shipment {$shipment_id}: distrito_recojo = '{$distrito}'" );
 			
 			if ( ! empty( $distrito ) && $distrito !== '-' ) {
 				$distritos[] = $distrito;
 			}
 
 			$moto_id = get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', true );
-			error_log( "  Shipment {$shipment_id}: motorizo_recojo ID = '{$moto_id}'" );
 			
 			if ( ! empty( $moto_id ) ) {
 				$moto_id = intval( $moto_id );
@@ -647,7 +661,6 @@ class MERC_Shipment_Table {
 				$last_name = get_user_meta( $moto_id, 'last_name', true );
 				$nombre = trim( $first_name . ' ' . $last_name );
 				
-				error_log( "    Motorizado {$moto_id}: first_name='{$first_name}', last_name='{$last_name}', nombre='{$nombre}'" );
 				
 				if ( empty( $nombre ) ) {
 					$u = get_userdata( $moto_id );
@@ -664,8 +677,6 @@ class MERC_Shipment_Table {
 		$distritos = array_unique( array_filter( $distritos ) );
 		$motorizados = array_unique( array_filter( $motorizados ) );
 
-		error_log( '✅ RESULTADO - distritos: ' . json_encode( array_values( $distritos ) ) );
-		error_log( '✅ RESULTADO - motorizados: ' . json_encode( array_values( $motorizados ) ) );
 
 		wp_send_json_success( [
 			'distritos' => array_values( $distritos ),
@@ -674,5 +685,10 @@ class MERC_Shipment_Table {
 	}
 }
 
-new MERC_Shipment_Table();
+} // End if ( ! class_exists( 'MERC_Shipment_Table' ) )
+
+if ( class_exists( 'MERC_Shipment_Table' ) ) {
+	new MERC_Shipment_Table();
+}
+
 

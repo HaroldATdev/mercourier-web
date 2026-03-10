@@ -15,7 +15,9 @@ define( 'MERC_CSV_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'MERC_CSV_URL',     plugin_dir_url( __FILE__ ) );
 
 require_once MERC_CSV_PATH . 'includes/functions.php';
+require_once MERC_CSV_PATH . 'admin/classes/class-date-fixer.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-tracking-validator.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-tipo-envio-normalizer.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-sender-autofill.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-financial-import.php';
+

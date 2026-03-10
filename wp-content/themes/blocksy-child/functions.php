@@ -4848,11 +4848,10 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     // Para la vista ingresos_envios, forzar filtro por la meta wpcargo_pickup_date_picker (hoy)
     if ( $tipo_vista === 'ingresos_envios' ) {
         $hoy_ymd = date('Y-m-d');
-        $hoy_dmy = date('d/m/Y');
         // Anulamos el date_query genérico para evitar fallback a post_date
         $date_query = '';
         $extra_join = "\n        LEFT JOIN {$wpdb->postmeta} pm_pickup_filter ON p.ID = pm_pickup_filter.post_id AND pm_pickup_filter.meta_key = 'wpcargo_pickup_date_picker'\n        LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'";
-        $extra_where = "\n        AND (\n            (STR_TO_DATE(pm_pickup_filter.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('{$hoy_ymd}', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_filter.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('{$hoy_ymd}', '%%Y-%%m-%%d'))\n            OR (STR_TO_DATE(pm_pickup_filter.meta_value, '%%Y-%%m-%%d') >= STR_TO_DATE('{$hoy_ymd}', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_filter.meta_value, '%%Y-%%m-%%d') <= STR_TO_DATE('{$hoy_ymd}', '%%Y-%%m-%%d'))\n            OR (pm_pickup_filter.meta_value BETWEEN '{$hoy_ymd}' AND '{$hoy_ymd}')\n            OR (pm_pickup_filter.meta_value LIKE '{$hoy_ymd}%')\n            OR (pm_pickup_filter.meta_value LIKE '{$hoy_dmy}%')\n        )\n        AND (pm_status.meta_value IS NULL OR UPPER(pm_status.meta_value) != 'ANULADO')";
+        $extra_where = "\n        AND (\n            pm_pickup_filter.meta_value = '{$hoy_ymd}'\n            OR pm_pickup_filter.meta_value LIKE '{$hoy_ymd}%'\n        )\n        AND (pm_status.meta_value IS NULL OR UPPER(pm_status.meta_value) != 'ANULADO')";
     }
     
     $shipments = $wpdb->get_results( "
@@ -4886,19 +4885,11 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
         error_log('MERC_ADMIN_RESUMEN - NO SHIPMENTS returned for date_query, attempting fallback by pickup meta');
         // Fallback: buscar envíos cuya meta de pickup (varias claves y formatos) coincida con hoy
         $today_ymd = current_time('Y-m-d');
-        $now = current_time('timestamp');
-        // Formato que usan las metas (ej: 28/01/2026)
-        $today_dmy = date_i18n('d/m/Y', $now);
         $meta_keys = array('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio');
         $meta_keys_list = "'" . implode("','", $meta_keys) . "'";
-        $like1 = '%' . $wpdb->esc_like( $today_ymd ) . '%';
-        $like2 = '%' . $wpdb->esc_like( $today_dmy ) . '%';
+        $like_ymd = $wpdb->esc_like( $today_ymd );
 
-        // Construir la consulta sin usar prepare() porque el SQL contiene formatos STR_TO_DATE
-        // con '%' que confundirían a wpdb::prepare(). Escapamos los valores LIKE con esc_sql().
-        $like1_sql = esc_sql( $like1 );
-        $like2_sql = esc_sql( $like2 );
-
+        // Construir la consulta para buscar fechas en formato YYYY-MM-DD (que es lo que MERC_Date_Fixer guarda)
         $sql = "SELECT p.ID, pm_envio.meta_value as costo_envio, pm_producto.meta_value as costo_producto, pm_estado_motorizado.meta_value as estado_motorizado, pm_included.meta_value as estado_remitente, pm_quien_paga.meta_value as quien_paga, pm_cliente_pago_a.meta_value as cliente_pago_a, pm_shipper.meta_value as shipper_id, pm_status.meta_value as wpcargo_status
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm_pickup ON p.ID = pm_pickup.post_id AND pm_pickup.meta_key IN ($meta_keys_list)
@@ -4910,7 +4901,7 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
             LEFT JOIN {$wpdb->postmeta} pm_cliente_pago_a ON p.ID = pm_cliente_pago_a.post_id AND pm_cliente_pago_a.meta_key = 'wpcargo_cliente_pago_a'
             LEFT JOIN {$wpdb->postmeta} pm_shipper ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper'
             LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
-            WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' AND (pm_pickup.meta_value LIKE '" . $like1_sql . "' OR pm_pickup.meta_value LIKE '" . $like2_sql . "')";
+            WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' AND (pm_pickup.meta_value = '" . $like_ymd . "' OR pm_pickup.meta_value LIKE '" . $like_ymd . "%')";
 
         $shipments = $wpdb->get_results( $sql );
         if ( ! is_array( $shipments ) || empty( $shipments ) ) {
@@ -15182,4 +15173,263 @@ function merc_get_shipment_status_ajax() {
         'status' => $status,
         'post_id' => $post_id
     ]);
+}
+
+// ── Filtro: Tipo de Envío ─────────────────────────────────────────────────
+
+add_action( 'wpcfe_after_shipment_filters', function() {
+    $selected = isset( $_GET['merc_tipo_envio'] ) ? sanitize_text_field( $_GET['merc_tipo_envio'] ) : '';
+    ?>
+    <div id="merc-tipo-envio-field" class="form-group wpcfe-filter merc-tipo-filter p-0 mx-1">
+        <div class="md-form form-group">
+            <select id="merc-tipo-envio" name="merc_tipo_envio" class="form-control form-control-sm wpcfe-select" style="width: 160px;">
+                <option value="">Tipo de Envío</option>
+                <option value="express"      <?php selected( $selected, 'express' );      ?>>MERC AGENCIA</option>
+                <option value="normal"       <?php selected( $selected, 'normal' );       ?>>MERC EMPRENDEDOR</option>
+                <option value="full_fitment" <?php selected( $selected, 'full_fitment' ); ?>>FULLFITMENT</option>
+            </select>
+        </div>
+    </div>
+    <?php
+}, 100 );
+
+add_filter( 'wpcfe_dashboard_arguments', function( $args ) {
+    if ( isset( $_GET['merc_tipo_envio'] ) && $_GET['merc_tipo_envio'] !== '' ) {
+        $args['meta_query']['merc_tipo_envio'] = array(
+            'key'     => 'tipo_envio',
+            'value'   => sanitize_text_field( $_GET['merc_tipo_envio'] ),
+            'compare' => 'LIKE'
+        );
+    }
+    return $args;
+} );
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// FILTRO DE FECHA DE ENVÍO - COMPATIBILIDAD CON MERC_Date_Fixer (YYYY-MM-DD)
+// ═══════════════════════════════════════════════════════════════════════════════════
+// Este filtro se aplica al usar el daterange_picker nativo de WPCargo
+// Busca fechas en AMBOS formatos: YYYY-MM-DD (nuevo, guardado por MERC_Date_Fixer)
+// y DD/MM/YYYY (antiguo, para compatibilidad con datos legacy)
+
+if ( ! function_exists( 'wpcfe_shipping_date_meta_query_callback' ) ) {
+    function wpcfe_shipping_date_meta_query_callback( $meta_query ) {
+        $date_from_iso = isset( $_GET['shipping_date_start'] )
+            ? sanitize_text_field( $_GET['shipping_date_start'] )
+            : '';
+
+        $date_to_iso = isset( $_GET['shipping_date_end'] )
+            ? sanitize_text_field( $_GET['shipping_date_end'] )
+            : '';
+
+        if ( empty( $date_from_iso ) || empty( $date_to_iso ) ) {
+            return $meta_query;
+        }
+
+        // Generar todos los días del rango en AMBOS formatos
+        $start = new DateTime( $date_from_iso );
+        $end   = new DateTime( $date_to_iso );
+        $end->modify( '+1 day' ); // incluir el último día
+
+        $dates_iso   = array(); // YYYY-MM-DD (nuevo formato de MERC_Date_Fixer)
+        $dates_dmy   = array(); // DD/MM/YYYY (formato antiguo, para compatibilidad)
+        
+        $interval = new DateInterval( 'P1D' );
+        $period   = new DatePeriod( $start, $interval, $end );
+
+        foreach ( $period as $dt ) {
+            // Formato nuevo: YYYY-MM-DD (lo que MERC_Date_Fixer guarda)
+            $dates_iso[] = $dt->format( 'Y-m-d' );
+            
+            // Formato antiguo: DD/MM/YYYY y D/M/YYYY (para datos legacy)
+            $dates_dmy[] = $dt->format( 'd/m/Y' );   // 09/03/2026
+            $dates_dmy[] = $dt->format( 'j/n/Y' );   // 9/3/2026
+        }
+
+        if ( ! empty( $dates_iso ) || ! empty( $dates_dmy ) ) {
+            // Crear OR entre búsquedas de ambos formatos
+            $meta_query[] = array(
+                'key'     => 'wpcargo_pickup_date_picker',
+                'value'   => array_merge( $dates_iso, $dates_dmy ),
+                'compare' => 'IN',
+            );
+        }
+
+        return $meta_query;
+    }
+}
+add_filter( 'wpcfe_dashboard_meta_query', 'wpcfe_shipping_date_meta_query_callback' );
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// HERRAMIENTA: Corregir fechas antiguas en shipments existentes
+// ═══════════════════════════════════════════════════════════════════════════════════
+// Uso: Ir a /wp-admin/admin.php?page=merc-fix-old-dates
+
+add_action( 'admin_menu', function() {
+    $current_user = wp_get_current_user();
+    $is_merc_admin = $current_user->user_email === 'mercourier2019@gmail.com';
+    if ( current_user_can( 'manage_options' ) || $is_merc_admin ) {
+        add_submenu_page(
+            'tools.php',
+            'Corregir Fechas Antiguas',
+            'Corregir Fechas CSV',
+            'manage_options',
+            'merc-fix-old-dates',
+            'merc_render_fix_old_dates_page'
+        );
+    }
+});
+
+function merc_render_fix_old_dates_page() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_die( 'No tienes permiso.' );
+    }
+    
+    // Procesar formulario
+    if ( isset( $_POST['merc_fix_dates_nonce'] ) && wp_verify_nonce( $_POST['merc_fix_dates_nonce'], 'merc_fix_dates_action' ) ) {
+        $result = merc_fix_all_old_dates();
+        ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>✅ Proceso completado:</strong></p>
+            <ul>
+                <li>Envíos revisados: <?php echo $result['checked']; ?></li>
+                <li>Fechas corregidas: <?php echo $result['fixed']; ?></li>
+                <li>Errores: <?php echo $result['errors']; ?></li>
+            </ul>
+        </div>
+        <?php
+    }
+    ?>
+    <div class="wrap">
+        <h1>🔧 Corregir Fechas Antiguas de Envíos</h1>
+        <p>Esta herramienta analiza TODOS los shipments y corrige las fechas que estén en formato incorrecto (DD/MM/YYYY) a YYYY-MM-DD.</p>
+        
+        <div style="background:#fff3cd; padding:15px; border-left:4px solid #ff9800; margin:20px 0;">
+            <strong>⚠️ ADVERTENCIA:</strong> Esto modificará las metas de todos tus envíos. Se recomienda hacer backup antes de ejecutar.
+        </div>
+        
+        <form method="post">
+            <?php wp_nonce_field( 'merc_fix_dates_action', 'merc_fix_dates_nonce' ); ?>
+            <button type="submit" class="button button-primary button-large">
+                ▶️ Iniciar Corrección de Fechas
+            </button>
+        </form>
+        
+        <div style="margin-top:30px; padding:15px; background:#f5f5f5; border-radius:5px;">
+            <h3>¿Cómo funciona?</h3>
+            <ol>
+                <li>Revisa <strong>todos</strong> los shipments en la BD</li>
+                <li>Para cada uno, busca metas de fecha (wpcargo_pickup_date_picker, etc.)</li>
+                <li>Si encuentra fechas en formato incorrecto (9/3/2026 o 09/03/2026), las convierte a 2026-03-09</li>
+                <li>Guarda los cambios y registra en logs</li>
+            </ol>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Corrige todas las fechas antiguas de shipments en la BD
+ * 
+ * @return array Estadísticas: ['checked' => N, 'fixed' => N, 'errors' => N]
+ */
+function merc_fix_all_old_dates() {
+    global $wpdb;
+    
+    $stats = [
+        'checked' => 0,
+        'fixed'   => 0,
+        'errors'  => 0,
+    ];
+    
+    // Meta keys donde pueden estar las fechas
+    $date_meta_keys = [
+        'wpcargo_pickup_date_picker',
+        'wpcargo_pickup_date',
+        'calendarenvio',
+        'wpcargo_fecha_envio',
+    ];
+    
+    // Obtener TODOS los shipments
+    $shipments = $wpdb->get_results(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'wpcargo_shipment'"
+    );
+    
+    error_log( "🔧 MERC_FIX_OLD_DATES - Iniciando corrección de " . count( $shipments ) . " shipments" );
+    
+    foreach ( $shipments as $shipment ) {
+        $stats['checked']++;
+        $shipment_id = $shipment->ID;
+        
+        foreach ( $date_meta_keys as $meta_key ) {
+            $date_value = get_post_meta( $shipment_id, $meta_key, true );
+            
+            if ( empty( $date_value ) ) {
+                continue;
+            }
+            
+            // Si ya está en formato YYYY-MM-DD, saltar
+            if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_value ) ) {
+                continue;
+            }
+            
+            // Intentar corregir
+            $fixed_date = merc_parse_date_for_migration( $date_value );
+            
+            if ( $fixed_date && $fixed_date !== $date_value ) {
+                update_post_meta( $shipment_id, $meta_key, $fixed_date );
+                $stats['fixed']++;
+                error_log( "✅ MERC_FIX_OLD_DATES - Shipment #{$shipment_id} - {$meta_key}: '{$date_value}' → '{$fixed_date}'" );
+            } else if ( ! $fixed_date ) {
+                $stats['errors']++;
+                error_log( "❌ MERC_FIX_OLD_DATES - NO SE PUDO PARSEAR - Shipment #{$shipment_id} - {$meta_key}: '{$date_value}'" );
+            }
+        }
+    }
+    
+    error_log( sprintf(
+        "🔧 MERC_FIX_OLD_DATES - COMPLETADO - Checked:%d, Fixed:%d, Errors:%d",
+        $stats['checked'],
+        $stats['fixed'],
+        $stats['errors']
+    ));
+    
+    return $stats;
+}
+
+/**
+ * Parsea fechas para migración (misma lógica que MERC_Date_Fixer)
+ */
+function merc_parse_date_for_migration( $date_str ) {
+    if ( empty( $date_str ) ) {
+        return false;
+    }
+    
+    $date_str = trim( $date_str );
+    
+    // Ya está correcto
+    if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date_str ) ) {
+        return $date_str;
+    }
+    
+    // D/M/YYYY (SIN ceros: 9/3/2026)
+    $dt = DateTime::createFromFormat( 'j/n/Y', $date_str );
+    if ( $dt ) return $dt->format( 'Y-m-d' );
+    
+    // DD/MM/YYYY (CON ceros: 09/03/2026)
+    $dt = DateTime::createFromFormat( 'd/m/Y', $date_str );
+    if ( $dt ) return $dt->format( 'Y-m-d' );
+    
+    // DD-MM-YYYY
+    $dt = DateTime::createFromFormat( 'd-m-Y', $date_str );
+    if ( $dt ) return $dt->format( 'Y-m-d' );
+    
+    // D-M-YYYY
+    $dt = DateTime::createFromFormat( 'j-n-Y', $date_str );
+    if ( $dt ) return $dt->format( 'Y-m-d' );
+    
+    // YYYY/MM/DD
+    $dt = DateTime::createFromFormat( 'Y/m/d', $date_str );
+    if ( $dt ) return $dt->format( 'Y-m-d' );
+    
+    return false;
 }

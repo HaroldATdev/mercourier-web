@@ -122,11 +122,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 html += `<tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">`;
                 html += `<td style="padding: 12px 20px;"><strong>${prod.nombre || 'Sin nombre'}</strong></td>`;
-                html += `<td style="padding: 12px 20px; text-align: center;"><span style="display: inline-block; background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px;">${prod.cantidad || 0}</span></td>`;
+                html += `<td style="padding: 12px 20px; text-align: center;"><button class="btn-ver-cantidad" data-product-id="${prod.id}" data-product-name="${prod.nombre}" style="background: none; border: none; cursor: pointer; color: #1976d2; font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 4px; transition: background-color 0.3s;" title="Ver detalles de envíos">📋 ${prod.cantidad || 0}</button></td>`;
                 html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${prod.fecha_creacion || '-'}</td>`;
                 html += `<td style="padding: 12px 20px; text-align: center;"><span style="display: inline-block; padding: 6px 12px; background: #e9ecef; color: #495057; border-radius: 6px; font-size: 12px; font-weight: 600;">${estadoText}</span></td>`;
                 if (isAdmin) {
-                    html += `<td style="padding: 12px 20px; text-align: center;"><button class="btn-edit" onclick="window.editarProducto(${prod.id})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;">✏️ Editar</button></td>`;
+                    html += `<td style="padding: 12px 20px; text-align: center; display: flex; gap: 8px; justify-content: center;">`;
+                    html += `<button class="btn-edit" onclick="window.editarProducto(${prod.id})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;">✏️ Editar</button>`;
+                    html += `<button class="btn-delete" onclick="window.eliminarProducto(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}', ${parseInt(prod.cantidad) || 0})" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;" title="Eliminar producto">🗑️ Eliminar</button>`;
+                    html += `</td>`;
                 }
                 html += '</tr>';
             });
@@ -138,6 +141,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         
         container.innerHTML = html;
+        
+        // Event listeners para botones de cantidad (ver envíos)
+        document.querySelectorAll('.btn-ver-cantidad').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+                const productName = this.dataset.productName;
+                window.openUnitsModal(productId, productName);
+            });
+        });
         
         // Agregar listeners para colapsar/expandir grupos
         document.querySelectorAll('.grupo-cliente-header').forEach(btn => {
@@ -169,16 +182,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Contar totales
         const total = productos.reduce((acc, p) => acc + (parseInt(p.cantidad) || 0), 0);
         const asignados = productos.reduce((acc, p) => acc + (p.estado === 'asignado' ? (parseInt(p.cantidad) || 0) : 0), 0);
+        const entregados = productos.reduce((acc, p) => acc + (p.estado === 'entregado' ? (parseInt(p.cantidad) || 0) : 0), 0);
         
         const statUsuarios = document.getElementById('stat-usuarios');
         const statTotal = document.getElementById('stat-total');
         const statAsignados = document.getElementById('stat-asignados');
+        const statEntregados = document.getElementById('stat-entregados');
         
         if (statUsuarios) statUsuarios.textContent = usuarios.size;
         if (statTotal) statTotal.textContent = total;
         if (statAsignados) statAsignados.textContent = asignados;
+        if (statEntregados) statEntregados.textContent = entregados;
         
-        console.log('Estadísticas actualizadas:', { usuarios: usuarios.size, total, asignados });
+        console.log('Estadísticas actualizadas:', { usuarios: usuarios.size, total, asignados, entregados });
     }
     
     // Cargar productos inicialmente
@@ -763,6 +779,179 @@ document.addEventListener('DOMContentLoaded', function () {
     window.refrescarProductos = function() {
         cargarProductos();
     };
+
+    // Función global para eliminar producto
+    window.eliminarProducto = function(productId, productName, cantidad) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Confirmar eliminación',
+            html: `¿Está seguro de que desea eliminar el producto <strong>"${productName}"</strong> con <strong>${cantidad}</strong> unidades?<br><small style="color: #e74c3c;">Esta acción no se puede deshacer.</small>`,
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            confirmButtonText: '🗑️ Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#95a5a6'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const datos = {
+                    action: 'merc_eliminar_producto',
+                    product_id: productId,
+                    nonce: nonce
+                };
+                
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(datos)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    console.log('Respuesta eliminación:', res);
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: 'Producto eliminado correctamente',
+                            confirmButtonColor: '#27ae60'
+                        }).then(() => {
+                            cargarProductos(); // Recargar tabla
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: res.data || 'No se pudo eliminar el producto',
+                            confirmButtonColor: '#e74c3c'
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('Error al eliminar:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'No se pudo conectar con el servidor',
+                        confirmButtonColor: '#e74c3c'
+                    });
+                });
+            }
+        });
+    };
+
+    // Función global para abrir modal de unidades/envíos
+    window.openUnitsModal = function(productId, productName) {
+        console.log('Abriendo modal de unidades para producto:', productId, productName);
+        
+        const datos = {
+            action: 'merc_get_product_units',
+            product_id: productId,
+            nonce: nonce
+        };
+        
+        // Mostrar loading mientras se cargan los datos
+        Swal.fire({
+            title: 'Cargando envíos...',
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+        
+        fetch(ajaxUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(datos)
+        })
+        .then(r => r.json())
+        .then(res => {
+            console.log('Unidades obtenidas:', res);
+            
+            if (res.success && res.data && res.data.length > 0) {
+                let unitsHtml = `
+                    <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                        <h3 style="margin-bottom: 15px; color: #2c3e50;">📦 Envíos de "${productName}"</h3>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <thead>
+                                <tr style="background: #ecf0f1; border-bottom: 2px solid #bdc3c7;">
+                                    <th style="padding: 10px; text-align: left; font-weight: 600;">SKU</th>
+                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Estado</th>
+                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Envío #</th>
+                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Motorizado</th>
+                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                res.data.forEach((unit, idx) => {
+                    const bgcolor = idx % 2 === 0 ? '#ffffff' : '#f9f9f9';
+                    const statusText = unit.estado === 'entregado' ? '✅ Entregado' : 
+                                       (unit.estado === 'asignado' ? '🚚 Asignado' : '📦 Disponible');
+                    const statusColor = unit.estado === 'entregado' ? '#27ae60' : 
+                                        (unit.estado === 'asignado' ? '#3498db' : '#95a5a6');
+                    
+                    unitsHtml += `
+                        <tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">
+                            <td style="padding: 10px; font-weight: 600; color: #2c3e50;">${unit.sku || unit.id}</td>
+                            <td style="padding: 10px;">
+                                <span style="display: inline-block; padding: 4px 8px; background: ${statusColor}; color: white; border-radius: 4px; font-weight: 600; font-size: 12px;">
+                                    ${statusText}
+                                </span>
+                            </td>
+                            <td style="padding: 10px; color: #7f8c8d;">${unit.shipment_id ? '#' + unit.shipment_id : '-'}</td>
+                            <td style="padding: 10px; color: #2c3e50;">${unit.motorizado || '-'}</td>
+                            <td style="padding: 10px; color: #7f8c8d; font-size: 12px;">${unit.created_at || unit.fecha_creacion || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                unitsHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                Swal.fire({
+                    title: '📋 Detalles de Envíos',
+                    html: unitsHtml,
+                    icon: 'info',
+                    confirmButtonColor: '#3498db',
+                    confirmButtonText: 'Cerrar',
+                    width: '700px'
+                });
+            } else if (res.success && (!res.data || res.data.length === 0)) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sin envíos',
+                    text: `El producto "${productName}" no tiene unidades registradas.`,
+                    confirmButtonColor: '#3498db'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: res.data || 'No se pudieron cargar los envíos',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error cargando unidades:', err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor',
+                confirmButtonColor: '#e74c3c'
+            });
+        });
+    };
 });
+
+
 
 

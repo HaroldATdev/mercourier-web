@@ -46,6 +46,13 @@ add_shortcode('merc_almacen_productos', function() {
                     <span class="stat-value" id="stat-asignados">0</span>
                 </div>
             </div>
+            <div class="stat-card card-entregados">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <span class="stat-label">Productos Entregados</span>
+                    <span class="stat-value" id="stat-entregados">0</span>
+                </div>
+            </div>
         </div>
 
         <div id="almacen-tabla" style="margin-top:20px;">
@@ -288,4 +295,5 @@ add_shortcode('merc_almacen_productos', function() {
     <?php
     return ob_get_clean();
 });
+
 
