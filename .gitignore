@@ -18,3 +18,10 @@ node_modules/
 
 # Elementor y archivos generados
 wp-content/uploads/elementor/
+
+# Ignorar PDFs generados por WPCargo
+wp-content/plugins/wpcargo-frontend-manager/admin/includes/file-container/*.pdf
+
+# Ignorar todas las subidas de medios (Imágenes, videos, etc)
+wp-content/uploads/20*
+wp-content/uploads/elementor/
