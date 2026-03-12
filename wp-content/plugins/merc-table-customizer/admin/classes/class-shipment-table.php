@@ -94,13 +94,14 @@ class MERC_Shipment_Table {
 		// Motorizado de recojo: obtener ID y nombre limpio
 		$motorizo_recojo_id    = get_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', true );
 		$motorizo_recojo_html  = $this->render_driver( $motorizo_recojo_id );
+		$motorizo_recojo_name  = $this->get_driver_name( $motorizo_recojo_id );
 		
 		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
 
 		$this->render_tpl( 'table-row.tpl.php', compact(
 			'shipment_id', 'tienda', 'actions_html',
 			'distrito_recojo', 'distrito_destino', 'fecha',
-			'tipo_html', 'cambio_html', 'estado', 'motorizo_recojo_html', 'motorizo_entrega_html',
+			'tipo_html', 'cambio_html', 'estado', 'motorizo_recojo_html', 'motorizo_recojo_name', 'motorizo_entrega_html',
 			'cliente_id'
 		) );
 	}
@@ -443,30 +444,39 @@ class MERC_Shipment_Table {
 				const motorizados = new Set();
 				
 				if (shipmentIds.length > 0) {
-					// Hacer AJAX para obtener datos agrupados
-					$.ajax({
-						type: 'POST',
-						url: ajaxurl,
-						async: false, // Sincrónico para no complicar el flow
-						data: {
-							action: 'merc_get_shipment_summary',
-							shipment_ids: shipmentIds
-						},
-						success: function(resp) {
-							console.log('✅ AJAX SUCCESS para ' + tienda + ':', resp);
-							if (resp.success && resp.data) {
-								if (resp.data.distritos && resp.data.distritos.length) {
-									resp.data.distritos.forEach(function(d) { distritos.add(d); });
-								}
-								if (resp.data.motorizados && resp.data.motorizados.length) {
-									resp.data.motorizados.forEach(function(m) { motorizados.add(m); });
-								}
-							}
-						},
-						error: function(err) {
-							console.error('❌ AJAX ERROR para ' + tienda + ':', err);
-						}
+					// Primero intentar recolectar distritos y motorizados desde los atributos data
+					rowsForTienda.forEach(function($r) {
+						var d = $r.find('.merc-tienda-cell').data('distrito');
+						var m = $r.find('.merc-tienda-cell').data('motorizo');
+						if (d && d !== '-') distritos.add(d);
+						if (m) motorizados.add(m);
 					});
+
+					// Si no se encontró información en el DOM, usar el fallback AJAX (raro)
+					if (distritos.size === 0 && motorizados.size === 0) {
+						$.ajax({
+							type: 'POST',
+							url: ajaxurl,
+							async: false,
+							data: {
+								action: 'merc_get_shipment_summary',
+								shipment_ids: shipmentIds
+							},
+							success: function(resp) {
+								if (resp.success && resp.data) {
+									if (resp.data.distritos && resp.data.distritos.length) {
+										resp.data.distritos.forEach(function(d) { distritos.add(d); });
+									}
+									if (resp.data.motorizados && resp.data.motorizados.length) {
+										resp.data.motorizados.forEach(function(m) { motorizados.add(m); });
+									}
+								}
+							},
+							error: function(err) {
+								console.error('❌ AJAX ERROR para ' + tienda + ':', err);
+							}
+						});
+					}
 				}
 				// Construir información adicional
 				let infoAdicional = '';
@@ -690,5 +700,6 @@ class MERC_Shipment_Table {
 if ( class_exists( 'MERC_Shipment_Table' ) ) {
 	new MERC_Shipment_Table();
 }
+
 
 
