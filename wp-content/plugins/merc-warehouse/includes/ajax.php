@@ -96,6 +96,8 @@ function merc_almacen_get_productos() {
             'fecha_modificacion' => get_the_modified_date('d/m/Y H:i', $p->ID),
             'estado' => $estado,
             'motorizado' => $motorizado,
+            'tipo_medida' => get_post_meta($p->ID, '_merc_producto_tipo_medida', true) ?: '',
+            'valor_medida' => get_post_meta($p->ID, '_merc_producto_valor_medida', true) ?: '',
         );
     }
     
@@ -505,6 +507,7 @@ function merc_get_product_units_ajax() {
     while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success($rows);
 }
+
 
 
 
