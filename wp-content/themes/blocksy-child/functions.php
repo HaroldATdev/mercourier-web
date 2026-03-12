@@ -2819,14 +2819,28 @@ add_action('wp_footer', function() {
     <?php
 }, 999);
 
+global $post;
+$shipment_id = $post->ID;
+
 // Agregar script para deshabilitar botón Actualizar hasta que se complete el pago
 add_action('wpcpod_after_sign_popup_form', 'merc_add_update_button_validation');
 function merc_add_update_button_validation() {
+    // Detectar NO COBRAR desde PHP para pasarlo al JS de forma confiable
+    global $shipment_id;
+    // Si $shipment_id no está disponible globalmente, intentar obtenerlo del POST o del objeto global $post
+    if ( empty( $shipment_id ) ) {
+        global $post;
+        $shipment_id = ! empty( $_POST['__pod_id'] ) ? intval( $_POST['__pod_id'] ) : ( $post ? $post->ID : 0 );
+    }
+    $modo_pago_raw = get_post_meta( $shipment_id, 'payment_wpcargo_mode_field', true );
+    $modo_pago     = strtolower( trim( $modo_pago_raw ) );
+    $es_no_cobrar  = ( $modo_pago === 'no cobrar' || $modo_pago === '1' ) ? 'true' : 'false';
     ?>
     <script>
     jQuery(document).ready(function($) {
         var updateBtn = $('.delivered-btn[name="submit"]');
-        
+        var esNoCobrar = ($('#payment-area').length === 0);
+
         // Deshabilitar botón inicialmente
         updateBtn.prop('disabled', true).css('opacity', '0.5');
         
@@ -2849,27 +2863,21 @@ function merc_add_update_button_validation() {
             // 3. VALIDAR ESTADO (obligatorio y no puede estar vacío)
             var estadoSeleccionado = $('select[name="status"]').val() || $('input[name="status"]').val() || $('.status').val() || '';
             
-            
             if (!estadoSeleccionado || estadoSeleccionado === '' || estadoSeleccionado === 'Seleccionar' || estadoSeleccionado === 'Pendiente') {
                 errores.push('Debe seleccionar un estado válido (no puede ser Pendiente)');
             }
             
             // 4. VALIDAR MÉTODOS DE PAGO (solo si NO es "NO COBRAR")
-            var esNoCobrar = $('#payment-area').find('p[style*="color:red"]').length > 0;
-            
             if (!esNoCobrar) {
-                // Obtener total ingresado y total esperado
                 var totalIngresado = parseFloat($('#total-ingresado').text()) || 0;
                 var montoTotal = window.podMontoTotal || 0;
                 
-                // Verificar si hay métodos de pago agregados
                 var hayMetodos = $('.fila-metodo').length > 0;
                 
                 if (!hayMetodos && montoTotal > 0) {
                     errores.push('Debe agregar al menos un método de pago');
                 }
                 
-                // Verificar si el total coincide
                 if (Math.abs(totalIngresado - montoTotal) > 0.01 && montoTotal > 0) {
                     if (totalIngresado < montoTotal) {
                         errores.push('Falta completar S/. ' + (montoTotal - totalIngresado).toFixed(2));
@@ -2882,16 +2890,12 @@ function merc_add_update_button_validation() {
             // Mostrar u ocultar errores
             if (errores.length > 0) {
                 updateBtn.prop('disabled', true).css('opacity', '0.5');
-                
-                // Mostrar tooltip o mensaje con los errores
                 var mensajeError = 'Faltan campos obligatorios:\n• ' + errores.join('\n• ');
                 updateBtn.attr('title', mensajeError);
-                
-                // Opcional: mostrar mensaje visual debajo del botón
                 if ($('#validation-errors').length === 0) {
                     updateBtn.after('<div id="validation-errors" style="color:red;font-size:12px;margin-top:10px;"></div>');
                 }
-                $('#validation-errors').html('<strong>⚠️ Campos obligatorios faltantes:</strong><br>' + errores.join('<br>• '));
+                $('#validation-errors').html('<strong>⚠️ Campos obligatorios faltantes:</strong><br>• ' + errores.join('<br>• '));
             } else {
                 updateBtn.prop('disabled', false).css('opacity', '1');
                 updateBtn.attr('title', 'Actualizar envío');
@@ -2936,7 +2940,6 @@ function merc_add_update_button_validation() {
     </script>
     <?php
 }
-
 // Agregar funcionalidad de imágenes obligatorias por método de pago
 // NOTA: Esta función ya no es necesaria porque se modificó directamente el template del POD
 // add_action('wpcpod_after_sign_popup_form', 'merc_add_payment_method_images', 20);
@@ -11143,15 +11146,33 @@ function merc_get_all_container_shipments($container_id) {
  * LIMPIEZA DIARIA DE MOTORIZADO RECOJO
  * ========================================
  * 
- * Cada día a las 00:01 se elimina el merc_motorizo_recojo_default de todos los usuarios
- * porque la asignación es manual y diaria
+ * Cada día a las 00:01 (hora de Perú UTC-5) se elimina el merc_motorizo_recojo_default 
+ * de todos los usuarios porque la asignación es manual y diaria
  */
 
-// Registrar el evento programado si no existe
+// Registrar el evento programado si no existe (se ejecuta a las 00:01 hora de Perú)
 add_action('init', function() {
     if (!wp_next_scheduled('merc_daily_cleanup_motorizo_default')) {
         error_log("🔧 Registrando evento programado: merc_daily_cleanup_motorizo_default");
-        wp_schedule_event(time(), 'daily', 'merc_daily_cleanup_motorizo_default');
+        
+        // Calcular próximo tiempo de ejecución a las 00:01 hora local
+        $current_local = current_time('timestamp');
+        $today_at_0001 = strtotime('today 00:01', $current_local);
+        
+        // Si ya pasó las 00:01 hoy, programar para mañana
+        if ($today_at_0001 < $current_local) {
+            $next_run = strtotime('+1 day', $today_at_0001);
+        } else {
+            $next_run = $today_at_0001;
+        }
+        
+        // Convertir a UTC para WordPress
+        $utc_timestamp = $next_run - (get_option('gmt_offset') * HOUR_IN_SECONDS);
+        
+        error_log("   📅 Próxima ejecución programada: " . date('Y-m-d H:i:s', $next_run) . ' (Perú)');
+        error_log("   🌍 Timestamp UTC: " . $utc_timestamp);
+        
+        wp_schedule_event($utc_timestamp, 'daily', 'merc_daily_cleanup_motorizo_default');
     }
 });
 

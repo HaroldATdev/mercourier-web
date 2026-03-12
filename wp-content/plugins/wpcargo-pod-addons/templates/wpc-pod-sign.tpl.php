@@ -31,15 +31,11 @@
                 <input type="file" id="wpcargo-pod-file-input" multiple accept="image/*" style="display:none;">
                 <div id="wpcargo-pod-images">			
                     <?php
-                    // Obtener el valor de cambio_producto
                     $cambio_producto = get_post_meta($get_sid, 'cambio_producto', true);
-                    
-                    // Mostrar mensaje solo si cambio_producto es "Sí"
                     if (strtolower(trim($cambio_producto)) === 'sí' || strtolower(trim($cambio_producto)) === 'si') {
                         echo '<p class="header-pod-result" style="color: #d9534f; font-weight: bold; font-size: 16px;">⚠️ ESTE PEDIDO TIENE RECOJO, NO TE OLVIDES DE RECOGER EL PRODUCTO DEL CLIENTE</p>';
                     }
                     ?>
-                    
                     <?php
                     if(!empty($get_pod_img)) {
                         $explode_pod_img = array_filter( explode(",", $get_pod_img) );
@@ -61,7 +57,6 @@
 			<div class="pod-details row">
 				<?php foreach( $signature_fields as $metakey => $fieldinfo ): ?>
 				<?php
-                    // Saltar el campo generado por el plugin que se llama "Total a recibir"
                     if (isset($fieldinfo['label']) && strpos($fieldinfo['label'], 'Total a recibir') !== false) {
                         continue;
                     }
@@ -80,15 +75,12 @@
 				<?php
                     $shipment_id   = $get_sid;
                 
-                    // 1) Tomar el total a cobrar principal
                     $monto_total   = floatval( get_post_meta( $shipment_id, 'wpcargo_total_cobrar', true ) );
                 
-                    // 2) Fallback: si es 0, usar el campo de monto original (por si existe)
                     if ( $monto_total <= 0 ) {
                         $monto_total = floatval( get_post_meta( $shipment_id, 'wpcargo_monto', true ) );
                     }
                 
-                    // 3) Fallback extra: producto + envío si existen
                     if ( $monto_total <= 0 ) {
                         $costo_producto = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_producto', true ) );
                         $costo_envio    = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
@@ -97,45 +89,34 @@
                         }
                     }
                 
-                    // 4) Modo de pago
                     $modo_pago_raw = get_post_meta( $shipment_id, 'payment_wpcargo_mode_field', true );
                     $modo_pago     = strtolower( trim( $modo_pago_raw ) );
                     $es_no_cobrar  = ( $modo_pago === 'no cobrar' || $modo_pago === '1' );
 
-                    // Asegurar que tenemos el costo de envío disponible
                     $costo_envio = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
-
-                    // Total que verá el motorizado: si es NO COBRAR mostramos el costo de envío
-                    // (NO COBRAR significa no cobrar el producto, pero el envío sí puede aplicarse).
                     $monto_display = $es_no_cobrar ? $costo_envio : $monto_total;
                 ?>
 
-                
+				<?php if ( $es_no_cobrar ) : ?>
+					<?php /* NO COBRAR: solo hidden inputs para que el servidor no falle, se oculta toda la sección de pago */ ?>
+					<input type="hidden" name="wpcargo_total_cobrar" id="hidden-wpcargo-total" value="0">
+					<input type="hidden" id="hidden-customer-payment" value="0">
+					<input type="hidden" name="pod_payment_methods" id="pod_payment_methods" value="[]">
+
+				<?php else : ?>
+
                 <div class="col-md-12 mb-4">
                     <label><strong>💰 Total a recibir</strong></label>
                     <input type="text" id="monto_display_input" class="form-control" value="<?php echo number_format( $monto_display, 2 ); ?>" readonly>
                     <input type="hidden" id="hidden-customer-payment" value="<?php echo number_format( $monto_display, 2, '.', '' ); ?>">
-                    <!-- Enviar al servidor el total autoritativo (evita que el server use payload_sum) -->
                     <input type="hidden" name="wpcargo_total_cobrar" id="hidden-wpcargo-total" value="<?php echo number_format( $monto_display, 2, '.', '' ); ?>">
                 </div>
                 
                 <div class="col-md-12 mb-4" id="payment-area">
-
-                    <?php if ( $es_no_cobrar ): ?>
-
-                        <p style="color:red;font-weight:bold;">Este envío es NO COBRAR. El producto no será cobrado; registra aquí el pago del envío si corresponde.</p>
-
-                    <?php endif; ?>
-
                         <label><strong>Métodos de pago</strong></label>
 
                         <div id="payment-methods-list">
                         <?php
-                        /*
-                         * Precarga de métodos de pago: si existen datos previos en el
-                         * metadato `pod_payment_methods` del envío, reconstruimos las
-                         * filas dinámicas con el método y el monto correspondiente.
-                         */
                         $methods_json  = get_post_meta( $shipment_id, 'pod_payment_methods', true );
                         $methods_saved = json_decode( $methods_json, true );
                         if ( ! empty( $methods_saved ) && is_array( $methods_saved ) ) {
@@ -189,10 +170,11 @@
 
                         <p id="payment-error" style="color:red;font-weight:bold;display:none;"></p>
 
-                        <!-- Aquí guardamos el JSON final -->
                         <input type="hidden" name="pod_payment_methods" id="pod_payment_methods" value="[]">
-
                 </div>
+
+				<?php endif; ?>
+
 			</div>
 		</div>
 		<?php do_action( 'wpcpod_after_status_container', $get_sid ); ?>
@@ -205,13 +187,11 @@
 </form>
 <?php do_action( 'wpcpod_after_sign_popup_form' ); ?>
 <script>
-// Definir helper global de debug inmediatamente (disponible antes de DOM ready)
 const AJAXHANDLER_GLOBAL_POD = '<?php echo admin_url( 'admin-ajax.php' ); ?>';
 window.sendDebug = function(payload) {
     try {
         payload = payload || {};
         payload._merc_pod_client = 1;
-        // intentar obtener shipmentID desde DOM si no viene
         if (!payload.shipmentID) {
             var el = document.querySelector('[name="__pod_id"]');
             payload.shipmentID = el ? el.value : '';
@@ -248,14 +228,11 @@ jQuery(document).ready(function ($) {
 				}
 			});
 		});
-		// Upload directo de archivos sin exponer la biblioteca de medios
 		$( '#wpcargo-pod-img-btn' ).click(function(e) {
 			e.preventDefault();
-			// Abrir el input file oculto
 			$('#wpcargo-pod-file-input').click();
 		});
 
-		// Procesar los archivos seleccionados
 		$('#wpcargo-pod-file-input').change(function(e) {
 			var files = this.files;
 			if (files.length === 0) return;
@@ -264,7 +241,6 @@ jQuery(document).ready(function ($) {
 			var validImages = 0;
 			var validExtensions = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml'];
 
-			// Validar archivos
 			for (var i = 0; i < files.length; i++) {
 				if (validExtensions.indexOf(files[i].type) !== -1) {
 					formData.append('files[]', files[i]);
@@ -277,7 +253,6 @@ jQuery(document).ready(function ($) {
 				return;
 			}
 
-			// Mostrar indicador de carga
 			var originalText = $('#wpcargo-pod-img-btn').text();
 			$('#wpcargo-pod-img-btn').prop('disabled', true).css('opacity', '0.6').html('⏳ Procesando...');
 
@@ -291,7 +266,7 @@ jQuery(document).ready(function ($) {
 				data: formData,
 				processData: false,
 				contentType: false,
-				timeout: 120000, // 2 minutos de timeout
+				timeout: 120000,
 				success: function(response) {
 					$('#wpcargo-pod-img-btn').prop('disabled', false).css('opacity', '1').text(originalText);
 					if (response.success) {
@@ -311,14 +286,12 @@ jQuery(document).ready(function ($) {
 				}
 			});
 
-			// Limpiar el input para permitir subir los mismos archivos nuevamente si es necesario
 			$('#wpcargo-pod-file-input').val('');
 		});	
 	});
 	// ---------------- MÉTODOS DE PAGO DINÁMICOS ------------------
     const paymentModes = <?php echo json_encode( get_option('wpcargo_payment_modes', []) ); ?>;
     
-    // Función para comprimir imagen antes de convertir a base64
     function compressImage(file, callback) {
         var reader = new FileReader();
         reader.readAsDataURL(file);
@@ -332,7 +305,6 @@ jQuery(document).ready(function ($) {
                 var width = img.width;
                 var height = img.height;
 
-                // Calcular nuevas dimensiones manteniendo aspecto
                 if (width > height) {
                     if (width > maxWidth) {
                         height *= maxWidth / width;
@@ -349,34 +321,26 @@ jQuery(document).ready(function ($) {
                 canvas.height = height;
                 var ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-
-                // Convertir a base64 con compresión JPEG
-                var compressedBase64 = canvas.toDataURL('image/jpeg', 0.7); // 0.7 = 70% calidad
+                var compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                 callback(compressedBase64);
             };
         };
     }
     
-    // monto base que debe cobrar (leer primero del campo oculto por si fue modificado)
-    // Guardamos el monto base original en `window.podMontoBase` para poder
-    // restaurarlo cuando se quite la opción POS.
     window.podMontoBase = parseFloat($('#hidden-customer-payment').val()) || <?php echo floatval($monto_display); ?>;
     let montoTotal = window.podMontoBase;
     
-    // Solo si NO ES "NO COBRAR"
+    // Solo si NO ES "NO COBRAR" (el botón #add-method solo existe cuando no es NO COBRAR)
     if($('#add-method').length){
 
-        // Estado del botón Actualizar según validación
         function updateSubmitState() {
             var updateBtn = $('.delivered-btn[name="submit"]');
             if (!updateBtn.length) return;
 
             var totalIngresado = parseFloat($('#total-ingresado').text()) || 0;
-            // El monto esperado es el que se muestra al motorizado (que puede incluir comisión de POS)
             var montoDisplayVal = parseFloat($('#monto_display_input').val());
             var montoEsperado = (!isNaN(montoDisplayVal) && montoDisplayVal > 0) ? montoDisplayVal : parseFloat(montoTotal) || 0;
 
-            // Comparación con tolerancia
             var diff = Math.abs(totalIngresado - montoEsperado);
             if (montoEsperado > 0 && diff > 0.01) {
                 updateBtn.prop('disabled', true).css('opacity', '0.5').attr('title', 'Completa el total a cobrar antes de actualizar');
@@ -385,65 +349,42 @@ jQuery(document).ready(function ($) {
             }
         }
 
-        // Aplicar visual del Total a recibir según si existe POS seleccionado
         function applyPOSDisplay() {
-            console.log('🔍 applyPOSDisplay() ejecutado');
-            
-            // Detectar POS de forma robusta
             let anyPOS = false;
             $('.fila-metodo').each(function() {
                 let $fila = $(this);
                 let val = $fila.find('.pay-method').val();
                 let btnText = $fila.find('.seleccionar-metodo').text() || '';
-                console.log('  Checking fila: metodo_val=' + val + ' btnText=' + btnText);
                 if ( (val && val.toString().toLowerCase() === 'pos') || btnText.toString().toLowerCase().indexOf('pos') !== -1 ) {
                     anyPOS = true;
-                    console.log('  ✓ POS detectado en esta fila');
                     return false;
                 }
             });
 
             let montoBase = window.podMontoBase;
-            console.log('🔍 anyPOS=' + anyPOS + ' montoBase=' + montoBase);
             
             if (anyPOS) {
-                // Calcular lo que ya se ingresó en otros métodos
                 let montoOtros = 0;
                 $('.fila-metodo').each(function() {
                     let $fila = $(this);
                     let metodo = $fila.find('.pay-method').val();
                     let monto = parseFloat($fila.find('.pay-amount').val()) || 0;
-                    
-                    // Si no es POS, sumarlo
                     if (metodo && metodo.toLowerCase() !== 'pos') {
                         montoOtros += monto;
-                        console.log('  Método ' + metodo + ': ' + monto);
                     }
                 });
                 
-                // Calcular lo que falta por cobrar
                 let faltante = montoBase - montoOtros;
                 faltante = Math.max(0, faltante);
-                
-                // No aplicar comisión visual: el POS debe ingresar el monto tal cual (sin 5%)
                 let montoPOSConComision = Number((faltante).toFixed(2));
-
-                // El nuevo monto total a mostrar es: otros + faltante (sin comisión)
                 let nuevoMontoTotal = Number((montoOtros + montoPOSConComision).toFixed(2));
                 
-                console.log('  montoOtros=' + montoOtros + ' faltante=' + faltante + ' montoPOSConComision=' + montoPOSConComision + ' nuevoMontoTotal=' + nuevoMontoTotal);
-                
-                // Mostrar el nuevo monto total en el input readonly
                 $('#monto_display_input').val(nuevoMontoTotal.toFixed(2));
                 window.podMontoTotal = nuevoMontoTotal;
-                console.log('  ✓ Actualizado monto_display_input a ' + nuevoMontoTotal.toFixed(2));
             } else {
-                // Quitar efecto POS: volver al monto base
                 $('#monto_display_input').val(Number(window.podMontoBase).toFixed(2));
                 window.podMontoTotal = Number(window.podMontoBase);
-                console.log('  ✓ Sin POS, restaurando a ' + window.podMontoBase.toFixed(2));
             }
-            // Actualizar estado del botón al cambiar la visual del total
             updateSubmitState();
         }
     
@@ -451,23 +392,17 @@ jQuery(document).ready(function ($) {
             let total = 0;
             let arr = [];
             let promesas = [];
-            let tienePOS = false;
     
             $('.fila-metodo').each(function(){
                 let $fila = $(this);
                 let metodo = $fila.find('.pay-method').val();
                 let montoStr = $fila.find('.pay-amount').val().trim();
-                // 🔧 Parsear string a float, permitiendo decimales
                 let monto = parseFloat(montoStr) || 0;
                 let fileInput = $fila.find('.pay-image')[0];
     
                 if(metodo){
-                    // Guardar el monto tal cual, sin modificaciones
-                    // El servidor se encargará de aplicar comisiones si es necesario
                     let montoFinal = monto;
-                    
                     if (fileInput && fileInput.files.length > 0) {
-                        // Comprimir imagen antes de convertir a base64
                         let promesa = new Promise((resolve) => {
                             compressImage(fileInput.files[0], function(compressedBase64) {
                                 arr.push({ 
@@ -490,12 +425,9 @@ jQuery(document).ready(function ($) {
                 }
             });
     
-            // Esperar a que todas las imágenes se compriman
             Promise.all(promesas).then(() => {
                 $('#total-ingresado').text(total.toFixed(2));
 
-                // El monto esperado es lo mostrado en "Total a recibir" 
-                // (que incluye el 5% de POS si está seleccionado)
                 let montoDisplayVal = parseFloat($('#monto_display_input').val());
                 let montoEsperado = (!isNaN(montoDisplayVal) && montoDisplayVal > 0) ? montoDisplayVal : montoTotal;
 
@@ -511,7 +443,6 @@ jQuery(document).ready(function ($) {
                 }
 
                 $('#pod_payment_methods').val(JSON.stringify(arr));
-                // Actualizar estado del botón cuando cambie el total ingresado
                 updateSubmitState();
             });
         }
@@ -546,50 +477,36 @@ jQuery(document).ready(function ($) {
                 </div>
             `;
             $('#payment-methods-list').append(fila);
-
-            // Al añadir una fila, recalculamos inmediatamente para que el total
-            // y el JSON se actualicen. Esto evita que solo se registre la primera fila.
-            applyPOSDisplay(); // Recalcular visual del POS si se añadió
+            applyPOSDisplay();
             recalcular();
         });
 
-
-    
-        // Delegación para eliminar
         $(document).on('click', '.remove-metodo', function(){
             $(this).closest('.fila-metodo').remove();
-            applyPOSDisplay(); // Recalcular visual del POS si se elimina
+            applyPOSDisplay();
             recalcular();
         });
     
-    // Delegación para recalcular y reapliar POS
-    $(document).on('input change', '.pay-method, .pay-amount', function() {
-        // Al cambiar monto (tipo text), validar que sea un decimal válido
-        if ($(this).hasClass('pay-amount')) {
-            let valor = $(this).val().trim();
-            // Permitir solo números y un punto decimal
-            valor = valor.replace(/[^0-9.]/g, '');
-            // Asegurar solo un punto
-            let partes = valor.split('.');
-            if (partes.length > 2) {
-                valor = partes[0] + '.' + partes.slice(1).join('');
+        $(document).on('input change', '.pay-method, .pay-amount', function() {
+            if ($(this).hasClass('pay-amount')) {
+                let valor = $(this).val().trim();
+                valor = valor.replace(/[^0-9.]/g, '');
+                let partes = valor.split('.');
+                if (partes.length > 2) {
+                    valor = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes.length === 2 && partes[1].length > 2) {
+                    valor = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                $(this).val(valor);
             }
-            // Limitar a 2 decimales
-            if (partes.length === 2 && partes[1].length > 2) {
-                valor = partes[0] + '.' + partes[1].substring(0, 2);
-            }
-            $(this).val(valor);
-        }
+            applyPOSDisplay();
+            recalcular();
+        });
         
-        applyPOSDisplay(); // Primero recalcular visual del POS si cambió
-        recalcular();      // Luego recalcular totales
-    });
-        
-        // Delegación para vista previa de imagen
         $(document).on('change', '.pay-image', function(e) {
             let file = e.target.files[0];
             let $container = $(this).siblings('.image-preview-container');
-            
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function(e) {
@@ -601,15 +518,12 @@ jQuery(document).ready(function ($) {
                 };
                 reader.readAsDataURL(file);
             }
-            
-            // Recalcular para incluir la imagen en el JSON
             setTimeout(() => {
                 applyPOSDisplay();
                 recalcular();
             }, 100);
         });
         
-        // Delegación para remover imagen
         $(document).on('click', '.btn-remove-image', function() {
             let $fila = $(this).closest('.fila-metodo');
             $fila.find('.pay-image').val('');
@@ -618,22 +532,13 @@ jQuery(document).ready(function ($) {
             recalcular();
         });
 
-        // Ejecutar una recalculación inicial para cargar los métodos
-        // preexistentes al cargar la interfaz de firma.
         recalcular();
-        // Ajustar visual del Total si ya existe POS guardado
         applyPOSDisplay();
-        // Inicializar estado del botón
         updateSubmitState();
         
-        // Asegurar que recalcular() se ejecute antes de enviar el formulario
         $('#wpc_pod_signature-form').on('submit', function(e) {
-            // REMOVIDO: sendDebug para evitar múltiples AJAX
-            e.preventDefault(); // Prevenir envío inmediato
-            
-            let formElement = this; // Guardar referencia al formulario
-            
-            // Recalcular y esperar a que termine (las promesas de las imágenes comprimidas)
+            e.preventDefault();
+            let formElement = this;
             let arr = [];
             let total = 0;
             let promesas = [];
@@ -645,11 +550,8 @@ jQuery(document).ready(function ($) {
                 let fileInput = $fila.find('.pay-image')[0];
     
                 if(metodo){
-                    // Guardar el monto tal cual, sin modificaciones
                     let montoFinal = monto;
-                    
                     if (fileInput && fileInput.files.length > 0) {
-                        // Comprimir imagen antes de convertir a base64
                         let promesa = new Promise((resolve) => {
                             compressImage(fileInput.files[0], function(compressedBase64) {
                                 arr.push({ 
@@ -673,19 +575,14 @@ jQuery(document).ready(function ($) {
             });
             
             Promise.all(promesas).then(() => {
-                // Guardar el JSON con los métodos de pago tal cual
-                // (el servidor aplicará la comisión del POS si es necesario)
                 $('#pod_payment_methods').val(JSON.stringify(arr));
                 
-                // Validar nuevamente antes de enviar contra el monto mostrado en "Total a recibir"
-                // (que incluye el 5% de POS si está seleccionado)
                 let totalIngresado = 0;
                 $('.fila-metodo').each(function(){
                     let monto = parseFloat($(this).find('.pay-amount').val()) || 0;
                     totalIngresado += monto;
                 });
                 
-                // El monto esperado es lo mostrado en "Total a recibir"
                 let montoDisplayVal = parseFloat($('#monto_display_input').val());
                 let montoEsperado = (!isNaN(montoDisplayVal) && montoDisplayVal > 0) ? montoDisplayVal : montoTotal;
                 
@@ -696,7 +593,6 @@ jQuery(document).ready(function ($) {
                     return;
                 }
 
-                // Escribir el total autoritativo en el campo oculto para enviarlo al servidor
                 try{
                     var montoFinalStr = Number(montoEsperado).toFixed(2);
                     if (typeof jQuery !== 'undefined' && jQuery('#hidden-wpcargo-total').length) {
@@ -707,18 +603,17 @@ jQuery(document).ready(function ($) {
                     }
                 }catch(e){}
 
-                // Usar el método submit del prototipo para evitar conflicto con el botón name="submit"
                 HTMLFormElement.prototype.submit.call(formElement);
             });
         });
     }
     window.podPaymentModes = <?php echo json_encode(get_option('wpcargo_payment_modes', [])); ?>;
     window.podMontoTotal   = <?php echo floatval($monto_display); ?>;
-    // Abrir / cerrar dropdown
+
     $(document).on('click', '.seleccionar-metodo', function(){
         $(this).siblings('.method-options').toggle();
     });
-    // ---------------- EXCEPCIÓN: PAGO A MOTORIZADO SIN IMAGEN ----------------
+
     $(document).on('change input', '.pay-method', function () {
         let $fila   = $(this).closest('.fila-metodo');
         let metodo  = ($(this).val() || '').toLowerCase();
@@ -727,53 +622,35 @@ jQuery(document).ready(function ($) {
         let $preview = $fila.find('.image-preview-container');
     
         if (metodo === 'efectivo') {
-            // Pago a motorizado → NO requiere imagen
             $file.prop('required', false).hide().val('');
             $preview.empty();
-    
             $label.html('<strong>Imagen del comprobante</strong>');
-    
             if (!$fila.find('.nota-efectivo').length) {
                 $file.after('<small class="nota-efectivo text-muted">No requiere comprobante</small>');
             }
         } else if (metodo) {
-            // Otros métodos → imagen obligatoria
             $file.prop('required', true).show();
             $fila.find('.nota-efectivo').remove();
-    
             if ($label.find('*').length === 0) {
                 $label.html('<strong>Imagen del comprobante *</strong>');
             }
         }
     });
 
-    // Seleccionar método
     $(document).on('click', '.method-option', function(){
         let metodo = $(this).data('value');
         let texto = $(this).text();
-    
         let contenedor = $(this).closest('.fila-metodo');
-    
-        // Mostrar nombre en botón
         contenedor.find('.seleccionar-metodo').text(texto);
-    
-        // Guardar valor real
         contenedor.find('.pay-method').val(metodo).trigger('change');
-        // Limpiar el input de monto al cambiar de método para evitar valores heredados
         contenedor.find('.pay-amount').val('');
-        // Limpiar vista previa de imagen si existe (opcional)
         contenedor.find('.image-preview-container').html('');
         contenedor.find('.pay-image').val('');
-    
-        // Cerrar menú
         $(this).parent().hide();
-    
-        // Aplicar visual de POS (si corresponde) y luego recalcular totales
         applyPOSDisplay();
         recalcular();
     });
     
-    // Cerrar dropdowns si se hace clic afuera
     $(document).click(function(e){
         if(!$(e.target).closest('.method-selector').length){
             $('.method-options').hide();

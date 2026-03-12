@@ -94,10 +94,12 @@ class MERC_Client_Autofill {
 			'email'     => get_user_meta( $user_id, 'billing_email',       true ) ?: $user->user_email,
 			'empresa'   => get_user_meta( $user_id, 'billing_company',     true ),
 			'link_maps' => get_user_meta( $user_id, 'link_maps_remitente', true ),
+			'motorizado_recojo_default' => get_user_meta( $user_id, 'merc_motorizo_recojo_default', true ),
 		] );
 	}
 }
 
 new MERC_Client_Autofill();
+
 
 

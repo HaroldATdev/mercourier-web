@@ -430,4 +430,81 @@ function merc_eliminar_producto() {
     wp_send_json_success(['message' => 'Producto eliminado correctamente']);
 }
 
+// AJAX: Obtener unidades de stock por producto
+add_action('wp_ajax_merc_get_product_units', 'merc_get_product_units_ajax');
+function merc_get_product_units_ajax() {
+    // Validar nonce si está presente
+    if (isset($_POST['nonce'])) {
+        if (!wp_verify_nonce($_POST['nonce'], 'merc_almacen')) {
+            while ( ob_get_level() > 0 ) { ob_end_clean(); }
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+    }
+
+    $current_user = wp_get_current_user();
+    $is_admin = current_user_can('manage_options');
+    $is_client = in_array('wpcargo_client', (array)$current_user->roles);
+    
+    if (!is_user_logged_in() || (!$is_admin && !$is_client)) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
+        wp_send_json_error(['message' => 'No autorizado']);
+    }
+
+    $product_id = intval($_POST['product_id'] ?? 0);
+    if (!$product_id) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
+        wp_send_json_error(['message' => 'ID de producto inválido']);
+    }
+
+    global $wpdb;
+    $table = merc_get_stock_table_name();
+    
+    // Obtener unidades de stock
+    $rows = $wpdb->get_results(
+        $wpdb->prepare("SELECT id, sku, status, shipment_id, created_at FROM {$table} WHERE product_id = %d ORDER BY id ASC", $product_id),
+        ARRAY_A
+    );
+
+    if (empty($rows)) {
+        while ( ob_get_level() > 0 ) { ob_end_clean(); }
+        wp_send_json_error(['message' => 'El producto "' . get_the_title($product_id) . '" no tiene unidades registradas.']);
+    }
+
+    // Agregar información del motorizado y tracking para cada unidad
+    foreach ($rows as &$row) {
+        $row['motorizado'] = '-';
+        $row['tracking'] = '-';
+        
+        if (!empty($row['shipment_id'])) {
+            $shipment_id = intval($row['shipment_id']);
+            
+            // Obtener el número de tracking del envío
+            $shipment = get_post($shipment_id);
+            if ($shipment && $shipment->post_type === 'wpcargo_shipment') {
+                $row['tracking'] = $shipment->post_title;
+            }
+            
+            // Obtener el motorizado del envío
+            $motorizado_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
+            $motorizado_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
+            $motorizado_general = get_post_meta($shipment_id, 'wpcargo_driver', true);
+            
+            // Prioridad: entrega > recojo > general
+            $motorizado_id = $motorizado_entrega ?: ($motorizado_recojo ?: $motorizado_general);
+            
+            if (!empty($motorizado_id)) {
+                $motorizado_user = get_user_by('id', intval($motorizado_id));
+                if ($motorizado_user) {
+                    $row['motorizado'] = $motorizado_user->display_name;
+                    $row['motorizado_id'] = $motorizado_user->ID;
+                }
+            }
+        }
+    }
+
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
+    wp_send_json_success($rows);
+}
+
+
 

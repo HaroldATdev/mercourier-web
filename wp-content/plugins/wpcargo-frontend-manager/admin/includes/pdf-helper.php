@@ -119,18 +119,6 @@ function wpcfe_bulkprint_template_path( $shipment_ids, $waybill_title, $print_ty
     $custom_template_path   = get_stylesheet_directory() .'/wpcargo/'. $print_type.'.tpl.php';
     $mp_settings            = get_option('wpc_mp_settings');
     $setting_options        = get_option('wpcargo_option_settings');
-    $logo                   = '';
-    if( !empty( $setting_options['settings_shipment_ship_logo'] ) ){
-        $logo 		= '<img style="width: 180px;" id="logo" src="'.$setting_options['settings_shipment_ship_logo'].'">';
-    }
-    if( get_option('wpcargo_label_header') ){
-        $siteInfo = get_option('wpcargo_label_header');
-    }else{
-        $siteInfo  = $logo;
-        $siteInfo .= '<h2 style="margin:0;padding:0;">'.get_bloginfo('name').'</h2>';
-        $siteInfo .= '<p style="margin:0;padding:0;font-size: 14px;">'.get_bloginfo('description').'</p>';
-        $siteInfo .= '<p style="margin:0;padding:0;font-size: 8px;">'.get_bloginfo('wpurl').'</p>';
-    }
     ?>
     <!DOCTYPE html>
     <html <?php language_attributes(); ?> <?php echo is_rtl() ? 'dir="rtl"' : '' ; ?>>
@@ -156,6 +144,46 @@ function wpcfe_bulkprint_template_path( $shipment_ids, $waybill_title, $print_ty
                 foreach ( $shipment_ids as $shipment_id ) {
                     $shipmentID             = $shipment_id;
                     $packages               = maybe_unserialize( get_post_meta( $shipmentID,'wpc-multiple-package', TRUE) );
+                    
+                    // 🔧 OBTENER LOGO POR ENVÍO (para cada marca/cliente)
+                    $logo                   = '';
+                    $shipment_logo          = get_post_meta( $shipmentID, 'wpcargo_label_header', true );
+                    $registered_shipper     = get_post_meta( $shipmentID, 'registered_shipper', true );
+                    
+                    if( !empty( $shipment_logo ) ){
+                        // Usar logo personalizado del envío si existe
+                        $logo = $shipment_logo;
+                    } else if( $registered_shipper ){
+                        // Intentar logo del cliente/marca - buscar en wpcargo_user_avatar
+                        $shipper_avatar = get_user_meta( $registered_shipper, 'wpcargo_user_avatar', true );
+                        if( $shipper_avatar ){
+                            // wpcargo_user_avatar contiene la URL de la foto de perfil
+                            $logo = '<img style="width: 180px;" id="logo" src="' . esc_url( $shipper_avatar ) . '">';
+                        } else {
+                            // Si no tiene avatar, intentar wpcargo_label_header
+                            $shipper_logo = get_user_meta( $registered_shipper, 'wpcargo_label_header', true );
+                            if( $shipper_logo ){
+                                $logo = $shipper_logo;
+                            } else {
+                                // Si no tiene logo, usar nombre de la marca (billing_company)
+                                $billing_company = get_user_meta( $registered_shipper, 'billing_company', true );
+                                if( $billing_company ){
+                                    $logo = '<h2 style="margin:0;padding:10px 0;font-size:18px;font-weight:bold;">' . esc_html( $billing_company ) . '</h2>';
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Construir siteInfo con logo específico del envío
+                    if( get_option('wpcargo_label_header') ){
+                        $siteInfo = get_option('wpcargo_label_header');
+                    }else{
+                        $siteInfo  = $logo;
+                        $siteInfo .= '<h2 style="margin:0;padding:0;">'.get_bloginfo('name').'</h2>';
+                        $siteInfo .= '<p style="margin:0;padding:0;font-size: 14px;">'.get_bloginfo('description').'</p>';
+                        $siteInfo .= '<p style="margin:0;padding:0;font-size: 8px;">'.get_bloginfo('wpurl').'</p>';
+                    }
+                    
                     $shipmentDetails 	= array(
                         'shipmentID'	=> $shipment_id,
                         'barcode'		=> $wpcargo->barcode( $shipment_id ),

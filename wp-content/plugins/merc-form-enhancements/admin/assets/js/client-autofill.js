@@ -144,7 +144,8 @@ jQuery(document).ready(function ($) {
             direccion: ['wpcargo_shipper_address', 'shipper_address', 'direccion_remitente', 'address'],
             email:     ['wpcargo_shipper_email', 'shipper_email', 'email_remitente'],
             empresa:   ['wpcargo_tiendaname', 'tienda', 'empresa', 'company'],
-            link_maps: ['link_maps_remitente', 'link_maps', 'google_maps']
+            link_maps: ['link_maps_remitente', 'link_maps', 'google_maps'],
+            motorizado_recojo_default: ['merc_motorizo_recojo_default', 'wpcargo_motorizo_recojo', 'motorizado_recojo']
         };
 
         var rellenados = 0;
@@ -154,13 +155,29 @@ jQuery(document).ready(function ($) {
             if (ud[key]) {
                 var $campo = buscarCampo(camposMap[key]);
                 if ($campo.length) {
-                    if (setTexto($campo, ud[key])) {
-                        console.log('[ClientAutofill]   ✓', key + ':', ud[key]);
-                        rellenados++;
+                    // Si es un select, usar setSelect; si no, usar setTexto
+                    var isSelect = $campo.prop('tagName').toLowerCase() === 'select';
+                    
+                    if (isSelect) {
+                        if (setSelect($campo, ud[key])) {
+                            console.log('[ClientAutofill]   ✓', key + ':', ud[key], '(select)');
+                            rellenados++;
+                        } else {
+                            console.warn('[ClientAutofill]   ✗', key, '- opción no encontrada:', ud[key]);
+                        }
+                    } else {
+                        if (setTexto($campo, ud[key])) {
+                            console.log('[ClientAutofill]   ✓', key + ':', ud[key]);
+                            rellenados++;
+                        }
                     }
                 } else {
-                    console.warn('[ClientAutofill]   ✗', key, '- campo NO encontrado. Buscado:', camposMap[key]);
-                    noEncontrados.push(key);
+                    if (key === 'motorizado_recojo_default') {
+                        console.log('[ClientAutofill]   ℹ️', key, '- campo no encontrado (es opcional). Motorizado default:', ud[key]);
+                    } else {
+                        console.warn('[ClientAutofill]   ✗', key, '- campo NO encontrado. Buscado:', camposMap[key]);
+                        noEncontrados.push(key);
+                    }
                 }
             }
         }
@@ -412,4 +429,5 @@ jQuery(document).ready(function ($) {
         }, 4000);
     }
 });
+
 

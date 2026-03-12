@@ -99,17 +99,20 @@ document.addEventListener('DOMContentLoaded', function () {
             html += `<div class="grupo-cliente" style="margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">`;
             html += `<button class="grupo-cliente-header" data-grupo="${grupoId}" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%); color: white; cursor: pointer; user-select: none; font-size: 16px; font-weight: 700; border: none; width: 100%; text-align: left; transition: background 0.3s;">`;
             html += `👤 ${cliente} <span style="font-size: 13px; font-weight: 400; opacity: 0.85; margin-left: auto;">${prods.length} producto(s) · ${totalCliente} unidades</span>`;
-            html += `<span class="grupo-cliente-chevron" style="font-size: 14px; margin-left: auto; transition: transform 0.25s;">▼</span>`;
+            html += `<span class="grupo-cliente-chevron" style="font-size: 14px; margin-left: auto; transition: transform 0.25s; transform: rotate(-90deg);">▼</span>`;
             html += `</button>`;
-            html += `<div class="grupo-cliente-body" id="${grupoId}" style="background: white;">`;
+            html += `<div class="grupo-cliente-body" id="${grupoId}" style="background: white; display: none;">`;
             
             // Tabla de productos del grupo
             html += '<table style="width: 100%; border-collapse: collapse;">';
             html += '<thead><tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">';
             html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Producto</th>';
-            html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Cantidad</th>';
+            html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Stock</th>';
+            html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Tipo + Medida</th>';
             html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Creado</th>';
+            html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Modificado</th>';
             html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Estado</th>';
+            html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Motorizado</th>';
             if (isAdmin) {
                 html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Acciones</th>';
             }
@@ -120,11 +123,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 const estadoText = prod.estado === 'asignado' ? '🚚 Asignado' : (prod.estado === 'entregado' ? '✅ Entregado' : '📦 Sin Asignar');
                 const bgcolor = idx % 2 === 0 ? 'white' : '#f9f9f9';
                 
+                // Tipo + valor de medida combinados
+                let tipoMedidaLabel = '-';
+                if (prod.tipo_medida && prod.tipo_medida !== '') {
+                    const tipoCapital = prod.tipo_medida.charAt(0).toUpperCase() + prod.tipo_medida.slice(1);
+                    tipoMedidaLabel = prod.valor_medida && prod.valor_medida !== ''
+                        ? `${tipoCapital}: ${prod.valor_medida}`
+                        : tipoCapital;
+                } else if (prod.valor_medida && prod.valor_medida !== '') {
+                    tipoMedidaLabel = prod.valor_medida;
+                }
+                
+                const motorizado = prod.motorizado && prod.motorizado !== '-' ? prod.motorizado : '-';
+                
                 html += `<tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">`;
                 html += `<td style="padding: 12px 20px;"><strong>${prod.nombre || 'Sin nombre'}</strong></td>`;
                 html += `<td style="padding: 12px 20px; text-align: center;"><button class="btn-ver-cantidad" data-product-id="${prod.id}" data-product-name="${prod.nombre}" style="background: none; border: none; cursor: pointer; color: #1976d2; font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 4px; transition: background-color 0.3s;" title="Ver detalles de envíos">📋 ${prod.cantidad || 0}</button></td>`;
+                html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${tipoMedidaLabel}</td>`;
                 html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${prod.fecha_creacion || '-'}</td>`;
+                html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${prod.fecha_modificacion || '-'}</td>`;
                 html += `<td style="padding: 12px 20px; text-align: center;"><span style="display: inline-block; padding: 6px 12px; background: #e9ecef; color: #495057; border-radius: 6px; font-size: 12px; font-weight: 600;">${estadoText}</span></td>`;
+                html += `<td style="padding: 12px 20px; text-align: center; color: #2c3e50; font-weight: 600;">${motorizado}</td>`;
                 if (isAdmin) {
                     html += `<td style="padding: 12px 20px; text-align: center; display: flex; gap: 8px; justify-content: center;">`;
                     html += `<button class="btn-edit" onclick="window.editarProducto(${prod.id})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;">✏️ Editar</button>`;
@@ -951,6 +970,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 });
+
 
 
 

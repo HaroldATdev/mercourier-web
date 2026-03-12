@@ -449,6 +449,7 @@
                                 </th>
                                 <?php do_action( 'wpcsc_before_header_shipment_content_section' ); ?>
                                 <th class="text-center"><?php echo wpc_scpt_shipments_label(); ?></th>
+                                <th><?php esc_html_e('Marca', 'wpcargo-shipment-container'); ?></th>
                                 <th><?php esc_html_e('Distrito', 'wpcargo-shipment-container'); ?></th>
                                 <th class="text-center"><?php esc_html_e('Print', 'wpcargo-shipment-container'); ?></th>
                                 <th class="text-center"><?php esc_html_e('Motorizado', 'wpcargo-shipment-container'); ?></th>
@@ -497,6 +498,35 @@
                                             <h3 class="shipment-title h6"><a style="text-decoration: none;" href="<?php echo get_the_permalink( wpcfe_admin_page() ).'?wpcfe=track&num='.$shipment_title; ?>" target="_blank"><?php echo $shipment_title; ?></a></h3>
                                             <?php do_action( 'wpcsc_after_shipment_content_section', $shipment_id ); ?>
                                         </td>
+                                        <td>
+                                            <?php
+                                                // Obtener marca (billing_company) del cliente del envío
+                                                $client_id = get_post_meta($shipment_id, 'registered_shipper', true);
+                                                $marca = 'N/A';
+                                                
+                                                if (!empty($client_id)) {
+                                                    $user = get_user_by('ID', $client_id);
+                                                    if ($user) {
+                                                        // Si es usuario, obtener billing_company
+                                                        $billing_company = get_user_meta($user->ID, 'billing_company', true);
+                                                        if (!empty($billing_company)) {
+                                                            $marca = $billing_company;
+                                                        } else {
+                                                            // Si no hay billing_company, obtener nombre y apellido
+                                                            $first_name = get_user_meta($user->ID, 'first_name', true);
+                                                            $last_name = get_user_meta($user->ID, 'last_name', true);
+                                                            $full_name = trim($first_name . ' ' . $last_name);
+                                                            $marca = !empty($full_name) ? $full_name : $user->display_name;
+                                                        }
+                                                    } else {
+                                                        // Si no es usuario, intentar como post metadatos
+                                                        $billing_company_post = get_post_meta($client_id, 'billing_company', true);
+                                                        $marca = !empty($billing_company_post) ? $billing_company_post : get_the_title($client_id);
+                                                    }
+                                                }
+                                                echo esc_html($marca);
+                                            ?>
+                                        </td>
                                         <td><?php echo esc_html($distrito); ?></td>
                                         <td class="text-center print-shipment">
                                             <div class="dropdown">
@@ -533,7 +563,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted">No hay envíos para entregar</td>
+                                    <td colspan="8" class="text-center text-muted">No hay envíos para entregar</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
