@@ -70,6 +70,28 @@
         
         return cleaned;
     }
+
+    const TRACKING_PAGE_SLUG = 'dashboard'; // Slug del dashboard de WPCargo
+
+    function openTrackingSheet(shipmentNumber, postId) {
+        // URL correcta confirmada: /dashboard/?wpcfe=track&num=NUMERO
+        const trackingUrl = `<?php echo home_url('/'); ?>${TRACKING_PAGE_SLUG}/?wpcfe=track&num=${shipmentNumber}`;
+
+        if (shipmentNumber && shipmentNumber !== 'N/A') {
+            window.open(trackingUrl, '_blank');
+        } else {
+            alert('❌ No se encontró el número de seguimiento para abrir el tracking.');
+        }
+    }
+
+    function openTrackingByNumber(shipmentNumber) {
+        const pickup = pickups.find(p => p.number === shipmentNumber);
+        if (pickup) {
+            openTrackingSheet(pickup.number, pickup.id);
+        } else {
+            alert('❌ No se encontró el recojo.');
+        }
+    }
     
     // Función para generar enlaces de navegación para pickup
     function generatePickupNavigationLinks(shipmentNumber) {
@@ -393,12 +415,39 @@
                 const shipperName = userGroup.name;
                 const pickupCount = userGroup.pickups.length;
                 
+                // ═══════════════════════════════════════════════════════════
+                // MODIFICADO: El nombre de la tienda ahora es un enlace
+                // que abre la hoja de tracking del primer recojo del grupo.
+                // Si hay múltiples recojos, cada uno tiene su propio link.
+                // Usamos el primer pickup del grupo para el link del encabezado.
+                // ═══════════════════════════════════════════════════════════
+                const firstPickup = userGroup.pickups[0];
+                const firstNumber = firstPickup ? firstPickup.number : null;
+
+                // Nombre clickeable → abre tracking del primer envío del grupo
+                const shipperNameDisplay = shipperName.length > 30
+                    ? shipperName.substring(0, 30) + '<br>' + shipperName.substring(30)
+                    : shipperName;
+
+                const shipperTrackUrl = firstNumber && firstNumber !== 'N/A'
+                    ? `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${firstNumber}`
+                    : null;
+
+                const shipperNameLink = shipperTrackUrl
+                    ? `<a href="${shipperTrackUrl}"
+                          target="_blank"
+                          title="Ver hoja de tracking en WPCargo"
+                          style="color: #74b9ff; text-decoration: underline; cursor: pointer;">
+                          <i class="fa fa-user-circle" style="margin-right: 8px;"></i>${shipperNameDisplay}
+                       </a>`
+                    : `<span><i class="fa fa-user-circle" style="margin-right: 8px;"></i>${shipperNameDisplay}</span>`;
+                
                 listHTML += `
                     <div style="border: 3px solid #2c3e50; border-radius: 8px; padding: 0; margin-bottom: 20px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
                         <div style="background: #2c3e50; color: white; padding: 15px; border-radius: 8px 8px 0 0; display: flex; flex-direction: column; gap: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                                 <h4 style="margin: 0; font-size: 18px; font-weight: bold; word-break: break-word;">
-                                    <i class="fa fa-user-circle" style="margin-right: 8px;"></i>${shipperName.length > 30 ? shipperName.substring(0, 30) + '<br>' + shipperName.substring(30) : shipperName}
+                                    ${shipperNameLink}
                                 </h4>
                                 <span style="background: #3498db; padding: 4px 12px; border-radius: 12px; font-size: 13px; white-space: nowrap; flex-shrink: 0;">
                                     ${pickupCount} recojo(s)
@@ -438,12 +487,34 @@
                         });
                     }
                     
+                    // ═══════════════════════════════════════════════════════════
+                    // MODIFICADO: Header del recojo con número de seguimiento
+                    // como badge clickeable que abre la hoja de tracking
+                    // ═══════════════════════════════════════════════════════════
+                    const trackingUrl = `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${pickup.number}`;
+
                     listHTML += `
                         <div style="border: 1px solid #bdc3c7; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #f8f9fa;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">
-                                <span style="font-weight: bold; font-size: 16px; color: #2c3e50;">
-                                    Recojo: ${pickup.number}
-                                </span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; gap: 8px;">
+                                
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        N° de seguimiento
+                                    </span>
+                                    <!-- NUEVO: Badge clickeable con número de seguimiento -->
+                                    <a href="${trackingUrl}"
+                                       target="_blank"
+                                       title="Ver hoja de tracking en WPCargo"
+                                       style="display: inline-flex; align-items: center; gap: 6px;
+                                              background: #2c3e50; color: #ffffff;
+                                              padding: 5px 12px; border-radius: 20px;
+                                              font-size: 13px; font-weight: bold;
+                                              text-decoration: none; width: fit-content;
+                                              transition: background 0.2s;">
+                                        🔍 ${pickup.number}
+                                    </a>
+                                </div>
+
                                 <select onchange="updatePickupStatus(${pickup.id}, this.value)" 
                                    style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px;">
                                     ${statusOptions}

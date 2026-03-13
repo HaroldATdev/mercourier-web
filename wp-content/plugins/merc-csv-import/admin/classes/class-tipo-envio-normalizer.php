@@ -201,14 +201,20 @@ class MERC_Tipo_Envio_Normalizer {
 			return;
 		}
 
-		// Aplicar fecha forzada si existe
+		// Aplicar fecha forzada si existe (pero IGNORAR si quien importa es administrador)
 		$forced_date = get_user_meta( $client_id, 'merc_force_pickup_date', true );
 		if ( $forced_date ) {
-			update_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', $forced_date );
-			update_post_meta( $shipment_id, 'wpcargo_pickup_date',        $forced_date );
+			// Si el usuario que ejecuta la importación es administrador, no aplicar la fecha forzada
+			if ( function_exists('current_user_can') && ( current_user_can('manage_options') || current_user_can('administrator') ) ) {
+				error_log( '[MERC_CSV] IMPORTADOR ADMIN - Ignorando merc_force_pickup_date para shipment ' . $shipment_id . ' (usuario importador es admin)' );
+			} else {
+				update_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', $forced_date );
+				update_post_meta( $shipment_id, 'wpcargo_pickup_date',        $forced_date );
+			}
 		}
 	}
 }
 
 new MERC_Tipo_Envio_Normalizer();
+
 

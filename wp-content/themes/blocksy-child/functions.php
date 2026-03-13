@@ -2820,7 +2820,7 @@ add_action('wp_footer', function() {
 }, 999);
 
 global $post;
-$shipment_id = $post->ID;
+$shipment_id = ( isset( $post ) && is_object( $post ) && isset( $post->ID ) ) ? $post->ID : 0;
 
 // Agregar script para deshabilitar botón Actualizar hasta que se complete el pago
 add_action('wpcpod_after_sign_popup_form', 'merc_add_update_button_validation');
@@ -15454,3 +15454,48 @@ function merc_parse_date_for_migration( $date_str ) {
     
     return false;
 }
+// ── Filtro: Remitente (dropdown) ──────────────────────────────────────────
+add_action( 'wpcfe_after_shipment_filters', function() {
+    $selected = isset( $_GET['merc_remitente'] ) ? sanitize_text_field( $_GET['merc_remitente'] ) : '';
+
+    $shippers = get_users( array(
+        'role'    => 'wpcargo_client',
+        'orderby' => 'display_name',
+        'order'   => 'ASC',
+    ) );
+    ?>
+    <div id="merc-remitente-field" class="form-group wpcfe-filter merc-remitente-filter p-0 mx-1">
+        <div class="md-form form-group">
+            <select id="merc-remitente" name="merc_remitente" class="form-control form-control-sm wpcfe-select" style="width: 180px;">
+                <option value="">Marca por Nombre</option>
+                <?php foreach ( $shippers as $shipper ) :
+                    $first = get_user_meta( $shipper->ID, 'first_name', true );
+                    $last  = get_user_meta( $shipper->ID, 'last_name',  true );
+                    $label = trim( $first . ' ' . $last );
+
+                    // Si no tiene nombre/apellido cargado, usar display_name como fallback
+                    if ( empty( $label ) ) {
+                        $label = $shipper->display_name;
+                    }
+                ?>
+                    <option value="<?php echo esc_attr( $shipper->ID ); ?>"
+                        <?php selected( $selected, $shipper->ID ); ?>>
+                        <?php echo esc_html( $label ); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+    <?php
+}, 101 );
+
+add_filter( 'wpcfe_dashboard_arguments', function( $args ) {
+    if ( isset( $_GET['merc_remitente'] ) && $_GET['merc_remitente'] !== '' ) {
+        $args['meta_query']['merc_remitente'] = array(
+            'key'     => 'registered_shipper',
+            'value'   => sanitize_text_field( $_GET['merc_remitente'] ),
+            'compare' => '='
+        );
+    }
+    return $args;
+} );

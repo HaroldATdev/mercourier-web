@@ -3,8 +3,8 @@
 global $wpcargo, $WPCCF_Fields, $wpcargo_print_admin;
 $user_info          = wp_get_current_user();
 $class_not_logged   = 'not-logged';
-$wpcfesort_list     = array( 10, 25, 50, 100 );
-$wpcfesort          = get_user_meta( get_current_user_id(), 'user_wpcfesort', true ) ? : 10 ;
+ $wpcfesort_list     = array( 100, 200, 250, 350, 500 );
+ $wpcfesort          = get_user_meta( get_current_user_id(), 'user_wpcfesort', true ) ? : 100 ;
 $page_url           = get_the_permalink( wpcfe_admin_page() );
 $date_range         = wpcfe_date_range_filter();
 $p0                 = '';

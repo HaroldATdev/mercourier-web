@@ -14,7 +14,7 @@
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
-        return `${day}/${month}/${year}`; // ✅ Formato d-m-Y
+        return `${day}/${month}/${year}`;
     }
 
     // Normalizar varias representaciones de fecha a 'dd/mm/YYYY'
@@ -23,14 +23,12 @@
         dateStr = String(dateStr).trim();
         dateStr = dateStr.replace(/-/g, '/');
 
-        // YYYY/MM/DD -> DD/MM/YYYY
         var m = dateStr.match(/^\s*(\d{4})\/(\d{1,2})\/(\d{1,2})\s*$/);
         if (m) {
             var y = m[1], mo = String(m[2]).padStart(2,'0'), d = String(m[3]).padStart(2,'0');
             return d + '/' + mo + '/' + y;
         }
 
-        // D/M/YYYY or DD/MM/YYYY -> pad with zeros
         m = dateStr.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/);
         if (m) {
             var d2 = String(m[1]).padStart(2,'0'), mo2 = String(m[2]).padStart(2,'0'), y2 = m[3];
@@ -155,7 +153,6 @@
                 return;
             }
             
-            // Obtener datos del shipment para conseguir link_maps
             const data = await getShipmentData(delivery.id);
             
             if (data.link_maps && data.link_maps.trim() !== '') {
@@ -194,7 +191,6 @@
             
             jQuery('#whatsapp-loader').remove();
             
-            // ✅ CORRECCIÓN: Usar shipper_phone en lugar de brand_phone
             const shipperPhone = formatPhoneNumber(data.shipper_phone);
             
             if (!shipperPhone) {
@@ -227,11 +223,9 @@
     
     // Función para enviar mensaje de WhatsApp al cliente
     async function sendWhatsAppMessage(shipmentNumber) {
-        // Mostrar loader
         jQuery('body').append('<div id="whatsapp-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"><div style="background: white; padding: 20px; border-radius: 8px; text-align: center;"><div style="font-size: 18px; margin-bottom: 10px;">⏳ Obteniendo datos...</div></div></div>');
         
         try {
-            // Buscar el post_id del shipment en el array global
             const delivery = deliveries.find(d => d.number === shipmentNumber);
             
             if (!delivery || !delivery.id) {
@@ -240,7 +234,6 @@
                 return;
             }
             
-            // Obtener datos del shipment usando el post_id
             const data = await getShipmentData(delivery.id);
             
             jQuery('#whatsapp-loader').remove();
@@ -298,13 +291,11 @@
         const currentStatusUpper = (currentStatus || '').toUpperCase();
         let permitidos = [];
         
-        // Detectar si el estado actual es avanzado
         const esEstadoAvanzado = estadosAvanzados.some(function(estado) {
             return currentStatusUpper.includes(estado);
         });
         
         if (esEstadoAvanzado) {
-            // Si es avanzado, mostrar estados posteriores
             permitidos = allStatuses.filter(function(status) {
                 const statusUpper = status.toUpperCase();
                 return estadosMotorizadoDespuesBase.some(function(permitido) {
@@ -312,7 +303,6 @@
                 });
             });
         } else {
-            // Si no es avanzado (es inicial), mostrar estados iniciales
             permitidos = allStatuses.filter(function(status) {
                 const statusUpper = status.toUpperCase();
                 return estadosMotorizadoInicial.some(function(permitido) {
@@ -321,7 +311,6 @@
             });
         }
         
-        // Filtrar "LISTO PARA SALIR" si existe
         permitidos = permitidos.filter(function(opt) {
             return opt.toUpperCase().trim() !== 'LISTO PARA SALIR';
         });
@@ -331,7 +320,6 @@
     
     // Función para actualizar estado de una entrega
     async function updateDeliveryStatus(shipmentId, newStatus) {
-        // 🔥 Obtener el nonce del elemento oculto
         const nonceField = document.getElementById('wpcpod-nonce-field');
         const nonce = nonceField ? nonceField.value : null;
         
@@ -341,34 +329,23 @@
             return;
         }
         
-        console.log('✅ Nonce obtenido:', nonce);
-        
-        // Si el estado es ENTREGADO, mostrar modal de firma existente
         if (newStatus === 'ENTREGADO') {
             showSignatureModalForStatus(shipmentId, newStatus, nonce);
         } else {
-            // Para otros estados, mostrar confirmación directa
             showStatusConfirmation(shipmentId, newStatus, nonce);
         }
     }
     
     // Función para mostrar modal de firma reutilizando el modal existente
     function showSignatureModalForStatus(shipmentId, newStatus, nonce) {
-        console.log('🔥 showSignatureModalForStatus llamado con:', { shipmentId, newStatus, nonce });
-        
         try {
-            // Verificar que el modal existe en el DOM
             const $modal = jQuery('#wpc_pod_signature-modal');
-            console.log('🔍 Buscando modal #wpc_pod_signature-modal...');
-            console.log('✓ Modal encontrado en DOM:', $modal.length > 0);
             
             if ($modal.length === 0) {
-                console.error('❌ ERROR: Modal #wpc_pod_signature-modal no existe en el DOM');
                 alert('Error: Modal de firma no encontrado en la página');
                 return;
             }
             
-            // Cargar el formulario de firma en el modal existente
             jQuery.ajax({
                 type: "POST",
                 data: {
@@ -377,69 +354,35 @@
                 },
                 url: "<?php echo admin_url('admin-ajax.php'); ?>",
                 beforeSend: function() {
-                    console.log('📡 Enviando AJAX para cargar formulario...');
                     jQuery('body').append('<div class="wpcargo-loading">Cargando formulario de firma...</div>');
                 },
                 success: function(response) {
-                    console.log('✅ Respuesta AJAX recibida (longitud:', response.length, 'caracteres)');
-                    
                     try {
                         jQuery('body .wpcargo-loading').remove();
                         
-                        // Cargar el contenido en el modal
                         const $modalBody = jQuery('#wpc_pod_signature-modal .modal-body');
-                        console.log('📝 Modal body encontrado:', $modalBody.length > 0);
-                        
                         $modalBody.html(response);
-                        console.log('✅ Contenido cargado en .modal-body');
                         
-                        // Verificar que jQuery y Bootstrap estén disponibles
-                        console.log('✓ jQuery versión:', typeof jQuery !== 'undefined' ? jQuery.fn.jquery : 'NO DISPONIBLE');
-                        console.log('✓ Bootstrap modal disponible:', typeof jQuery('#wpc_pod_signature-modal').modal === 'function');
-                        
-                        console.log('📡 Intentando mostrar modal con .modal("show")...');
                         jQuery('#wpc_pod_signature-modal').modal('show');
-                        console.log('✅ .modal("show") ejecutado sin errores');
                         
-                        // Esperar a que el modal esté completamente visible
-                        setTimeout(function() {
-                            console.log('✅ Modal debería estar visible ahora');
-                            console.log('🔍 Estado actual del modal:', jQuery('#wpc_pod_signature-modal').hasClass('show') ? 'VISIBLE' : 'OCULTO');
-                        }, 500);
-                        
-                        // Interceptar el submit del formulario
                         jQuery('#wpc_pod_signature-modal #wpc_pod_signature-form').off('submit').on('submit', function(e) {
                             e.preventDefault();
-                            console.log('📝 Submit del formulario interceptado');
-                            
-                            // Obtener datos del formulario
                             const formData = jQuery(this).serializeArray();
-                            console.log('📝 Datos del formulario de firma:', formData);
-                            
-                            // Cambiar el estado
                             sendStatusUpdate(shipmentId, newStatus, nonce, formData);
-                            
-                            // Cerrar modal
                             jQuery('#wpc_pod_signature-modal').modal('hide');
                         });
-                        console.log('✅ Event handler de submit configurado');
                         
                     } catch(e) {
-                        console.error('❌ Error al procesar respuesta AJAX:', e.message);
-                        console.error('📋 Stack trace:', e.stack);
                         alert('Error al mostrar modal: ' + e.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('❌ Error AJAX:', { status, error, xhr });
-                    console.error('📋 Respuesta del servidor:', xhr.responseText);
                     jQuery('body .wpcargo-loading').remove();
                     alert('❌ Error al cargar el formulario de firma: ' + error);
                 }
             });
         } catch(e) {
-            console.error('❌ Error general en showSignatureModalForStatus:', e.message);
-            console.error('📋 Stack trace:', e.stack);
+            console.error('❌ Error general:', e.message);
         }
     }
     
@@ -473,10 +416,8 @@
                 nonce: nonce
             };
             
-            // Si hay datos del formulario de firma, convertirlos a objeto
             if (formData && Array.isArray(formData)) {
                 formData.forEach(field => {
-                    // Buscar el campo __pod_signature
                     if (field.name === '__pod_signature') {
                         data.signature = field.value;
                     }
@@ -506,7 +447,6 @@
                 });
             }
         } catch (error) {
-            console.error('Error AJAX:', error);
             Swal.fire({
                 title: '❌ Error de conexión',
                 text: 'No se pudo actualizar el estado. ' + (error.statusText || error.responseText || 'Error desconocido'),
@@ -520,10 +460,8 @@
     function initPODRouteMap() {
         $('#wpcpod-route-planner #wpcpod-route-map').hide();
         
-        // Obtener fecha de hoy
         const today = getTodayDate();
         
-        // Obtener estados disponibles
         jQuery.ajax({
             type: "POST",
             url: "<?php echo admin_url('admin-ajax.php'); ?>",
@@ -541,11 +479,9 @@
             type:"POST",
             data:{
                 action  : 'wpcpod_generate_route_address',
-                filter_date: today  // 🔥 NUEVO: Enviar fecha al backend
+                filter_date: today
             },
             url : "<?php echo admin_url( 'admin-ajax.php' ); ?>",
-            beforeSend:function(){
-            },
             success:function(response){
                 if( response.status == 'success'){
                     displayShipmentsList(response.origin, response.waypoints, response.shipments, response.poo);
@@ -561,22 +497,17 @@
     function displayShipmentsList(origin, waypoints, shipments, poo) {
         const summaryPanel = document.getElementById("directions-panel");
         
-        // Reiniciar el array global
         deliveries = [];
         
-        // Obtener fecha de hoy para filtro adicional
         const today = getTodayDate();
         
-        // IMPORTANTE: Procesar TODOS los shipments, no solo los waypoints
         if (shipments && shipments.length > 0) {
             shipments.forEach((shipment, index) => {
-                // 🔥 NUEVO: Filtrar por fecha de envío (validación adicional en cliente)
                 const shipmentDateRaw = shipment['pickup_date'] || shipment['shipping_date'] || '';
                 const shipmentDate = normalizeToDMY(shipmentDateRaw);
 
-                // Si el shipment tiene fecha y NO coincide (tras normalizar) con hoy, saltarlo
                 if (shipmentDate && shipmentDate !== today) {
-                    return; // Continuar con el siguiente
+                    return;
                 }
                 
                 let address = shipment['address'] || 'Dirección no disponible';
@@ -600,20 +531,19 @@
                 deliveries.push({
                     id: shipment['id'] || null,
                     number: shipment['number'] || 'N/A',
-                    receiver_name: shipment['receiver_name'] || '',  // 🔥 NUEVO
+                    receiver_name: shipment['receiver_name'] || '',
                     address: address,
                     link_maps: linkMaps,
                     info: shipment['info'] || {},
                     lat: lat,
                     lng: lng,
                     distance: distance,
-                    pickup_date: shipmentDate, // Guardar fecha para referencia
+                    pickup_date: shipmentDate,
                     status: shipment['status'] || 'N/A'
                 });
             });
         }
         
-        // Ordenar por distancia
         deliveries.sort((a, b) => a.distance - b.distance);
         
         let listHTML = '<div style="font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto;">';
@@ -623,38 +553,60 @@
             listHTML += '<div class="alert alert-warning" style="padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; text-align: center;">⚠️ No se encontraron pedidos para entregar hoy</div>';
         } else {
             deliveries.forEach((delivery, index) => {
-                // Obtener los estados permitidos según el estado actual del delivery
                 const permittedStatuses = getPermittedStatuses(delivery.status, availableStatuses);
                 
-                // Generar opciones del select: incluir SIEMPRE el estado actual + los permitidos
                 let statusOptions = '';
-                
-                // Agregar el estado actual como opción (puede no estar en permitidos)
                 if (delivery.status) {
                     statusOptions += `<option value="${delivery.status}" selected>${delivery.status}</option>`;
                 }
-                
-                // Agregar los estados permitidos (si no son el estado actual)
                 if (permittedStatuses && permittedStatuses.length > 0) {
                     permittedStatuses.forEach(status => {
-                        // No duplicar el estado actual
                         if (status !== delivery.status) {
                             statusOptions += `<option value="${status}">${status}</option>`;
                         }
                     });
                 }
-                
+
+                // URL de tracking: mismo formato confirmado del dashboard
+                const trackingUrl = `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${delivery.number}`;
+
+                // Nombre del destinatario con fallback al número
+                const receiverDisplay = delivery.receiver_name
+                    ? delivery.receiver_name
+                    : `Pedido ${delivery.number}`;
+
                 listHTML += `
                     <div style="border: 2px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef;">
-                            <span style="font-weight: bold; font-size: 18px; color: #007bff;">
-                                ${index + 1}. Pedido: ${delivery.receiver_name || delivery.number}
-                            </span>
+                        
+                        <!-- ═══ HEADER: nombre + select estado ═══ -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; gap: 10px;">
+                            
+                            <!-- Nombre del destinatario + badge número de seguimiento -->
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <span style="font-weight: bold; font-size: 17px; color: #007bff;">
+                                    ${index + 1}. ${receiverDisplay}
+                                </span>
+                                <!-- NUEVO: Badge clickeable con número de seguimiento -->
+                                <a href="${trackingUrl}"
+                                   target="_blank"
+                                   title="Ver hoja de tracking en WPCargo"
+                                   style="display: inline-flex; align-items: center; gap: 5px;
+                                          background: #343a40; color: #ffffff;
+                                          padding: 4px 11px; border-radius: 20px;
+                                          font-size: 12px; font-weight: bold;
+                                          text-decoration: none; width: fit-content;">
+                                    🔍 ${delivery.number}
+                                </a>
+                            </div>
+
+                            <!-- Select de estado -->
                             <select onchange="updateDeliveryStatus(${delivery.id}, this.value)" 
-                               style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px;">
+                               style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px; flex-shrink: 0;">
                                 ${statusOptions}
                             </select>
                         </div>
+
+                        <!-- Dirección -->
                         <div style="font-size: 14px; color: #555; margin-bottom: 8px;">
                             <strong>📍 Dirección:</strong> ${delivery.address}
                         </div>

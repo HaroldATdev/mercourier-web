@@ -54,19 +54,6 @@ function wpcumanage_user_table_header_groups()
 }
 function wpcumanage_user_table_data_groups($user)
 {
-  // 	$groups_ids = wpcumanage_get_array_groups_ids( $user->ID );
-  // 	$groups = '';
-  // 	$counter = 0;
-  // 	if( !empty( $groups_ids ) ){
-  // 		foreach( $groups_ids as $group_id => $group_name ){
-  // 			$counter ++;
-  // 			$comma = '';
-  // 			if( count( $groups_ids ) > $counter ){
-  // 				$comma .= ', ';
-  // 			}
-  // 			$groups .= $group_name.$comma;
-  // 		}
-  // 	}
   $_user_id     = $user->ID;
   $_groups      = wpcumanage_get_all_user_group_id_and_label();
   $_user_groups = wpcumanage_get_all_user_groups($_user_id);
@@ -78,6 +65,39 @@ function wpcumanage_user_table_data_groups($user)
   }
   echo '<td class="wpcumanage-group">' . rtrim($_output, ', ') . '</td>';
 }
+
+// ── NUEVA: Columna Nombre Completo ────────────────────────────────────────
+function wpcumanage_user_table_header_fullname()
+{
+  echo "<th class='wpcumanage-fullname-header'>Nombre Completo</th>";
+}
+function wpcumanage_user_table_data_fullname($user)
+{
+  $nombre = '';
+
+  if ( in_array( 'wpcargo_client', $user->roles ) ) {
+    // Para clientes: intentar billing_first_name / billing_last_name primero
+    $first  = get_user_meta( $user->ID, 'billing_first_name', true );
+    $last   = get_user_meta( $user->ID, 'billing_last_name',  true );
+    $nombre = trim( $first . ' ' . $last );
+  }
+
+  // Fallback a first_name / last_name estándar de WordPress
+  if ( empty( $nombre ) ) {
+    $first  = get_user_meta( $user->ID, 'first_name', true );
+    $last   = get_user_meta( $user->ID, 'last_name',  true );
+    $nombre = trim( $first . ' ' . $last );
+  }
+
+  // Último fallback: display_name
+  if ( empty( $nombre ) ) {
+    $nombre = $user->display_name;
+  }
+
+  echo '<td class="wpcumanage-fullname">' . esc_html( $nombre ) . '</td>';
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 function wpcumanage_user_table_header_blocked()
 {
   echo "<th style='width:160px;' class='wpcumanage-blocked-header'>" . __('Bloqueado', 'wpcargo-umanagement') . "</th>";
@@ -106,7 +126,6 @@ function wpcumanage_user_table_data_blocked($user)
       $tipo_express_bloqueado = get_user_meta($client_id, 'merc_tipo_express_bloqueado', true);
       $tipo_full_fitment_bloqueado = get_user_meta($client_id, 'merc_tipo_full_fitment_bloqueado', true);
       
-      // Si al menos uno está bloqueado, considerar como bloqueado
       if ($tipo_normal_bloqueado == '1' || $tipo_express_bloqueado == '1' || $tipo_full_fitment_bloqueado == '1') {
         error_log("   ✓ Al menos un tipo de envío está bloqueado (bloqueo automático)");
         $esta_bloqueado = true;
@@ -120,37 +139,27 @@ function wpcumanage_user_table_data_blocked($user)
       error_log("   📊 Bloqueo automático por envíos pendientes: " . ($esta_bloqueado ? "BLOQUEADO" : "NO BLOQUEADO"));
     }
     
-    // 4. Verificar bloqueo automático por horario (es tarde)
-    // Revisar si el usuario está bloqueado para cualquiera de los tipos de envío por hora
+    // 4. Verificar bloqueo automático por horario
     if (!$esta_bloqueado) {
-      $bloqueado_por_hora_normal = false;
-      $bloqueado_por_hora_express = false;
-      $bloqueado_por_hora_full = false;
+      $bloqueado_por_hora_normal    = false;
+      $bloqueado_por_hora_express   = false;
+      $bloqueado_por_hora_full      = false;
       
       if (function_exists('merc_check_tipo_normal_blocked')) {
         $bloqueado_por_hora_normal = merc_check_tipo_normal_blocked($client_id);
-        if ($bloqueado_por_hora_normal) {
-          error_log("   ✓ BLOQUEADO: Es tarde para envíos NORMAL");
-        }
+        if ($bloqueado_por_hora_normal) error_log("   ✓ BLOQUEADO: Es tarde para envíos NORMAL");
       }
       if (function_exists('merc_check_tipo_express_blocked')) {
         $bloqueado_por_hora_express = merc_check_tipo_express_blocked($client_id);
-        if ($bloqueado_por_hora_express) {
-          error_log("   ✓ BLOQUEADO: Es tarde para envíos EXPRESS");
-        }
+        if ($bloqueado_por_hora_express) error_log("   ✓ BLOQUEADO: Es tarde para envíos EXPRESS");
       }
       if (function_exists('merc_check_tipo_full_fitment_blocked')) {
         $bloqueado_por_hora_full = merc_check_tipo_full_fitment_blocked($client_id);
-        if ($bloqueado_por_hora_full) {
-          error_log("   ✓ BLOQUEADO: Es tarde para envíos FULL FITMENT");
-        }
+        if ($bloqueado_por_hora_full) error_log("   ✓ BLOQUEADO: Es tarde para envíos FULL FITMENT");
       }
       
-      // Si está bloqueado para al menos UN tipo, se considera bloqueado
       $esta_bloqueado = $bloqueado_por_hora_normal || $bloqueado_por_hora_express || $bloqueado_por_hora_full;
-      if ($esta_bloqueado) {
-        error_log("   📊 Bloqueo automático por horario: BLOQUEADO");
-      }
+      if ($esta_bloqueado) error_log("   📊 Bloqueo automático por horario: BLOQUEADO");
     }
     
     error_log("   📊 Resultado final: " . ($esta_bloqueado ? "BLOQUEADO" : "NO BLOQUEADO"));
@@ -165,7 +174,6 @@ function wpcumanage_user_table_data_blocked($user)
       echo '<td class="wpcumanage-blocked"><button class="btn btn-sm btn-warning wpcum-block-user px-2 m-0 text-dark" data-id="' . $user->ID . '">' . __('Bloquear', 'wpcargo-umanagement') . '</button></td>';
     }
   } else {
-    // No mostrar botones de bloqueo para usuarios que no son clientes
     echo '<td class="wpcumanage-blocked"><span class="text-muted">-</span></td>';
   }
 }
@@ -253,21 +261,13 @@ function wpcumanage_save_account_user_group_callback($user_data, $data, $user_id
   do_action('um_after_save_user_data', $_user_id, $data);
 }
 
-// this hook will get the groups of a user and add it to user meta
-
 add_action('wp_head', function () {
   global $wpdb;
-  // get table name
   $table_name = $wpdb->prefix . WPCU_MANAGEMENT_DB_USER_GROUP;
-  // get user_group_id and users
   $results = $wpdb->get_results("SELECT `user_group_id`, `users` FROM " . $table_name);
-  // initialize array
   $user_groups = array();
-  // loop results
   foreach ($results as $key => $value) {
-    // unserialize user ids array
     $user_ids = is_serialized($value->users) ? maybe_unserialize($value->users) : array();
-    // regroup user data ( from groups => users to users => groups )
     if (!empty($user_ids)) {
       foreach ($user_ids as $user_id) {
         $groups = $value->user_group_id;
@@ -275,7 +275,6 @@ add_action('wp_head', function () {
       }
     }
   }
-  // update user meta
   foreach ($user_groups as $user_id => $groups) {
     if (!metadata_exists('user', $user_id, 'user_groups')) {
       update_user_meta($user_id, 'user_groups', maybe_serialize($groups));
@@ -334,21 +333,6 @@ function wpcumanage_user_group_add_modal_callback()
                 <textarea rows="4" name="wpcumanage_ug_desc" id="wpcumanage_ug_desc" class="form-control wpcumanage_ug_desc" value=""></textarea>
               </div>
             </div>
-            <!-- <div class="col-md-12">
-                <div class="form-group">
-                  <label for="wpcumanage_ug_users"><?php // echo wpcumanage_users_label(); 
-                                                    ?></label>
-                  <select id="wpcumanage_ug_users" type="text" class="form-control browser-default" name="wpcumanage_ug_users" multiple>
-                    <?php // foreach( wpcfe_get_clients() as $user_id => $user_name ):
-                    ?>
-                      <option value="<?php // echo $user_id;
-                                      ?>" ><?php // echo $user_name; 
-                                            ?></option>
-                    <?php // endforeach;
-                    ?>
-                  </select>
-                </div>
-              </div> -->
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal"><?php esc_html_e('Close', 'wpcargo-umanagement'); ?></button>
@@ -367,9 +351,6 @@ function wpcumanage_user_group_add_modal_callback()
 function wpcumanage_menu_items($prefer_frontend = false)
 {
   $items = array();
-  // If caller prefers frontend-derived items, capture HTML-injected anchors first
-  // so injected links appear at the top of the list. Do not overwrite these
-  // captured entries when merging other sources below.
   if ( $prefer_frontend ) {
     $actions_to_capture = array(
       'wpcfe_after_create_shipment',
@@ -404,7 +385,6 @@ function wpcumanage_menu_items($prefer_frontend = false)
       }
     }
   }
-  // 1) Prefer items added to the frontend sidebar by plugins/themes
   if (function_exists('wpcfe_after_sidebar_menu_items')) {
     $sidebar_items = wpcfe_after_sidebar_menu_items();
     if (!empty($sidebar_items) && is_array($sidebar_items)) {
@@ -418,7 +398,6 @@ function wpcumanage_menu_items($prefer_frontend = false)
     }
   }
 
-  // 2) Additional sidebar menus provided via wpcfe_after_sidebar_menus()
   if (function_exists('wpcfe_after_sidebar_menus')) {
     $more = wpcfe_after_sidebar_menus();
     if (!empty($more) && is_array($more)) {
@@ -432,7 +411,6 @@ function wpcumanage_menu_items($prefer_frontend = false)
     }
   }
 
-  // 3) Theme nav menu registered for the dashboard sidebar: 'wpcfe-dashboard-sidebar-menu'
   if (function_exists('wp_get_nav_menu_locations') && function_exists('wp_get_nav_menu_items')) {
     $locations = wp_get_nav_menu_locations();
     if (!empty($locations) && !empty($locations['wpcfe-dashboard-sidebar-menu'])) {
@@ -449,8 +427,6 @@ function wpcumanage_menu_items($prefer_frontend = false)
     }
   }
 
-  // 4) cached nav menu items (from previous admin-based cache) as secondary fallback
-  // Skip cached admin-derived labels when caller prefers frontend items.
   if ( ! $prefer_frontend ) {
     $cached = get_option('wpcumanage_menu_items_cache', array());
     if (!empty($cached) && is_array($cached)) {
@@ -460,15 +436,14 @@ function wpcumanage_menu_items($prefer_frontend = false)
     }
   }
 
-  // Final static fallback
   if (empty($items)) {
     $items = array(
-      'dashboard' => __('Dashboard', 'wpcargo-umanagement'),
-      'shipments' => __('Shipments', 'wpcargo-umanagement'),
+      'dashboard'  => __('Dashboard', 'wpcargo-umanagement'),
+      'shipments'  => __('Shipments', 'wpcargo-umanagement'),
       'containers' => __('Containers', 'wpcargo-umanagement'),
-      'reports' => __('Reports', 'wpcargo-umanagement'),
-      'invoices' => __('Invoices', 'wpcargo-umanagement'),
-      'settings' => __('Settings', 'wpcargo-umanagement')
+      'reports'    => __('Reports', 'wpcargo-umanagement'),
+      'invoices'   => __('Invoices', 'wpcargo-umanagement'),
+      'settings'   => __('Settings', 'wpcargo-umanagement')
     );
   }
   return apply_filters('wpcumanage_menu_items', $items);
@@ -491,12 +466,7 @@ function wpcumanage_cache_admin_menu_items()
   }
   if (!empty($items)) update_option('wpcumanage_menu_items_cache', $items);
 }
-// Deprecated: do not cache WP-Admin menu items (they leak into user UI).
-// Previously this ran on admin_init and populated admin menu labels into
-// `wpcumanage_menu_items_cache`. Keep the function for legacy use but do
-// not hook it so admin menu items are not used as frontend sidebar options.
-// add_action('admin_init', 'wpcumanage_cache_admin_menu_items', 100);
-// Attempt to cache frontend nav menu items (theme menus) so list-group can reflect frontend sidebar menus
+
 function wpcumanage_cache_frontend_nav_menus()
 {
   if (!is_admin()) return;
@@ -512,7 +482,6 @@ function wpcumanage_cache_frontend_nav_menus()
       $title = trim(strip_tags($mi->title));
       if (empty($title)) continue;
       $slug = sanitize_title($title);
-      // avoid duplicates
       if (!isset($items[$slug])) $items[$slug] = $title;
     }
   }
@@ -527,7 +496,6 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
 {
   static $wpcumanage_menu_ui_rendered = false;
   if ( $wpcumanage_menu_ui_rendered ) return;
-  // Accept either a user ID, a WP_User/object with ->ID, or fallback to URL param when editing
   $user_id = 0;
   if (is_object($_user_id) && isset($_user_id->ID)) {
     $user_id = intval($_user_id->ID);
@@ -538,13 +506,9 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
   } elseif (!empty($_GET['uid'])) {
     $user_id = intval($_GET['uid']);
   }
-  // Prefer frontend-derived items for the user form to avoid showing cached
-  // admin-menu labels that may have been stored previously.
   $menu_items = wpcumanage_menu_items(true);
-  // debug logs removed
   $saved = $user_id ? get_user_meta($user_id, 'wpcumanage_menu_access', true) : array();
   $saved = is_array($saved) ? $saved : array();
-  // mark rendered to avoid duplicate tables when multiple hooks fire
   $wpcumanage_menu_ui_rendered = true;
   ?>
   <div class="row mb-4 wpcumanage-menu-access">
@@ -592,14 +556,12 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
   </div>
   <script>
     (function($){
-      // mostrar/ocultar sección según roles seleccionados (robusto: change, select2 y polling corto)
       var selector = 'select[name="_roles[]"]';
       var $roles = $(selector);
 
       function hasEmployeeRole(vals){
         if(!vals) return false;
         if($.isArray(vals)) return vals.indexOf('wpcargo_employee') !== -1;
-        // sometimes select2 returns comma string
         if(typeof vals === 'string') return vals.split(',').indexOf('wpcargo_employee') !== -1;
         return false;
       }
@@ -614,12 +576,10 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
         }
       }
 
-      // Remove duplicated checkboxes if present (some themes/plugins may inject extra inputs)
       function removeDuplicateCheckboxes(){
         $('.wpcumanage-list .list-group-item').each(function(){
           var $inputs = $(this).find('input[type="checkbox"]');
           if($inputs.length > 1){
-            // prefer keeping the first VISIBLE input; otherwise keep the first
             var keepIndex = 0;
             $inputs.each(function(i){
               var $el = $(this);
@@ -631,7 +591,6 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
         });
       }
 
-      // Use a MutationObserver to catch later injections and remove duplicates robustly
       function observeDuplicateCheckboxes(){
         var target = document.querySelector('.wpcumanage-list');
         if(!target || typeof MutationObserver === 'undefined') return;
@@ -644,9 +603,7 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
       }
 
       function bindEvents(){
-        // direct change
         $(document).off('change.wpcumanage', selector).on('change.wpcumanage', selector, toggleMenuAccess);
-        // select2 events
         $(document).off('select2:select.wpcumanage select2:unselect.wpcumanage').on('select2:select.wpcumanage select2:unselect.wpcumanage', selector, toggleMenuAccess);
       }
 
@@ -656,7 +613,6 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
         removeDuplicateCheckboxes();
         observeDuplicateCheckboxes();
         bindEvents();
-        // Some themes/plugins initialize select2 after page load; poll shortly to detect changes
         var tries = 0; var maxTries = 10;
         var poll = setInterval(function(){
           tries++;
@@ -672,9 +628,6 @@ function wpcumanage_user_menu_permissions_ui($_user_id = 0)
   <?php
 }
 add_action('wpcumanage_user_form_end', 'wpcumanage_user_menu_permissions_ui', 15);
-// Also hook into other user-form related hooks so the UI appears on the
-// plugin's edit page (e.g. ?umpage=edit&uid=...). Using after/middle hooks
-// increases compatibility with different form render flows.
 add_action('wpcumanage_after_user_form', 'wpcumanage_user_menu_permissions_ui', 15);
 add_action('wpcumanage_user_form_middle', 'wpcumanage_user_menu_permissions_ui', 15);
 
@@ -684,15 +637,12 @@ add_action('wpcumanage_user_form_middle', 'wpcumanage_user_menu_permissions_ui',
 function wpcumanage_save_menu_permissions($user_id, $data)
 {
   if (empty($user_id)) return;
-  // Save explicit selection when provided
   if (isset($data['_menu_access']) && is_array($data['_menu_access'])) {
     $menu = array_map('sanitize_text_field', $data['_menu_access']);
     update_user_meta($user_id, 'wpcumanage_menu_access', $menu);
     return;
   }
 
-  // If roles were submitted with the form, respect them (useful when role is
-  // assigned during the same request). _roles may be array or comma string.
   $roles_from_data = array();
   if (!empty($data) && isset($data['_roles'])) {
     if (is_array($data['_roles'])) {
@@ -701,14 +651,12 @@ function wpcumanage_save_menu_permissions($user_id, $data)
       $roles_from_data = array_map('trim', explode(',', (string) $data['_roles']));
     }
   }
-  // If form indicates this user is an employee, grant default frontend access
   if (in_array('wpcargo_employee', $roles_from_data)) {
     $all = array_keys(wpcumanage_menu_items(true));
     update_user_meta($user_id, 'wpcumanage_menu_access', $all);
     return;
   }
 
-  // Fallback: if user already has the role on the account, grant defaults
   $user = get_userdata($user_id);
   $roles = $user ? (array) $user->roles : array();
   if (in_array('wpcargo_employee', $roles)) {
@@ -717,7 +665,6 @@ function wpcumanage_save_menu_permissions($user_id, $data)
     return;
   }
 
-  // Otherwise remove meta if none selected
   delete_user_meta($user_id, 'wpcumanage_menu_access');
 }
 add_action('um_after_save_user_data', 'wpcumanage_save_menu_permissions', 10, 2);
@@ -729,13 +676,12 @@ function wpcumanage_apply_menu_permissions()
 {
   if (!is_user_logged_in()) return;
   $current = wp_get_current_user();
-  if (in_array('administrator', $current->roles)) return; // admins see all
+  if (in_array('administrator', $current->roles)) return;
   $access = get_user_meta($current->ID, 'wpcumanage_menu_access', true);
   if (empty($access) || !is_array($access)) return;
   global $menu;
   if (empty($menu) || !is_array($menu)) return;
   $labels = array_map('strval', wpcumanage_menu_items());
-  // invert to quick lookup: label => slug
   $label_map = array();
   foreach ($labels as $slug => $label) {
     $label_map[trim(strip_tags($label))] = $slug;
@@ -752,6 +698,7 @@ function wpcumanage_apply_menu_permissions()
   }
 }
 add_action('admin_menu', 'wpcumanage_apply_menu_permissions', 999);
+
 function wpcumanage_user_group_update_modal_callback()
 {
 ?>
@@ -802,7 +749,6 @@ function wpcumanage_edit_user_update_group_callback($user_id, $old_user_data, $u
 
 /**
  * DEPRECATED: Desbloqueo manual ahora se maneja en scripts.js
- * La función anterior fue reemplazada por un manejador mejorado con selector de minutos
  */
 function wpcumanage_unblock_modal_callback()
 {
@@ -821,7 +767,6 @@ function wpcumanage_user_form_middle_username($user_data, $is_update)
 <?php
 }
 
-//FM My profile Integration
 function wpcum_update_user_email($user_id)
 {
   $email = wp_get_current_user()->user_email ?: '';
@@ -851,38 +796,60 @@ add_action('plugins_loaded', 'wpcumanage_load_textdomain');
 add_action('wp_loaded', 'wpcumanage_create_default_pages');
 // Add plugin action links
 add_filter('plugin_action_links_' . WPCU_MANAGEMENT_BASENAME, 'wpcumanage_row_action_callback', 10);
+
 function wpcumanage_plugins_loaded_callback()
 {
   // FM Scripts
   add_filter('wpcfe_registered_styles', 'wpcumanage_registered_styles');
   add_filter('wpcfe_registered_scripts', 'wpcumanage_registered_scripts');
-  // User Table Hooks
-  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_user_id');
-  add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_user_id');
-  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_usuario');
-  add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_usuario');
-  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_email');
-  add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_email');
-  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_roles');
-  add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_roles');
-  // add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_groups');
-  // add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_groups');
-  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_blocked');
-  add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_blocked');
-  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_status');
-  add_action('wpcumanage_user_table_data', 'wpcumanage_user_table_data_status');
+
+  // ── User Table Hooks ──────────────────────────────────────────────────────
+  // Orden de columnas:
+  // 1. User ID
+  // 2. Usuario (con avatar)
+  // 3. Nombre Completo   ← NUEVA
+  // 4. Email
+  // 5. Roles
+  // 6. Bloqueado
+  // 7. Status
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_user_id',   10);
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_user_id',     10);
+
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_usuario',   20);
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_usuario',     20);
+
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_fullname',  30); // ← NUEVA
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_fullname',    30); // ← NUEVA
+
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_email',     40);
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_email',       40);
+
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_roles',     50);
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_roles',       50);
+
+  // add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_groups',  60);
+  // add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_groups',    60);
+
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_blocked',   70);
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_blocked',     70);
+
+  add_action('wpcumanage_user_table_header', 'wpcumanage_user_table_header_status',    80);
+  add_action('wpcumanage_user_table_data',   'wpcumanage_user_table_data_status',      80);
+  // ─────────────────────────────────────────────────────────────────────────
+
   add_action('wpcumanage_before_user_table', 'wpcumanage_user_saved_callback');
   add_action('wpcumanage_before_user_form', 'wpcumanage_user_saved_callback');
   add_action('wpcumanage_after_user_table_pagination', 'wpcumanage_unblock_modal_callback');
+
   // User Groups
   add_action('wpcumanage_user_group_before_form', 'wpcumanage_user_group_narivation_callback');
   add_action('wpcumanage_user_group_after_form', 'wpcumanage_user_group_add_modal_callback');
   add_action('wpcumanage_user_group_after_form', 'wpcumanage_user_group_update_modal_callback');
   add_action('wpcumanage_after_save_user', 'wpcumanage_save_account_user_group_callback', 10, 2);
-  //#Added fields
+
+  // Additional fields
   add_action('wpcumanage_user_form_middle', 'wpcumanage_user_form_middle_username', 10, 2);
   add_action('wpcfe_after_personal_details', 'wpcum_update_user_email', 10, 2);
-  // do_action( 'wpcfe_after_save_profile', $user_id );
   add_action('wpcfe_after_save_profile', 'wpcfe_after_save_profile_email', 10, 2);
 
   // wp-admin edit user
@@ -890,23 +857,18 @@ function wpcumanage_plugins_loaded_callback()
   add_action('edit_user_profile', 'wpcumanage_edit_user_users_group_callback');
   add_action('profile_update', 'wpcumanage_edit_user_update_group_callback', 10, 3);
 
-  //Um Roles
+  // Um Roles
   add_action('wpcargo_after_assign_email', 'wpcum_select_user_roles', 99);
-  // Modfied Fields
+
+  // Modified Fields
   add_action("wpcfe_billing_address_fields", "wpcfe_billing_address_fields_cb_additional", 10, 1);
 }
 add_action('plugins_loaded', 'wpcumanage_plugins_loaded_callback');
 
-/**
- * Show menu-permissions UI on WP-Admin user screens and add modal flow
- * - print inline UI on `user_new_form`
- * - inject modal + JS in admin footer for new/edit so admin can pick permissions
- */
 add_action('user_new_form', 'wpcumanage_user_menu_permissions_ui', 15);
 
 function wpcumanage_admin_user_permissions_modal()
 {
-  // only for administrators in admin area
   if (!is_admin()) return;
   if (!current_user_can('administrator')) return;
   $items = wpcumanage_menu_items(true);
@@ -934,7 +896,6 @@ function wpcumanage_admin_user_permissions_modal()
         var $panel = $('#wpcumanage-permissions-inline');
         if(!$panel.length) return;
         if(target && target.length){
-          // insert after target if not already in DOM there
           if($panel.parent().length && !$panel.parent().is(target.parent())){
             $panel.detach();
             target.after($panel);
@@ -943,12 +904,10 @@ function wpcumanage_admin_user_permissions_modal()
           }
         }
         $panel.show();
-        // scroll into view
         try{ $panel[0].scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
       }
       function hideInline(){ $('#wpcumanage-permissions-inline').hide(); }
 
-      // Open inline panel when selecting Administrator in role select
       $(document).on('change', 'select[name="role"]', function(){
         try{
           var $sel = $(this);
@@ -965,7 +924,6 @@ function wpcumanage_admin_user_permissions_modal()
         }catch(err){ console && console.warn && console.warn('wpcumanage inline change error', err); }
       });
 
-      // Intercept submit for employee role: show inline panel and then submit when saved
       $(document).on('submit', 'form#your-profile, form#createuser, form#your-profile', function(e){
         try{
           var $form = $(this);
@@ -986,7 +944,6 @@ function wpcumanage_admin_user_permissions_modal()
           if($form.find('input[name="_menu_access[]"]').length) return true;
 
           e.preventDefault();
-          // show inline panel inside the form (after role control if exists)
           if($roleSelect.length) showInline($roleSelect.closest('p, .form-field, .form-table'));
           else showInline($form.find(':input').last());
 
@@ -998,7 +955,6 @@ function wpcumanage_admin_user_permissions_modal()
               var inpt = $('<input>').attr('type','hidden').attr('name','_menu_access[]').val(vals[i]);
               $form.append(inpt);
             }
-            // mark and submit natively
             $form.data('wpcumanage-inline-submitted', true);
             if($form.length && $form[0] && typeof $form[0].submit === 'function'){
               $form[0].submit();
@@ -1012,6 +968,7 @@ function wpcumanage_admin_user_permissions_modal()
   </script>
   <?php
 }
+
 function wpcumanage_user_table_header_usuario()
 {
     echo "<th class='wpcumanage-usuario-header'>Usuario</th>";
@@ -1027,15 +984,13 @@ function wpcumanage_user_table_data_usuario($user)
             $first = get_user_meta( $user->ID, 'billing_first_name', true );
             $last  = get_user_meta( $user->ID, 'billing_last_name', true );
             $nombre = trim( $first . ' ' . $last );
-            
-            // Si billing está vacío, intentar con first_name/last_name normales
+
             if ( empty( $nombre ) ) {
                 $first = get_user_meta( $user->ID, 'first_name', true );
                 $last  = get_user_meta( $user->ID, 'last_name', true );
                 $nombre = trim( $first . ' ' . $last );
             }
-            
-            // Si sigue vacío, usar user_login (nunca display_name que puede ser el correo)
+
             if ( empty( $nombre ) ) {
                 $nombre = $user->user_login;
             }
@@ -1044,14 +999,13 @@ function wpcumanage_user_table_data_usuario($user)
         $first = get_user_meta( $user->ID, 'first_name', true );
         $last  = get_user_meta( $user->ID, 'last_name', true );
         $nombre = trim( $first . ' ' . $last );
-        
+
         if ( empty( $nombre ) ) {
             $nombre = $user->user_login;
         }
     }
     echo '<td class="wpcumanage-usuario">' . get_avatar($user->user_email, 32) . ' ' . esc_html($nombre) . '</td>';
 }
+
 add_action('admin_footer-user-new.php', 'wpcumanage_admin_user_permissions_modal');
 add_action('admin_footer-user-edit.php', 'wpcumanage_admin_user_permissions_modal');
-
-

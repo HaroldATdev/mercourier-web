@@ -886,7 +886,7 @@ function wpcfe_woocommerce_thankyou( $order_id ){
 }
 add_action( 'wp_head', 'wpcfe_user_sort' );
 function wpcfe_user_sort(){
-	$wpcfesort_list = array( 10, 25, 50, 100 );
+    $wpcfesort_list = array( 100, 200, 250, 350, 500 );
 	if( isset( $_GET['wpcfesort'] ) && in_array( $_GET['wpcfesort'], $wpcfesort_list ) ){
 		update_user_meta( get_current_user_id(), 'user_wpcfesort', $_GET['wpcfesort'] );
 	}

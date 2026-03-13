@@ -20,6 +20,8 @@
                     
                     $container_recojo_value = get_post_meta($shipment_id, 'shipment_container_recojo', true);
                     $container_entrega_value = get_post_meta($shipment_id, 'shipment_container_entrega', true);
+
+                    // DEBUG removido: valores detallados del main loop (se eliminó para reducir ruido en los logs)
                     
                     // Skip if we couldn't determine a date or it's not today
                     if ($date === false || $date !== $today) {
@@ -28,11 +30,11 @@
                     
                     // Verificar si THIS container (el actual) tiene este envío
                     // En recojo
-                    if (!empty($container_recojo_value) && $container_recojo_value == $container_id) {
+                    if ( ! empty( $container_recojo_value ) && $container_recojo_value == $container_id ) {
                         $shipments_recojo[] = $shipment_id;
-                    } 
-                    // En entrega
-                    elseif (!empty($container_entrega_value) && $container_entrega_value == $container_id) {
+                    }
+                    // En entrega (comprobación independiente: un envío puede estar en ambos)
+                    if ( ! empty( $container_entrega_value ) && $container_entrega_value == $container_id ) {
                         $shipments_entrega[] = $shipment_id;
                     }
                 }
@@ -478,6 +480,11 @@
                                         $motorizado_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
                                         $tiene_motorizado = !empty($motorizado_entrega) && $motorizado_entrega !== '0';
                                         $row_class = $tiene_motorizado ? 'shipment-assigned' : 'shipment-unassigned';
+                                        // Debug: escribir en log información relevante de entrega (solo PHP log)
+                                        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                                            $container_entrega_meta = get_post_meta( $shipment_id, 'shipment_container_entrega', true );
+                                            error_log( 'DEBUG ENTREGA - Shipment #' . $shipment_id . ': distrito=' . var_export( $distrito, true ) . ' | motorizado_entrega=' . var_export( $motorizado_entrega, true ) . ' | container_entrega=' . var_export( $container_entrega_meta, true ) . ' | status=' . var_export( $status, true ) );
+                                        }
                                     ?>
                                     <tr id="shipment-<?php echo $shipment_id; ?>" data-shipment="<?php echo $shipment_id; ?>" class="selected-shipment p-1 <?php echo $row_class; ?>" data-courier="entrega">
                                         <td class="form-check">

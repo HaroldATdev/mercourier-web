@@ -53,8 +53,8 @@ function wpcsc_dashboard_filters_callback(){
     $date_end       = isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end;
     $sstatus        = isset( $_GET['status'] ) ? trim($_GET['status']) : '';
     $searched       = isset( $_GET['num'] ) ? trim($_GET['num']) : '';
-    $wpcsc_list     = array( 10, 25, 50, 100 );
-    $wpcsc_page     = $user_wpcfesort ? $user_wpcfesort : 25 ;
+    $wpcsc_list     = array( 100, 200, 250, 350, 500 );
+    $wpcsc_page     = $user_wpcfesort ? $user_wpcfesort : 100 ;
     require_once( wpcsc_include_template('container-filters.tpl') );
 }
 add_action('wpcfe_before_dashboard_page', 'wpcsc_dashboard_filters_callback' );
@@ -197,14 +197,73 @@ function wpcsc_container_list_data( $container_id ){
             
             if( $key == 'shipments' ){
                 $shipment_count = wpc_shipment_container_get_assigned_shipment_count($container_id);
-                
-                // Nuevo texto personalizado
-                if ($shipment_count > 0) {
+
+                // Contar usuarios únicos de recojo y envíos de entrega sin motorizado (pendientes) para este contenedor (hoy)
+                $today = current_time('Y-m-d');
+
+                // Usuarios de recojo únicos
+                $recojo_posts = get_posts(array(
+                    'post_type' => 'wpcargo_shipment',
+                    'posts_per_page' => -1,
+                    'fields' => 'ids',
+                    'meta_key' => 'shipment_container_recojo',
+                    'meta_value' => $container_id,
+                    'post_status' => 'publish',
+                ));
+                $unique_recojo_users = array();
+                if (!empty($recojo_posts)) {
+                    foreach ($recojo_posts as $sp_id) {
+                        if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) !== $today ) {
+                            continue;
+                        }
+                        $client_id = get_post_meta($sp_id, 'registered_shipper', true);
+                        if (!empty($client_id)) {
+                            $unique_recojo_users[$client_id] = true;
+                        }
+                    }
+                }
+                $recojo_users_count = count($unique_recojo_users);
+
+                // Envíos de entrega pendientes (sin motorizado asignado)
+                $entrega_posts = get_posts(array(
+                    'post_type' => 'wpcargo_shipment',
+                    'posts_per_page' => -1,
+                    'fields' => 'ids',
+                    'meta_key' => 'shipment_container_entrega',
+                    'meta_value' => $container_id,
+                    'post_status' => 'publish',
+                ));
+                $entrega_pending_count = 0;
+                if (!empty($entrega_posts)) {
+                    foreach ($entrega_posts as $sp_id) {
+                        if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) !== $today ) {
+                            continue;
+                        }
+                        $mot_entrega = get_post_meta($sp_id, 'wpcargo_motorizo_entrega', true);
+                        if ( empty($mot_entrega) || $mot_entrega === '0' ) {
+                            $entrega_pending_count++;
+                        }
+                    }
+                }
+
+                // Construir etiqueta más específica
+                $parts = array();
+                if ($recojo_users_count > 0) {
+                    $parts[] = $recojo_users_count . ' usuari' . ($recojo_users_count > 1 ? 'os' : 'o') . ' recojo';
+                }
+                if ($entrega_pending_count > 0) {
+                    $parts[] = $entrega_pending_count . ' envío' . ($entrega_pending_count > 1 ? 's' : '') . ' entrega sin asignar';
+                }
+
+                if (!empty($parts)) {
+                    $shipment_count_label = implode(' • ', $parts);
+                } elseif ($shipment_count > 0) {
+                    // Fallback genérico si existen envíos pero no encajan en los contadores anteriores
                     $shipment_count_label = $shipment_count . ' envío' . ($shipment_count > 1 ? 's' : '') . ' pendiente' . ($shipment_count > 1 ? 's' : '') . ' de asignación';
                 } else {
                     $shipment_count_label = 'Sin envíos';
                 }
-                
+
                 $_value = $shipment_count 
                 ? '<span class="text-info openAssShipmentModal" data-id="'.$container_id.'"><i class="fa fa-list"></i> '.$shipment_count_label.'</span>' 
                 : '';
@@ -653,7 +712,7 @@ function wpc_shipment_container_load_textdomain() {
 	load_plugin_textdomain( 'wpcargo-shipment-container', false, '/wpcargo-shipment-container-add-ons/languages' );
 }
 function wpc_shipment_container_user_sort(){
-	$wpcfesort_list = array( 10, 25, 50, 100 );
+    $wpcfesort_list = array( 100, 200, 250, 350, 500 );
 	if( isset( $_GET['wpcsc_page'] ) && in_array( $_GET['wpcsc_page'], $wpcfesort_list ) ){
 		update_user_meta( get_current_user_id(), 'user_wpcfesort', $_GET['wpcsc_page'] );
 	}
