@@ -18,6 +18,26 @@ if (!file_exists($merc_log_dir)) {
 $today_log = $merc_log_dir . '/merc-debug-' . date('Y-m-d') . '.log';
 @ini_set('error_log', $today_log);
 
+// ── Restringir acceso al admin de WordPress solo a un correo ──────────────
+add_action( 'init', function() {
+    // Solo aplicar en el área de administración
+    if ( ! is_admin() ) return;
+
+    // Permitir peticiones AJAX (para que el frontend siga funcionando)
+    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) return;
+
+    // Si no está logueado, WordPress lo redirige al login solo — no hacer nada
+    if ( ! is_user_logged_in() ) return;
+
+    $current_user = wp_get_current_user();
+    $correo_permitido = 'davidmorilloacuna@gmail.com';
+
+    if ( $current_user->user_email !== $correo_permitido ) {
+        wp_redirect( home_url( '/dashboard/' ) ); // redirige al frontend de WPCargo
+        exit;
+    }
+});
+
 // Disparar acción pública cuando se crea una penalidad (para que otros módulos la integren)
 do_action('merc_penalty_module_loaded');
 
@@ -4195,17 +4215,18 @@ function merc_motorizado_entregas( $driver_id ) {
     $start = date('Y-m-d 00:00:00', $now);
     $end   = date('Y-m-d 23:59:59', $now);
 
+    // Mostrar solo envíos donde este usuario está asignado COMO motorizado de ENTREGA
     $shipments = $wpdb->get_results( $wpdb->prepare( "
         SELECT p.ID, p.post_title,
                pm_estado_motorizado.meta_value as estado_motorizado,
                pm_destino.meta_value as destino
         FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm_driver ON p.ID = pm_driver.post_id AND pm_driver.meta_key = 'wpcargo_driver'
+        LEFT JOIN {$wpdb->postmeta} pm_me ON p.ID = pm_me.post_id AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
         LEFT JOIN {$wpdb->postmeta} pm_estado_motorizado ON p.ID = pm_estado_motorizado.post_id AND pm_estado_motorizado.meta_key = 'wpcargo_estado_pago_motorizado'
         LEFT JOIN {$wpdb->postmeta} pm_destino ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
-        AND pm_driver.meta_value = %s
+        AND pm_me.meta_value = %s
         AND p.post_date BETWEEN %s AND %s
         ORDER BY p.post_date DESC
         LIMIT 50
@@ -7611,31 +7632,28 @@ function merc_persistent_panel_navigation() {
 function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_motorizado ) {
     global $wpdb;
     $date_query   = merc_get_date_range_query( $fecha_inicio, $fecha_fin );
-    $driver_query = $filtro_motorizado > 0 ? $wpdb->prepare( 'AND pm_driver.meta_value = %s', $filtro_motorizado ) : '';
+    $driver_query = $filtro_motorizado > 0 ? $wpdb->prepare( 'AND pm_entrega.meta_value = %s', $filtro_motorizado ) : '';
 
-    // Buscar motorizados tanto en 'wpcargo_driver' como en 'wpcargo_motorizo_recojo'
+    // Buscar motorizados que tengan envíos como 'wpcargo_motorizo_entrega' (solo entregas)
     $drivers_sql = "
-        SELECT COALESCE(pm_driver.meta_value, pm_driver_alt.meta_value) AS driver_id,
+        SELECT pm_entrega.meta_value AS driver_id,
                COUNT(DISTINCT p.ID) AS total_entregas
         FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm_driver 
-            ON p.ID = pm_driver.post_id 
-            AND pm_driver.meta_key = 'wpcargo_driver'
-        LEFT JOIN {$wpdb->postmeta} pm_driver_alt 
-            ON p.ID = pm_driver_alt.post_id 
-            AND pm_driver_alt.meta_key = 'wpcargo_motorizo_recojo'
+        LEFT JOIN {$wpdb->postmeta} pm_entrega
+            ON p.ID = pm_entrega.post_id
+            AND pm_entrega.meta_key = 'wpcargo_motorizo_entrega'
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
-        AND (pm_driver.meta_value IS NOT NULL OR pm_driver_alt.meta_value IS NOT NULL)
+        AND pm_entrega.meta_value IS NOT NULL
         $date_query
         $driver_query
-        GROUP BY COALESCE(pm_driver.meta_value, pm_driver_alt.meta_value)
+        GROUP BY pm_entrega.meta_value
         ORDER BY total_entregas DESC
     ";
 
     error_log('🔍 [MERC_ADMIN_CARDS] drivers_sql: ' . preg_replace('/\s+/', ' ', trim($drivers_sql)) );
 
-    // DEBUG: obtener hasta 10 envíos que coincidan con el date_query para inspeccionar metas de driver
+    // DEBUG: obtener hasta 10 envíos que coincidan con el date_query para inspeccionar metas de entrega
     $sample_sql = "SELECT p.ID FROM {$wpdb->posts} p WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' $date_query LIMIT 10";
     $sample_ids = $wpdb->get_col( $sample_sql );
     error_log('🔍 [MERC_ADMIN_CARDS] sample_ids_count: ' . count($sample_ids));
@@ -7663,25 +7681,21 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
             continue;
         }
 
-        // Traer envíos del motorizado (solo usamos fecha + motorizado)
+        // Traer envíos del motorizado (solo envíos donde fue motorizado de entrega)
         // Evitar usar prepare() aquí porque $date_query puede contener patrones '%' (STR_TO_DATE).
-        // Buscar envíos donde cualquiera de los dos meta keys coincida con el motorizado.
         $driver_id_sql = esc_sql( intval( $driver->driver_id ) );
         $sql = "SELECT p.ID,
                    pm_estado_motorizado.meta_value AS estado
             FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm_driver 
-                ON p.ID = pm_driver.post_id 
-                AND pm_driver.meta_key = 'wpcargo_driver'
-            LEFT JOIN {$wpdb->postmeta} pm_driver_alt 
-                ON p.ID = pm_driver_alt.post_id 
-                AND pm_driver_alt.meta_key = 'wpcargo_motorizo_recojo'
+            LEFT JOIN {$wpdb->postmeta} pm_entrega
+                ON p.ID = pm_entrega.post_id
+                AND pm_entrega.meta_key = 'wpcargo_motorizo_entrega'
             LEFT JOIN {$wpdb->postmeta} pm_estado_motorizado 
                 ON p.ID = pm_estado_motorizado.post_id 
                 AND pm_estado_motorizado.meta_key = 'wpcargo_estado_pago_motorizado'
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
-            AND (pm_driver.meta_value = '" . $driver_id_sql . "' OR pm_driver_alt.meta_value = '" . $driver_id_sql . "')
+            AND pm_entrega.meta_value = '" . $driver_id_sql . "'
             $date_query";
 
         $shipments = $wpdb->get_results( $sql );
@@ -7798,6 +7812,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         <thead>
                             <tr>
                                 <th>Pedido</th>
+								<th>Estado</th>
                                 <th>Pago a Motorizado</th>
                                 <th>Pago a MERC</th>
                                 <th>Pago a MARCA</th>
@@ -7824,8 +7839,24 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                                 $subtotal_pos      += $totales_entrega['pos'];
                                 $subtotal_total    += $totales_entrega['total'];
                                 ?>
-                                <tr>
-                                    <td>#<?php echo esc_html( get_the_title( $entrega->ID ) ); ?></td>
+                                <?php
+								$tracking_num = get_the_title( $entrega->ID );
+								$tracking_url = home_url( '/dashboard/?wpcfe=track&num=' . $tracking_num );
+								$estado_envio = get_post_meta( $entrega->ID, 'wpcargo_status', true ) ?: '—';
+								?>
+								<tr>
+									<td>
+										<a href="<?php echo esc_url( $tracking_url ); ?>" target="_blank"
+										   style="font-weight:bold;color:#2980b9;text-decoration:underline;">
+											#<?php echo esc_html( $tracking_num ); ?>
+										</a>
+									</td>
+									<td>
+										<span style="display:inline-block;padding:2px 8px;border-radius:10px;
+													 font-size:11px;font-weight:600;background:#eef6fc;color:#075985;">
+											<?php echo esc_html( $estado_envio ); ?>
+										</span>
+									</td>
                                     <td>
                                         <strong>S/. <?php echo number_format( $totales_entrega['efectivo'], 2 ); ?></strong>
                                             <?php if ( $totales_entrega['efectivo'] > 0 && $is_admin && merc_shipment_method_has_image( $entrega->ID, 'efectivo' ) ) : ?>
@@ -7861,6 +7892,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         <tfoot>
                                 <tr>
                                     <td><strong>TOTAL:</strong></td>
+									<td></td>
                                     <td><strong>S/. <?php echo number_format( $subtotal_efectivo, 2 ); ?></strong></td>
                                     <td><strong>S/. <?php echo number_format( $subtotal_merc, 2 ); ?></strong></td>
                                     <td><strong>S/. <?php echo number_format( $subtotal_marca, 2 ); ?></strong></td>
@@ -8093,7 +8125,8 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                         <thead>
                             <tr>
                                 <th>Pedido</th>
-                                <th>Estado</th>
+                                <th>Estado Pago</th>
+								<th>Estado Envío</th>
                                 <th>Concepto</th>
                                 <th>Efectivo</th>
                                 <th>Pago a MERC</th>
@@ -8131,8 +8164,24 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                                 $subtotal_concepto  += $pendiente['monto_concepto'];
                                 ?>
                                 <tr>
-                                    <td>#<?php echo esc_html( $pendiente['titulo'] ); ?></td>
-                                    <td><strong style="color: <?php echo $color_estado; ?>;"><?php echo $estado_texto; ?></strong></td>
+                                    <?php
+									$tracking_num_cli = $pendiente['titulo'];
+									$tracking_url_cli = home_url( '/dashboard/?wpcfe=track&num=' . $tracking_num_cli );
+									$estado_envio_cli = get_post_meta( $pendiente['id'], 'wpcargo_status', true ) ?: '—';
+									?>
+									<td>
+										<a href="<?php echo esc_url( $tracking_url_cli ); ?>" target="_blank"
+										   style="font-weight:bold;color:#2980b9;text-decoration:underline;">
+											#<?php echo esc_html( $tracking_num_cli ); ?>
+										</a>
+									</td>
+									<td><strong style="color: <?php echo $color_estado; ?>;"><?php echo $estado_texto; ?></strong></td>
+									<td>
+										<span style="display:inline-block;padding:2px 8px;border-radius:10px;
+													 font-size:11px;font-weight:600;background:#eef6fc;color:#075985;">
+											<?php echo esc_html( $estado_envio_cli ); ?>
+										</span>
+									</td>
                                     <td><strong>S/. <?php echo number_format( $pendiente['monto_concepto'], 2 ); ?></strong></td>
                                     <td>
                                         S/. <?php echo number_format( $totales_pendiente['efectivo'], 2 ); ?>
@@ -8167,7 +8216,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="2"><strong>TOTAL:</strong></td>
+                                <td colspan="3"><strong>TOTAL:</strong></td>
                                 <td><strong>S/. <?php echo number_format( $subtotal_concepto, 2 ); ?></strong></td>
                                 <td><strong>S/. <?php echo number_format( $subtotal_efectivo, 2 ); ?></strong></td>
                                 <td><strong>S/. <?php echo number_format( $subtotal_merc, 2 ); ?></strong></td>
@@ -15454,48 +15503,3 @@ function merc_parse_date_for_migration( $date_str ) {
     
     return false;
 }
-// ── Filtro: Remitente (dropdown) ──────────────────────────────────────────
-add_action( 'wpcfe_after_shipment_filters', function() {
-    $selected = isset( $_GET['merc_remitente'] ) ? sanitize_text_field( $_GET['merc_remitente'] ) : '';
-
-    $shippers = get_users( array(
-        'role'    => 'wpcargo_client',
-        'orderby' => 'display_name',
-        'order'   => 'ASC',
-    ) );
-    ?>
-    <div id="merc-remitente-field" class="form-group wpcfe-filter merc-remitente-filter p-0 mx-1">
-        <div class="md-form form-group">
-            <select id="merc-remitente" name="merc_remitente" class="form-control form-control-sm wpcfe-select" style="width: 180px;">
-                <option value="">Marca por Nombre</option>
-                <?php foreach ( $shippers as $shipper ) :
-                    $first = get_user_meta( $shipper->ID, 'first_name', true );
-                    $last  = get_user_meta( $shipper->ID, 'last_name',  true );
-                    $label = trim( $first . ' ' . $last );
-
-                    // Si no tiene nombre/apellido cargado, usar display_name como fallback
-                    if ( empty( $label ) ) {
-                        $label = $shipper->display_name;
-                    }
-                ?>
-                    <option value="<?php echo esc_attr( $shipper->ID ); ?>"
-                        <?php selected( $selected, $shipper->ID ); ?>>
-                        <?php echo esc_html( $label ); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-    </div>
-    <?php
-}, 101 );
-
-add_filter( 'wpcfe_dashboard_arguments', function( $args ) {
-    if ( isset( $_GET['merc_remitente'] ) && $_GET['merc_remitente'] !== '' ) {
-        $args['meta_query']['merc_remitente'] = array(
-            'key'     => 'registered_shipper',
-            'value'   => sanitize_text_field( $_GET['merc_remitente'] ),
-            'compare' => '='
-        );
-    }
-    return $args;
-} );

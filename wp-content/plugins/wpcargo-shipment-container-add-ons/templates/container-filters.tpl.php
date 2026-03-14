@@ -69,9 +69,11 @@
 					FROM {$wpdb->posts} p
 					INNER JOIN {$wpdb->postmeta} pm_shipper ON pm_shipper.post_id = p.ID AND pm_shipper.meta_key = 'registered_shipper'
 					INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = 'shipment_container_recojo'
+					INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 					INNER JOIN {$wpdb->postmeta} pd ON pd.post_id = p.ID AND pd.meta_key = 'wpcargo_pickup_date_picker'
 					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
 					AND pm.meta_value != '' AND pm_shipper.meta_value != ''
+					AND pm_tipo.meta_value = 'normal'
 					AND (pd.meta_value = '{$today_peru}' OR pd.meta_value = '{$today_peru_alt}')
 				";
 				$puntos_recojo = $wpdb->get_var($recojo_query);
@@ -82,9 +84,11 @@
 					SELECT pm.meta_value, COUNT(*) as total, pd.meta_value as fecha
 					FROM {$wpdb->postmeta} pm
 					INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+					INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 					INNER JOIN {$wpdb->postmeta} pd ON pd.post_id = p.ID AND pd.meta_key = 'wpcargo_pickup_date_picker'
 					WHERE pm.meta_key = 'shipment_container_recojo'
 					AND p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' AND pm.meta_value != ''
+					AND pm_tipo.meta_value = 'normal'
 					AND (pd.meta_value = '{$today_peru}' OR pd.meta_value = '{$today_peru_alt}')
 					GROUP BY pm.meta_value, pd.meta_value
 				";
@@ -179,4 +183,5 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 

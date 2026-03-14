@@ -323,21 +323,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         <button type="submit" form="form-nuevo-producto" style="background: #3498db; color: white; box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3); padding: 10px 24px; font-size: 14px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Guardar Producto</button>
                     </div>
                 </div>
-            `;
+            `;-
             
             document.body.appendChild(modal);
             
-            // Cerrar modal
+            // Cerrar modal: removemos el nodo para limpiar estado
             document.querySelectorAll('.modal-close-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     modal.style.display = 'none';
+                    modal.remove();
                 });
             });
-            
-            // Cerrar al hacer click en el backdrop
+
+            // Cerrar al hacer click en el backdrop: remover nodo
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     modal.style.display = 'none';
+                    modal.remove();
                 }
             });
             
@@ -386,7 +388,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             text: 'Producto creado exitosamente',
                             confirmButtonColor: '#3498db'
                         }).then(() => {
+                            // Remover modal para garantizar formulario limpio al volver a abrir
                             modal.style.display = 'none';
+                            try { modal.remove(); } catch (err) { /* noop */ }
                             cargarProductos(); // Recargar tabla
                         });
                     } else {
@@ -970,6 +974,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 });
+
 
 
 

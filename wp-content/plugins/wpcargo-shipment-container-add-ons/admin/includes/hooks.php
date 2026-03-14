@@ -216,6 +216,11 @@ function wpcsc_container_list_data( $container_id ){
                         if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) !== $today ) {
                             continue;
                         }
+                        // Ignorar envíos donde ya hay un motorizado asignado para recojo
+                        $mot_recojo = get_post_meta($sp_id, 'wpcargo_motorizo_recojo', true);
+                        if ( !empty($mot_recojo) && $mot_recojo !== '0' ) {
+                            continue;
+                        }
                         $client_id = get_post_meta($sp_id, 'registered_shipper', true);
                         if (!empty($client_id)) {
                             $unique_recojo_users[$client_id] = true;
