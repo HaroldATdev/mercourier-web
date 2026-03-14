@@ -1043,3 +1043,58 @@ function wpcpod_update_pickup_status() {
 	) );
 }
 add_action( 'wp_ajax_wpcpod_update_pickup_status', 'wpcpod_update_pickup_status' );
+
+/*
+ * AJAX: Actualizar estado de MÚLTIPLES pickups a la vez (cambio masivo)
+ */
+function wpcpod_bulk_update_pickup_status() {
+    check_ajax_referer( 'wpcpod_nonce', 'nonce' );
+
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( array( 'message' => 'No estás autorizado' ) );
+    }
+
+    $shipment_ids = isset( $_POST['shipment_ids'] ) ? (array) $_POST['shipment_ids'] : array();
+    $new_status   = isset( $_POST['new_status'] )   ? sanitize_text_field( $_POST['new_status'] ) : '';
+
+    if ( empty( $shipment_ids ) || ! $new_status ) {
+        wp_send_json_error( array( 'message' => 'Datos inválidos' ) );
+    }
+
+    // Validar que el estado sea permitido
+    $allowed_statuses = wpcpod_get_all_possible_statuses();
+    if ( ! in_array( $new_status, $allowed_statuses ) ) {
+        wp_send_json_error( array( 'message' => 'Estado no permitido: ' . $new_status ) );
+    }
+
+    $updated = 0;
+    $errors  = 0;
+
+    foreach ( $shipment_ids as $raw_id ) {
+        $shipment_id = intval( $raw_id );
+        if ( ! $shipment_id ) {
+            $errors++;
+            continue;
+        }
+        // Seguridad: verificar que el post existe y es un shipment
+        $post = get_post( $shipment_id );
+        if ( ! $post || $post->post_type !== 'wpcargo_shipment' ) {
+            $errors++;
+            continue;
+        }
+        update_post_meta( $shipment_id, 'wpcargo_status', $new_status );
+        error_log( "✅ [BULK] Shipment {$shipment_id} → {$new_status}" );
+        $updated++;
+    }
+
+    wp_send_json_success( array(
+        'message'       => sprintf( '%d pedido(s) actualizados a "%s"%s',
+            $updated,
+            $new_status,
+            $errors > 0 ? " ($errors con error)" : ''
+        ),
+        'updated_count' => $updated,
+        'error_count'   => $errors
+    ) );
+}
+add_action( 'wp_ajax_wpcpod_bulk_update_pickup_status', 'wpcpod_bulk_update_pickup_status' );
