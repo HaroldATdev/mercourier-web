@@ -532,45 +532,50 @@ listHTML += `
                     const trackingUrl = `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${pickup.number}`;
 
                     listHTML += `
-                        <div style="border: 1px solid #bdc3c7; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #f8f9fa;">
+                        <div id="card-${pickup.id}" style="border: 1px solid #bdc3c7; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #f8f9fa; transition: border 0.2s, background 0.2s;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; gap: 8px;">
-            
-                                <!-- NUEVO: Checkbox de selección masiva -->
+
+                            <!-- Checkbox grande y clickeable sin scroll -->
+                            <label onclick="event.preventDefault(); const cb = this.querySelector('input'); cb.checked = !cb.checked; updateBulkCount('${shipperId}'); highlightCard(cb);"
+                                   style="display: flex; align-items: center; gap: 8px; cursor: pointer; 
+                                          padding: 6px 10px; background: #f0f4ff; border: 2px solid #aac4ee;
+                                          border-radius: 6px; flex-shrink: 0; user-select: none;"
+                                   title="Seleccionar para cambio masivo">
                                 <input type="checkbox" 
                                        class="pickup-bulk-checkbox"
                                        data-shipment-id="${pickup.id}"
                                        data-shipper-id="${shipperId}"
-                                       onchange="updateBulkCount('${shipperId}')"
-                                       style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; accent-color: #2c3e50;"
-                                       title="Seleccionar para cambio masivo">
+                                       data-card-id="card-${pickup.id}"
+                                       style="width: 20px; height: 20px; cursor: pointer; accent-color: #2c3e50;"
+                                       onclick="event.stopPropagation();">
+                                <span style="font-size: 12px; font-weight: 600; color: #2c3e50; white-space: nowrap;">Seleccionar</span>
+                            </label>
 
-                                <div style="display: flex; flex-direction: column; gap: 4px;">
-            
-                                    <span style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        N° de seguimiento
-                                    </span>
-                                    <!-- NUEVO: Badge clickeable con número de seguimiento -->
-                                    <a href="${trackingUrl}"
-                                       target="_blank"
-                                       title="Ver hoja de tracking en WPCargo"
-                                       style="display: inline-flex; align-items: center; gap: 6px;
-                                              background: #2c3e50; color: #ffffff;
-                                              padding: 5px 12px; border-radius: 20px;
-                                              font-size: 13px; font-weight: bold;
-                                              text-decoration: none; width: fit-content;
-                                              transition: background 0.2s;">
-                                        🔍 ${pickup.number}
-                                    </a>
-                                </div>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    N° de seguimiento
+                                </span>
+                                <a href="${trackingUrl}"
+                                   target="_blank"
+                                   title="Ver hoja de tracking en WPCargo"
+                                   style="display: inline-flex; align-items: center; gap: 6px;
+                                          background: #2c3e50; color: #ffffff;
+                                          padding: 5px 12px; border-radius: 20px;
+                                          font-size: 13px; font-weight: bold;
+                                          text-decoration: none; width: fit-content;
+                                          transition: background 0.2s;">
+                                    🔍 ${pickup.number}
+                                </a>
+                            </div>
 
-                                <select onchange="updatePickupStatus(${pickup.id}, this.value)" 
-                                   style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px;">
-                                    ${statusOptions}
-                                </select>
-                            </div>
-                            <div style="font-size: 14px; color: #555; margin-bottom: 8px;">
-                                <strong>📍 Dirección:</strong> ${pickup.address}
-                            </div>
+                            <select onchange="updatePickupStatus(${pickup.id}, this.value)" 
+                               style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px;">
+                                ${statusOptions}
+                            </select>
+                          </div>
+                          <div style="font-size: 14px; color: #555; margin-bottom: 8px;">
+                            <strong>📍 Dirección:</strong> ${pickup.address}
+                          </div>
                     `;
                     
                     if (pickup.info && Object.keys(pickup.info).length > 0) {
@@ -667,10 +672,28 @@ listHTML += `
         });
     }
     
-    // ── Seleccionar / deseleccionar todos los checkboxes de un grupo ──
+// ── Resaltar visualmente la card cuando se selecciona ──
+function highlightCard(checkbox) {
+    const cardId = checkbox.getAttribute('data-card-id');
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    if (checkbox.checked) {
+        card.style.border = '2px solid #3498db';
+        card.style.background = '#eaf4fd';
+    } else {
+        card.style.border = '1px solid #bdc3c7';
+        card.style.background = '#f8f9fa';
+    }
+}
+
+// ── Seleccionar / deseleccionar todos los checkboxes de un grupo ──
 function toggleSelectAll(shipperId, checked) {
     document.querySelectorAll(`.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]`)
-        .forEach(cb => cb.checked = checked);
+        .forEach(cb => {
+            cb.checked = checked;
+            highlightCard(cb);
+        });
     updateBulkCount(shipperId);
 }
 
@@ -682,7 +705,6 @@ function updateBulkCount(shipperId) {
     const countEl = document.getElementById(`bulk-count-${shipperId}`);
     if (countEl) countEl.textContent = `${total} seleccionado(s)`;
 
-    // Si se desmarca alguno, desmarcar el "seleccionar todos"
     const allCbs = document.querySelectorAll(`.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]`);
     const selectAllCb = document.getElementById(`select-all-${shipperId}`);
     if (selectAllCb) selectAllCb.checked = (total === allCbs.length && allCbs.length > 0);
@@ -721,7 +743,6 @@ async function applyBulkStatus(shipperId) {
 
     const nonce = document.getElementById('wpcpod-route-planner').getAttribute('data-nonce');
 
-    // Loader
     Swal.fire({
         title: '⏳ Actualizando...',
         text: `Procesando ${ids.length} pedido(s)`,
@@ -750,8 +771,11 @@ async function applyBulkStatus(shipperId) {
                 confirmButtonColor: '#2c3e50',
                 timer: 2500
             });
-            // Desmarcar checkboxes y resetear contador
-            checkboxes.forEach(cb => cb.checked = false);
+            // Desmarcar checkboxes, quitar resaltado y resetear contador
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                highlightCard(cb);
+            });
             const selectAllCb = document.getElementById(`select-all-${shipperId}`);
             if (selectAllCb) selectAllCb.checked = false;
             updateBulkCount(shipperId);
