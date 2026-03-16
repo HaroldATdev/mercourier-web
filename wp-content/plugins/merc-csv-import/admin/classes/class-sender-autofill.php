@@ -14,6 +14,8 @@ class MERC_Sender_Autofill {
 
 	public function __construct() {
 		add_action( 'wpcie_after_save_csv_import', [ $this, 'auto_fill_sender' ],    8,  2 );
+		// Asegurar que el distrito de destino venga guardado antes de la auto-asignación
+		add_action( 'wpcie_after_save_csv_import', [ $this, 'ensure_destination_district' ], 10, 2 );
 		add_action( 'wpcie_after_save_csv_import', [ $this, 'sync_monto' ],          20, 2 );
 		add_action( 'wpcie_after_save_csv_import', [ $this, 'auto_assign_container' ], 18, 2 );
 		add_action( 'wpcie_after_save_csv_import', [ $this, 'auto_assign_motorizado' ], 30, 2 );
@@ -21,6 +23,8 @@ class MERC_Sender_Autofill {
 		// Legacy stub — mantenido para compatibilidad con importadores que usaban el hook antiguo
 		add_action( 'wpcie_after_save_csv_import', '__return_null', 10, 2 );
 	}
+
+    
 
 	/* ── STEP 2: Auto-fill remitente ─────────────────────────────────── */
 
@@ -101,6 +105,41 @@ class MERC_Sender_Autofill {
 		}
 	}
 
+	/**
+	 * Asegura que el meta `wpcargo_distrito_destino` se guarde desde el CSV
+	 * antes de que se ejecute la auto-asignación de contenedores.
+	 */
+	public function ensure_destination_district( int $shipment_id, array $record ): void {
+		// Si ya existe, no hacemos nada
+		$current = get_post_meta( $shipment_id, 'wpcargo_distrito_destino', true );
+		if ( ! empty( $current ) ) return;
+
+		// Posibles claves en el CSV que contienen el distrito destino
+		$keys = [ 'wpcargo_distrito_destino', 'distrito_destino', 'destination_district', 'district', 'distrito', 'wpcargo_distrito' ];
+		$found = '';
+		foreach ( $keys as $k ) {
+			if ( isset( $record[ $k ] ) && ! empty( $record[ $k ] ) ) {
+				$found = sanitize_text_field( $record[ $k ] );
+				break;
+			}
+		}
+
+		// Intento adicional: buscar cualquier columna cuyo nombre sugiera 'distrito' o 'destino'
+		if ( empty( $found ) && ! empty( $record ) ) {
+			foreach ( $record as $k => $v ) {
+				$lk = strtolower( trim( (string) $k ) );
+				if ( (strpos( $lk, 'distrito' ) !== false || strpos( $lk, 'district' ) !== false || strpos( $lk, 'destino' ) !== false) && ! empty( $v ) ) {
+					$found = sanitize_text_field( $v );
+					break;
+				}
+			}
+		}
+
+		if ( ! empty( $found ) ) {
+			update_post_meta( $shipment_id, 'wpcargo_distrito_destino', $found );
+		}
+	}
+
 	/* ── STEP 4: Auto-asignar contenedor por distrito ────────────────── */
 
 	public function auto_assign_container( int $shipment_id, array $record ): void {
@@ -177,4 +216,5 @@ class MERC_Sender_Autofill {
 }
 
 new MERC_Sender_Autofill();
+
 

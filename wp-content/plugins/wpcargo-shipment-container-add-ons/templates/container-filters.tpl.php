@@ -62,6 +62,8 @@
 				$today_peru = date('d/m/Y');
 				$today_peru_alt = date('j/n/Y');
 				date_default_timezone_set($original_tz);
+
+				// No additional GET filters here: only filter by pickup date (today)
 				
 				// Puntos de Recojo: contar usuarios ÚNICOS (registered_shipper) que tengan un valor en shipment_container_recojo para la fecha de pickup
 				$recojo_query = "
@@ -133,6 +135,7 @@
 					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' AND pm_tipo.meta_value IN ('normal', 'express', 'fullfillment')
 					AND pm_entrega.meta_value != ''
 					AND (pm_fecha.meta_value = '{$today_peru}' OR pm_fecha.meta_value = '{$today_peru_alt}')
+					{$extra_where}
 				";
 				$entrega_ids = $wpdb->get_col($entrega_ids_query);
 				error_log("DEBUG ENTREGA IDS QUERY: " . $entrega_ids_query);
@@ -183,5 +186,6 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 
 

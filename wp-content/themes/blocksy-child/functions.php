@@ -10727,18 +10727,29 @@ function merc_cliente_envios( $client_id, $fecha_inicio = '', $fecha_fin = '' ) 
  * Función auxiliar para normalizar texto (eliminar tildes y caracteres especiales)
  */
 function merc_normalizar_texto($texto) {
-    $texto = trim($texto);
-    $texto = strtoupper($texto);
-    
-    // Reemplazar caracteres con tildes
-    $tildes = array(
-        'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
-        'À' => 'A', 'È' => 'E', 'Ì' => 'I', 'Ò' => 'O', 'Ù' => 'U',
-        'Ñ' => 'N', 'Ñ' => 'N',
-        'Ü' => 'U', 'Ü' => 'U'
-    );
-    
-    return strtr($texto, $tildes);
+    // Normalizar: convertir a ASCII básico, eliminar puntuación y colapsar espacios.
+    if ( ! is_string( $texto ) ) $texto = (string) $texto;
+    $texto = trim( $texto );
+
+    // Intentar transliteración Unicode a ASCII si está disponible
+    if ( function_exists( 'transliterator_transliterate' ) ) {
+        $texto = transliterator_transliterate('Any-Latin; Latin-ASCII;', $texto);
+    } else {
+        // Fallback sencillo: iconv (puede devolver false en Windows si no está configurado)
+        $trans = @iconv('UTF-8', 'ASCII//TRANSLIT', $texto);
+        if ( $trans !== false ) $texto = $trans;
+    }
+
+    // Pasar a minúsculas para comparaciones más fiables
+    $texto = mb_strtolower( $texto );
+
+    // Eliminar caracteres que no sean letras, números o espacios
+    $texto = preg_replace('/[^a-z0-9\s]/u', ' ', $texto);
+
+    // Colapsar múltiples espacios en uno
+    $texto = preg_replace('/\s+/', ' ', $texto);
+
+    return trim( $texto );
 }
 
 /**
@@ -10893,7 +10904,10 @@ function merc_auto_assign_shipment_to_container($post_id) {
     }
     
     if (empty($distrito) || empty($meta_key_contenedor)) {
-        error_log("❌ AUTO-ASIGNACIÓN - No se pudo determinar el distrito o tipo de contenedor (tipo_envio={$tipo_envio}), abortando");
+        // Si faltan datos críticos (tipo/distrito), posponer la auto-asignación sin tratar de forzarla.
+        // Muchas veces `save_post` se dispara antes de que el importador haya normalizado metas;
+        // el importador llamará a esta función nuevamente desde su propio hook.
+        error_log("⏭️ AUTO-ASIGNACIÓN - Datos insuficientes (tipo/distrito) para envío #{$post_id}, posponiendo asignación");
         return;
     }
     
@@ -10970,9 +10984,11 @@ function merc_auto_assign_shipment_to_container($post_id) {
                 }
             }
             
-            // TODAS las palabras deben coincidir (no 50%)
-            if ($coincidencias === count($palabras_distrito) && count($palabras_distrito) > 0) {
-                error_log("   ✅ Coincidencia por palabras-clave: {$coincidencias}/{count($palabras_distrito)} palabras coinciden");
+            // Requerir coincidencia en la mayoría de palabras significativas (umbral configurable)
+            $total_palabras = count($palabras_distrito);
+            $umbral = $total_palabras > 0 ? max(1, (int) ceil($total_palabras * 0.6)) : 0; // 60% o al menos 1
+            if ($total_palabras > 0 && $coincidencias >= $umbral) {
+                error_log("   ✅ Coincidencia por palabras-clave: {$coincidencias}/{$total_palabras} palabras coinciden (umbral={$umbral})");
                 $container_encontrado = $container->ID;
                 break;
             }
@@ -11042,7 +11058,9 @@ function merc_auto_assign_shipment_to_container($post_id) {
                         }
                     }
                     
-                    if ($coincidencias === count($palabras_distrito) && count($palabras_distrito) > 0) {
+                    $total_palabras = count($palabras_distrito);
+                    $umbral = $total_palabras > 0 ? max(1, (int) ceil($total_palabras * 0.6)) : 0;
+                    if ($total_palabras > 0 && $coincidencias >= $umbral) {
                         $container_recojo_encontrado = $container->ID;
                         break;
                     }
@@ -14417,29 +14435,13 @@ function merc_pod_sync_shipping_cost_to_monto() {
                     if (typeof window.podMontoBase !== 'undefined') window.podMontoBase = shippingCost;
                     if (typeof window.wpcargo_total_cobrar !== 'undefined') window.wpcargo_total_cobrar = shippingCost;
                 } else {
-                    // Si NO es "No Cobrar", validar si el monto es menor al costo de envío
+                    // Si NO es "No Cobrar", permitir montos menores pero mostrar advertencia visual
                     if (currentMonto > 0 && currentMonto < shippingCost) {
-                        // Actualizar automáticamente
-                        monto.value = shippingCost.toFixed(2);
-                        dispatchEvents(monto);
-                        // Recalcular el desglose
-                        if (typeof updateShippingBreakdown === 'function') {
-                            setTimeout(updateShippingBreakdown, 100);
-                        }
-                        // Mostrar aviso
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'ℹ️ Monto Actualizado',
-                                html: '<p>El monto a cobrar se ha <strong>actualizado automáticamente</strong> al costo mínimo de envío.</p>' +
-                                      '<p><strong>Nuevo monto: S/. ' + shippingCost.toFixed(2) + '</strong></p>' +
-                                      '<p>No coloque un monto menor al costo de envío.</p>',
-                                confirmButtonText: 'Entendido',
-                                confirmButtonColor: '#3085d6'
-                            });
-                        } else {
-                            // Fallback si no hay SweetAlert
-                            alert('ℹ️ ACTUALIZACIÓN\n\nEl monto a cobrar se ha actualizado al costo mínimo de envío.\n\nNuevo monto: S/. ' + shippingCost.toFixed(2));
+                        // Sólo marcar visualmente, NO forzar ni bloquear el valor
+                        if (monto) {
+                            monto.style.borderColor = '#dc3545';
+                            monto.style.backgroundColor = '#ffe6e6';
+                            monto.title = '⚠️ Monto menor al costo mínimo (S/. ' + shippingCost.toFixed(2) + ')';
                         }
                     }
                     // Si el monto está vacío o es 0, actualizar al total-cost
@@ -14529,28 +14531,11 @@ function merc_pod_sync_shipping_cost_to_monto() {
                 
                 var currentMonto = parseFloat(this.value) || 0;
                 
-                // Si NO es "No Cobrar" y el monto es menor al costo de envío, actualizar automáticamente
+                // Si NO es "No Cobrar" y el monto es menor al costo de envío, mostrar advertencia visual (no forzar)
                 if (!isNoCobrar() && currentMonto > 0 && currentMonto < shippingCost) {
-                    // Actualizar automáticamente
-                    this.value = shippingCost.toFixed(2);
-                    dispatchEvents(this);
-                    if (typeof updateShippingBreakdown === 'function') {
-                        setTimeout(updateShippingBreakdown, 100);
-                    }
-                    // Mostrar aviso
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'ℹ️ Monto Actualizado',
-                            html: '<p>El monto a cobrar se ha <strong>actualizado automáticamente</strong> al costo mínimo de envío.</p>' +
-                                  '<p><strong>Nuevo monto: S/. ' + shippingCost.toFixed(2) + '</strong></p>' +
-                                  '<p>No coloque un monto menor al costo de envío.</p>',
-                            confirmButtonText: 'Entendido',
-                            confirmButtonColor: '#3085d6'
-                        });
-                    } else {
-                        alert('ℹ️ ACTUALIZACIÓN\n\nEl monto a cobrar se ha actualizado al costo mínimo de envío.\n\nNuevo monto: S/. ' + shippingCost.toFixed(2));
-                    }
+                    this.style.borderColor = '#dc3545';
+                    this.style.backgroundColor = '#ffe6e6';
+                    this.title = '⚠️ Monto menor al costo mínimo (S/. ' + shippingCost.toFixed(2) + ')';
                 } else {
                     this.style.borderColor = '';
                     this.style.backgroundColor = '';
@@ -15503,3 +15488,43 @@ function merc_parse_date_for_migration( $date_str ) {
     
     return false;
 }
+
+/**
+ * PASO 1: Añadir el <select> con los clientes en el historial
+ */
+add_action( 'wpcfe_after_shipment_filters', function() {
+
+    $clientes = get_users( array(
+        'role'    => 'wpcargo_client',
+        'orderby' => 'display_name',
+        'order'   => 'ASC',
+    ) );
+
+    $selected = isset( $_GET['filter_wpcargoclient'] ) ? intval( $_GET['filter_wpcargoclient'] ) : 0;
+    ?>
+    <div class="form-group wpcfe-filter p-0 mx-1">
+        <select name="filter_wpcargoclient" class="form-control md-form browser-default wpcfe-select">
+            <option value=""> Marca por Nombre </option>
+            <?php foreach ( $clientes as $cliente ) : ?>
+                <option value="<?php echo esc_attr( $cliente->ID ); ?>" <?php selected( $selected, $cliente->ID ); ?>>
+                    <?php echo esc_html( trim( $cliente->first_name . ' ' . $cliente->last_name ) ?: $cliente->display_name ); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <?php
+}, 100 );
+
+/**
+ * PASO 2: Conectar con la query del dashboard
+ */
+add_filter( 'wpcfe_dashboard_arguments', function( $args ) {
+    if ( ! empty( $_GET['filter_wpcargoclient'] ) ) {
+        $args['meta_query']['filter_wpcargoclient'] = array(
+            'key'     => 'registered_shipper', // ← meta_key real de WPCargo
+            'value'   => intval( $_GET['filter_wpcargoclient'] ),
+            'compare' => '=',
+        );
+    }
+    return $args;
+} );

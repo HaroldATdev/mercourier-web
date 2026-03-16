@@ -219,8 +219,9 @@ function wpcfe_shipment_created_date_filter_callback(){
     $date_range     = wpcfe_date_range_filter();
     $date_start     = $date_range ? date('Y-m-d', strtotime('today - '.$date_range.' days')) : '';
     $date_end       = $date_range ? date('Y-m-d') : '';
-    $date_start     = isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start;
-    $date_end       = isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end;
+    // Accept both `shipping_date_start`/`shipping_date_end` (UI) and legacy `date_start`/`date_end`
+    $date_start     = isset( $_GET['shipping_date_start'] ) ? $_GET['shipping_date_start'] : ( isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start );
+    $date_end       = isset( $_GET['shipping_date_end'] ) ? $_GET['shipping_date_end'] : ( isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end );
     $current_user = wp_get_current_user();
     $user_roles = (array) $current_user->roles;
     $is_driver = in_array( 'wpcargo_driver', $user_roles, true );
@@ -229,8 +230,8 @@ function wpcfe_shipment_created_date_filter_callback(){
         $date_start = $date_end = current_time( 'Y-m-d' );
     }
     // Para clientes: por defecto mostrar los envíos creados hoy cuando el usuario
-    // no ha especificado un rango (no hay GET de date_start/date_end).
-    if ( $is_client && ! isset( $_GET['date_start'] ) && ! isset( $_GET['date_end'] ) ) {
+    // no ha especificado un rango (no hay GET de date_start/date_end ni shipping_date_start/shipping_date_end).
+    if ( $is_client && ! isset( $_GET['shipping_date_start'] ) && ! isset( $_GET['shipping_date_end'] ) && ! isset( $_GET['date_start'] ) && ! isset( $_GET['date_end'] ) ) {
         $date_start = $date_end = current_time( 'Y-m-d' );
     }
     ?>
@@ -256,8 +257,9 @@ function wpcfe_shipment_created_date_query_args_callback( $args ){
     }
     $date_start     = $date_range ? date('Y-m-d', strtotime('today - '.$date_range.' days')) : '';
     $date_end       = $date_range ? date('Y-m-d') : '';
-    $date_start     = isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start;
-    $date_end       = isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end;
+    // Accept both `shipping_date_start`/`shipping_date_end` (UI) and legacy `date_start`/`date_end`
+    $date_start     = isset( $_GET['shipping_date_start'] ) ? $_GET['shipping_date_start'] : ( isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start );
+    $date_end       = isset( $_GET['shipping_date_end'] ) ? $_GET['shipping_date_end'] : ( isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end );
     // Forzar hoy para motorizados
     $current_user = wp_get_current_user();
     $user_roles = (array) $current_user->roles;
@@ -281,32 +283,167 @@ function wpcfe_shipment_created_date_query_args_callback( $args ){
     if( $date_start && !$date_end ){
         $date_end = $date_start;
     }
-    $args['date_query'] = array(
-        array(
-            'after'     => $date_start,
-            'before'    => $date_end,
-            'inclusive' => true,
-        ),
-    );
+
+    // Instead of filtering by post_date, filter by shipment meta keys that store the shipping/pickup date.
+    $meta_keys = array( 'wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_calendarenvio','wpcargo_fecha_envio' );
+    $meta_query = array( 'relation' => 'OR' );
+    foreach( $meta_keys as $mk ){
+        $meta_query[] = array(
+            'key'     => $mk,
+            'value'   => array( $date_start, $date_end ),
+            'compare' => 'BETWEEN',
+            'type'    => 'DATE',
+        );
+    }
+    $args['meta_query'] = $meta_query;
     return $args;
 }
 function wpcfe_shipment_searched_callback(){
     $date_range = wpcfe_date_range_filter();
     $date_start     = $date_range ? date('Y-m-d', strtotime('today - '.$date_range.' days')) : '';
     $date_end       = $date_range ? date('Y-m-d') : '';
-    $date_start     = isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start;
-    $date_end       = isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end;
-    // Return arguments when both dates are empty
+    // Accept both `shipping_date_start`/`shipping_date_end` (UI) and legacy `date_start`/`date_end`
+    $date_start     = isset( $_GET['shipping_date_start'] ) ? $_GET['shipping_date_start'] : ( isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start );
+    $date_end       = isset( $_GET['shipping_date_end'] ) ? $_GET['shipping_date_end'] : ( isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end );
+    // Return when no dates
     if( !$date_start && !$date_end ){
         return false;
     }
 
+    // Normalize single-side ranges
+    if( !$date_start && $date_end ) $date_start = $date_end;
+    if( $date_start && !$date_end ) $date_end = $date_start;
+
     $date_format    = get_option( 'date_format' );
-    $date_start     = date( $date_format, strtotime( $date_start ) );
-    $date_end       = date( $date_format, strtotime( $date_end ) );
+    $date_start_fmt = date( $date_format, strtotime( $date_start ) );
+    $date_end_fmt   = date( $date_format, strtotime( $date_end ) );
+
+    // Build $args using the same filters as the shipments table so the counter matches the view
+    $shipper_data   = wpcfe_table_header('shipper');
+    $receiver_data  = wpcfe_table_header('receiver');
+    $s_shipment     = isset( $_GET['wpcfes'] ) ? sanitize_text_field( $_GET['wpcfes'] ) : '' ;
+
+    // Build meta filters same as dashboard.php
+    $meta_query = array();
+    if( isset($_GET['status']) && !empty( $_GET['status'] ) ){
+        $meta_query['wpcargo_status'] = array(
+            'key' => 'wpcargo_status',
+            'value' => urldecode( $_GET['status'] ),
+            'compare' => '='
+        );
+    }
+    if( isset($_GET['shipper']) && !empty( $_GET['shipper'] ) ){
+        $meta_query[] = array(
+            'key' => $shipper_data['field_key'],
+            'value' => urldecode( $_GET['shipper'] ),
+            'compare' => '='
+        );
+    }
+    if( isset($_GET['receiver']) && !empty( $_GET['receiver'] ) ){
+        $meta_query[] = array(
+            'key' => $receiver_data['field_key'],
+            'value' => urldecode( $_GET['receiver'] ),
+            'compare' => '='
+        );
+    }
+    $meta_query = apply_filters( 'wpcfe_dashboard_meta_query', $meta_query );
+
+    $args = array(
+        'post_type'      => 'wpcargo_shipment',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        's'              => $s_shipment,
+        'meta_query'     => array_merge( array( 'relation' => 'AND' ), (array) $meta_query ),
+    );
+    // Let other filters (including date meta injection) modify args the same way dashboard.php does
+    $args = apply_filters( 'wpcfe_dashboard_arguments', $args );
+
+    $posts_objs = get_posts( $args );
+    $posts = wp_list_pluck( $posts_objs, 'ID' );
+
+    // Aggregate counts: count distinct tiendas (store names), total shipments, normal shipments
+    $tiendas_map = array(); // normalized => ['label'=>display_label,'count'=>int]
+    $total_shipments = 0;
+    $normal_shipments = 0;
+
+    // helper normalize
+    if ( ! function_exists( 'wpcfe_norm' ) ){
+        function wpcfe_norm( $s ){
+            $s = trim( (string) $s );
+            if ( function_exists('iconv') ){
+                $tmp = @iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$s);
+                if ( $tmp ) $s = $tmp;
+            }
+            $s = preg_replace('/\s+/u',' ',$s);
+            $s = mb_strtolower( $s );
+            return $s === '' ? 'sin tienda' : $s;
+        }
+    }
+
+    foreach( $posts as $pid ){
+        $total_shipments++;
+        $tipo = get_post_meta( $pid, 'tipo_envio', true );
+        $tipo_lower = strtolower( trim( (string) $tipo ) );
+        $is_normal = ( $tipo_lower === 'normal' || stripos( $tipo, 'emprendedor' ) !== false );
+        if ( $is_normal ) $normal_shipments++;
+
+        // derive tienda label same as MERC_Shipment_Table::custom_data
+        $tienda = get_post_meta( $pid, 'wpcargo_tiendaname', true );
+        if ( empty( $tienda ) ){
+            $cliente_id = get_post_meta( $pid, 'registered_shipper', true );
+            if ( ! empty( $cliente_id ) ){
+                $billing_company = get_user_meta( intval( $cliente_id ), 'billing_company', true );
+                if ( ! empty( $billing_company ) ){
+                    $tienda = $billing_company;
+                } else {
+                    $first_name = get_user_meta( intval( $cliente_id ), 'first_name', true );
+                    $last_name  = get_user_meta( intval( $cliente_id ), 'last_name', true );
+                    $nombre_completo = trim( $first_name . ' ' . $last_name );
+                    if ( ! empty( $nombre_completo ) ){
+                        $tienda = $nombre_completo;
+                    } else {
+                        $user = get_userdata( intval( $cliente_id ) );
+                        if ( $user ) $tienda = $user->display_name;
+                    }
+                }
+            }
+        }
+        // fallback to author display name
+        if ( empty( $tienda ) ){
+            $author = get_userdata( get_post_field( 'post_author', $pid ) );
+            $tienda = $author ? $author->display_name : 'Sin tienda';
+        }
+
+        $display = $tienda ?: 'Sin tienda';
+        $norm = wpcfe_norm( $display );
+        if ( ! isset( $tiendas_map[ $norm ] ) ){
+            $tiendas_map[ $norm ] = array( 'label' => $display, 'count' => 0 );
+        }
+        $tiendas_map[ $norm ]['count']++;
+    }
+
+    $distinct_tiendas = count( $tiendas_map );
+
+    // Minimal debug logs for verification (include sample mapping)
+    error_log( '[wpcfe_debug] meta_based_sql: ' . $sql_meta );
+    error_log( '[wpcfe_debug] posts_count: ' . count( $posts ) );
+    error_log( '[wpcfe_debug] distinct_tiendas: ' . $distinct_tiendas );
+    // sample tiendas (first 40)
+    $sample = array();
+    $i = 0;
+    foreach( $tiendas_map as $k => $v ){ if ( $i++ > 40 ) break; $sample[ $v['label'] ] = $v['count']; }
+    error_log( '[wpcfe_debug] tiendas_sample_map: ' . wp_json_encode( $sample ) );
+    error_log( '[wpcfe_debug] total_shipments: ' . $total_shipments . ' normal_shipments: ' . $normal_shipments );
+
+    // Render results next to search details
     ?>
-    <div class="wpcfe-search-details col-lg-12 p-0 mb-2 text-muted font-italic">
-        <?php printf( __('Date Created: %s to %s', 'wpcargo-frontend-manager'), $date_start, $date_end ); ?>
+    <div class="wpcfe-search-row row mb-2">
+        <div class="wpcfe-search-details col-md-8 p-0 text-muted font-italic">
+            <?php printf( __('Date Created: %s to %s', 'wpcargo-frontend-manager'), $date_start_fmt, $date_end_fmt ); ?>
+        </div>
+        <div class="wpcfe-search-stats col-md-4 text-right small text-muted">
+            <?php echo esc_html( sprintf( __( 'Tiendas: %s — Envíos: %s (%s Normal)', 'wpcargo-frontend-manager' ), $distinct_tiendas, $total_shipments, $normal_shipments ) ); ?>
+        </div>
     </div>
     <?php
 }

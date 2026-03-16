@@ -27,6 +27,8 @@ class MERC_Shipment_Form_Fields {
 		add_action( 'wpcargo_after_save_shipment', [ $this, 'save_financial_data' ], 20, 1 );
 		add_action( 'save_post_wpcargo_shipment',  [ $this, 'save_financial_data' ], 20, 1 );
 		add_action( 'save_post_wpcargo_shipment',  [ $this, 'verify_final_shipping_cost' ], 999999, 1 );
+		// También ejecutar la verificación final después del flujo de importación CSV
+		add_action( 'wpcie_after_save_csv_import', [ $this, 'verify_final_shipping_cost' ], 99999, 2 );
 		add_action( 'edit_post',                   [ $this, 'log_edit_shipping_cost' ], 10, 2 );
 	}
 
@@ -367,14 +369,7 @@ class MERC_Shipment_Form_Fields {
 					return;
 				}
 
-				if (totalAmount < finalShippingCost) {
-					showValidationMessage(
-						'⚠️ Advertencia: El monto total (S/. ' + totalAmount.toFixed(2) +
-						') es menor que el costo de envío (S/. ' + finalShippingCost.toFixed(2) +
-						'). El costo del producto será negativo.',
-						'warning'
-					);
-				} else if (totalAmount === finalShippingCost) {
+				if (totalAmount === finalShippingCost) {
 					showValidationMessage(
 						'ℹ️ El monto total coincide exactamente con el costo de envío. ' +
 						'El costo del producto es S/. 0.00',
@@ -382,6 +377,8 @@ class MERC_Shipment_Form_Fields {
 					);
 					productCost = 0;
 				} else {
+					// No mostrar advertencia si el total es menor que el costo de envío.
+					// Permitimos que el monto total sea inferior al costo de envío.
 					hideValidationMessage();
 				}
 
@@ -494,9 +491,18 @@ class MERC_Shipment_Form_Fields {
 			}
 		}
 
-		// Obtener producto ya seleccionado (si existe)
+		// Obtener producto(s) ya seleccionado(s) (si existe)
 		$producto_seleccionado  = get_post_meta( $shipment_id, '_merc_producto_id', true );
 		$cantidad_seleccionada  = get_post_meta( $shipment_id, '_merc_producto_cantidad', true );
+		$productos_multi        = get_post_meta( $shipment_id, '_merc_productos_multi', true );
+		if ( empty( $productos_multi ) || ! is_array( $productos_multi ) ) {
+			// Normalizar formato: si hay un producto simple, usarlo como array de un elemento
+			if ( $producto_seleccionado ) {
+				$productos_multi = [ [ 'id' => intval( $producto_seleccionado ), 'cantidad' => intval( $cantidad_seleccionada ?: 1 ) ] ];
+			} else {
+				$productos_multi = [];
+			}
+		}
 
 		// Si hay producto seleccionado y no está en la lista, agregarlo
 		if ( $producto_seleccionado ) {
@@ -539,45 +545,79 @@ class MERC_Shipment_Form_Fields {
 					<div class="row">
 						<div class="col-md-8">
 							<div class="form-group">
-								<label for="merc_producto_id"><strong>Producto *</strong></label>
-								<select id="merc_producto_id" name="merc_producto_id"
-									class="form-control" required
-									style="display:block !important; width:100% !important;">
-									<option value="">-- Selecciona un producto --</option>
-									<?php foreach ( $productos_disponibles as $prod ) :
-										$stock        = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-										$stock        = ! empty( $stock ) ? intval( $stock ) : 0;
-										$codigo       = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
-										$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
-										$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
-										$selected     = ( $prod->ID == $producto_seleccionado ) ? 'selected' : '';
-									?>
-										<option value="<?php echo esc_attr( $prod->ID ); ?>"
-											data-stock="<?php echo esc_attr( $stock ); ?>"
-											<?php echo $selected; ?>>
-											<?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?>
-											<?php if ( $codigo ) : ?> [<?php echo esc_html( $codigo ); ?>]<?php endif; ?>
-											<?php if ( $tipo_medida ) : ?> | Tipo: <?php echo esc_html( $tipo_medida ); ?><?php endif; ?>
-											<?php if ( ! empty( $dimensiones ) && is_array( $dimensiones ) ) : ?> | Dim: <?php echo intval( $dimensiones['largo'] ?? 0 ) . 'x' . intval( $dimensiones['ancho'] ?? 0 ) . 'x' . intval( $dimensiones['alto'] ?? 0 ); ?> cm<?php endif; ?>
-										</option>
-									<?php endforeach; ?>
-								</select>
+								<label><strong>Productos *</strong></label>
+								<div id="merc_product_rows">
+									<?php if ( ! empty( $productos_multi ) ) : ?>
+										<?php foreach ( $productos_multi as $p_index => $p_item ) :
+											$selected_id = intval( $p_item['id'] ?? 0 );
+											$selected_qty = intval( $p_item['cantidad'] ?? 1 );
+										?>
+											<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
+												<select name="merc_producto_id[]" class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
+													<option value="">-- Selecciona un producto --</option>
+													<?php foreach ( $productos_disponibles as $prod ) :
+														$stock        = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+														$stock        = ! empty( $stock ) ? intval( $stock ) : 0;
+														$codigo       = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
+														$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
+														$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
+														$sel = ( $prod->ID == $selected_id ) ? 'selected' : '';
+													?>
+														<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>" <?php echo $sel; ?>>
+															<?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?>
+															<?php if ( $codigo ) : ?> [<?php echo esc_html( $codigo ); ?>]<?php endif; ?>
+															<?php if ( $tipo_medida ) : ?> | Tipo: <?php echo esc_html( $tipo_medida ); ?><?php endif; ?>
+															<?php if ( ! empty( $dimensiones ) && is_array( $dimensiones ) ) : ?> | Dim: <?php echo intval( $dimensiones['largo'] ?? 0 ) . 'x' . intval( $dimensiones['ancho'] ?? 0 ) . 'x' . intval( $dimensiones['alto'] ?? 0 ); ?> cm<?php endif; ?>
+														</option>
+													<?php endforeach; ?>
+												</select>
+
+												<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="<?php echo esc_attr( $selected_qty ); ?>" min="1" max="999" required style="width:120px;">
+
+												<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
+											</div>
+										<?php endforeach; ?>
+									<?php else : ?>
+										<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
+											<select name="merc_producto_id[]" class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
+												<option value="">-- Selecciona un producto --</option>
+												<?php foreach ( $productos_disponibles as $prod ) :
+													$stock        = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+													$stock        = ! empty( $stock ) ? intval( $stock ) : 0;
+													$codigo       = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
+													$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
+													$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
+												?>
+													<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?></option>
+												<?php endforeach; ?>
+											</select>
+
+											<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="<?php echo esc_attr( $cantidad_seleccionada ); ?>" min="1" max="999" required style="width:120px;">
+
+											<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
+										</div>
+									<?php endif; ?>
+								</div>
+								<!-- Plantilla para clon (oculta, usada por JS) -->
+								<div id="merc_product_template" style="display:none;">
+									<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
+										<select class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
+											<option value="">-- Selecciona un producto --</option>
+											<?php foreach ( $productos_disponibles as $prod ) :
+												$stock = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+												$stock = ! empty( $stock ) ? intval( $stock ) : 0;
+											?>
+												<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?></option>
+											<?php endforeach; ?>
+										</select>
+										<input type="number" class="form-control merc_producto_cantidad" value="1" min="1" max="999" required style="width:120px;">
+										<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
+									</div>
+								</div>
+								<div style="margin-top:8px;">
+									<button type="button" id="merc_add_product_btn" class="button" style="background:#2ecc71;color:#fff;border:none;padding:6px 10px;border-radius:4px;">+ Agregar producto</button>
+								</div>
 								<small class="text-muted">Solo se muestran productos disponibles (<?php echo count( $productos_disponibles ); ?> total)</small>
-							</div>
-						</div>
-						<div class="col-md-4">
-							<div class="form-group">
-								<label for="merc_producto_cantidad"><strong>Cantidad *</strong></label>
-								<input type="number"
-									id="merc_producto_cantidad"
-									name="merc_producto_cantidad"
-									class="form-control"
-									value="<?php echo esc_attr( $cantidad_seleccionada ); ?>"
-									min="1"
-									max="999"
-									required
-									style="display:block !important; width:100% !important;">
-								<small id="merc_stock_display" class="text-muted"></small>
 							</div>
 						</div>
 					</div>
@@ -592,57 +632,92 @@ class MERC_Shipment_Form_Fields {
 
 		<script>
 		jQuery(document).ready(function($) {
-			var $productoSelect  = $('#merc_producto_id');
-			var $cantidadInput   = $('#merc_producto_cantidad');
+			var $productRows     = $('#merc_product_rows');
+			var $productTemplate = $('#merc_product_template').html ? $('#merc_product_template').html() : null;
 			var $stockDisplay    = $('#merc_stock_display');
 			var $warning         = $('#merc_stock_warning');
 			var $warningText     = $('#merc_warning_text');
 
-			function actualizarStock() {
-				var $option  = $productoSelect.find('option:selected');
+			function actualizarStockRow($row) {
+				var $select  = $row.find('.merc_producto_id');
+				var $input   = $row.find('.merc_producto_cantidad');
+				var $option  = $select.find('option:selected');
 				var stock    = parseInt($option.data('stock')) || 0;
-				var cantidad = parseInt($cantidadInput.val()) || 0;
+				var cantidad = parseInt($input.val()) || 0;
 
-				if (!$option.val()) {
+				if (!$select.val()) {
 					$stockDisplay.text('');
 					$warning.hide();
 					return;
 				}
 
 				$stockDisplay.html('📦 Disponible: <strong>' + stock + '</strong>');
-				$cantidadInput.attr('max', stock);
+				$input.attr('max', stock);
 
 				if (cantidad > stock) {
 					$warning.show();
 					$warningText.text('Stock insuficiente. Solo hay ' + stock + ' unidades disponibles.');
-					$cantidadInput.val(stock);
+					$input.val(stock);
 				} else {
 					$warning.hide();
 				}
 			}
 
-			$productoSelect.on('change', actualizarStock);
-			$cantidadInput.on('input change', actualizarStock);
+			function bindRowEvents($row) {
+				$row.find('.merc_producto_id').on('change', function() { actualizarStockRow($row); });
+				$row.find('.merc_producto_cantidad').on('input change', function() { actualizarStockRow($row); });
+				$row.find('.merc_remove_product').on('click', function() {
+					if ($productRows.find('.merc-product-row').length <= 1) return; // mantener al menos una
+					$(this).closest('.merc-product-row').remove();
+				});
+			}
+
+			// Si no hay template en el DOM, crear una desde el HTML generado en PHP
+			if (!$productTemplate) {
+				$productTemplate = '<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">';
+				$productTemplate += $('select[name="merc_producto_id[]"]').first().prop('outerHTML');
+				$productTemplate += '<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="1" min="1" max="999" required style="width:120px;">';
+				$productTemplate += '<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>';
+				$productTemplate += '</div>';
+			}
+
+			// Inicializar filas existentes
+			$productRows.find('.merc-product-row').each(function() { bindRowEvents($(this)); });
+
+			$('#merc_add_product_btn').on('click', function() {
+				var $new = $($productTemplate);
+				$new.find('select').val('');
+				$new.find('input').val('1');
+				$productRows.append($new);
+				bindRowEvents($new);
+			});
 
 			$('form.wpcfe-new-shipment-form, form[name="wpcfe-shipment-form"]').on('submit', function(e) {
-				var productoId = $productoSelect.val();
-				if (!productoId) {
+				var valid = true;
+				$productRows.find('.merc-product-row').each(function() {
+					var $row = $(this);
+					var productoId = $row.find('.merc_producto_id').val();
+					var cantidad = parseInt($row.find('.merc_producto_cantidad').val()) || 0;
+					var stock = parseInt($row.find('.merc_producto_id option:selected').data('stock')) || 0;
+					if (!productoId) {
+						valid = false;
+						alert('⚠️ Debes seleccionar un producto en todas las filas');
+						return false;
+					}
+					if (cantidad < 1 || cantidad > stock) {
+						valid = false;
+						alert('⚠️ Cantidad inválida o mayor al stock disponible.');
+						return false;
+					}
+				});
+				if (!valid) {
 					e.preventDefault();
-					alert('⚠️ Debes seleccionar un producto');
-					$productoSelect.focus();
-					return false;
-				}
-				var stock    = parseInt($productoSelect.find('option:selected').data('stock')) || 0;
-				var cantidad = parseInt($cantidadInput.val()) || 0;
-				if (cantidad > stock) {
-					e.preventDefault();
-					alert('⚠️ Stock insuficiente. Solo hay ' + stock + ' unidades.');
-					$cantidadInput.focus();
 					return false;
 				}
 			});
 
-			actualizarStock();
+			// Ejecutar una vez para sincronizar displays
+			$productRows.find('.merc-product-row').each(function() { actualizarStockRow($(this)); });
 		});
 		</script>
 
@@ -734,15 +809,58 @@ class MERC_Shipment_Form_Fields {
 		if ( ! get_post_meta( $post_id, 'wpcargo_cliente_pago_a', true ) ) {
 			update_post_meta( $post_id, 'wpcargo_cliente_pago_a', 'pendiente' );
 		}
+
+		/* ── Guardar productos MERC (soporta múltiples) ───────────────── */
+		if ( isset( $_POST['merc_producto_id'] ) ) {
+			// Validar nonce si viene presente
+			if ( isset( $_POST['merc_envio_producto_nonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['merc_envio_producto_nonce'] ) ), 'merc_envio_producto_guardar' ) ) {
+				return;
+			}
+
+			$ids = array_map( 'intval', (array) $_POST['merc_producto_id'] );
+			$qtys = isset( $_POST['merc_producto_cantidad'] ) ? (array) $_POST['merc_producto_cantidad'] : [];
+			$qtys = array_map( 'intval', $qtys );
+
+			$productos_to_store = [];
+			foreach ( $ids as $i => $id ) {
+				if ( $id <= 0 ) continue;
+				$cant = isset( $qtys[ $i ] ) && intval( $qtys[ $i ] ) > 0 ? intval( $qtys[ $i ] ) : 1;
+				$productos_to_store[] = [ 'id' => $id, 'cantidad' => $cant ];
+			}
+
+			if ( ! empty( $productos_to_store ) ) {
+				update_post_meta( $post_id, '_merc_productos_multi', $productos_to_store );
+				// Mantener compatibilidad: guardar primer producto en meta antigua
+				update_post_meta( $post_id, '_merc_producto_id', $productos_to_store[0]['id'] );
+				update_post_meta( $post_id, '_merc_producto_cantidad', $productos_to_store[0]['cantidad'] );
+			} else {
+				delete_post_meta( $post_id, '_merc_productos_multi' );
+				delete_post_meta( $post_id, '_merc_producto_id' );
+				delete_post_meta( $post_id, '_merc_producto_cantidad' );
+			}
+		}
 	}
 
 	/* ── Verificación final del costo de envío (logging) ─────────────────── */
 
-	public function verify_final_shipping_cost( int $post_id ): void {
+	public function verify_final_shipping_cost( int $post_id, $record = null ): void {
 		if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) return;
+
+		// Evitar registrar verificaciones tempranas ejecutadas por save_post cuando
+		// las metas aún no han sido normalizadas por el importador CSV.
+		// Sólo registrar si estamos siendo llamados desde el hook CSV o si
+		// ya existen datos relevantes (tipo o distrito).
+		$current = function_exists('current_filter') ? current_filter() : '';
+
 		$costo    = get_post_meta( $post_id, 'wpcargo_costo_envio', true );
 		$distrito = get_post_meta( $post_id, 'wpcargo_distrito_destino', true );
 		$tipo     = get_post_meta( $post_id, 'tipo_envio', true );
+
+		// Si no hay tipo ni distrito y no venimos del flujo CSV, posponer
+		if ( empty( $tipo ) && empty( $distrito ) && $current !== 'wpcie_after_save_csv_import' ) {
+			return;
+		}
+
 		error_log( "🔚 [FINAL_VERIFICATION] Envío #{$post_id} | Tipo: {$tipo} | Distrito: {$distrito} | Costo: {$costo}" );
 	}
 
@@ -759,3 +877,4 @@ class MERC_Shipment_Form_Fields {
 }
 
 new MERC_Shipment_Form_Fields();
+
