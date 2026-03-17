@@ -910,6 +910,8 @@ function wpcsc_assign_partial_shipments_callback() {
     
     $success_count = 0;
     $errors = array();
+	// LOG: peticion recibida
+	error_log("WPCSC_ASSIGN_PARTIAL_REQUEST: driver_id={$driver_id} container_id={$container_id} shipments_count=" . count($shipments));
     
     foreach ($shipments as $shipment_id) {
         // Verificar que el pedido existe
@@ -918,20 +920,52 @@ function wpcsc_assign_partial_shipments_callback() {
             continue;
         }
         
-        // Asignar motorizado
-        $updated = update_post_meta($shipment_id, 'wpcargo_driver', $driver_id);
-        
-        if ($updated !== false) {
-            // Eliminar del contenedor
-            delete_post_meta($shipment_id, 'shipment_container');
-            
-            // Log para debugging
-            error_log("✅ Pedido #{$shipment_id} asignado a motorizado #{$driver_id} y removido del contenedor #{$container_id}");
-            
-            $success_count++;
-        } else {
-            $errors[] = "Error al procesar pedido #{$shipment_id}";
-        }
+		// LOG: estado y metas antes
+		$pre_status = get_post_meta($shipment_id, 'wpcargo_status', true);
+		$pre_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
+		$pre_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
+		$pre_driver = get_post_meta($shipment_id, 'wpcargo_driver', true);
+		error_log("WPCSC_ASSIGN_PRE: shipment={$shipment_id} status=" . var_export($pre_status, true) . " mot_recojo=" . var_export($pre_recojo, true) . " mot_entrega=" . var_export($pre_entrega, true) . " driver=" . var_export($pre_driver, true));
+
+		// Asignar motorizado respetando el estado del envío
+		// Si el envío está en PENDIENTE / RECOGIDO / NO RECOGIDO => usar motorizado recojo
+		// En otro caso => usar motorizado entrega
+		$status = get_post_meta($shipment_id, 'wpcargo_status', true);
+		$recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+
+		$assigned_ok = false;
+
+		if ( in_array( strtoupper( (string) $status ), $recojo_states, true ) ) {
+			// Asignar como motorizado de recojo y fijar driver al recojo
+			$ok1 = update_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', $driver_id );
+			$ok2 = update_post_meta( $shipment_id, 'wpcargo_driver', $driver_id );
+			$assigned_ok = ( $ok1 !== false || $ok2 !== false );
+		} else {
+			// Asignar como motorizado de entrega y fijar driver al entrega
+			$ok1 = update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', $driver_id );
+			$ok2 = update_post_meta( $shipment_id, 'wpcargo_driver', $driver_id );
+			$assigned_ok = ( $ok1 !== false || $ok2 !== false );
+		}
+
+		if ( $assigned_ok ) {
+			// Remover cualquier referencia al contenedor en diferentes metakeys (compatibilidad)
+			delete_post_meta( $shipment_id, 'shipment_container' );
+			delete_post_meta( $shipment_id, 'shipment_container_recojo' );
+			delete_post_meta( $shipment_id, 'shipment_container_entrega' );
+
+			// Log para debugging
+			error_log( "✅ Pedido #{$shipment_id} asignado a motorizado #{$driver_id} (status={$status}) y removido del contenedor #{$container_id}" );
+
+			// LOG: metas después
+			$post_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
+			$post_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
+			$post_driver = get_post_meta($shipment_id, 'wpcargo_driver', true);
+			error_log("WPCSC_ASSIGN_POST: shipment={$shipment_id} mot_recojo=" . var_export($post_recojo, true) . " mot_entrega=" . var_export($post_entrega, true) . " driver=" . var_export($post_driver, true));
+
+			$success_count++;
+		} else {
+			$errors[] = "Error al procesar pedido #{$shipment_id}";
+		}
     }
     
     // Actualizar la lista de pedidos ordenados del contenedor
@@ -960,3 +994,4 @@ function wpcsc_assign_partial_shipments_callback() {
         wp_send_json_error(array('message' => 'No se pudo procesar ningún pedido. Errores: ' . implode(', ', $errors)));
     }
 }
+

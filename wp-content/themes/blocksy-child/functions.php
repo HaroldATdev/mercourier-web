@@ -12010,14 +12010,26 @@ function merc_assign_motorizado_entrega_bulk_ajax() {
         }
         
         $total = 0;
+        // Estados que deben mantener el driver asociado a RECOJO
+        $recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+
         foreach ($shipment_ids as $sid) {
             update_post_meta($sid, 'wpcargo_motorizo_entrega', $driver_id);
-            
-            // También actualizar wpcargo_driver para que se vea en el listado del motorizado
-            delete_post_meta($sid, 'wpcargo_driver');
-            add_post_meta($sid, 'wpcargo_driver', $driver_id);
-            error_log("   - wpcargo_driver actualizado a: " . $driver_id);
-            
+
+            // Comprobar estado actual del envío para decidir si sobrescribir wpcargo_driver
+            $current_status = get_post_meta($sid, 'wpcargo_status', true);
+            $upper_status = strtoupper((string) $current_status);
+
+            if ( in_array( $upper_status, $recojo_states, true ) ) {
+                // El envío está en un estado de recojo: NO sobrescribimos wpcargo_driver
+                error_log("   - Estado '$current_status' en envío $sid: se actualizó 'wpcargo_motorizo_entrega' pero se preserva 'wpcargo_driver'.");
+            } else {
+                // En otros estados sí actualizamos el driver visible
+                delete_post_meta($sid, 'wpcargo_driver');
+                add_post_meta($sid, 'wpcargo_driver', $driver_id);
+                error_log("   - wpcargo_driver actualizado a: " . $driver_id . " para envío $sid (estado: $current_status)");
+            }
+
             $total++;
             error_log("✅ Asignado motorizado $driver_id a envío $sid");
         }

@@ -234,6 +234,23 @@ document.addEventListener('DOMContentLoaded', function () {
     function abrirModalNuevoProducto() {
         let modal = document.getElementById('modal-nuevo-producto');
         
+        // Si el modal ya existe (por ejemplo no fue removido), asegurarnos de resetear el formulario
+        if (modal) {
+            try {
+                const existingForm = modal.querySelector('#form-nuevo-producto');
+                if (existingForm) {
+                    existingForm.reset();
+                    // establecer valor por defecto para cantidad
+                    const cantidadInput = existingForm.querySelector('input[name="cantidad"]');
+                    if (cantidadInput) cantidadInput.value = 1;
+                }
+                // recargar clientes en el select
+                cargarClientesParaNuevoProducto(modal);
+            } catch (e) {
+                console.warn('No se pudo resetear modal existente:', e);
+            }
+        }
+
         if (!modal) {
             // Crear modal si no existe (similar al de functions.php)
             modal = document.createElement('div');
@@ -323,9 +340,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         <button type="submit" form="form-nuevo-producto" style="background: #3498db; color: white; box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3); padding: 10px 24px; font-size: 14px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Guardar Producto</button>
                     </div>
                 </div>
-            `;-
+            `;
             
             document.body.appendChild(modal);
+
+            // Cargar clientes en el select del modal nuevo
+            cargarClientesParaNuevoProducto(modal);
             
             // Cerrar modal: removemos el nodo para limpiar estado
             document.querySelectorAll('.modal-close-btn').forEach(btn => {
@@ -359,6 +379,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     codigo_barras: formData.get('codigo_barras'),
                     cantidad: parseInt(formData.get('cantidad')) || 1,
                     cliente_asignado: clienteId,
+                    tipo_medida: formData.get('tipo_medida') || '',
+                    valor_medida: formData.get('valor_medida') || '',
                     peso: parseFloat(formData.get('peso')) || 0,
                     largo: parseFloat(formData.get('largo')) || 0,
                     ancho: parseFloat(formData.get('ancho')) || 0,
@@ -388,7 +410,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             text: 'Producto creado exitosamente',
                             confirmButtonColor: '#3498db'
                         }).then(() => {
-                            // Remover modal para garantizar formulario limpio al volver a abrir
+                            // Resetear formulario para garantizar estado limpio
+                            try {
+                                const f = document.getElementById('form-nuevo-producto');
+                                if (f) f.reset();
+                            } catch (e) { /* noop */ }
+                            // Remover modal y recargar tabla
                             modal.style.display = 'none';
                             try { modal.remove(); } catch (err) { /* noop */ }
                             cargarProductos(); // Recargar tabla
@@ -414,7 +441,42 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
         
-        modal.style.display = 'flex';
+        // Mostrar modal (si fue creado ahora o ya existía)
+        if (modal) modal.style.display = 'flex';
+    }
+
+    // Carga la lista de clientes y la inyecta en el select dentro del modal (nuevo)
+    function cargarClientesParaNuevoProducto(modalElement) {
+        if (!modalElement) return;
+        const select = modalElement.querySelector('#cliente-select');
+        if (!select) return;
+
+        // Vaciar opciones previas y dejar placeholder
+        select.innerHTML = '<option value="">-- Seleccionar cliente --</option>';
+
+        fetch(ajaxUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ action: 'merc_obtener_clientes_lista', nonce: nonce })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.data && res.data.clientes) {
+                res.data.clientes.forEach(cliente => {
+                    const opt = document.createElement('option');
+                    opt.value = String(cliente.id);
+                    opt.textContent = cliente.nombre;
+                    select.appendChild(opt);
+                });
+            } else {
+                console.warn('No se obtuvieron clientes para nuevo producto', res);
+            }
+        })
+        .catch(err => {
+            console.error('Error cargando clientes para nuevo producto:', err);
+        });
     }
     
     // Función global para editar producto
@@ -728,7 +790,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     text: 'Producto actualizado correctamente',
                     confirmButtonColor: '#3498db'
                 }).then(() => {
-                    document.getElementById('modal-editar-producto').remove();
+                    try {
+                        const fe = document.getElementById('form-editar-producto');
+                        if (fe) fe.reset();
+                    } catch (e) { /* noop */ }
+                    const modalEdit = document.getElementById('modal-editar-producto');
+                    if (modalEdit) try { modalEdit.remove(); } catch (err) { /* noop */ }
                     cargarProductos(); // Recargar tabla
                 });
             } else {
@@ -974,6 +1041,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 });
+
 
 
 
