@@ -488,14 +488,60 @@ function wpcfe_shipment_searched_callback(){
 
     // Render results next to search details
     ?>
-    <div class="wpcfe-search-row row mb-2">
-        <div class="wpcfe-search-details col-md-8 p-0 text-muted font-italic">
+    <div class="wpcfe-search-row row mb-2 align-items-center">
+        <div class="wpcfe-search-select col-auto p-0 pr-2">
+            <button id="wpcfe-select-visible" class="btn btn-sm btn-outline-primary">Seleccionar todo</button>
+        </div>
+        <div class="wpcfe-search-details col p-0 text-muted font-italic">
             <?php printf( __('Date Created: %s to %s', 'wpcargo-frontend-manager'), $date_start_fmt, $date_end_fmt ); ?>
         </div>
-        <div class="wpcfe-search-stats col-md-4 text-right small text-muted">
+        <div class="wpcfe-search-stats col-auto p-0 text-right small text-muted">
             <?php echo esc_html( sprintf( __( 'Tiendas: %s — Envíos: %s (%s Recojo)', 'wpcargo-frontend-manager' ), $distinct_tiendas, $total_shipments, $normal_shipments ) ); ?>
         </div>
     </div>
+    <script>
+    jQuery(function($){
+        var isAllSelected = false;
+        
+        $(document).on('click', '#wpcfe-select-visible', function(e){
+            e.preventDefault();
+            var $btn = $(this);
+            var ids = {};
+            
+            // Recolectar todos los elementos visibles que expongan data-shipment-id
+            $('[data-shipment-id]:visible').each(function(){
+                var id = $(this).data('shipment-id');
+                if ( id !== undefined && id !== null && id !== '' ) ids[id] = true;
+            });
+            var idList = Object.keys(ids);
+            if ( idList.length === 0 ) return;
+            
+            // Alternar entre seleccionar y deseleccionar
+            isAllSelected = !isAllSelected;
+            
+            idList.forEach(function(id){
+                // Buscar checkboxes que ya usen data-shipment-id o cuyo value sea el ID
+                var $cb = $('input[type="checkbox"][data-shipment-id="'+id+'"], input[type="checkbox"][value="'+id+'"]');
+                if ( $cb.length ){
+                    $cb.prop('checked', isAllSelected).trigger('change');
+                } else {
+                    // Fallback: buscar checkbox dentro de la fila/card que contenga el atributo
+                    var $row = $('[data-shipment-id="'+id+'"]').closest('tr, .card, .merc-card, .wpcfe-shipment-row');
+                    $row.find('input[type="checkbox"]').first().prop('checked', isAllSelected).trigger('change');
+                }
+            });
+            
+            // Marcar también los checkboxes de los TH (encabezados) de las tablas en las cards
+            if ( isAllSelected ) {
+                $('th input[type="checkbox"]').prop('checked', true).trigger('change');
+                $btn.text('Deseleccionar todo');
+            } else {
+                $('th input[type="checkbox"]').prop('checked', false).trigger('change');
+                $btn.text('Seleccionar todo');
+            }
+        });
+    });
+    </script>
     <?php
 }
 function wpcfe_shipment_dashboard_menu_callback(){

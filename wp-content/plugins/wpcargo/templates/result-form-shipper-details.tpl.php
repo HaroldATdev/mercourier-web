@@ -1,31 +1,99 @@
 <?php
-	$shipper_name		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_shipper_name' );
-	$shipper_address	= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_shipper_address' );
-	$shipper_phone		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_shipper_phone' );
-	$shipper_email		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_shipper_email' );
-	$receiver_name		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_receiver_name' );
-	$receiver_address	= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_receiver_address' );
-	$receiver_phone		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_receiver_phone' );
-	$receiver_email		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_receiver_email' );
+	$shipment_origin  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_origin_field' );
+	$wpcargo_status   					= esc_html( get_post_meta( $shipment->ID, 'wpcargo_status', true) );
+	$shipment_destination  				= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_destination' ); 
+	$type_of_shipment  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_type_of_shipment' );
+	$shipment_weight  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_weight' );
+	$shipment_courier  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_courier' );
+	$shipment_carrier_ref_number  		= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_carrier_ref_number' );
+	$shipment_product  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_product' );
+	$shipment_qty  						= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_qty' );
+	$shipment_payment_mode  			= wpcargo_get_postmeta( $shipment->ID, 'payment_wpcargo_mode_field' );
+	$shipment_total_freight  			= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_total_freight' );
+	$shipment_mode  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_mode_field' );
+	$departure_time  			        = wpcargo_get_postmeta( $shipment->ID, 'wpcargo_departure_time_picker' );
+	$delivery_date	                    = wpcargo_get_postmeta( $shipment->ID, 'wpcargo_expected_delivery_date_picker', 'date' );
+	$shipment_comments  				= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_comments' );
+	$shipment_packages  				= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_packages' );
+	$shipment_carrier  					= wpcargo_get_postmeta( $shipment->ID, 'wpcargo_carrier_field' );
+	$pickup_date  				        = wpcargo_get_postmeta( $shipment->ID, 'wpcargo_pickup_date_picker', 'date' );
+	$pickup_time  				        = wpcargo_get_postmeta( $shipment->ID, 'wpcargo_pickup_time_picker' );
 ?>
-<div id="shipper-info" class="wpcargo-row">
-    <div class="wpcargo-col-md-6 detail-section">
-            <p id="shipper-header" class="header-title"><strong><?php echo apply_filters('result_shipper_address', esc_html__('Shipper Information', 'wpcargo')); ?></strong></p>
-            <?php do_action( 'wpcargo_before_track_shipper_data', $shipment ); ?>
-            <p class="shipper details"><?php echo esc_html( $shipper_name ); ?><br />
-            <?php echo esc_html( $shipper_address ); ?><br />
-            <?php echo esc_html( $shipper_phone ); ?><br />
-            <?php echo esc_html( $shipper_email ); ?><br /></p>
-            <?php do_action( 'wpcargo_after_track_shipper_data', $shipment ); ?>
+<div id="shipment-info" class="wpcargo-row detail-section">
+    <div class="wpcargo-col-md-12">
+    <p id="shipment-information-header" class="header-title"><strong><?php echo apply_filters('result_shipment_information', esc_html__('Shipment Information', 'wpcargo')); ?></strong></p></div>
+    <?php do_action( 'wpcargo_before_track_shipment_info_data', $shipment ); ?>
+	<div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Origin:', 'wpcargo') . ''; ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_origin ); ?></p>
     </div>
-    <div class="wpcargo-col-md-6 detail-section">
-            <p id="receiver-header" class="header-title"><strong><?php echo apply_filters('result_receiver_address', esc_html__('Receiver Information', 'wpcargo')); ?></strong></p>
-            <?php do_action( 'wpcargo_before_track_receiver_data', $shipment ); ?>
-            <p class="receiver details"><?php echo esc_html( $receiver_name ); ?><br />
-            <?php echo esc_html( $receiver_address ); ?><br />
-            <?php echo esc_html( $receiver_phone ); ?><br />
-            <?php echo esc_html( $receiver_email ); ?><br /></p>
-            <?php do_action( 'wpcargo_after_track_receiver_data', $shipment ); ?>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Package:', 'wpcargo') . ''; ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_packages ); ?></p>
     </div>
-    <div class="clear-line"></div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Status:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><span class="<?php echo str_replace( ' ','_', strtolower( esc_html( $wpcargo_status ) ) ); ?>" ><?php  echo esc_html( $wpcargo_status ); ?></span></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php  esc_html_e('Destination:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_destination ); ?></td></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Carrier:', 'wpcargo') . ''; ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_carrier ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Type of Shipment:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php  echo esc_html( $type_of_shipment ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Weight:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_weight ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Shipment Mode:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_mode ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Carrier Reference No.:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_carrier_ref_number ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Product:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_product ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Qty:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_qty ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Payment Mode:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_payment_mode ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Total Freight:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_total_freight ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Expected Delivery Date:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $delivery_date ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Departure Time:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $departure_time ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Pick-up Date:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $pickup_date ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-4">
+    	<p class="wpcargo-label"><?php esc_html_e('Pick-up Time:', 'wpcargo'); ?></p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $pickup_time ); ?></p>
+    </div>
+    <div class="wpcargo-col-md-12">
+    	<p class="wpcargo-label"><?php esc_html_e('Comments:', 'wpcargo'); ?> </p>
+        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_comments ); ?></p>
+    </div>
+    <?php do_action( 'wpcargo_after_track_shipment_info_data', $shipment ); ?>
 </div>

@@ -80,7 +80,7 @@ $is_child = get_post_meta( $shipment_id, '_parent_shipment_id', true )
 ?>
 <tr id="shipment-<?php echo $shipment_id; ?>" class="<?php echo preg_replace('/[^a-zA-Z0-9]/','_', strtolower($status));?> <?php echo $requested; ?> <?php echo $req_sp_instr; ?> <?php echo $is_child ? 'wpcc_child_shipment ' : '' ; ?>">
     <td style="width:40px;"><input class="wpcfe-shipments" type="checkbox" name="wpcfe-shipments[]" value="<?php echo $shipment_id; ?>"></td>
-    <td class="no-space">
+    <td class="no-space" style="width:140px; min-width:140px; max-width:140px; word-break:break-word;">
         <a href="/dashboard/?wpcfe-edit=<?php echo $shipment_id; ?>"><?php echo get_the_title( $shipment_id ); ?><?php echo $icon; ?>
         <br/><?php echo get_post_meta( $shipment_id, '__shipment_type', true ) ?>
     </td>

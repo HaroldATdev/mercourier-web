@@ -211,9 +211,9 @@ class MERC_Shipment_Table {
 			}
 
 			.merc-tienda-card-content {
-				max-height: 2000px;
+				max-height: 600px;
 				overflow-x: auto;
-				overflow-y: hidden;
+				overflow-y: auto;
 				-webkit-overflow-scrolling: touch;
 				transition: max-height 0.3s ease;
 				background: white;
@@ -265,6 +265,22 @@ class MERC_Shipment_Table {
 			.merc-card-select-all-th {
 				width: 32px;
 				min-width: 32px;
+			}
+
+			/* Anchos de columnas específicas para la tabla de cards */
+			.merc-tienda-card-table tbody td:nth-child(2),
+			.merc-tienda-card-table thead th:nth-child(2) {
+				width: 180px !important;
+				min-width: 180px;
+				max-width: 180px;
+				word-break: break-word;
+			}
+
+			/* Distrito destino (3ra columna) */
+			.merc-tienda-card-table tbody td:nth-child(3),
+			.merc-tienda-card-table thead th:nth-child(3) {
+				width: auto;
+				min-width: 100px;
 			}
 
 			/* Responsive: scroll horizontal en móvil */
@@ -426,6 +442,14 @@ class MERC_Shipment_Table {
 
 				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
 				const rowsForTienda = tiendas[tienda];
+				
+				// Obtener el nombre del cliente de la primera fila
+				const $firstRow = rowsForTienda[0];
+				const clienteNombre = $firstRow.find('.merc-tienda-cell').data('cliente-nombre') || '';
+				let tiendaConCliente = tienda;
+				if (clienteNombre) {
+					tiendaConCliente = tienda + ' <small style="font-weight:normal;">(' + clienteNombre + ')</small>';
+				}
 
 				// Recopilar shipment IDs específicos de las filas agrupadas
 				const shipmentIds = [];
@@ -489,7 +513,7 @@ class MERC_Shipment_Table {
 
 				const $header = $('<div class="merc-tienda-card-header"></div>').html(
 					'<div class="merc-tienda-info">' +
-					'<strong>' + tienda + '</strong>' +
+					'<strong>' + tiendaConCliente + '</strong>' +
 					'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
 					infoAdicional +
 					'</div>' +
@@ -700,6 +724,7 @@ class MERC_Shipment_Table {
 if ( class_exists( 'MERC_Shipment_Table' ) ) {
 	new MERC_Shipment_Table();
 }
+
 
 
 

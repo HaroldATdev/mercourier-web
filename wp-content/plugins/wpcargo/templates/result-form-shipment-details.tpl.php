@@ -61,11 +61,27 @@
     </div>
     <div class="wpcargo-col-md-4">
     	<p class="wpcargo-label"><?php esc_html_e('Product:', 'wpcargo'); ?></p>
-        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_product ); ?></p>
+        <p class="wpcargo-label-info"><?php 
+            // FULFILLMENT: Mostrar productos si existen
+            $fulfillment_productos = get_post_meta( $shipment->ID, '_merc_productos_multi', true );
+            if ( is_array( $fulfillment_productos ) && ! empty( $fulfillment_productos ) ) {
+                echo esc_html( implode(', ', array_map(function($p) {
+                    $product_name = isset($p['id']) ? get_the_title((int)$p['id']) : '—';
+                    $cantidad = isset($p['cantidad']) ? (int)$p['cantidad'] : 1;
+                    return $product_name . ' (x' . $cantidad . ')';
+                }, $fulfillment_productos)) );
+            } else {
+                echo esc_html( $shipment_product );
+            }
+        ?></p>
     </div>
     <div class="wpcargo-col-md-4">
     	<p class="wpcargo-label"><?php esc_html_e('Qty:', 'wpcargo'); ?></p>
-        <p class="wpcargo-label-info"><?php echo esc_html( $shipment_qty ); ?></p>
+        <p class="wpcargo-label-info"><?php 
+            // Si es fulfillment, no mostrar qty estándar 
+            $fulfillment_productos = get_post_meta( $shipment->ID, '_merc_productos_multi', true );
+            echo esc_html( ( is_array( $fulfillment_productos ) && ! empty( $fulfillment_productos ) ) ? '—' : $shipment_qty );
+        ?></p>
     </div>
     <div class="wpcargo-col-md-4">
     	<p class="wpcargo-label"><?php esc_html_e('Payment Mode:', 'wpcargo'); ?></p>

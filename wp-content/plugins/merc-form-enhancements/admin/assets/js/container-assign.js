@@ -121,7 +121,7 @@ jQuery(document).ready(function ($) {
      *
      *  tipo 'normal'          → destino: shipment_container_entrega
      *                           recojo:  shipment_container_recojo
-     *  express / full_fitment → destino: shipment_container (único)
+     *  express / full_fitment → destino/entrega: shipment_container_entrega (único)
      *                           recojo:  no aplica (null)
      * ══════════════════════════════════════════════════════════════ */
 
@@ -130,7 +130,8 @@ jQuery(document).ready(function ($) {
         if (tipo === 'normal') {
             return campo === 'destino' ? 'shipment_container_entrega' : 'shipment_container_recojo';
         }
-        return campo === 'destino' ? 'shipment_container' : null;
+        // EXPRESS / FULL_FITMENT: usar shipment_container_entrega para ambos
+        return campo === 'destino' ? 'shipment_container_entrega' : null;
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -363,4 +364,5 @@ jQuery(document).ready(function ($) {
         }, 4000);
     }
 });
+
 

@@ -18,6 +18,89 @@ if (!file_exists($merc_log_dir)) {
 $today_log = $merc_log_dir . '/merc-debug-' . date('Y-m-d') . '.log';
 @ini_set('error_log', $today_log);
 
+// Incluir historial de motorizados
+require_once(__DIR__ . '/merc-motorizado-historial.php');
+
+// ── Deshabilitar todos los selects e inputs de shipper_info ──────────────────────
+// COMENTADO TEMPORALMENTE para pruebas - descomentar cuando sea necesario deshabilitar campos
+/*
+add_action('admin_footer', 'merc_disable_shipper_info_fields');
+add_action('wp_footer', 'merc_disable_shipper_info_fields');
+function merc_disable_shipper_info_fields() {
+    ?>
+    <script>
+    (function() {
+        // Deshabilitar visualmente todos los selects e inputs dentro de shipper_info
+        var disableShipperFields = function() {
+            var shipperSection = document.getElementById('shipper_info');
+            if (shipperSection) {
+                // Deshabilitar selects
+                var selects = shipperSection.querySelectorAll('select');
+                selects.forEach(function(select) {
+                    select.disabled = true;
+                    select.style.backgroundColor = '#f0f0f0';
+                    select.style.cursor = 'not-allowed';
+                    select.setAttribute('data-shipper-field', 'true');
+                });
+                
+                // Deshabilitar inputs
+                var inputs = shipperSection.querySelectorAll('input');
+                inputs.forEach(function(input) {
+                    input.disabled = true;
+                    input.style.backgroundColor = '#f0f0f0';
+                    input.style.cursor = 'not-allowed';
+                    input.setAttribute('data-shipper-field', 'true');
+                });
+                
+                // Deshabilitar textareas
+                var textareas = shipperSection.querySelectorAll('textarea');
+                textareas.forEach(function(textarea) {
+                    textarea.disabled = true;
+                    textarea.style.backgroundColor = '#f0f0f0';
+                    textarea.style.cursor = 'not-allowed';
+                    textarea.setAttribute('data-shipper-field', 'true');
+                });
+            }
+        };
+        
+        // Ejecutar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', disableShipperFields);
+        } else {
+            disableShipperFields();
+        }
+        
+        // También ejecutar periódicamente en caso de que los elementos se agreguen dinámicamente
+        setTimeout(disableShipperFields, 500);
+        setTimeout(disableShipperFields, 1000);
+        
+        // Habilitar campos deshabilitados antes de enviar para que se guarden los datos
+        document.addEventListener('submit', function(e) {
+            var shipperFields = document.querySelectorAll('[data-shipper-field="true"]');
+            shipperFields.forEach(function(field) {
+                field.disabled = false;
+            });
+        }, true); // Usar captura para intercpetar antes
+        
+        // También para AJAX, habilitar antes de enviar
+        var originalFetch = window.fetch;
+        window.fetch = function() {
+            var shipperFields = document.querySelectorAll('[data-shipper-field="true"]');
+            shipperFields.forEach(function(field) {
+                field.disabled = false;
+            });
+            return originalFetch.apply(this, arguments).then(function(response) {
+                // Volver a deshabilitar después de la respuesta
+                setTimeout(disableShipperFields, 100);
+                return response;
+            });
+        };
+    })();
+    </script>
+    <?php
+}
+*/
+
 // ── Restringir acceso al admin de WordPress solo a un correo ──────────────
 add_action( 'init', function() {
     // Solo aplicar en el área de administración
@@ -4863,10 +4946,23 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     global $wpdb;
 
     // DEBUG: Ver qué fechas llegan a la función
-
-
-    // Usar el rango de fechas personalizado
-    $date_query = merc_get_date_range_query( $fecha_inicio, $fecha_fin );
+    
+    // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
+    $date_query = '';
+    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
+        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
+        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+        $date_query = "AND EXISTS(
+            SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+            WHERE pm_pickup.post_id = p.ID 
+            AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+            AND (
+                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
+                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
+            )
+        )";
+    }
+    
     $extra_join = '';
     $extra_where = '';
     // Para la vista ingresos_envios, forzar filtro por la meta wpcargo_pickup_date_picker (hoy)
@@ -5286,7 +5382,21 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
 function merc_admin_vista_detalle($tipo_vista, $fecha_inicio, $fecha_fin, $filtro_estado) {
     global $wpdb;
     
-    $date_query = merc_get_date_range_query( $fecha_inicio, $fecha_fin );
+    // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
+    $date_query = '';
+    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
+        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
+        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+        $date_query = "AND EXISTS(
+            SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+            WHERE pm_pickup.post_id = p.ID 
+            AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+            AND (
+                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
+                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
+            )
+        )";
+    }
     
     $titulo = '';
     $columnas = array();
@@ -5407,7 +5517,24 @@ function merc_admin_vista_detalle($tipo_vista, $fecha_inicio, $fecha_fin, $filtr
                     $monto = (floatval($vals['pago_merc']) + floatval($vals['pos'])) - floatval($vals['servicio']);
                     if ( $monto <= 0 ) continue;
                     $total_general += $monto;
-                    $cliente_nombre = $cid ? get_userdata($cid)->display_name : 'N/A';
+                    
+                    // Cliente: Nombre de empresa + (nombre y apellido)
+                    if ($cid) {
+                        $client_user = get_userdata($cid);
+                        $client_company = get_user_meta($cid, 'billing_company', true);
+                        $client_first_name = $client_user->first_name;
+                        $client_last_name = $client_user->last_name;
+                        if ($client_company && ($client_first_name || $client_last_name)) {
+                            $cliente_nombre = $client_company . ' (' . trim($client_first_name . ' ' . $client_last_name) . ')';
+                        } elseif ($client_company) {
+                            $cliente_nombre = $client_company;
+                        } else {
+                            $cliente_nombre = trim($client_first_name . ' ' . $client_last_name) ?: $client_user->display_name;
+                        }
+                    } else {
+                        $cliente_nombre = 'N/A';
+                    }
+                    
                     // Determinar si existe una liquidación verificada que cubra estos envíos
                     $estado_cliente = 'Pendiente';
                     $liq_voucher_html = '';
@@ -5486,8 +5613,34 @@ function merc_admin_vista_detalle($tipo_vista, $fecha_inicio, $fecha_fin, $filtr
                 $totales = get_payment_totals_by_method($shipment->ID);
                 // Mostrar POS neto guardado
                 $pos_display = get_pos_net_for_shipment( $shipment->ID, $totales );
-                $cliente_nombre = $shipment->shipper_id ? get_userdata($shipment->shipper_id)->display_name : 'N/A';
-                $motorizado_nombre = $shipment->driver_id ? get_userdata($shipment->driver_id)->display_name : 'Sin asignar';
+                
+                // Cliente: Nombre de empresa + (nombre y apellido)
+                if ($shipment->shipper_id) {
+                    $shipper_user = get_userdata($shipment->shipper_id);
+                    $shipper_company = get_user_meta($shipment->shipper_id, 'billing_company', true);
+                    $shipper_first_name = $shipper_user->first_name;
+                    $shipper_last_name = $shipper_user->last_name;
+                    if ($shipper_company && ($shipper_first_name || $shipper_last_name)) {
+                        $cliente_nombre = $shipper_company . ' (' . trim($shipper_first_name . ' ' . $shipper_last_name) . ')';
+                    } elseif ($shipper_company) {
+                        $cliente_nombre = $shipper_company;
+                    } else {
+                        $cliente_nombre = trim($shipper_first_name . ' ' . $shipper_last_name) ?: $shipper_user->display_name;
+                    }
+                } else {
+                    $cliente_nombre = 'N/A';
+                }
+                
+                // Motorizado: Nombre y apellido (o display_name si no están disponibles)
+                if ($shipment->driver_id) {
+                    $driver_user = get_userdata($shipment->driver_id);
+                    $driver_first_name = $driver_user->first_name;
+                    $driver_last_name = $driver_user->last_name;
+                    $motorizado_nombre = trim($driver_first_name . ' ' . $driver_last_name) ?: $driver_user->display_name;
+                } else {
+                    $motorizado_nombre = 'Sin asignar';
+                }
+                
                 $fecha = date('d/m/Y', strtotime($shipment->post_date));
                 
                 // Filtrar según el tipo de vista
@@ -5877,6 +6030,12 @@ function merc_check_tipo_normal_blocked($client_id, $tipo_envio = 'normal') {
     $hora_actual = current_time('H:i');
     
     error_log("🔍 [NORMAL] Verificando bloqueo para cliente #{$client_id} - Hora: {$hora_actual}");
+    // Respetar bypass global si un admin activó 'merc_skip_blocks_today'
+    $skip_today = get_option('merc_skip_blocks_today', '');
+    if ($skip_today && $skip_today === merc_get_today()) {
+        error_log("💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para {$skip_today} - Permitido por script (NORMAL)");
+        return false;
+    }
     
     // VERIFICAR DESBLOQUEO MANUAL PRIMERO (si fue desbloqueado manualmente por tiempo, permitir)
     $desbloqueo_manual_hasta = get_user_meta($client_id, 'merc_desbloqueo_manual_hasta', true);
@@ -5934,6 +6093,12 @@ function merc_check_tipo_express_blocked($client_id, $tipo_envio = 'express') {
     $hora_actual = current_time('H:i');
     
     error_log("🔍 [EXPRESS] Verificando bloqueo para cliente #{$client_id} - Hora: {$hora_actual}");
+    // Respetar bypass global si un admin activó 'merc_skip_blocks_today'
+    $skip_today = get_option('merc_skip_blocks_today', '');
+    if ($skip_today && $skip_today === merc_get_today()) {
+        error_log("💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para {$skip_today} - Permitido por script (EXPRESS)");
+        return false;
+    }
     
     // VERIFICAR DESBLOQUEO MANUAL PRIMERO (si fue desbloqueado manualmente por tiempo, permitir)
     $desbloqueo_manual_hasta = get_user_meta($client_id, 'merc_desbloqueo_manual_hasta', true);
@@ -5977,6 +6142,12 @@ function merc_check_tipo_full_fitment_blocked($client_id, $tipo_envio = 'full_fi
     $hora_actual = current_time('H:i');
     
     error_log("🔍 [FULL_FITMENT] Verificando bloqueo para cliente #{$client_id} - Hora: {$hora_actual}");
+    // Respetar bypass global si un admin activó 'merc_skip_blocks_today'
+    $skip_today = get_option('merc_skip_blocks_today', '');
+    if ($skip_today && $skip_today === merc_get_today()) {
+        error_log("💡 SALTO GLOBAL DE BLOQUEOS: opción 'merc_skip_blocks_today' activa para {$skip_today} - Permitido por script (FULL_FITMENT)");
+        return false;
+    }
     
     // VERIFICAR DESBLOQUEO MANUAL PRIMERO (si fue desbloqueado manualmente por tiempo, permitir)
     $desbloqueo_manual_hasta = get_user_meta($client_id, 'merc_desbloqueo_manual_hasta', true);
@@ -7631,7 +7802,23 @@ function merc_persistent_panel_navigation() {
 
 function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_motorizado ) {
     global $wpdb;
-    $date_query   = merc_get_date_range_query( $fecha_inicio, $fecha_fin );
+    
+    // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
+    $pickup_date_filter = '';
+    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
+        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
+        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+        $pickup_date_filter = "AND EXISTS(
+            SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+            WHERE pm_pickup.post_id = p.ID 
+            AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+            AND (
+                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
+                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
+            )
+        )";
+    }
+    
     $driver_query = $filtro_motorizado > 0 ? $wpdb->prepare( 'AND pm_entrega.meta_value = %s', $filtro_motorizado ) : '';
 
     // Buscar motorizados que tengan envíos como 'wpcargo_motorizo_entrega' (solo entregas)
@@ -7645,7 +7832,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
         AND pm_entrega.meta_value IS NOT NULL
-        $date_query
+        $pickup_date_filter
         $driver_query
         GROUP BY pm_entrega.meta_value
         ORDER BY total_entregas DESC
@@ -7653,8 +7840,8 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
 
     error_log('🔍 [MERC_ADMIN_CARDS] drivers_sql: ' . preg_replace('/\s+/', ' ', trim($drivers_sql)) );
 
-    // DEBUG: obtener hasta 10 envíos que coincidan con el date_query para inspeccionar metas de entrega
-    $sample_sql = "SELECT p.ID FROM {$wpdb->posts} p WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' $date_query LIMIT 10";
+    // DEBUG: obtener hasta 10 envíos que coincidan con el filtro de pickup_date_picker para inspeccionar metas de entrega
+    $sample_sql = "SELECT p.ID FROM {$wpdb->posts} p WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' $pickup_date_filter LIMIT 10";
     $sample_ids = $wpdb->get_col( $sample_sql );
     error_log('🔍 [MERC_ADMIN_CARDS] sample_ids_count: ' . count($sample_ids));
     if ( ! empty( $sample_ids ) ) {
@@ -7682,7 +7869,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
         }
 
         // Traer envíos del motorizado (solo envíos donde fue motorizado de entrega)
-        // Evitar usar prepare() aquí porque $date_query puede contener patrones '%' (STR_TO_DATE).
+        // Filtrar SOLO por wpcargo_pickup_date_picker (sin fallback a post_date)
         $driver_id_sql = esc_sql( intval( $driver->driver_id ) );
         $sql = "SELECT p.ID,
                    pm_estado_motorizado.meta_value AS estado
@@ -7696,7 +7883,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
             AND pm_entrega.meta_value = '" . $driver_id_sql . "'
-            $date_query";
+            $pickup_date_filter";
 
         $shipments = $wpdb->get_results( $sql );
         
@@ -7745,10 +7932,9 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
             $pago_marca_total+= $totales['pago_marca'];
             $pos_total       += $pos_display;
 
-            // Mostrar en la tabla si tiene dinero recaudado (efectivo, merc, marca o pos)
-            if ( $totales['total'] > 0 ) {
-                $entregas_pendientes[] = $shipment;
-            }
+            // Agregar TODOS los envíos del motorizado (con o sin dinero recaudado)
+            // para que se vea claramente cuáles entregó y cuáles no
+            $entregas_pendientes[] = $shipment;
         }
         
         error_log("   Totales del motorizado: Total=" . $tot_recaudado . ", Efectivo=" . $efectivo_total . ", MERC=" . $pago_merc_total . ", MARCA=" . $pago_marca_total . ", POS=" . $pos_total);
@@ -7760,10 +7946,10 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
         <?php $card_id = 'merc_card_driver_' . $driver->driver_id . '_' . sanitize_title( $driver_user->display_name ); ?>
         <div class="merc-user-card" style="width:100%;box-sizing:border-box;margin-bottom:12px;border-left-color:#2980b9;">
             <div class="merc-user-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" data-target="#<?php echo esc_attr( $card_id ); ?>">
-                <div><h4 style="margin:0;">🚗 <?php echo esc_html( $driver_display ); ?></h4><span class="badge badge-info" style="margin-left:8px;"><?php echo esc_html( count( $entregas_pendientes ) ); ?> envíos con efectivo</span></div>
+                <div><h4 style="margin:0;">🚗 <?php echo esc_html( $driver_display ); ?></h4><span class="badge badge-info" style="margin-left:8px;"><?php echo esc_html( count( $entregas_pendientes ) ); ?> envíos</span></div>
                 <div class="merc-card-toggle" style="font-size:18px;padding-left:8px;">▾</div>
             </div>
-            <div id="<?php echo esc_attr( $card_id ); ?>" class="merc-user-body" style="display:block;padding:10px;">
+            <div id="<?php echo esc_attr( $card_id ); ?>" class="merc-user-body" style="display:none;padding:10px;">
             <div class="merc-user-stats">
                 <div class="merc-stat-item">
                     <div class="merc-stat-label">Total Recaudado</div>
@@ -7792,7 +7978,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
             <?php if ( ! empty( $entregas_pendientes ) ) : ?>
                 <div class="mt-3">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h6 style="margin: 0;">Envíos con Efectivo por Entregar:</h6>
+                        <h6 style="margin: 0;">📋 Todos los Envíos del Motorizado (Entregados y No Entregados):</h6>
                         <?php if ( $efectivo_total > 0 ) : ?>
                         <button class="merc-btn-liquidar-todo" 
                                 data-user-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
@@ -7916,7 +8102,23 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
 
 function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_cliente ) {
     global $wpdb;
-    $date_query   = merc_get_date_range_query( $fecha_inicio, $fecha_fin );
+    
+    // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
+    $date_query = '';
+    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
+        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
+        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+        $date_query = "AND EXISTS(
+            SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+            WHERE pm_pickup.post_id = p.ID 
+            AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+            AND (
+                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
+                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
+            )
+        )";
+    }
+    
     $client_query = $filtro_cliente > 0 ? $wpdb->prepare( 'AND pm_sender.meta_value = %s', $filtro_cliente ) : '';
 
     $clients_sql = "
@@ -7964,13 +8166,14 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
             continue;
         }
 
-        $shipments = $wpdb->get_results( $wpdb->prepare( "
+        $shipments_sql = "
             SELECT p.ID,
                    pm_producto.meta_value         AS costo_producto,
                    pm_envio.meta_value            AS costo_envio,
                    pm_quien_paga.meta_value       AS quien_paga,
-                   pm_included.meta_value AS estado_remitente,
-                   pm_cliente_pago_a.meta_value   AS cliente_pago_a
+                   pm_included.meta_value         AS estado_remitente,
+                   pm_cliente_pago_a.meta_value   AS cliente_pago_a,
+                   pm_total.meta_value            AS wpcargo_total_cobrar
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm_sender 
                 ON p.ID = pm_sender.post_id AND pm_sender.meta_key = 'registered_shipper'
@@ -7984,11 +8187,15 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 ON p.ID = pm_included.post_id AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
             LEFT JOIN {$wpdb->postmeta} pm_cliente_pago_a 
                 ON p.ID = pm_cliente_pago_a.post_id AND pm_cliente_pago_a.meta_key = 'wpcargo_cliente_pago_a'
+            LEFT JOIN {$wpdb->postmeta} pm_total 
+                ON p.ID = pm_total.post_id AND pm_total.meta_key = 'wpcargo_total_cobrar'
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
-            AND pm_sender.meta_value = %s
+            AND pm_sender.meta_value = '" . esc_sql($client->client_id) . "'
             $date_query
-        ", $client->client_id ) );
+        ";
+        
+        $shipments = $wpdb->get_results( $shipments_sql );
 
         $por_cobrar       = 0.0;
         $por_pagar        = 0.0;
@@ -7997,6 +8204,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
         $pago_marca_total = 0.0;
         $pos_total        = 0.0;
         $pendientes       = array();
+        $todos_envios     = array();
 
         foreach ( $shipments as $shipment ) {
             $producto   = floatval( $shipment->costo_producto );
@@ -8010,10 +8218,19 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 continue;
             }
 
+            $totales_shipment = get_payment_totals_by_method( $shipment->ID );
+            $monto_total = $totales_shipment['total'];
+            
+            // Agregar a tabla de TODOS los envios
+            $todos_envios[] = array(
+                'id'              => $shipment->ID,
+                'titulo'          => get_the_title( $shipment->ID ),
+                'monto'           => $envio,
+                'monto_concepto'  => $monto_total,
+                'tipo'            => ( $quien_paga === 'cliente_final' ? 'cobrar' : 'pagar' ),
+            );
+
             if ( $estado === 'pendiente' ) {
-                $totales_shipment = get_payment_totals_by_method( $shipment->ID );
-                $monto_total = $totales_shipment['total'];
-                
                 if ( $quien_paga === 'cliente_final' && $producto > 0 ) {
                     $por_cobrar += $producto;
                     $pendientes[] = array(
@@ -8056,9 +8273,17 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
         ?>
 		<?php
 		$billing_company = get_user_meta( $client_user->ID, 'billing_company', true );
-		$display_name = ! empty( $billing_company ) 
-			? $billing_company 
-			: get_user_meta( $client_user->ID, 'billing_first_name', true ) . ' ' . get_user_meta( $client_user->ID, 'billing_last_name', true );
+		$billing_first_name = $client_user->first_name;
+		$billing_last_name = $client_user->last_name;
+		
+		// Mostrar empresa (nombre y apellido) o solo nombre y apellido
+		if (!empty($billing_company) && (!empty($billing_first_name) || !empty($billing_last_name))) {
+			$display_name = $billing_company . ' (' . trim($billing_first_name . ' ' . $billing_last_name) . ')';
+		} elseif (!empty($billing_company)) {
+			$display_name = $billing_company;
+		} else {
+			$display_name = trim($billing_first_name . ' ' . $billing_last_name) ?: $client_user->display_name;
+		}
 		?>
         <?php $card_id = 'merc_card_client_' . $client->client_id . '_' . sanitize_title( $client_user->display_name ); ?>
         <div class="merc-user-card" style="border-left-color: #27ae60;width:100%;box-sizing:border-box;margin-bottom:12px;">
@@ -8066,7 +8291,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 <div><h4 style="margin:0;">🏢 <?php echo esc_html( $display_name ); ?></h4><span class="badge badge-secondary" style="margin-left:8px;"><?php echo esc_html( $client->total_envios ); ?> envíos</span></div>
                 <div class="merc-card-toggle" style="font-size:18px;padding-left:8px;">▾</div>
             </div>
-            <div id="<?php echo esc_attr( $card_id ); ?>" class="merc-user-body" style="display:block;padding:10px;">
+            <div id="<?php echo esc_attr( $card_id ); ?>" class="merc-user-body" style="display:none;padding:10px;">
             <div class="merc-user-stats">
                 <div class="merc-stat-item">
                     <div class="merc-stat-label">Por Cobrar (Productos)</div>
@@ -8100,28 +8325,27 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 </div>
             </div>
 
-            <?php if ( ! empty( $pendientes ) ) : ?>
+            <?php if ( ! empty( $todos_envios ) ) : ?>
                 <div class="mt-3">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h6 style="margin: 0;">Pagos Pendientes:</h6>
-                        <?php if ( $balance_neto > 0 ) : // Mostrar solo cuando MERC debe PAGAR al cliente; ocultar opción de cobrar al cliente ?>
-                            <button class="merc-btn-liquidar-todo" 
-                                    data-user-id="<?php echo esc_attr( $client->client_id ); ?>" 
-                                    data-tipo="remitente"
-                                    data-monto="<?php echo number_format( $total_por_liquidar, 2 ); ?>"
-                                    style="background: #27ae60;">
-                                💰
-                                <?php echo esc_html( $btn_text ); ?>
-                            </button>
-                        <?php endif; ?>
-                    </div>
-                        <?php
-                        $current_user = wp_get_current_user();
-                        $is_admin = current_user_can('administrator');
-                        $is_client = in_array('wpcargo_client', (array) $current_user->roles);
-                        $show_comprobante = ! $is_admin;
-                        ?>
-                        <table class="table table-sm merc-entregas-table">
+                    <h6 style="margin: 0; margin-bottom: 15px;">📦 Todos los Envíos:</h6>
+                    <?php if ( $balance_neto > 0 ) : // Mostrar solo cuando MERC debe PAGAR al cliente; ocultar opción de cobrar al cliente ?>
+                        <button class="merc-btn-liquidar-todo" 
+                                data-user-id="<?php echo esc_attr( $client->client_id ); ?>" 
+                                data-tipo="remitente"
+                                data-monto="<?php echo number_format( $total_por_liquidar, 2 ); ?>"
+                                style="background: #27ae60; margin-bottom: 15px;">
+                            💰
+                            <?php echo esc_html( $btn_text ); ?>
+                        </button>
+                    <?php endif; ?>
+                    
+                    <?php
+                    $current_user = wp_get_current_user();
+                    $is_admin = current_user_can('administrator');
+                    $is_client = in_array('wpcargo_client', (array) $current_user->roles);
+                    $show_comprobante = ! $is_admin;
+                    ?>
+                    <table class="table table-sm merc-entregas-table">
                         <thead>
                             <tr>
                                 <th>Pedido</th>
@@ -8147,27 +8371,27 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                             $subtotal_monto     = 0;
                             $subtotal_concepto  = 0;
 
-                            foreach ( $pendientes as $pendiente ) : 
-                                $totales_pendiente = get_payment_totals_by_method( $pendiente['id'] );
-                                $estado_texto = ( $pendiente['tipo'] === 'cobrar' ) ? 'Por cobrar' : 'Por pagar';
-                                $color_estado = ( $pendiente['tipo'] === 'cobrar' ) ? '#27ae60' : '#e74c3c';
+                            foreach ( $todos_envios as $envio_item ) : 
+                                $totales_pendiente = get_payment_totals_by_method( $envio_item['id'] );
+                                $estado_texto = ( $envio_item['tipo'] === 'cobrar' ) ? 'Por cobrar' : 'Por pagar';
+                                $color_estado = ( $envio_item['tipo'] === 'cobrar' ) ? '#27ae60' : '#e74c3c';
                                 
                                 // Verificar si el servicio ya fue cobrado
-                                $servicio_cobrado = get_post_meta( $pendiente['id'], 'wpcargo_servicio_cobrado', true );
+                                $servicio_cobrado = get_post_meta( $envio_item['id'], 'wpcargo_servicio_cobrado', true );
                                 $color_servicio = $servicio_cobrado ? '#27ae60' : '#e74c3c';
 
                                 $subtotal_efectivo  += $totales_pendiente['efectivo'];
                                 $subtotal_merc      += $totales_pendiente['pago_merc'];
                                 $subtotal_marca     += $totales_pendiente['pago_marca'];
                                 $subtotal_pos       += $totales_pendiente['pos'];
-                                $subtotal_monto     += $pendiente['monto'];
-                                $subtotal_concepto  += $pendiente['monto_concepto'];
+                                $subtotal_monto     += $envio_item['monto'];
+                                $subtotal_concepto  += $envio_item['monto_concepto'];
                                 ?>
                                 <tr>
                                     <?php
-									$tracking_num_cli = $pendiente['titulo'];
+									$tracking_num_cli = $envio_item['titulo'];
 									$tracking_url_cli = home_url( '/dashboard/?wpcfe=track&num=' . $tracking_num_cli );
-									$estado_envio_cli = get_post_meta( $pendiente['id'], 'wpcargo_status', true ) ?: '—';
+									$estado_envio_cli = get_post_meta( $envio_item['id'], 'wpcargo_status', true ) ?: '—';
 									?>
 									<td>
 										<a href="<?php echo esc_url( $tracking_url_cli ); ?>" target="_blank"
@@ -8182,34 +8406,34 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
 											<?php echo esc_html( $estado_envio_cli ); ?>
 										</span>
 									</td>
-                                    <td><strong>S/. <?php echo number_format( $pendiente['monto_concepto'], 2 ); ?></strong></td>
+                                    <td><strong>S/. <?php echo number_format( $envio_item['monto_concepto'], 2 ); ?></strong></td>
                                     <td>
                                         S/. <?php echo number_format( $totales_pendiente['efectivo'], 2 ); ?>
-                                        <?php if ( $totales_pendiente['efectivo'] > 0 && $is_admin && merc_shipment_method_has_image( $pendiente['id'], 'efectivo' ) ) : ?>
-                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $pendiente['id']; ?>" data-tipo="efectivo" title="Ver voucher">👁️</button>
+                                        <?php if ( $totales_pendiente['efectivo'] > 0 && $is_admin && merc_shipment_method_has_image( $envio_item['id'], 'efectivo' ) ) : ?>
+                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $envio_item['id']; ?>" data-tipo="efectivo" title="Ver voucher">👁️</button>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         S/. <?php echo number_format( $totales_pendiente['pago_merc'], 2 ); ?>
-                                        <?php if ( $totales_pendiente['pago_merc'] > 0 && $is_admin && merc_shipment_method_has_image( $pendiente['id'], 'pago_merc' ) ) : ?>
-                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $pendiente['id']; ?>" data-tipo="pago_merc" title="Ver voucher">👁️</button>
+                                        <?php if ( $totales_pendiente['pago_merc'] > 0 && $is_admin && merc_shipment_method_has_image( $envio_item['id'], 'pago_merc' ) ) : ?>
+                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $envio_item['id']; ?>" data-tipo="pago_merc" title="Ver voucher">👁️</button>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         S/. <?php echo number_format( $totales_pendiente['pago_marca'], 2 ); ?>
-                                            <?php if ( $totales_pendiente['pago_marca'] > 0 && $is_admin && merc_shipment_method_has_image( $pendiente['id'], 'pago_marca' ) ) : ?>
-                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $pendiente['id']; ?>" data-tipo="pago_marca" title="Ver voucher">👁️</button>
+                                            <?php if ( $totales_pendiente['pago_marca'] > 0 && $is_admin && merc_shipment_method_has_image( $envio_item['id'], 'pago_marca' ) ) : ?>
+                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $envio_item['id']; ?>" data-tipo="pago_marca" title="Ver voucher">👁️</button>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         S/. <?php echo number_format( $totales_pendiente['pos'], 2 ); ?>
-                                            <?php if ( $totales_pendiente['pos'] > 0 && $is_admin && merc_shipment_method_has_image( $pendiente['id'], 'pos' ) ) : ?>
-                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $pendiente['id']; ?>" data-tipo="pos" title="Ver voucher">👁️</button>
+                                            <?php if ( $totales_pendiente['pos'] > 0 && $is_admin && merc_shipment_method_has_image( $envio_item['id'], 'pos' ) ) : ?>
+                                            <button class="merc-btn-ver-voucher" data-shipment-id="<?php echo $envio_item['id']; ?>" data-tipo="pos" title="Ver voucher">👁️</button>
                                         <?php endif; ?>
                                     </td>
-                                    <td><strong style="color: <?php echo $color_servicio; ?>;">S/. <?php echo number_format( $pendiente['monto'], 2 ); ?></strong></td>
+                                    <td><strong style="color: <?php echo $color_servicio; ?>;">S/. <?php echo number_format( $envio_item['monto'], 2 ); ?></strong></td>
                                     <?php if ( $show_comprobante ) : ?>
-                                        <td><?php echo merc_get_shipment_voucher_thumb_html( $pendiente['id'] ); ?></td>
+                                        <td><?php echo merc_get_shipment_voucher_thumb_html( $envio_item['id'] ); ?></td>
                                     <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
@@ -8476,7 +8700,7 @@ function merc_admin_liquidaciones( $fecha_inicio = '', $fecha_fin = '', $filtro_
         echo '<div><h4 style="margin:0;">🏢 ' . esc_html( $label ) . '</h4><span class="badge badge-secondary" style="margin-left:8px;">' . intval( $count_entries ) . ' entradas</span></div>';
         echo '<div class="merc-card-toggle" style="font-size:18px;padding-left:8px;">▾</div>';
         echo '</div>';
-        echo '<div id="' . esc_attr( $card_id ) . '" class="merc-user-body" style="display:block;padding:10px;">';
+        echo '<div id="' . esc_attr( $card_id ) . '" class="merc-user-body" style="display:none;padding:10px;">';
         echo '<div style="margin-bottom:8px;color:#333;">Total histórico: <strong>S/. ' . number_format( $total_amount, 2 ) . '</strong></div>';
 
         echo '<table class="table table-sm merc-liquidations-table"><thead><tr><th>ID</th><th>Fecha</th><th>Resultado</th><th>Monto</th><th>Acción</th><th>Comprobante</th></tr></thead><tbody>';
@@ -11208,6 +11432,7 @@ function merc_get_all_container_shipments($container_id) {
     return array_unique(array_merge($shipments_recojo, $shipments_entrega));
 }
 
+
 /**
  * ========================================
  * LIMPIEZA DIARIA DE MOTORIZADO RECOJO
@@ -11217,31 +11442,58 @@ function merc_get_all_container_shipments($container_id) {
  * de todos los usuarios porque la asignación es manual y diaria
  */
 
-// Registrar el evento programado si no existe (se ejecuta a las 00:01 hora de Perú)
+// Registrar el evento programado - FUERZA UTC (05:01 UTC = 00:01 Perú)
 add_action('init', function() {
-    if (!wp_next_scheduled('merc_daily_cleanup_motorizo_default')) {
-        error_log("🔧 Registrando evento programado: merc_daily_cleanup_motorizo_default");
-        
-        // Calcular próximo tiempo de ejecución a las 00:01 hora local
-        $current_local = current_time('timestamp');
-        $today_at_0001 = strtotime('today 00:01', $current_local);
-        
-        // Si ya pasó las 00:01 hoy, programar para mañana
-        if ($today_at_0001 < $current_local) {
-            $next_run = strtotime('+1 day', $today_at_0001);
-        } else {
-            $next_run = $today_at_0001;
-        }
-        
-        // Convertir a UTC para WordPress
-        $utc_timestamp = $next_run - (get_option('gmt_offset') * HOUR_IN_SECONDS);
-        
-        error_log("   📅 Próxima ejecución programada: " . date('Y-m-d H:i:s', $next_run) . ' (Perú)');
-        error_log("   🌍 Timestamp UTC: " . $utc_timestamp);
-        
-        wp_schedule_event($utc_timestamp, 'daily', 'merc_daily_cleanup_motorizo_default');
+    // LIMPIAR evento anterior si existe
+    $timestamp = wp_next_scheduled('merc_daily_cleanup_motorizo_default');
+    if ($timestamp) {
+        wp_unschedule_event($timestamp, 'merc_daily_cleanup_motorizo_default');
+        error_log('[MERC CLEANUP SCHEDULE] Evento anterior removido que estaba en: ' . gmdate('Y-m-d H:i:s', $timestamp));
     }
+    
+    // Calcular próximo tiempo de ejecución a las 05:01 UTC
+    // Usar strtotime con zona UTC para mayor confiabilidad
+    $current_time = time();
+    $today_utc = gmdate('Y-m-d', $current_time);
+    $target_time_today = strtotime($today_utc . ' 05:01:00 UTC');
+    
+    // Si ya pasó hoy, programar para mañana
+    if ($target_time_today <= $current_time) {
+        $target_time_today = strtotime('+1 day', $target_time_today);
+    }
+    
+    // Programar el evento
+    wp_schedule_event($target_time_today, 'daily', 'merc_daily_cleanup_motorizo_default');
+    
+    error_log('[MERC CLEANUP SCHEDULE] ✅ Evento programado para: ' . gmdate('Y-m-d H:i:s e', $target_time_today) . ' (UTC) | Hora Perú: ' . date('Y-m-d H:i:s', $target_time_today - (5*3600)));
 });
+
+/**
+ * Guardar histórico de cambios de motorizados en un envío
+ * @param int $shipment_id ID del envío
+ * @param string $tipo 'recojo' o 'entrega'
+ * @param int $motorizado_anterior ID del motorizado anterior (0 si estaba vacío)
+ * @param int $motorizado_nuevo ID del nuevo motorizado (0 si se borró)
+ * @param string $razon Motivo del cambio (ej: 'reprogramado', 'limpieza_diaria', 'manual')
+ */
+function merc_add_motorizado_history($shipment_id, $tipo, $motorizado_anterior, $motorizado_nuevo, $razon = 'manual') {
+    $historia = get_post_meta($shipment_id, 'merc_motorizado_historia', true);
+    if (!is_array($historia)) {
+        $historia = [];
+    }
+    
+    $entrada = [
+        'timestamp' => current_time('Y-m-d H:i:s'),
+        'tipo' => $tipo,
+        'de' => intval($motorizado_anterior) ?: 0,
+        'a' => intval($motorizado_nuevo) ?: 0,
+        'razon' => $razon,
+        'usuario' => get_current_user_id()
+    ];
+    
+    $historia[] = $entrada;
+    update_post_meta($shipment_id, 'merc_motorizado_historia', $historia);
+}
 
 // Hook que se ejecuta diariamente
 add_action('merc_daily_cleanup_motorizo_default', 'merc_cleanup_motorizo_recojo_default');
@@ -11249,10 +11501,12 @@ function merc_cleanup_motorizo_recojo_default() {
     global $wpdb;
     
     error_log("\n════════════════════════════════════════════════════════════");
-    error_log("🧹 [LIMPIEZA DIARIA] Eliminando merc_motorizo_recojo_default de todos los usuarios");
+    error_log("🧹 [LIMPIEZA DIARIA] Fase 1: Eliminando merc_motorizo_recojo_default de usuarios");
     error_log("════════════════════════════════════════════════════════════");
     
-    // Obtener todos los usuarios que tienen merc_motorizo_recojo_default
+    // ══════════════════════════════════════════════════════════════════
+    // FASE 1: Limpiar motorizado default de usuarios
+    // ══════════════════════════════════════════════════════════════════
     $users_with_driver = $wpdb->get_col(
         "SELECT DISTINCT user_id FROM {$wpdb->usermeta} 
         WHERE meta_key = 'merc_motorizo_recojo_default'"
@@ -11274,12 +11528,82 @@ function merc_cleanup_motorizo_recojo_default() {
     }
     
     error_log("🔄 Total usuarios limpios: $deleted_count");
+    
+    // ══════════════════════════════════════════════════════════════════
+    // FASE 2: Limpiar motorizados de envíos NO entregados de hoy
+    // ══════════════════════════════════════════════════════════════════
+    error_log("\n🧹 [LIMPIEZA DIARIA] Fase 2: Limpiando motorizados de envíos no entregados de hoy");
+    
+    $hoy = current_time('Y-m-d');
+    $shipments = get_posts([
+        'post_type' => 'wpcargo_shipment',
+        'posts_per_page' => -1,
+        'date_query' => [
+            [
+                'year' => intval(date('Y', strtotime($hoy))),
+                'month' => intval(date('m', strtotime($hoy))),
+                'day' => intval(date('d', strtotime($hoy)))
+            ]
+        ]
+    ]);
+    
+    error_log("📦 Envíos creados hoy: " . count($shipments));
+    
+    $cleaned_count = 0;
+    foreach ($shipments as $shipment) {
+        // Obtener estado del envío
+        $estado = get_post_meta($shipment->ID, 'wpcargo_status', true);
+        
+        // Si el estado es ENTREGADO, no tocar
+        if (strtoupper($estado) === 'ENTREGADO') {
+            continue;
+        }
+        
+        // Limpiar motorizado de RECOJO
+        $motorizado_recojo_anterior = get_post_meta($shipment->ID, 'wpcargo_motorizo_recojo', true);
+        if (!empty($motorizado_recojo_anterior)) {
+            delete_post_meta($shipment->ID, 'wpcargo_motorizo_recojo');
+            
+            // Registrar en historial
+            merc_add_motorizado_history(
+                $shipment->ID,
+                'recojo',
+                $motorizado_recojo_anterior,
+                0,
+                'limpieza_diaria_reprogramacion'
+            );
+            
+            error_log("   ✅ Envío #{$shipment->ID}: Motorizado de RECOJO #$motorizado_recojo_anterior eliminado (estado: $estado)");
+            $cleaned_count++;
+        }
+        
+        // Limpiar motorizado de ENTREGA
+        $motorizado_entrega_anterior = get_post_meta($shipment->ID, 'wpcargo_motorizo_entrega', true);
+        if (!empty($motorizado_entrega_anterior)) {
+            delete_post_meta($shipment->ID, 'wpcargo_motorizo_entrega');
+            
+            // Registrar en historial
+            merc_add_motorizado_history(
+                $shipment->ID,
+                'entrega',
+                $motorizado_entrega_anterior,
+                0,
+                'limpieza_diaria_reprogramacion'
+            );
+            
+            error_log("   ✅ Envío #{$shipment->ID}: Motorizado de ENTREGA #$motorizado_entrega_anterior eliminado (estado: $estado)");
+            $cleaned_count++;
+        }
+    }
+    
+    error_log("🔄 Total cambios de motorizados en envíos: $cleaned_count");
     error_log("✅ [LIMPIEZA DIARIA COMPLETADA] Próxima ejecución en 24 horas");
     error_log("════════════════════════════════════════════════════════════\n");
 }
 
 /**
- * AJAX handler: Asignar motorizado masivamente a envíos
+ * AJAX handler: Asignar / Desasignar motorizado masivamente a envíos (RECOJO)
+ * Reemplaza el handler anterior merc_assign_motorizado_bulk_ajax
  */
 add_action('wp_ajax_merc_assign_motorizado_bulk', 'merc_assign_motorizado_bulk_ajax');
 add_action('wp_ajax_nopriv_merc_assign_motorizado_bulk', 'merc_assign_motorizado_bulk_ajax');
@@ -11300,130 +11624,205 @@ function merc_assign_motorizado_bulk_ajax() {
         
         error_log("✅ Nonce válido");
         
-        $user_ids = isset($_POST['user_ids']) ? array_map('intval', (array) $_POST['user_ids']) : [];
-        $driver_id = isset($_POST['driver_id']) ? intval($_POST['driver_id']) : 0;
+        $user_ids     = isset($_POST['user_ids']) ? array_map('intval', (array) $_POST['user_ids']) : [];
+        $driver_id    = isset($_POST['driver_id']) ? sanitize_text_field($_POST['driver_id']) : '';
         $container_id = isset($_POST['container_id']) ? intval($_POST['container_id']) : 0;
         
+        // Detectar si es desasignación
+        $is_desasignar = ($driver_id === 'desasignar' || $driver_id === '0' || $driver_id === '');
+        $driver_id_int = $is_desasignar ? 0 : intval($driver_id);
+ 
         error_log("👤 User IDs: " . json_encode($user_ids));
-        error_log("🚙 Driver ID: " . $driver_id);
+        error_log("🚙 Driver ID raw: '$driver_id' | int: $driver_id_int | Desasignar: " . ($is_desasignar ? 'SÍ' : 'NO'));
         error_log("📦 Container ID: " . $container_id);
         
-        if (empty($user_ids) || !$driver_id || !$container_id) {
-            wp_send_json_error(['message' => 'Datos inválidos']);
+        // Validar: necesitamos usuarios y contenedor; driver solo si es asignación
+        if (empty($user_ids) || !$container_id) {
+            wp_send_json_error(['message' => 'Datos inválidos: faltan usuarios o contenedor']);
+            exit;
+        }
+        if (!$is_desasignar && !$driver_id_int) {
+            wp_send_json_error(['message' => 'Datos inválidos: driver_id incorrecto']);
             exit;
         }
         
-        error_log("════════════════════════════════════════════");
-        error_log("🔄 INICIANDO GUARDADO DE USER_META");
-        error_log("   Driver ID: " . $driver_id);
-        error_log("   User IDs que recibirán motorizado: " . json_encode($user_ids));
-        error_log("════════════════════════════════════════════");
-        
         $total = 0;
+ 
         foreach ($user_ids as $uid) {
-            error_log("→ Procesando usuario #$uid");
-            update_user_meta($uid, 'merc_motorizo_recojo_default', $driver_id);
-            
-            // Verificar que se guardó correctamente
-            $verificacion_default = get_user_meta($uid, 'merc_motorizo_recojo_default', true);
-            error_log("   📝 Guardado: merc_motorizo_recojo_default = " . ($verificacion_default ?: 'VACÍO'));
-            
-            if (empty($verificacion_default)) {
-                error_log("   ⚠️ ERROR: No se guardó correctamente el user_meta!");
-                error_log("   🔍 Debuging - Listando todos los metas del usuario #$uid:");
-                $all_metas = get_user_meta($uid);
-                foreach ($all_metas as $key => $val) {
-                    error_log("      - $key = " . (is_array($val) ? json_encode($val) : $val));
-                }
+            error_log("→ Procesando usuario #$uid | Acción: " . ($is_desasignar ? 'DESASIGNAR' : "ASIGNAR driver $driver_id_int"));
+ 
+            if ($is_desasignar) {
+                // ── DESASIGNACIÓN ──────────────────────────────────────────────
+                // Limpiar el motorizado default del usuario
+                delete_user_meta($uid, 'merc_motorizo_recojo_default');
+				delete_user_meta($uid, 'merc_motorizo_recojo_default_date');
+                error_log("   🗑️ Eliminado: merc_motorizo_recojo_default del usuario #$uid");
             } else {
-                error_log("   ✅ Verificación OK: merc_motorizo_recojo_default = $verificacion_default");
+                // ── ASIGNACIÓN ─────────────────────────────────────────────────
+                // Guardar motorizado default en el usuario para futuros envíos
+                update_user_meta($uid, 'merc_motorizo_recojo_default', $driver_id_int);
+				update_user_meta($uid, 'merc_motorizo_recojo_default_date', current_time('Y-m-d'));
+                $verificacion = get_user_meta($uid, 'merc_motorizo_recojo_default', true);
+                error_log("   📝 Guardado: merc_motorizo_recojo_default = " . ($verificacion ?: 'ERROR AL GUARDAR'));
             }
-            
-            // Buscar envíos de este usuario EN ESTE CONTENEDOR con fecha de recojo HOY
-            // FILTROS: solo publicados, solo tipo 'normal'
-            global $wpdb;
-            $shipments = $wpdb->get_col($wpdb->prepare(
-                "SELECT pm.post_id FROM {$wpdb->postmeta} pm
-                INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
-                LEFT JOIN {$wpdb->postmeta} pm_tipo ON pm.post_id = pm_tipo.post_id AND pm_tipo.meta_key = 'tipo_envio'
-                WHERE p.post_status = 'publish'
-                AND p.post_type = 'wpcargo_shipment'
-                AND pm.meta_key = 'shipment_container_recojo'
-                AND pm.meta_value = %d
-                AND pm_tipo.meta_value = 'normal'",
-                $container_id
-            ));
-            
-            error_log("📍 Total envíos en container $container_id: " . count($shipments));
-            
-            // Filtrar: solo los que tienen fecha de recojo HOY
-            $shipments_today = array();
-            foreach ($shipments as $sid) {
-                if (merc_pickup_date_is_today($sid)) {
-                    $shipments_today[] = $sid;
-                    error_log("   ✓ Envío $sid tiene recojo HOY");
-                } else {
-                    error_log("   ✗ Envío $sid NO tiene recojo HOY");
-                }
-            }
-            
-            error_log("📍 Envíos con recojo HOY: " . json_encode($shipments_today));
-            
-            foreach ($shipments_today as $ship_id) {
-                $shipper = get_post_meta($ship_id, 'registered_shipper', true);
-                error_log("   Verificando envío $ship_id - registered_shipper: $shipper, buscando: $uid");
-                
-                if ($shipper == $uid) {
-                    update_post_meta($ship_id, 'wpcargo_motorizo_recojo', $driver_id);
-                    
-                    // También actualizar wpcargo_driver para que se vea en el listado del motorizado
-                    delete_post_meta($ship_id, 'wpcargo_driver');
-                    add_post_meta($ship_id, 'wpcargo_driver', $driver_id);
-                    error_log("   ✅ Actualizado envío $ship_id para usuario $uid");
-                    
-                    $total++;
-                }
-            }
-            error_log("✅ Usuario $uid: $total envíos actualizados HOY");
-            
-            // BONUS: Buscar TODOS los envíos tipo 'normal' del usuario SIN motorizado asignado y asignarles también
-            error_log("🔍 Buscando ALL envíos tipo 'normal' del usuario $uid sin motorizado...");
-            $all_shipments_no_driver = $wpdb->get_col($wpdb->prepare(
-                "SELECT p.ID FROM {$wpdb->posts} p
-                INNER JOIN {$wpdb->postmeta} pm_shipper ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper' AND pm_shipper.meta_value = %d
-                INNER JOIN {$wpdb->postmeta} pm_tipo ON p.ID = pm_tipo.post_id AND pm_tipo.meta_key = 'tipo_envio' AND pm_tipo.meta_value = 'normal'
-                LEFT JOIN {$wpdb->postmeta} pm_driver ON p.ID = pm_driver.post_id AND pm_driver.meta_key = 'wpcargo_driver'
-                WHERE p.post_status = 'publish'
-                AND p.post_type = 'wpcargo_shipment'
-                AND pm_driver.post_id IS NULL",
-                $uid
-            ));
-            
-            error_log("   📦 Envíos sin motorizado encontrados: " . count($all_shipments_no_driver));
-            foreach ($all_shipments_no_driver as $ship_id) {
-                // Verificar que NO esté en la lista ya procesada (del contenedor de hoy)
-                if (!in_array($ship_id, $shipments_today)) {
-                    
-                    // VERIFICAR: Si tiene fecha FUTURA, NO asignar motorizado
+ 
+           // Filtro de fecha directamente en SQL para evitar traer envíos de otros días
+			global $wpdb;
+			$today        = current_time('Y-m-d');
+			$today_dt     = new DateTime($today);
+
+			// Generar las variantes de formato de hoy que pueden estar guardadas en BD
+			// Soporta: Y-m-d (2026-03-20), d/m/Y (20/03/2026), d-m-Y (20-03-2026)
+			// También sin cero inicial: d/m/Y sin padding (20/3/2026, 3/3/2026, etc.)
+			$today_ymd    = $today_dt->format('Y-m-d');   // 2026-03-20
+			$today_dmy_s  = $today_dt->format('d/m/Y');   // 20/03/2026
+			$today_dmy_d  = $today_dt->format('d-m-Y');   // 20-03-2026
+			// Sin cero inicial en día y mes (4/3/2026, 20/3/2026, 4/03/2026, etc.)
+			$today_d_noz  = ltrim($today_dt->format('d'), '0'); // día sin cero
+			$today_m_noz  = ltrim($today_dt->format('m'), '0'); // mes sin cero
+			$today_y      = $today_dt->format('Y');
+			// Variantes sin ceros: D/M/Y y D/M/Y con mes con cero
+			$today_noz_1  = $today_d_noz . '/' . $today_m_noz . '/' . $today_y;   // 4/3/2026
+			$today_noz_2  = $today_d_noz . '/' . $today_dt->format('m') . '/' . $today_y; // 4/03/2026
+			$today_noz_3  = $today_dt->format('d') . '/' . $today_m_noz . '/' . $today_y; // 04/3/2026
+
+			$meta_keys_fecha = array(
+				'wpcargo_pickup_date_picker',
+				'wpcargo_pickup_date',
+				'calendarenvio',
+				'wpcargo_fecha_envio',
+				'wpcargo_calendarenvio',
+			);
+
+			// Construir placeholders para el IN de meta_keys
+			$meta_keys_placeholders = implode(',', array_fill(0, count($meta_keys_fecha), '%s'));
+
+			// Construir placeholders para las variantes de fecha
+			$date_variants = array(
+				$today_ymd,
+				$today_dmy_s,
+				$today_dmy_d,
+				$today_noz_1,
+				$today_noz_2,
+				$today_noz_3,
+			);
+			// Agregar variante con LIKE para fechas con hora (ej: "20/03/2026 10:30:00")
+			// Se manejan con LIKE en la query
+			$date_like_variants = array(
+				$today_ymd . '%',
+				$today_dmy_s . '%',
+				$today_dmy_d . '%',
+				$today_noz_1 . '%',
+				$today_noz_2 . '%',
+				$today_noz_3 . '%',
+			);
+
+			// Construir la parte WHERE de fechas con LIKE para cubrir fechas con hora
+			$date_likes_sql = implode(' OR ', array_fill(0, count($date_like_variants), 'pm_fecha.meta_value LIKE %s'));
+
+			// Preparar todos los parámetros en orden
+			$query_params = array_merge(
+				$meta_keys_fecha,           // para IN de meta_key de fecha
+				array($container_id),       // para shipment_container_recojo
+				$date_like_variants         // para los LIKE de fecha
+			);
+
+			$shipments_today = $wpdb->get_col($wpdb->prepare(
+				"SELECT DISTINCT pm.post_id
+				FROM {$wpdb->postmeta} pm
+				INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+				INNER JOIN {$wpdb->postmeta} pm_shipper 
+					ON pm.post_id = pm_shipper.post_id 
+					AND pm_shipper.meta_key = 'registered_shipper' 
+					AND pm_shipper.meta_value = %d
+				INNER JOIN {$wpdb->postmeta} pm_tipo 
+					ON pm.post_id = pm_tipo.post_id 
+					AND pm_tipo.meta_key = 'tipo_envio' 
+					AND pm_tipo.meta_value = 'normal'
+				INNER JOIN {$wpdb->postmeta} pm_fecha
+					ON pm.post_id = pm_fecha.post_id
+					AND pm_fecha.meta_key IN ($meta_keys_placeholders)
+					AND ($date_likes_sql)
+				WHERE p.post_status = 'publish'
+				AND p.post_type = 'wpcargo_shipment'
+				AND pm.meta_key = 'shipment_container_recojo'
+				AND pm.meta_value = %d",
+				array_merge(
+					array($uid),            // para registered_shipper
+					$meta_keys_fecha,       // para IN de meta_key de fecha
+					$date_like_variants,    // para los LIKE de fecha
+					array($container_id)    // para shipment_container_recojo
+				)
+			));
+
+			error_log("📍 Envíos de usuario #$uid en container $container_id con fecha HOY ($today): " . count($shipments_today));
+			error_log("   IDs encontrados: " . json_encode($shipments_today));
+
+			// Ahora procesar directamente $shipments_today sin necesidad de filtrar en PHP
+			foreach ($shipments_today as $ship_id) {
+				error_log("   → Procesando envío #$ship_id");
+
+				if ($is_desasignar) {
+					delete_post_meta($ship_id, 'wpcargo_motorizo_recojo');
+					$motorizo_entrega = get_post_meta($ship_id, 'wpcargo_motorizo_entrega', true);
+					$estado_actual    = get_post_meta($ship_id, 'wpcargo_status', true);
+					$estados_recojo   = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+					if (in_array($estado_actual, $estados_recojo)) {
+						delete_post_meta($ship_id, 'wpcargo_driver');
+						error_log("   🗑️ Limpiado wpcargo_driver del envío #$ship_id (estado recojo: $estado_actual)");
+					}
+					error_log("   🗑️ Desasignado motorizo_recojo del envío #$ship_id");
+				} else {
+					update_post_meta($ship_id, 'wpcargo_motorizo_recojo', $driver_id_int);
+					delete_post_meta($ship_id, 'wpcargo_driver');
+					add_post_meta($ship_id, 'wpcargo_driver', $driver_id_int);
+					error_log("   ✅ Asignado driver $driver_id_int al envío #$ship_id");
+				}
+
+				$total++;
+			}
+ 
+            // Procesar envíos anteriores SIN motorizado (solo en asignación, no en desasignación)
+            if (!$is_desasignar) {
+                error_log("🔍 Buscando envíos tipo 'normal' del usuario $uid sin motorizado...");
+                $all_shipments_no_driver = $wpdb->get_col($wpdb->prepare(
+                    "SELECT p.ID FROM {$wpdb->posts} p
+                    INNER JOIN {$wpdb->postmeta} pm_shipper ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper' AND pm_shipper.meta_value = %d
+                    INNER JOIN {$wpdb->postmeta} pm_tipo ON p.ID = pm_tipo.post_id AND pm_tipo.meta_key = 'tipo_envio' AND pm_tipo.meta_value = 'normal'
+                    LEFT JOIN {$wpdb->postmeta} pm_driver ON p.ID = pm_driver.post_id AND pm_driver.meta_key = 'wpcargo_driver'
+                    WHERE p.post_status = 'publish'
+                    AND p.post_type = 'wpcargo_shipment'
+                    AND pm_driver.post_id IS NULL",
+                    $uid
+                ));
+ 
+                error_log("   📦 Envíos sin motorizado encontrados: " . count($all_shipments_no_driver));
+                foreach ($all_shipments_no_driver as $ship_id) {
+                    if (in_array($ship_id, $shipments_today)) continue;
                     if (merc_pickup_date_is_future($ship_id)) {
-                        error_log("   ⏭️  Envío #$ship_id tiene fecha FUTURA, NO asignando motorizado");
+                        error_log("   ⏭️  Envío #$ship_id tiene fecha FUTURA, saltando");
                         continue;
                     }
-                    
-                    error_log("   ➕ Asignando motorizado a envío #$ship_id (anterior, sin motorizado)");
-                    update_post_meta($ship_id, 'wpcargo_motorizo_recojo', $driver_id);
+                    update_post_meta($ship_id, 'wpcargo_motorizo_recojo', $driver_id_int);
                     delete_post_meta($ship_id, 'wpcargo_driver');
-                    add_post_meta($ship_id, 'wpcargo_driver', $driver_id);
-                    error_log("   ✅ Envío #$ship_id también actualizado");
+                    add_post_meta($ship_id, 'wpcargo_driver', $driver_id_int);
+                    error_log("   ➕ Asignado motorizado a envío histórico #$ship_id");
                     $total++;
                 }
             }
         }
-        
-        error_log("✅ Total envíos asignados: $total");
-        wp_send_json_success(['message' => "Motorizado asignado a " . count($user_ids) . " usuario(s). Se actualizaron $total envío(s)", 'count' => $total]);
+ 
+        error_log("✅ Total envíos procesados: $total");
+ 
+        if ($is_desasignar) {
+            $mensaje = "Motorizado desasignado de " . count($user_ids) . " usuario(s). Se limpiaron $total envío(s).";
+        } else {
+            $mensaje = "Motorizado asignado a " . count($user_ids) . " usuario(s). Se actualizaron $total envío(s).";
+        }
+ 
+        wp_send_json_success(['message' => $mensaje, 'count' => $total]);
         exit;
-        
+ 
     } catch (Exception $e) {
         error_log("❌ ERROR: " . $e->getMessage());
         wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
@@ -11479,29 +11878,53 @@ function merc_asignar_motorizado_default_al_crear($post_id, $data = array()) {
         error_log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
         return;
     }
-    
+    $default_date = get_user_meta($user_id, 'merc_motorizo_recojo_default_date', true);
+	$today        = current_time('Y-m-d');
+	if ($default_date !== $today) {
+		error_log("ℹ️ Motorizado default del usuario #$user_id es de otra fecha ($default_date), no aplica para hoy ($today)");
+		error_log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+		return;
+	}
     // Verificar si el envío ya tiene motorizado asignado
-    $motorizado_actual = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
-    error_log("🔍 Verificando 'wpcargo_motorizo_recojo' del envío...");
-    error_log("   Valor actual: " . ($motorizado_actual ? $motorizado_actual : 'VACÍO'));
+    $motorizado_actual_recojo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+    $motorizado_actual_entrega = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
+    $tipo_envio = get_post_meta($post_id, 'tipo_envio', true);
+    $isExpress = (strtolower((string)$tipo_envio) === 'express' || strtolower((string)$tipo_envio) === 'full_fitment');
     
-    if (!empty($motorizado_actual)) {
-        error_log("⚠️ Envío ya tiene motorizado asignado (#" . $motorizado_actual . "), aplicando sincronización de wpcargo_driver");
+    error_log("🔍 Tipo de envío: '$tipo_envio' | IsExpress: " . ($isExpress ? 'SÍ' : 'NO'));
+    error_log("   Verificando 'wpcargo_motorizo_recojo': " . ($motorizado_actual_recojo ? $motorizado_actual_recojo : 'VACÍO'));
+    error_log("   Verificando 'wpcargo_motorizo_entrega': " . ($motorizado_actual_entrega ? $motorizado_actual_entrega : 'VACÍO'));
+    
+    $tiene_motorizado = (!empty($motorizado_actual_recojo) && $motorizado_actual_recojo !== '0') 
+                        || (!empty($motorizado_actual_entrega) && $motorizado_actual_entrega !== '0');
+    
+    if ($tiene_motorizado) {
+        error_log("⚠️ Envío ya tiene motorizado asignado, aplicando sincronización de wpcargo_driver");
         
-        // Sincronizar wpcargo_driver según el estado actual
+        // Sincronizar wpcargo_driver según el tipo y estado del envío
         $estado_actual = get_post_meta($post_id, 'wpcargo_status', true);
         $estados_recojo = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
         
-        if (in_array($estado_actual, $estados_recojo)) {
-            // Estados de recojo: usar motorizo_recojo
-            update_post_meta($post_id, 'wpcargo_driver', intval($motorizado_actual));
-            error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado_actual (desde recojo - estado: $estado_actual)");
+        if ($isExpress) {
+            // EXPRESS/FULL_FITMENT: usar motorizo_entrega
+            if (!empty($motorizado_actual_entrega)) {
+                update_post_meta($post_id, 'wpcargo_driver', intval($motorizado_actual_entrega));
+                error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado_actual_entrega (desde entrega de EXPRESS)");
+            }
         } else {
-            // Estados de entrega: usar motorizo_entrega
-            $motorizado_entrega = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
-            if (!empty($motorizado_entrega)) {
-                update_post_meta($post_id, 'wpcargo_driver', intval($motorizado_entrega));
-                error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado_entrega (desde entrega - estado: $estado_actual)");
+            // NORMAL: depende del estado
+            if (in_array($estado_actual, $estados_recojo)) {
+                // En recojo: usar motorizo_recojo
+                if (!empty($motorizado_actual_recojo)) {
+                    update_post_meta($post_id, 'wpcargo_driver', intval($motorizado_actual_recojo));
+                    error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado_actual_recojo (desde recojo - estado: $estado_actual)");
+                }
+            } else {
+                // En entrega: usar motorizo_entrega
+                if (!empty($motorizado_actual_entrega)) {
+                    update_post_meta($post_id, 'wpcargo_driver', intval($motorizado_actual_entrega));
+                    error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado_actual_entrega (desde entrega - estado: $estado_actual)");
+                }
             }
         }
         
@@ -11517,23 +11940,34 @@ function merc_asignar_motorizado_default_al_crear($post_id, $data = array()) {
         return;
     }
     
-    // Asignar el motorizado default
+    // Asignar el motorizado default según el tipo de envío
     $motorizado_default_data = get_userdata($motorizado_default);
     $nombre_motorizado = $motorizado_default_data ? $motorizado_default_data->display_name : 'Motorizado #' . $motorizado_default;
     
-    update_post_meta($post_id, 'wpcargo_motorizo_recojo', $motorizado_default);
+    if ($isExpress) {
+        // EXPRESS/FULL_FITMENT: asignar a motorizo_entrega
+        update_post_meta($post_id, 'wpcargo_motorizo_entrega', $motorizado_default);
+        error_log("   📝 Asignado a wpcargo_motorizo_entrega (EXPRESS/FULL_FITMENT): $motorizado_default");
+    } else {
+        // NORMAL: asignar a motorizo_recojo
+        update_post_meta($post_id, 'wpcargo_motorizo_recojo', $motorizado_default);
+        error_log("   📝 Asignado a wpcargo_motorizo_recojo (NORMAL): $motorizado_default");
+    }
     
     // También asignar wpcargo_driver para que sea visible en la cuenta del motorizado
     delete_post_meta($post_id, 'wpcargo_driver');
     add_post_meta($post_id, 'wpcargo_driver', $motorizado_default);
     
-    $verificacion = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+    $verificacion_recojo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+    $verificacion_entrega = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
     $verificacion_driver = get_post_meta($post_id, 'wpcargo_driver', true);
     
     error_log("✅ AUTO-ASIGNACIÓN COMPLETADA:");
     error_log("   - Envío #" . $post_id . " asignado automáticamente");
     error_log("   - Motorizado: " . $nombre_motorizado . " (ID: " . $motorizado_default . ")");
-    error_log("   - Verificación wpcargo_motorizo_recojo: " . $verificacion);
+    error_log("   - Tipo: " . ($isExpress ? 'EXPRESS/FULL_FITMENT' : 'NORMAL'));
+    error_log("   - Verificación wpcargo_motorizo_recojo: " . ($verificacion_recojo ?: 'VACÍO'));
+    error_log("   - Verificación wpcargo_motorizo_entrega: " . ($verificacion_entrega ?: 'VACÍO'));
     error_log("   - Verificación wpcargo_driver: " . $verificacion_driver);
     error_log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 }
@@ -11595,8 +12029,8 @@ function merc_dual_motorizado_js() {
                 }
             }
 
-            // Sólo continuar si el tipo es 'normal'
-            if (tipo !== 'normal') return;
+            // Continuar si el tipo es 'normal', 'express' o 'full_fitment'
+            if (tipo !== 'normal' && tipo !== 'express' && tipo !== 'full_fitment') return;
 
             // Ocultar el select original de forma forzada (inline !important) y marcar hidden
             try {
@@ -11607,48 +12041,70 @@ function merc_dual_motorizado_js() {
                 // Silenciar errores en navegadores antiguos
             }
 
-            // Crear selects nuevos
-            var $recojo = $('<select/>', { name: 'wpcargo_motorizo_recojo', class: $orig.attr('class') });
+            // Para EXPRESS y FULL_FITMENT: solo crear entrega
+            // Para NORMAL: crear ambos recojo y entrega
+            var isNormal = (tipo === 'normal');
+            var $recojo = null;
             var $entrega = $('<select/>', { name: 'wpcargo_motorizo_entrega', class: $orig.attr('class') });
 
-            // Copiar opciones SIN atributos selected
+            if (isNormal) {
+                $recojo = $('<select/>', { name: 'wpcargo_motorizo_recojo', class: $orig.attr('class') });
+            }
+
+            // Copiar opciones a los selects creados
             $orig.find('option').each(function(){
                 var $opt = $(this).clone();
                 // Remover atributos selected de las copias
                 $opt.removeAttr('selected').removeAttr('defaultSelected');
-                $recojo.append($opt.clone());
+                if (isNormal && $recojo) {
+                    $recojo.append($opt.clone());
+                }
                 $entrega.append($opt.clone());
             });
 
             // Insertar después del original: apilar verticalmente (uno debajo de otro)
             var $wrap = $('<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;max-width:420px;"></div>');
-            var $labelR = $('<label style="font-size:12px;color:#333;margin:0 0 4px 0;">Motorizado (Recojo)</label>');
-            var $labelE = $('<label style="font-size:12px;color:#333;margin:8px 0 4px 0;">Motorizado (Entrega)</label>');
-            $recojo.css('width','100%');
+            
+            if (isNormal && $recojo) {
+                var $labelR = $('<label style="font-size:12px;color:#333;margin:0 0 4px 0;">Motorizado (Recojo)</label>');
+                $recojo.css('width','100%');
+                $wrap.append($labelR).append($recojo);
+            }
+            
+            var $labelE = $('<label style="font-size:12px;color:#333;margin:' + (isNormal ? '8px' : '0') + ' 0 4px 0;">Motorizado' + (isNormal ? ' (Entrega)' : '') + '</label>');
             $entrega.css('width','100%');
-            $wrap.append($labelR).append($recojo).append($labelE).append($entrega);
+            $wrap.append($labelE).append($entrega);
             $orig.after($wrap);
 
-            // Limpiar ambos selects primero (establecer a vacío)
-            $recojo.val('');
+            // Limpiar entrega, y si es normal, también recojo
             $entrega.val('');
+            if (isNormal && $recojo) {
+                $recojo.val('');
+            }
             
             // Buscar valores específicos para recojo y entrega desde las variables obtenidas del AJAX
-            // En modo ADD: si no hay valores del AJAX, asignar el valor original solo a recojo
+            // En modo ADD: si no hay valores del AJAX, asignar el valor original solo a recojo (si normal) o entrega (si express)
             // En modo UPDATE: usar los valores obtenidos del AJAX
             
             if (!motorizo_recojo_val && !motorizo_entrega_val) {
-                // Modo ADD: Solo propagar al recojo si hay valor original
+                // Modo ADD: Solo propagar al campo correspondiente si hay valor original
                 var origVal = $orig.val();
                 if (origVal) {
-                    motorizo_recojo_val = origVal;
-                    motorizo_entrega_val = ''; // Entrega queda vacío
+                    if (isNormal) {
+                        motorizo_recojo_val = origVal;
+                        motorizo_entrega_val = ''; // Entrega queda vacío
+                    } else {
+                        // Para EXPRESS/FULL_FITMENT: asignar al entrega
+                        motorizo_entrega_val = origVal;
+                    }
                 }
             }
             
             // Asignar valores a cada select explícitamente
-            $recojo.val(motorizo_recojo_val);
             $entrega.val(motorizo_entrega_val);
+            if (isNormal && $recojo) {
+                $recojo.val(motorizo_recojo_val);
+            }
 
             // Al enviar formularios (incluye AJAX forms), asegurarse de que los selects
             // estén presentes en los datos enviados
@@ -11656,25 +12112,29 @@ function merc_dual_motorizado_js() {
                 // Asegurarse de que los valores de motorizado se envíen en el formulario
                 var $form = $(this);
                 
-                // Si el formulario ya tiene inputs hidden para estos valores, actualizar
-                var $recojoHidden = $form.find('input[name="wpcargo_motorizo_recojo"]');
-                var $entregaHidden = $form.find('input[name="wpcargo_motorizo_entrega"]');
+                // Para EXPRESS/FULL_FITMENT, que no tienen recojo, asignar entrega al recojo si necesario
+                // La lógica del backend decidirá a qué meta guardar basándose en el estado
+                var sourceVal = isNormal && $recojo ? $recojo.val() : $entrega.val();
                 
-                if (!$recojoHidden.length && $recojo.length) {
-                    $form.append($('<input/>').attr({type:'hidden', name:'wpcargo_motorizo_recojo', value: $recojo.val()}));
-                } else if ($recojoHidden.length) {
-                    $recojoHidden.val($recojo.val());
+                if (isNormal) {
+                    var $recojoHidden = $form.find('input[name="wpcargo_motorizo_recojo"]');
+                    if (!$recojoHidden.length && $recojo && $recojo.length) {
+                        $form.append($('<input/>').attr({type:'hidden', name:'wpcargo_motorizo_recojo', value: $recojo.val()}));
+                    } else if ($recojoHidden.length && $recojo) {
+                        $recojoHidden.val($recojo.val());
+                    }
                 }
                 
+                var $entregaHidden = $form.find('input[name="wpcargo_motorizo_entrega"]');
                 if (!$entregaHidden.length && $entrega.length) {
                     $form.append($('<input/>').attr({type:'hidden', name:'wpcargo_motorizo_entrega', value: $entrega.val()}));
                 } else if ($entregaHidden.length) {
                     $entregaHidden.val($entrega.val());
                 }
                 
-                // Si wpcargo_driver está vacío, copiar desde recojo para compatibilidad
+                // Si wpcargo_driver está vacío, copiar desde recojo (si normal) o entrega (si express) para compatibilidad
                 if ($orig.length && !$orig.val()) {
-                    $orig.val($recojo.val()).trigger('change');
+                    $orig.val(sourceVal).trigger('change');
                 }
             });
         });
@@ -11698,65 +12158,95 @@ function merc_save_dual_motorizado_meta($post_id) {
     error_log("💾 [DUAL_MOTORIZADO_SAVE] Guardando motorizado dual para envío #{$post_id}");
     error_log("   📬 POST keys disponibles: " . implode(', ', array_keys($_POST)));
 
-    // Guardar Motorizado de RECOJO
+    // Guardar Motorizado de RECOJO (solo si está en POST - presente en NORMAL tipos)
     if (isset($_POST['wpcargo_motorizo_recojo'])) {
         $val = sanitize_text_field($_POST['wpcargo_motorizo_recojo']);
         $val = !empty($val) ? intval($val) : 0;
-        
-        error_log("   ✅ wpcargo_motorizo_recojo = " . ($val ?: 'VACÍO'));
+        $val_anterior = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
         
         if ($val > 0) {
             update_post_meta($post_id, 'wpcargo_motorizo_recojo', $val);
             error_log("      ✔️  Guardado: wpcargo_motorizo_recojo = $val");
+            
+            // Registrar en historial si cambió
+            if ($val !== intval($val_anterior)) {
+                merc_add_motorizado_history($post_id, 'recojo', $val_anterior, $val, 'cambio_manual');
+            }
         } else {
             delete_post_meta($post_id, 'wpcargo_motorizo_recojo');
             error_log("      🗑️ Eliminado: wpcargo_motorizo_recojo");
+            
+            // Registrar en historial si había algo antes
+            if (!empty($val_anterior)) {
+                merc_add_motorizado_history($post_id, 'recojo', $val_anterior, 0, 'cambio_manual');
+            }
         }
-    } else {
-        error_log("   ⚠️  wpcargo_motorizo_recojo NO está en POST");
     }
 
     // Guardar Motorizado de ENTREGA
     if (isset($_POST['wpcargo_motorizo_entrega'])) {
         $val = sanitize_text_field($_POST['wpcargo_motorizo_entrega']);
         $val = !empty($val) ? intval($val) : 0;
+        $val_anterior = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
         
         error_log("   ✅ wpcargo_motorizo_entrega = " . ($val ?: 'VACÍO'));
         
         if ($val > 0) {
             update_post_meta($post_id, 'wpcargo_motorizo_entrega', $val);
             error_log("      ✔️  Guardado: wpcargo_motorizo_entrega = $val");
+            
+            // Registrar en historial si cambió
+            if ($val !== intval($val_anterior)) {
+                merc_add_motorizado_history($post_id, 'entrega', $val_anterior, $val, 'cambio_manual');
+            }
         } else {
             delete_post_meta($post_id, 'wpcargo_motorizo_entrega');
             error_log("      🗑️ Eliminado: wpcargo_motorizo_entrega");
+            
+            // Registrar en historial si había algo antes
+            if (!empty($val_anterior)) {
+                merc_add_motorizado_history($post_id, 'entrega', $val_anterior, 0, 'cambio_manual');
+            }
         }
-    } else {
-        error_log("   ⚠️  wpcargo_motorizo_entrega NO está en POST");
     }
 
-    // Sincronizar wpcargo_driver según el estado actual del envío
+    // Sincronizar wpcargo_driver según el tipo y estado del envío
+    $tipo = strtolower( (string) get_post_meta($post_id, 'tipo_envio', true) );
+    $isExpress = ($tipo === 'express' || $tipo === 'full_fitment');
     $estado_actual = get_post_meta($post_id, 'wpcargo_status', true);
     $estados_recojo = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
     
-    error_log("   🔍 Estado actual del envío: '$estado_actual'");
+    error_log("   🔍 Tipo: '$tipo' | Estado actual del envío: '$estado_actual'");
     
-    if (in_array($estado_actual, $estados_recojo)) {
-        // Estados de recojo: sincronizar desde wpcargo_motorizo_recojo
-        $motorizado = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
-        if (!empty($motorizado)) {
-            update_post_meta($post_id, 'wpcargo_driver', intval($motorizado));
-            error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado (desde recojo - estado: $estado_actual)");
-        } else {
-            error_log("   ⚠️  No hay wpcargo_motorizo_recojo para sincronizar");
-        }
-    } else {
-        // Estados de entrega: sincronizar desde wpcargo_motorizo_entrega
+    if ( $isExpress ) {
+        // EXPRESS/FULL_FITMENT: siempre usar motorizo_entrega
         $motorizado = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
         if (!empty($motorizado)) {
             update_post_meta($post_id, 'wpcargo_driver', intval($motorizado));
-            error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado (desde entrega - estado: $estado_actual)");
+            error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado (desde entrega de EXPRESS/FULL_FITMENT)");
         } else {
-            error_log("   ⚠️  No hay wpcargo_motorizo_entrega para sincronizar");
+            error_log("   ⚠️  No hay motorizo_entrega para sincronizar en EXPRESS/FULL_FITMENT");
+        }
+    } else {
+        // NORMAL: sincronizar según estado
+        if (in_array($estado_actual, $estados_recojo)) {
+            // Estados de recojo: sincronizar desde wpcargo_motorizo_recojo
+            $motorizado = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+            if (!empty($motorizado)) {
+                update_post_meta($post_id, 'wpcargo_driver', intval($motorizado));
+                error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado (desde recojo - estado: $estado_actual)");
+            } else {
+                error_log("   ⚠️  No hay wpcargo_motorizo_recojo para sincronizar");
+            }
+        } else {
+            // Estados de entrega: sincronizar desde wpcargo_motorizo_entrega
+            $motorizado = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
+            if (!empty($motorizado)) {
+                update_post_meta($post_id, 'wpcargo_driver', intval($motorizado));
+                error_log("   🔄 Sincronizado: wpcargo_driver = $motorizado (desde entrega - estado: $estado_actual)");
+            } else {
+                error_log("   ⚠️  No hay wpcargo_motorizo_entrega para sincronizar");
+            }
         }
     }
 
@@ -11976,14 +12466,14 @@ function merc_asignar_estado_final_segun_tipo($post_id) {
 }
 
 /**
- * AJAX handler: Asignar motorizado ENTREGA masivamente a envíos
+ * AJAX handler: Asignar / Desasignar motorizado ENTREGA masivamente a envíos
+ * Reemplaza el handler anterior merc_assign_motorizado_entrega_bulk_ajax
  */
 add_action('wp_ajax_merc_assign_motorizado_entrega_bulk', 'merc_assign_motorizado_entrega_bulk_ajax');
 add_action('wp_ajax_nopriv_merc_assign_motorizado_entrega_bulk', 'merc_assign_motorizado_entrega_bulk_ajax');
 function merc_assign_motorizado_entrega_bulk_ajax() {
     error_log("\n🔍 MERC_ASSIGN_MOTORIZADO_ENTREGA_BULK - Solicitud AJAX RECIBIDA");
     error_log("📬 POST data: " . json_encode($_POST));
-    error_log("📬 REQUEST: " . json_encode($_REQUEST));
     
     try {
         // Verificar nonce
@@ -11999,45 +12489,76 @@ function merc_assign_motorizado_entrega_bulk_ajax() {
         error_log("✅ Nonce válido");
         
         $shipment_ids = isset($_POST['shipment_ids']) ? array_map('intval', (array) $_POST['shipment_ids']) : [];
-        $driver_id = isset($_POST['driver_id']) ? intval($_POST['driver_id']) : 0;
-        
+        $driver_id    = isset($_POST['driver_id']) ? sanitize_text_field($_POST['driver_id']) : '';
+ 
+        // Detectar si es desasignación
+        $is_desasignar = ($driver_id === 'desasignar' || $driver_id === '0' || $driver_id === '');
+        $driver_id_int = $is_desasignar ? 0 : intval($driver_id);
+ 
         error_log("📦 Shipment IDs: " . json_encode($shipment_ids));
-        error_log("🚙 Driver ID: " . $driver_id);
-        
-        if (empty($shipment_ids) || !$driver_id) {
-            wp_send_json_error(['message' => 'Datos inválidos (shipment_ids vacío o driver_id=0)']);
+        error_log("🚙 Driver ID raw: '$driver_id' | int: $driver_id_int | Desasignar: " . ($is_desasignar ? 'SÍ' : 'NO'));
+ 
+        // Validar: necesitamos envíos; driver solo si es asignación
+        if (empty($shipment_ids)) {
+            wp_send_json_error(['message' => 'Datos inválidos: no se recibieron envíos']);
             exit;
         }
-        
-        $total = 0;
-        // Estados que deben mantener el driver asociado a RECOJO
-        $recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
-
-        foreach ($shipment_ids as $sid) {
-            update_post_meta($sid, 'wpcargo_motorizo_entrega', $driver_id);
-
-            // Comprobar estado actual del envío para decidir si sobrescribir wpcargo_driver
-            $current_status = get_post_meta($sid, 'wpcargo_status', true);
-            $upper_status = strtoupper((string) $current_status);
-
-            if ( in_array( $upper_status, $recojo_states, true ) ) {
-                // El envío está en un estado de recojo: NO sobrescribimos wpcargo_driver
-                error_log("   - Estado '$current_status' en envío $sid: se actualizó 'wpcargo_motorizo_entrega' pero se preserva 'wpcargo_driver'.");
-            } else {
-                // En otros estados sí actualizamos el driver visible
-                delete_post_meta($sid, 'wpcargo_driver');
-                add_post_meta($sid, 'wpcargo_driver', $driver_id);
-                error_log("   - wpcargo_driver actualizado a: " . $driver_id . " para envío $sid (estado: $current_status)");
-            }
-
-            $total++;
-            error_log("✅ Asignado motorizado $driver_id a envío $sid");
+        if (!$is_desasignar && !$driver_id_int) {
+            wp_send_json_error(['message' => 'Datos inválidos: driver_id incorrecto']);
+            exit;
         }
-        
-        error_log("✅ Total asignados: $total");
-        wp_send_json_success(['message' => "Motorizado asignado a $total envío(s)", 'count' => $total]);
+ 
+        $total = 0;
+        $estados_recojo = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+ 
+        foreach ($shipment_ids as $sid) {
+            $estado_actual = get_post_meta($sid, 'wpcargo_status', true);
+            $upper_status  = strtoupper((string) $estado_actual);
+ 
+            error_log("→ Envío #$sid | Estado: '$estado_actual' | Acción: " . ($is_desasignar ? 'DESASIGNAR' : "ASIGNAR driver $driver_id_int"));
+ 
+            if ($is_desasignar) {
+                // ── DESASIGNACIÓN ──────────────────────────────────────────────
+                delete_post_meta($sid, 'wpcargo_motorizo_entrega');
+                error_log("   🗑️ Eliminado: wpcargo_motorizo_entrega del envío #$sid");
+ 
+                // Limpiar wpcargo_driver solo si el envío NO está en estado de recojo
+                // (si está en recojo, el driver viene del motorizo_recojo, no tocarlo)
+                if (!in_array($upper_status, $estados_recojo, true)) {
+                    delete_post_meta($sid, 'wpcargo_driver');
+                    error_log("   🗑️ Limpiado wpcargo_driver del envío #$sid (no está en estado recojo)");
+                } else {
+                    error_log("   ℹ️  wpcargo_driver preservado (envío en estado recojo: $estado_actual)");
+                }
+            } else {
+                // ── ASIGNACIÓN ─────────────────────────────────────────────────
+                update_post_meta($sid, 'wpcargo_motorizo_entrega', $driver_id_int);
+ 
+                if (in_array($upper_status, $estados_recojo, true)) {
+                    // En estado recojo: NO sobrescribir wpcargo_driver
+                    error_log("   - Estado '$estado_actual': actualizado motorizo_entrega pero preservado wpcargo_driver");
+                } else {
+                    // En estado entrega: actualizar wpcargo_driver
+                    delete_post_meta($sid, 'wpcargo_driver');
+                    add_post_meta($sid, 'wpcargo_driver', $driver_id_int);
+                    error_log("   - wpcargo_driver actualizado a $driver_id_int para envío #$sid (estado: $estado_actual)");
+                }
+            }
+ 
+            $total++;
+        }
+ 
+        error_log("✅ Total envíos procesados: $total");
+ 
+        if ($is_desasignar) {
+            $mensaje = "Motorizado desasignado de $total envío(s) de entrega.";
+        } else {
+            $mensaje = "Motorizado asignado a $total envío(s) de entrega.";
+        }
+ 
+        wp_send_json_success(['message' => $mensaje, 'count' => $total]);
         exit;
-        
+ 
     } catch (Exception $e) {
         error_log("❌ ERROR: " . $e->getMessage());
         wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);

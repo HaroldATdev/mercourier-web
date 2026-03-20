@@ -927,24 +927,35 @@ function wpcsc_assign_partial_shipments_callback() {
 		$pre_driver = get_post_meta($shipment_id, 'wpcargo_driver', true);
 		error_log("WPCSC_ASSIGN_PRE: shipment={$shipment_id} status=" . var_export($pre_status, true) . " mot_recojo=" . var_export($pre_recojo, true) . " mot_entrega=" . var_export($pre_entrega, true) . " driver=" . var_export($pre_driver, true));
 
-		// Asignar motorizado respetando el estado del envío
-		// Si el envío está en PENDIENTE / RECOGIDO / NO RECOGIDO => usar motorizado recojo
-		// En otro caso => usar motorizado entrega
-		$status = get_post_meta($shipment_id, 'wpcargo_status', true);
-		$recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+		// Asignar motorizado respetando el tipo y estado del envío
+		// EXPRESS/FULL_FITMENT: siempre usa motorizo_entrega (sin recojo)
+		// NORMAL: usa motorizo_recojo si está en PENDIENTE/RECOGIDO/NO RECOGIDO, sino entrega
+		$tipo = strtolower( (string) get_post_meta($shipment_id, 'tipo_envio', true) );
+		$isExpress = ($tipo === 'express' || $tipo === 'full_fitment');
 
 		$assigned_ok = false;
 
-		if ( in_array( strtoupper( (string) $status ), $recojo_states, true ) ) {
-			// Asignar como motorizado de recojo y fijar driver al recojo
-			$ok1 = update_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', $driver_id );
-			$ok2 = update_post_meta( $shipment_id, 'wpcargo_driver', $driver_id );
-			$assigned_ok = ( $ok1 !== false || $ok2 !== false );
-		} else {
-			// Asignar como motorizado de entrega y fijar driver al entrega
+		if ( $isExpress ) {
+			// EXPRESS/FULL_FITMENT: siempre guardar en motorizo_entrega
 			$ok1 = update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', $driver_id );
 			$ok2 = update_post_meta( $shipment_id, 'wpcargo_driver', $driver_id );
 			$assigned_ok = ( $ok1 !== false || $ok2 !== false );
+		} else {
+			// NORMAL: usar status para decidir
+			$status = get_post_meta($shipment_id, 'wpcargo_status', true);
+			$recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+
+			if ( in_array( strtoupper( (string) $status ), $recojo_states, true ) ) {
+				// En recojo: guardar a motorizo_recojo
+				$ok1 = update_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', $driver_id );
+				$ok2 = update_post_meta( $shipment_id, 'wpcargo_driver', $driver_id );
+				$assigned_ok = ( $ok1 !== false || $ok2 !== false );
+			} else {
+				// En entrega: guardar a motorizo_entrega
+				$ok1 = update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', $driver_id );
+				$ok2 = update_post_meta( $shipment_id, 'wpcargo_driver', $driver_id );
+				$assigned_ok = ( $ok1 !== false || $ok2 !== false );
+			}
 		}
 
 		if ( $assigned_ok ) {
@@ -994,4 +1005,5 @@ function wpcsc_assign_partial_shipments_callback() {
         wp_send_json_error(array('message' => 'No se pudo procesar ningún pedido. Errores: ' . implode(', ', $errors)));
     }
 }
+
 

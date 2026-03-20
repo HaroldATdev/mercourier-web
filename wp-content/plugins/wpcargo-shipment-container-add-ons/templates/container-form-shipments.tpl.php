@@ -3,43 +3,29 @@
     <div class="container py-4 px-0">
         <section id="shipment-info-wrapper" class="w-100 m-0">
             <?php 
-            // Contar por tipo: verificar cuál contenedor tiene el envío
             $shipments_recojo = array();
             $shipments_entrega = array();
 
-            // Helper: obtener fecha de envío en formato Y-m-d desde varias metas comunes
-            // NOTA: Función definida en /admin/includes/functions.php (línea 718)
-            // Esta es la versión REAL que incluye normalización de fechas
-            // No redefinir aquí para evitar conflictos de versión
-
-            // Filter shipments to only those matching today's date
             $today = current_time('Y-m-d');
             if (!empty($shipments)) {
                 foreach ($shipments as $shipment_id) {
                     $date = _wpcu_shipment_pickup_date_ymd($shipment_id);
                     
-                    $container_recojo_value = get_post_meta($shipment_id, 'shipment_container_recojo', true);
+                    $container_recojo_value  = get_post_meta($shipment_id, 'shipment_container_recojo', true);
                     $container_entrega_value = get_post_meta($shipment_id, 'shipment_container_entrega', true);
 
-                    // DEBUG removido: valores detallados del main loop (se eliminó para reducir ruido en los logs)
-                    
-                    // Skip if we couldn't determine a date or it's not today
                     if ($date === false || $date !== $today) {
                         continue;
                     }
                     
-                    // Verificar si THIS container (el actual) tiene este envío
-                    // En recojo
                     if ( ! empty( $container_recojo_value ) && $container_recojo_value == $container_id ) {
                         $shipments_recojo[] = $shipment_id;
                     }
-                    // En entrega (comprobación independiente: un envío puede estar en ambos)
                     if ( ! empty( $container_entrega_value ) && $container_entrega_value == $container_id ) {
                         $shipments_entrega[] = $shipment_id;
                     }
                 }
             }
-            // Total es la suma de ambos tipos (validado)
             $shipment_count = count($shipments_recojo) + count($shipments_entrega);
             ?>
             <i class="fa fa-list"></i> 
@@ -59,9 +45,8 @@
                     <button type="button" id="select-all-users-btn" class="btn btn-sm" style="background:#e8363c; border:none; font-weight:600; color: white; padding: 8px 16px; border-radius: 4px; transition: all 0.3s;">
                         <i class="fa fa-check-square-o"></i> Seleccionar todos USUARIOS (Recojo)
                     </button>
-                    
                     <button type="button" id="assign-motorizado-btn" class="btn btn-sm" style="background:#007bff; border:none; font-weight:600; color: white; padding: 8px 16px; border-radius: 4px; display: none;" data-toggle="modal" data-target="#modalAsignMotorizado">
-                        <i class="fa fa-truck"></i> Asignar Motorizado
+                        <i class="fa fa-truck"></i> Asignar / Desasignar Motorizado
                     </button>
                 <?php endif; ?>
                 
@@ -69,20 +54,19 @@
                     <button type="button" id="select-all-shipments-btn" class="btn btn-sm" style="background:#28a745; border:none; font-weight:600; color: white; padding: 8px 16px; border-radius: 4px; transition: all 0.3s;">
                         <i class="fa fa-check-square-o"></i> Seleccionar todos ENVÍOS (Entrega)
                     </button>
-                    
                     <button type="button" id="assign-motorizado-entrega-btn" class="btn btn-sm" style="background:#28a745; border:none; font-weight:600; color: white; padding: 8px 16px; border-radius: 4px; display: none;" data-toggle="modal" data-target="#modalAsignMotorizadoEntrega">
-                        <i class="fa fa-truck"></i> Asignar Motorizado Entrega
+                        <i class="fa fa-truck"></i> Asignar / Desasignar Motorizado Entrega
                     </button>
                 <?php endif; ?>
             </div>
             
-            <!-- MODAL: Asignar Motorizado -->
+            <!-- MODAL: Asignar / Desasignar Motorizado RECOJO -->
             <div id="modalAsignMotorizado" class="modal fade" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header" style="background: linear-gradient(135deg, #e8363c 0%, #b91d23 100%); color: white;">
                             <h5 class="modal-title">
-                                <i class="fa fa-truck"></i> Asignar Motorizado a Envíos
+                                <i class="fa fa-truck"></i> Asignar / Desasignar Motorizado (Recojo)
                             </h5>
                             <button type="button" class="close" data-dismiss="modal" style="color: white;">
                                 <span>&times;</span>
@@ -90,19 +74,19 @@
                         </div>
                         <div class="modal-body">
                             <div style="margin-bottom: 15px;">
-                                <strong>Envíos seleccionados: <span id="modal-selected-count">0</span></strong>
+                                <strong>Usuarios seleccionados: <span id="modal-selected-count">0</span></strong>
                             </div>
-                            
                             <div style="margin-bottom: 20px;">
                                 <label for="modal-motorizado-select" style="font-weight: 600; margin-bottom: 10px; display: block;">
                                     <i class="fa fa-user" style="margin-right: 5px; color: #e8363c;"></i>
-                                    Seleccionar Motorizado:
+                                    Seleccionar acción:
                                 </label>
                                 <select id="modal-motorizado-select" class="form-control">
                                     <option value="">-- Seleccione un motorizado --</option>
+                                    <option value="desasignar" style="color: #dc3545; font-weight: 600;">❌ Desasignar motorizado</option>
                                     <?php
                                     $drivers = get_users(array('role' => 'wpcargo_driver'));
-                                    $today = current_time('Y-m-d');
+                                    $today_meta = current_time('Y-m-d');
                                     foreach ($drivers as $driver) {
                                         $first = get_user_meta($driver->ID, 'first_name', true);
                                         $last  = get_user_meta($driver->ID, 'last_name', true);
@@ -111,18 +95,17 @@
                                             $driver_full = trim($driver->display_name) ?: $driver->user_email;
                                         }
 
-                                        // RECOJO: Contar USUARIOS ÚNICOS asignados a este motorizado
                                         $assigned_users_recojo = array();
                                         $assigned_posts_recojo = get_posts(array(
-                                            'post_type' => 'wpcargo_shipment',
+                                            'post_type'      => 'wpcargo_shipment',
                                             'posts_per_page' => -1,
-                                            'fields' => 'ids',
-                                            'meta_key' => 'wpcargo_motorizo_recojo',
-                                            'meta_value' => $driver->ID,
+                                            'fields'         => 'ids',
+                                            'meta_key'       => 'wpcargo_motorizo_recojo',
+                                            'meta_value'     => $driver->ID,
                                         ));
                                         if (!empty($assigned_posts_recojo)) {
                                             foreach ($assigned_posts_recojo as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today) {
+                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
                                                     $client_id = get_post_meta($sp_id, 'registered_shipper', true);
                                                     if (!empty($client_id)) {
                                                         $assigned_users_recojo[$client_id] = true;
@@ -131,18 +114,17 @@
                                             }
                                         }
 
-                                        // ENTREGA: Contar ENVÍOS asignados a este motorizado
                                         $assigned_entrega = 0;
                                         $assigned_posts_entrega = get_posts(array(
-                                            'post_type' => 'wpcargo_shipment',
+                                            'post_type'      => 'wpcargo_shipment',
                                             'posts_per_page' => -1,
-                                            'fields' => 'ids',
-                                            'meta_key' => 'wpcargo_motorizo_entrega',
-                                            'meta_value' => $driver->ID,
+                                            'fields'         => 'ids',
+                                            'meta_key'       => 'wpcargo_motorizo_entrega',
+                                            'meta_value'     => $driver->ID,
                                         ));
                                         if (!empty($assigned_posts_entrega)) {
                                             foreach ($assigned_posts_entrega as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today) {
+                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
                                                     $assigned_entrega++;
                                                 }
                                             }
@@ -158,20 +140,20 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                             <button type="button" class="btn btn-primary" id="modal-confirm-btn" style="background: #e8363c; border-color: #e8363c;">
-                                <i class="fa fa-check"></i> Asignar Motorizado
+                                <i class="fa fa-check"></i> Confirmar
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- MODAL: Asignar Motorizado ENTREGA -->
+            <!-- MODAL: Asignar / Desasignar Motorizado ENTREGA -->
             <div id="modalAsignMotorizadoEntrega" class="modal fade" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white;">
                             <h5 class="modal-title">
-                                <i class="fa fa-truck"></i> Asignar Motorizado Entrega
+                                <i class="fa fa-truck"></i> Asignar / Desasignar Motorizado Entrega
                             </h5>
                             <button type="button" class="close" data-dismiss="modal" style="color: white;">
                                 <span>&times;</span>
@@ -181,17 +163,17 @@
                             <div style="margin-bottom: 15px;">
                                 <strong>Envíos seleccionados: <span id="modal-selected-count-entrega">0</span></strong>
                             </div>
-                            
                             <div style="margin-bottom: 20px;">
                                 <label for="modal-motorizado-select-entrega" style="font-weight: 600; margin-bottom: 10px; display: block;">
                                     <i class="fa fa-user" style="margin-right: 5px; color: #28a745;"></i>
-                                    Seleccionar Motorizado:
+                                    Seleccionar acción:
                                 </label>
                                 <select id="modal-motorizado-select-entrega" class="form-control">
                                     <option value="">-- Seleccione un motorizado --</option>
+                                    <option value="desasignar" style="color: #dc3545; font-weight: 600;">❌ Desasignar motorizado</option>
                                     <?php
                                     $drivers = get_users(array('role' => 'wpcargo_driver'));
-                                    $today = current_time('Y-m-d');
+                                    $today_meta = current_time('Y-m-d');
                                     foreach ($drivers as $driver) {
                                         $first = get_user_meta($driver->ID, 'first_name', true);
                                         $last  = get_user_meta($driver->ID, 'last_name', true);
@@ -200,18 +182,17 @@
                                             $driver_full = trim($driver->display_name) ?: $driver->user_email;
                                         }
 
-                                        // RECOJO: Contar USUARIOS ÚNICOS asignados a este motorizado
                                         $assigned_users_recojo = array();
                                         $assigned_posts_recojo = get_posts(array(
-                                            'post_type' => 'wpcargo_shipment',
+                                            'post_type'      => 'wpcargo_shipment',
                                             'posts_per_page' => -1,
-                                            'fields' => 'ids',
-                                            'meta_key' => 'wpcargo_motorizo_recojo',
-                                            'meta_value' => $driver->ID,
+                                            'fields'         => 'ids',
+                                            'meta_key'       => 'wpcargo_motorizo_recojo',
+                                            'meta_value'     => $driver->ID,
                                         ));
                                         if (!empty($assigned_posts_recojo)) {
                                             foreach ($assigned_posts_recojo as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today) {
+                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
                                                     $client_id = get_post_meta($sp_id, 'registered_shipper', true);
                                                     if (!empty($client_id)) {
                                                         $assigned_users_recojo[$client_id] = true;
@@ -220,18 +201,17 @@
                                             }
                                         }
 
-                                        // ENTREGA: Contar ENVÍOS asignados a este motorizado
                                         $assigned_entrega = 0;
                                         $assigned_posts_entrega = get_posts(array(
-                                            'post_type' => 'wpcargo_shipment',
+                                            'post_type'      => 'wpcargo_shipment',
                                             'posts_per_page' => -1,
-                                            'fields' => 'ids',
-                                            'meta_key' => 'wpcargo_motorizo_entrega',
-                                            'meta_value' => $driver->ID,
+                                            'fields'         => 'ids',
+                                            'meta_key'       => 'wpcargo_motorizo_entrega',
+                                            'meta_value'     => $driver->ID,
                                         ));
                                         if (!empty($assigned_posts_entrega)) {
                                             foreach ($assigned_posts_entrega as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today) {
+                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
                                                     $assigned_entrega++;
                                                 }
                                             }
@@ -247,17 +227,12 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                             <button type="button" class="btn btn-primary" id="modal-confirm-btn-entrega" style="background: #28a745; border-color: #28a745;">
-                                <i class="fa fa-check"></i> Asignar Motorizado
+                                <i class="fa fa-check"></i> Confirmar
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Separar envíos en recojo y entrega -->
-            <?php
-            // Ya separamos en el header, reutilizamos las variables
-            ?>
             
             <!-- Layout para dos tablas lado a lado -->
             <div style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%;">
@@ -290,12 +265,9 @@
                         <tbody id="container-shipment-list-recojo">
                             <?php if( !empty( $shipments_recojo )): ?>
                                 <?php
-                                // Agrupar shipments por cliente (registered_shipper)
                                 $grouped_recojo = array();
                                 foreach( $shipments_recojo as $shipment_id ) {
                                     $client_id = get_post_meta($shipment_id, 'registered_shipper', true);
-                                    error_log('DEBUG RECOJO - Shipment #' . $shipment_id . ': registered_shipper = ' . var_export($client_id, true));
-                                    
                                     if ( empty( $client_id ) ) {
                                         $client_id = 'sin_cliente';
                                     }
@@ -305,41 +277,31 @@
                                     $grouped_recojo[$client_id][] = $shipment_id;
                                 }
                                 
-                                error_log('DEBUG RECOJO - Agrupación: ' . var_export($grouped_recojo, true));
-                                
                                 foreach( $grouped_recojo as $client_id => $shipment_ids ):
                                     if ($client_id !== 'sin_cliente') {
-                                        // Intentar obtener como usuario primero
                                         $user = get_user_by('ID', $client_id);
                                         if ($user) {
-                                            // Preferir billing_company si está disponible
                                             $billing_company = get_user_meta($user->ID, 'billing_company', true);
                                             if (!empty($billing_company)) {
                                                 $client_name = $billing_company;
                                             } else {
-                                                // fallback: display_name, then user_email
                                                 $client_name = trim($user->display_name) ?: $user->user_email;
                                             }
-                                            error_log('DEBUG RECOJO - Client ID: ' . $client_id . ' | Es usuario: SÍ | Nombre utilizado: ' . $client_name);
                                         } else {
-                                            // Si no es usuario, intentar meta post (posible custom customer post)
                                             $billing_company_post = get_post_meta($client_id, 'billing_company', true);
                                             if (!empty($billing_company_post)) {
                                                 $client_name = $billing_company_post;
                                             } else {
                                                 $client_name = get_the_title($client_id);
                                             }
-                                            error_log('DEBUG RECOJO - Client ID: ' . $client_id . ' | Es usuario: NO | Nombre utilizado: ' . $client_name);
                                         }
                                     } else {
                                         $client_name = 'Sin Cliente';
-                                        error_log('DEBUG RECOJO - Sin cliente para este grupo');
                                     }
                                     $client_name = $client_name ?: $client_id;
                                     $shipment_count_per_user = count($shipment_ids);
                                     $group_id = 'recojo_' . sanitize_html_class($client_id);
                                 ?>
-                                    <!-- Row: Encabezado del Usuario (expandible) -->
                                     <tr class="user-group-header" data-user-group="<?php echo esc_attr($group_id); ?>" style="background: #f0f7ff; border-top: 2px solid #2980b9; cursor: pointer;">
                                         <td class="form-check">
                                             <input
@@ -348,8 +310,7 @@
                                                 id="user-<?php echo esc_attr($group_id); ?>"
                                                 data-group="<?php echo esc_attr($group_id); ?>"
                                             >
-                                            <label class="form-check-label" for="user-<?php echo esc_attr($group_id); ?>">
-                                            </label>
+                                            <label class="form-check-label" for="user-<?php echo esc_attr($group_id); ?>"></label>
                                         </td>
                                         <td colspan="6" style="padding: 12px 16px; vertical-align: middle;">
                                             <strong style="color: #2980b9; font-size: 0.95em;">
@@ -364,11 +325,10 @@
                                     
                                     <?php foreach( $shipment_ids as $shipment_id ): ?>
                                         <?php
-                                            $shipment_title = get_the_title($shipment_id);
-                                            $status = get_post_meta( $shipment_id, 'wpcargo_status', true );
+                                            $shipment_title      = get_the_title($shipment_id);
+                                            $status              = get_post_meta( $shipment_id, 'wpcargo_status', true );
                                             $wpcfe_print_options = wpcfe_print_options();
                                             
-                                            // Mostrar distrito de recojo
                                             $distrito = get_post_meta($shipment_id, 'wpcargo_distrito_recojo', true);
                                             if (empty($distrito)) {
                                                 $distrito = get_post_meta($shipment_id, 'wpcargo_origin_field', true);
@@ -377,10 +337,9 @@
                                                 $distrito = 'N/A';
                                             }
                                             
-                                            // Verificar si tiene motorizado de recojo asignado
                                             $motorizado_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
-                                            $tiene_motorizado = !empty($motorizado_recojo) && $motorizado_recojo !== '0';
-                                            $row_class = $tiene_motorizado ? 'shipment-assigned' : 'shipment-unassigned';
+                                            $tiene_motorizado  = !empty($motorizado_recojo) && $motorizado_recojo !== '0';
+                                            $row_class         = $tiene_motorizado ? 'shipment-assigned' : 'shipment-unassigned';
                                         ?>
                                         <tr id="shipment-<?php echo $shipment_id; ?>" data-shipment="<?php echo $shipment_id; ?>" class="selected-shipment p-1 <?php echo $row_class; ?> user-shipment" data-group="<?php echo esc_attr($group_id); ?>" style="display: none; padding-left: 30px;">
                                             <td colspan="1"></td>
@@ -404,10 +363,10 @@
                                                 <?php
                                                     $motorizado_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
                                                     if ($motorizado_recojo && get_userdata($motorizado_recojo)) {
-                                                        $u = get_userdata($motorizado_recojo);
+                                                        $u     = get_userdata($motorizado_recojo);
                                                         $first = get_user_meta($u->ID, 'first_name', true);
                                                         $last  = get_user_meta($u->ID, 'last_name', true);
-                                                        $name = trim($first . ' ' . $last);
+                                                        $name  = trim($first . ' ' . $last);
                                                         if (empty($name)) {
                                                             $name = trim($u->display_name) ?: $u->user_email;
                                                         }
@@ -463,11 +422,10 @@
                             <?php if( !empty( $shipments_entrega )): ?>
                                 <?php foreach( $shipments_entrega as $shipment_id ): ?>
                                     <?php
-                                        $shipment_title = get_the_title($shipment_id);
-                                        $status = get_post_meta( $shipment_id, 'wpcargo_status', true );
+                                        $shipment_title      = get_the_title($shipment_id);
+                                        $status              = get_post_meta( $shipment_id, 'wpcargo_status', true );
                                         $wpcfe_print_options = wpcfe_print_options();
                                         
-                                        // Mostrar distrito de entrega
                                         $distrito = get_post_meta($shipment_id, 'wpcargo_distrito_destino', true);
                                         if (empty($distrito)) {
                                             $distrito = get_post_meta($shipment_id, 'wpcargo_destination', true);
@@ -476,15 +434,9 @@
                                             $distrito = 'N/A';
                                         }
                                         
-                                        // Verificar si tiene motorizado de entrega asignado
                                         $motorizado_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
-                                        $tiene_motorizado = !empty($motorizado_entrega) && $motorizado_entrega !== '0';
-                                        $row_class = $tiene_motorizado ? 'shipment-assigned' : 'shipment-unassigned';
-                                        // Debug: escribir en log información relevante de entrega (solo PHP log)
-                                        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                                            $container_entrega_meta = get_post_meta( $shipment_id, 'shipment_container_entrega', true );
-                                            error_log( 'DEBUG ENTREGA - Shipment #' . $shipment_id . ': distrito=' . var_export( $distrito, true ) . ' | motorizado_entrega=' . var_export( $motorizado_entrega, true ) . ' | container_entrega=' . var_export( $container_entrega_meta, true ) . ' | status=' . var_export( $status, true ) );
-                                        }
+                                        $tiene_motorizado   = !empty($motorizado_entrega) && $motorizado_entrega !== '0';
+                                        $row_class          = $tiene_motorizado ? 'shipment-assigned' : 'shipment-unassigned';
                                     ?>
                                     <tr id="shipment-<?php echo $shipment_id; ?>" data-shipment="<?php echo $shipment_id; ?>" class="selected-shipment p-1 <?php echo $row_class; ?>" data-courier="entrega">
                                         <td class="form-check">
@@ -495,10 +447,7 @@
                                                 name="selected_shipments[]"
                                                 value="<?php echo esc_attr($shipment_id); ?>"
                                             >
-                                            <label
-                                                class="form-check-label"
-                                                for="shipment-<?php echo esc_attr($shipment_id); ?>">
-                                            </label>
+                                            <label class="form-check-label" for="shipment-<?php echo esc_attr($shipment_id); ?>"></label>
                                         </td>
                                         <td class="text-center">
                                             <?php do_action( 'wpcsc_before_shipment_content_section', $shipment_id ); ?>
@@ -507,26 +456,21 @@
                                         </td>
                                         <td>
                                             <?php
-                                                // Obtener marca (billing_company) del cliente del envío
                                                 $client_id = get_post_meta($shipment_id, 'registered_shipper', true);
-                                                $marca = 'N/A';
-                                                
+                                                $marca     = 'N/A';
                                                 if (!empty($client_id)) {
                                                     $user = get_user_by('ID', $client_id);
                                                     if ($user) {
-                                                        // Si es usuario, obtener billing_company
                                                         $billing_company = get_user_meta($user->ID, 'billing_company', true);
                                                         if (!empty($billing_company)) {
                                                             $marca = $billing_company;
                                                         } else {
-                                                            // Si no hay billing_company, obtener nombre y apellido
                                                             $first_name = get_user_meta($user->ID, 'first_name', true);
-                                                            $last_name = get_user_meta($user->ID, 'last_name', true);
-                                                            $full_name = trim($first_name . ' ' . $last_name);
-                                                            $marca = !empty($full_name) ? $full_name : $user->display_name;
+                                                            $last_name  = get_user_meta($user->ID, 'last_name', true);
+                                                            $full_name  = trim($first_name . ' ' . $last_name);
+                                                            $marca      = !empty($full_name) ? $full_name : $user->display_name;
                                                         }
                                                     } else {
-                                                        // Si no es usuario, intentar como post metadatos
                                                         $billing_company_post = get_post_meta($client_id, 'billing_company', true);
                                                         $marca = !empty($billing_company_post) ? $billing_company_post : get_the_title($client_id);
                                                     }
@@ -549,10 +493,10 @@
                                             <?php
                                                 $motorizado_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
                                                 if ($motorizado_entrega && get_userdata($motorizado_entrega)) {
-                                                    $u = get_userdata($motorizado_entrega);
+                                                    $u     = get_userdata($motorizado_entrega);
                                                     $first = get_user_meta($u->ID, 'first_name', true);
                                                     $last  = get_user_meta($u->ID, 'last_name', true);
-                                                    $name = trim($first . ' ' . $last);
+                                                    $name  = trim($first . ' ' . $last);
                                                     if (empty($name)) {
                                                         $name = trim($u->display_name) ?: $u->user_email;
                                                     }
@@ -586,58 +530,28 @@
     <?php do_action( 'wpc_shipment_container_after_assigned_shipments_info', $container_id ); ?>
 </div>
 
-<!-- ESTILOS PARA SCROLL: Hacer tablas scrolleables -->
 <style>
-    /* Hacer scrolleable el contenedor de tablas shipment-list-wrapper */
     #shipment-list-wrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
     }
-    
-    /* Asegurar que las tablas dentro tengan ancho mínimo para scroll */
     #shipment-list-wrapper table {
         min-width: 100%;
         width: auto;
     }
-    
-    /* Contenedor flex también scrolleable */
     #shipment-list-wrapper > div[style*="display: flex"] {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+    #shipment-list-wrapper::-webkit-scrollbar { height: 8px; }
+    #shipment-list-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    #shipment-list-wrapper::-webkit-scrollbar-thumb { background: #999; border-radius: 10px; }
+    #shipment-list-wrapper::-webkit-scrollbar-thumb:hover { background: #555; }
     
-    /* Estilo de la barra de scroll */
-    #shipment-list-wrapper::-webkit-scrollbar {
-        height: 8px;
-    }
-    
-    #shipment-list-wrapper::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    #shipment-list-wrapper::-webkit-scrollbar-thumb {
-        background: #999;
-        border-radius: 10px;
-    }
-    
-    #shipment-list-wrapper::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-    
-    /* Estilos para tablas colapsables */
-    .shipment-table-container {
-        transition: all 0.3s ease;
-    }
-    
-    .shipment-table-header {
-        transition: all 0.3s ease;
-    }
-    
-    .shipment-table-header:hover {
-        background-color: #e9ecef !important;
-    }
+    .shipment-table-container { transition: all 0.3s ease; }
+    .shipment-table-header { transition: all 0.3s ease; }
+    .shipment-table-header:hover { background-color: #e9ecef !important; }
     
     .shipment-collapse-table {
         transition: opacity 0.3s ease;
@@ -647,7 +561,6 @@
         display: table;
         margin-bottom: 15px;
     }
-    
     .shipment-collapse-table.collapsed {
         opacity: 0;
         visibility: hidden;
@@ -655,117 +568,62 @@
         margin-bottom: 0;
         border: none !important;
     }
+    .collapse-toggle { transition: transform 0.3s ease; color: #6c757d; margin: 0 !important; padding: 4px 12px !important; }
+    .collapse-toggle.collapsed i { transform: rotate(180deg); }
+    .collapse-toggle:hover { color: #495057; background-color: #e9ecef !important; }
     
-    .collapse-toggle {
-        transition: transform 0.3s ease;
-        color: #6c757d;
-        margin: 0 !important;
-        padding: 4px 12px !important;
-    }
+    tr.shipment-assigned   { background-color: #d4edda !important; border-left: 4px solid #28a745 !important; }
+    tr.shipment-unassigned { background-color: #fff !important;    border-left: 4px solid #dc3545 !important; }
+    tr.shipment-assigned:hover   { background-color: #c3e6cb !important; }
+    tr.shipment-unassigned:hover { background-color: #fff5f5 !important; }
     
-    .collapse-toggle.collapsed i {
-        transform: rotate(180deg);
-    }
+    tr.user-group-header { font-weight: 600; cursor: pointer !important; }
+    tr.user-group-header:hover { background-color: #e8f4f8 !important; }
+    tr.user-group-header td { padding: 12px 16px !important; vertical-align: middle; }
     
-    .collapse-toggle:hover {
-        color: #495057;
-        background-color: #e9ecef !important;
-    }
-    
-    /* Diferenciación de envíos asignados vs sin asignar */
-    tr.shipment-assigned {
-        background-color: #d4edda !important; /* Verde claro */
-        border-left: 4px solid #28a745 !important;
-    }
-    
-    tr.shipment-unassigned {
-        background-color: #fff !important; /* Blanco/sin fondo */
-        border-left: 4px solid #dc3545 !important;
-    }
-    
-    tr.shipment-assigned:hover {
-        background-color: #c3e6cb !important;
-    }
-    
-    tr.shipment-unassigned:hover {
-        background-color: #fff5f5 !important;
-    }
-    
-    /* Estilos para grupos de usuarios */
-    tr.user-group-header {
-        font-weight: 600;
-        cursor: pointer !important;
-    }
-    
-    tr.user-group-header:hover {
-        background-color: #e8f4f8 !important;
-    }
-    
-    tr.user-group-header td {
-        padding: 12px 16px !important;
-        vertical-align: middle;
-    }
-    
-    /* Icono toggle del usuario */
     .user-toggle-icon {
         display: inline-block !important;
         width: 16px !important;
         transition: transform 0.3s ease !important;
         margin-right: 8px !important;
     }
-    
-    tr.user-group-header .user-toggle-icon.fa-chevron-down {
-        transform: rotate(0deg);
-    }
-
+    tr.user-group-header .user-toggle-icon.fa-chevron-down { transform: rotate(0deg); }
 </style>
 
-<!-- JAVASCRIPT -->
 <script>
 jQuery(document).ready(function($) {
     console.log('✅ Script cargado');
     
-    // Obtener container_id de la URL
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams  = new URLSearchParams(window.location.search);
     const containerId = urlParams.get('id') || '';
-    console.log('📦 Container ID extraído de URL:', containerId);
-    
-    // Generar nonce una sola vez
-    const nonce = '<?php echo wp_create_nonce('merc_assign_motorizado'); ?>';
-    console.log('🔐 Nonce generado:', nonce);
-    
+    const nonce      = '<?php echo wp_create_nonce('merc_assign_motorizado'); ?>';
+
     // ============================================
     // BOTÓN: Seleccionar todos los USUARIOS (Recojo)
     // ============================================
     $('#select-all-users-btn').on('click', function() {
-        console.log('🖱️ Click en "Seleccionar todos los usuarios"');
         const userCheckboxes = $('#shipment-list-recojo .user-checkbox');
         const allChecked = userCheckboxes.length > 0 && userCheckboxes.filter(':not(:checked)').length === 0;
-        
         userCheckboxes.prop('checked', !allChecked).trigger('change');
-        
-        if (allChecked) {
-            $(this).html('<i class="fa fa-check-square-o"></i> Seleccionar todos USUARIOS (Recojo)');
-        } else {
-            $(this).html('<i class="fa fa-check-square-o"></i> Deseleccionar todos USUARIOS (Recojo)');
-        }
+        $(this).html(
+            allChecked
+            ? '<i class="fa fa-check-square-o"></i> Seleccionar todos USUARIOS (Recojo)'
+            : '<i class="fa fa-check-square-o"></i> Deseleccionar todos USUARIOS (Recojo)'
+        );
     });
     
     // ============================================
     // BOTÓN: Seleccionar todos los ENVÍOS (Entrega)
     // ============================================
     $('#select-all-shipments-btn').on('click', function() {
-        console.log('🖱️ Click en "Seleccionar todos los envíos"');
         const shipmentCheckboxes = $('#shipment-list-entrega .shipment-checkbox');
         const allChecked = shipmentCheckboxes.length > 0 && shipmentCheckboxes.filter(':not(:checked)').length === 0;
-        
         shipmentCheckboxes.prop('checked', !allChecked).trigger('change');
-        
-        if (allChecked) {
-            $(this).html('<i class="fa fa-check-square-o"></i> Seleccionar todos ENVÍOS (Entrega)');
-        } else {
-            $(this).html('<i class="fa fa-check-square-o"></i> Deseleccionar todos ENVÍOS (Entrega)');
-        }
+        $(this).html(
+            allChecked
+            ? '<i class="fa fa-check-square-o"></i> Seleccionar todos ENVÍOS (Entrega)'
+            : '<i class="fa fa-check-square-o"></i> Deseleccionar todos ENVÍOS (Entrega)'
+        );
     });
     
     // ============================================
@@ -773,25 +631,19 @@ jQuery(document).ready(function($) {
     // ============================================
     $('.shipment-table-header').on('click', function() {
         const tableType = $(this).attr('data-toggle-table');
-        const table = $('#shipment-list-' + tableType);
+        const table     = $('#shipment-list-' + tableType);
         const toggleBtn = $(this).find('.collapse-toggle');
-        
         table.toggleClass('collapsed');
         toggleBtn.toggleClass('collapsed');
-        
         localStorage.setItem('shipment-table-' + tableType + '-collapsed', table.hasClass('collapsed'));
     });
     
-    // Restaurar estados guardados
     $('.shipment-table-header').each(function() {
-        const tableType = $(this).attr('data-toggle-table');
+        const tableType  = $(this).attr('data-toggle-table');
         const isCollapsed = localStorage.getItem('shipment-table-' + tableType + '-collapsed') === 'true';
-        
         if (isCollapsed) {
-            const table = $('#shipment-list-' + tableType);
-            const toggleBtn = $(this).find('.collapse-toggle');
-            table.addClass('collapsed');
-            toggleBtn.addClass('collapsed');
+            $('#shipment-list-' + tableType).addClass('collapsed');
+            $(this).find('.collapse-toggle').addClass('collapsed');
         }
     });
     
@@ -799,316 +651,225 @@ jQuery(document).ready(function($) {
     // EXPANSIÓN DE GRUPOS DE USUARIOS
     // ============================================
     $('.user-group-header').on('click', function(e) {
-        if ($(e.target).closest('.user-checkbox').length) {
-            return;
-        }
-        
-        const groupId = $(this).attr('data-user-group');
+        if ($(e.target).closest('.user-checkbox').length) return;
+        const groupId  = $(this).attr('data-user-group');
         const shipments = $(`.user-shipment[data-group="${groupId}"]`);
-        const icon = $(this).find('.user-toggle-icon');
-        
+        const icon     = $(this).find('.user-toggle-icon');
         const isHidden = shipments.eq(0).is(':hidden');
         shipments.toggle();
-        
-        if (isHidden) {
-            icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
-        } else {
-            icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
-        }
+        icon.toggleClass('fa-chevron-right', !isHidden).toggleClass('fa-chevron-down', isHidden);
     });
     
     // ============================================
-    // CHECKBOX DE USUARIO
+    // CHECKBOX DE USUARIO → selecciona sus envíos
     // ============================================
     $(document).on('change', '.user-checkbox', function() {
-        const groupId = $(this).attr('data-group');
+        const groupId  = $(this).attr('data-group');
         const isChecked = this.checked;
-        
         $(`.user-shipment[data-group="${groupId}"] .shipment-checkbox`).prop('checked', isChecked);
         updateAssignButton();
     });
     
     // ============================================
-    // ACTUALIZAR BOTONES DE ASIGNAR MOTORIZADO
+    // VISIBILIDAD DEL BOTÓN ASIGNAR
     // ============================================
     function updateAssignButton() {
         const selectedUsers = $('#shipment-list-recojo .user-checkbox:checked').length;
-        if (selectedUsers > 0) {
-            $('#assign-motorizado-btn').show();
-        } else {
-            $('#assign-motorizado-btn').hide();
-        }
+        $('#assign-motorizado-btn').toggle(selectedUsers > 0);
     }
     
     function updateAssignButtonEntrega() {
         const selectedShipments = $('#shipment-list-entrega .shipment-checkbox:checked').length;
-        if (selectedShipments > 0) {
-            $('#assign-motorizado-entrega-btn').show();
-        } else {
-            $('#assign-motorizado-entrega-btn').hide();
-        }
+        $('#assign-motorizado-entrega-btn').toggle(selectedShipments > 0);
     }
     
-    // Actualizar cuando cambian los checkboxes de entrega
     $(document).on('change', '#shipment-list-entrega .shipment-checkbox', function() {
         updateAssignButtonEntrega();
     });
     
     // ============================================
-    // MODAL: Actualizar contador y manejar confirmación
+    // MODAL RECOJO: actualizar contador al abrir
     // ============================================
     $('#modalAsignMotorizado').on('show.bs.modal', function() {
         const selectedUsers = $('#shipment-list-recojo .user-checkbox:checked').length;
         $('#modal-selected-count').text(selectedUsers);
-        console.log('📋 Modal RECOJO abierto. Usuarios seleccionados:', selectedUsers);
     });
     
-    // MODAL ENTREGA: Actualizar contador
+    // ============================================
+    // MODAL ENTREGA: actualizar contador al abrir
+    // ============================================
     $('#modalAsignMotorizadoEntrega').on('show.bs.modal', function() {
         const selectedShipments = $('#shipment-list-entrega .shipment-checkbox:checked').length;
         $('#modal-selected-count-entrega').text(selectedShipments);
-        console.log('📋 Modal ENTREGA abierto. Envíos seleccionados:', selectedShipments);
     });
     
-    // Botón de confirmación del modal
+    // ============================================
+    // HELPER: cerrar modal manualmente
+    // ============================================
+    function closeModal(modalId) {
+        try {
+            $(modalId).modal('hide');
+        } catch(e) {
+            const el = document.getElementById(modalId.replace('#',''));
+            el.style.display = 'none';
+            el.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    }
+
+    // ============================================
+    // HELPER: enviar AJAX y manejar respuesta
+    // ============================================
+    function enviarAsignacion(formData, btn, labelOriginal, modalId, colorConfirm) {
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Listo!',
+                        text: response.data.message,
+                        confirmButtonColor: colorConfirm
+                    }).then(() => {
+                        closeModal(modalId);
+                        setTimeout(() => window.location.reload(), 500);
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.data?.message || 'Error desconocido',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    btn.prop('disabled', false).html(labelOriginal);
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'Error: ' + error,
+                    confirmButtonColor: '#dc3545'
+                });
+                btn.prop('disabled', false).html(labelOriginal);
+            }
+        });
+    }
+    
+    // ============================================
+    // MODAL RECOJO: confirmar asignación / desasignación
+    // ============================================
     $('#modal-confirm-btn').on('click', function(e) {
         e.preventDefault();
-        
-        console.log('👉 CLICK EN BOTÓN MODAL');
-        
-        const btn = $(this);
+        const btn          = $(this);
         const selectedUsers = $('#shipment-list-recojo .user-checkbox:checked');
-        const driverId = $('#modal-motorizado-select').val();
-        
-        console.log('👤 Usuarios seleccionados:', selectedUsers.length);
-        console.log('🚙 Driver ID:', driverId);
-        
+        const driverId     = $('#modal-motorizado-select').val();
+
         if (selectedUsers.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Atención',
-                text: 'Por favor selecciona al menos un usuario',
-                confirmButtonColor: '#e8363c'
-            });
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor selecciona al menos un usuario.', confirmButtonColor: '#e8363c' });
             return;
         }
-        
+        // Validar: debe elegir motorizado O la opción desasignar (no el placeholder vacío)
         if (!driverId) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Atención',
-                text: 'Por favor selecciona un motorizado',
-                confirmButtonColor: '#e8363c'
-            });
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor selecciona un motorizado o la opción "Desasignar motorizado".', confirmButtonColor: '#e8363c' });
             return;
         }
-        
-        const userIds = selectedUsers.map(function() {
+
+        const isDesasignar = (driverId === 'desasignar');
+        const userIds      = selectedUsers.map(function() {
             return $(this).attr('data-group').replace('recojo_', '');
         }).get();
-        
-        const driverName = $('#modal-motorizado-select').find('option:selected').text();
-        
+        const driverName   = $('#modal-motorizado-select option:selected').text();
+
+        const confirmTitle = isDesasignar ? 'Confirmar desasignación' : 'Confirmar asignación';
+        const confirmText  = isDesasignar
+            ? `¿Desasignar el motorizado de ${userIds.length} usuario(s)?`
+            : `¿Asignar ${driverName} a ${userIds.length} usuario(s)?`;
+        const confirmIcon  = isDesasignar ? 'warning' : 'question';
+
         Swal.fire({
-            icon: 'question',
-            title: 'Confirmar asignación',
-            text: `¿Asignar motorizado ${driverName} a ${userIds.length} usuario(s)?`,
+            icon: confirmIcon,
+            title: confirmTitle,
+            text: confirmText,
             showCancelButton: true,
-            confirmButtonText: 'Sí, asignar',
+            confirmButtonText: isDesasignar ? 'Sí, desasignar' : 'Sí, asignar',
             cancelButtonText: 'Cancelar',
             confirmButtonColor: '#e8363c',
             cancelButtonColor: '#6c757d'
         }).then((result) => {
-            if (!result.isConfirmed) {
-                return;
-            }
-            btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Asignando...');
-            
+            if (!result.isConfirmed) return;
+
+            const labelOriginal = '<i class="fa fa-check"></i> Confirmar';
+            btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Procesando...');
+
             const formData = new FormData();
-            formData.append('action', 'merc_assign_motorizado_bulk');
-            formData.append('driver_id', driverId);
+            formData.append('action',       'merc_assign_motorizado_bulk');
+            formData.append('driver_id',    driverId);
             formData.append('container_id', containerId);
-            formData.append('nonce', nonce);
-            
-            userIds.forEach((userId, i) => {
-                formData.append('user_ids[' + i + ']', userId);
-            });
-            
-            console.log('📤 Enviando AJAX...');
-            
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    console.log('✅ Respuesta:', response);
-                    
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Éxito!',
-                            text: response.data.message,
-                            confirmButtonColor: '#e8363c'
-                        }).then(() => {
-                            // Cerrar modal con jQuery
-                            try {
-                                $('#modalAsignMotorizado').modal('hide');
-                            } catch(e) {
-                                console.log('Modal close method not available, using DOM manipulation');
-                                const modalElement = document.getElementById('modalAsignMotorizado');
-                                modalElement.style.display = 'none';
-                                modalElement.classList.remove('show');
-                                document.body.classList.remove('modal-open');
-                                const backdrop = document.querySelector('.modal-backdrop');
-                                if (backdrop) backdrop.remove();
-                            }
-                            setTimeout(() => window.location.reload(), 500);
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.data?.message || 'Error desconocido',
-                            confirmButtonColor: '#dc3545'
-                        });
-                        btn.prop('disabled', false).html('<i class="fa fa-check"></i> Asignar Motorizado');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('❌ Error AJAX:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de conexión',
-                        text: 'Error: ' + error,
-                        confirmButtonColor: '#dc3545'
-                    });
-                    btn.prop('disabled', false).html('<i class="fa fa-check"></i> Asignar Motorizado');
-                }
-            });
+            formData.append('nonce',        nonce);
+            userIds.forEach((userId, i) => formData.append('user_ids[' + i + ']', userId));
+
+            enviarAsignacion(formData, btn, labelOriginal, '#modalAsignMotorizado', '#e8363c');
         });
     });
     
     // ============================================
-    // MODAL ENTREGA: Manejar confirmación de asignación
+    // MODAL ENTREGA: confirmar asignación / desasignación
     // ============================================
     $('#modal-confirm-btn-entrega').on('click', function(e) {
         e.preventDefault();
-        
-        console.log('👉 CLICK EN BOTÓN MODAL ENTREGA');
-        
-        const btn = $(this);
+        const btn              = $(this);
         const selectedShipments = $('#shipment-list-entrega .shipment-checkbox:checked');
-        const driverId = $('#modal-motorizado-select-entrega').val();
-        
-        console.log('📦 Envíos seleccionados:', selectedShipments.length);
-        console.log('🚙 Driver ID:', driverId);
-        
+        const driverId         = $('#modal-motorizado-select-entrega').val();
+
         if (selectedShipments.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Atención',
-                text: 'Por favor selecciona al menos un envío',
-                confirmButtonColor: '#28a745'
-            });
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor selecciona al menos un envío.', confirmButtonColor: '#28a745' });
             return;
         }
-        
         if (!driverId) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Atención',
-                text: 'Por favor selecciona un motorizado',
-                confirmButtonColor: '#28a745'
-            });
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor selecciona un motorizado o la opción "Desasignar motorizado".', confirmButtonColor: '#28a745' });
             return;
         }
-        
-        const shipmentIds = selectedShipments.map(function() {
-            return $(this).val();
-        }).get();
-        
-        const driverName = $('#modal-motorizado-select-entrega').find('option:selected').text();
-        
+
+        const isDesasignar = (driverId === 'desasignar');
+        const shipmentIds  = selectedShipments.map(function() { return $(this).val(); }).get();
+        const driverName   = $('#modal-motorizado-select-entrega option:selected').text();
+
+        const confirmTitle = isDesasignar ? 'Confirmar desasignación' : 'Confirmar asignación';
+        const confirmText  = isDesasignar
+            ? `¿Desasignar el motorizado de ${shipmentIds.length} envío(s)?`
+            : `¿Asignar ${driverName} a ${shipmentIds.length} envío(s)?`;
+        const confirmIcon  = isDesasignar ? 'warning' : 'question';
+
         Swal.fire({
-            icon: 'question',
-            title: 'Confirmar asignación',
-            text: `¿Asignar motorizado ${driverName} a ${shipmentIds.length} envío(s)?`,
+            icon: confirmIcon,
+            title: confirmTitle,
+            text: confirmText,
             showCancelButton: true,
-            confirmButtonText: 'Sí, asignar',
+            confirmButtonText: isDesasignar ? 'Sí, desasignar' : 'Sí, asignar',
             cancelButtonText: 'Cancelar',
             confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d'
         }).then((result) => {
-            if (!result.isConfirmed) {
-                return;
-            }
-            btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Asignando...');
-            
+            if (!result.isConfirmed) return;
+
+            const labelOriginal = '<i class="fa fa-check"></i> Confirmar';
+            btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Procesando...');
+
             const formData = new FormData();
-            formData.append('action', 'merc_assign_motorizado_entrega_bulk');
-            formData.append('driver_id', driverId);
+            formData.append('action',       'merc_assign_motorizado_entrega_bulk');
+            formData.append('driver_id',    driverId);
             formData.append('container_id', containerId);
-            formData.append('nonce', nonce);
-            
-            shipmentIds.forEach((shipmentId, i) => {
-                formData.append('shipment_ids[' + i + ']', shipmentId);
-            });
-            
-            console.log('📤 Enviando AJAX para ENTREGA...');
-            
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    console.log('✅ Respuesta:', response);
-                    
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Éxito!',
-                            text: response.data.message,
-                            confirmButtonColor: '#28a745'
-                        }).then(() => {
-                            // Cerrar modal con jQuery
-                            try {
-                                $('#modalAsignMotorizadoEntrega').modal('hide');
-                            } catch(e) {
-                                console.log('Modal close method not available, using DOM manipulation');
-                                const modalElement = document.getElementById('modalAsignMotorizadoEntrega');
-                                modalElement.style.display = 'none';
-                                modalElement.classList.remove('show');
-                                document.body.classList.remove('modal-open');
-                                const backdrop = document.querySelector('.modal-backdrop');
-                                if (backdrop) backdrop.remove();
-                            }
-                            setTimeout(() => window.location.reload(), 500);
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.data?.message || 'Error desconocido',
-                            confirmButtonColor: '#dc3545'
-                        });
-                        btn.prop('disabled', false).html('<i class="fa fa-check"></i> Asignar Motorizado');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('❌ Error AJAX:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de conexión',
-                        text: 'Error: ' + error,
-                        confirmButtonColor: '#dc3545'
-                    });
-                    btn.prop('disabled', false).html('<i class="fa fa-check"></i> Asignar Motorizado');
-                }
-            });
+            formData.append('nonce',        nonce);
+            shipmentIds.forEach((shipmentId, i) => formData.append('shipment_ids[' + i + ']', shipmentId));
+
+            enviarAsignacion(formData, btn, labelOriginal, '#modalAsignMotorizadoEntrega', '#28a745');
         });
     });
 });

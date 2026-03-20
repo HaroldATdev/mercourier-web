@@ -442,8 +442,20 @@ class MERC_Shipment_Form_Fields {
 	/* ── Selector de producto para MERC Full Fitment ─────────────────────── */
 
 	public function render_producto_selector( $shipment_id ) {
+		// Determinar el tipo de envío
+		$tipo_envio = '';
+		
+		// En creación: vería desde URL
+		if ( isset( $_GET['type'] ) ) {
+			$tipo_envio = sanitize_text_field( $_GET['type'] );
+		}
+		// En edición: tomar desde meta del envío
+		elseif ( $shipment_id ) {
+			$tipo_envio = get_post_meta( $shipment_id, 'tipo_envio', true );
+		}
+		
 		// Solo mostrar si el tipo de envío es MERC FULL FITMENT
-		if ( ! isset( $_GET['type'] ) || $_GET['type'] !== 'full_fitment' ) {
+		if ( $tipo_envio !== 'full_fitment' ) {
 			return;
 		}
 
@@ -877,4 +889,5 @@ class MERC_Shipment_Form_Fields {
 }
 
 new MERC_Shipment_Form_Fields();
+
 

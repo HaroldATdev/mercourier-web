@@ -1,4 +1,17 @@
-document.addEventListener('DOMContentLoaded', function () {
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    merc_init_estado_entrega();
+});
+
+function merc_init_estado_entrega() {
+    // Verificar que mercReturnsConfig existe
+    if (typeof mercReturnsConfig === 'undefined' || !mercReturnsConfig.ajaxUrl) {
+        console.error('[Merc Returns] ERROR: mercReturnsConfig no disponible', mercReturnsConfig);
+        return;
+    }
+    
+    console.log('[Merc Returns] Script cargado. AJAX URL:', mercReturnsConfig.ajaxUrl);
+    
     document.querySelectorAll('.merc-estado-entrega-select').forEach(function (select) {
         // Aplicar estilo visual al cargar según el valor guardado
         merc_aplicar_estilo_select(select, select.value);
@@ -23,11 +36,23 @@ document.addEventListener('DOMContentLoaded', function () {
             data.append('post_id', postId);
             data.append('valor',   valor);
 
+            // Debug: Verificar que mercReturnsConfig está disponible
+            if (typeof mercReturnsConfig === 'undefined' || !mercReturnsConfig.ajaxUrl) {
+                console.error('[Merc Returns] ERROR: mercReturnsConfig.ajaxUrl no disponible', mercReturnsConfig);
+                alert('⚠️ Error de configuración. Recarga la página.');
+                return;
+            }
+
             fetch(mercReturnsConfig.ajaxUrl, {
                 method: 'POST',
                 body: data
             })
-            .then(function (r) { return r.json(); })
+            .then(function (r) { 
+                if (!r.ok) {
+                    console.error('[Merc Returns] Error HTTP:', r.status);
+                }
+                return r.json(); 
+            })
             .then(function (res) {
                 if (res.success) {
                     // Mostrar checkmark temporal
@@ -37,10 +62,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     sel.parentNode.appendChild(ok);
                     setTimeout(function () { ok.remove(); }, 2200);
                 } else {
+                    console.error('[Merc Returns] Error en respuesta:', res);
                     alert('⚠️ Error al guardar el estado. Intenta de nuevo.');
                 }
             })
-            .catch(function () {
+            .catch(function (error) {
+                console.error('[Merc Returns] Error de conexión:', error);
                 alert('⚠️ Error de conexión. Verifica tu red e intenta de nuevo.');
             });
         });
@@ -78,4 +105,5 @@ document.addEventListener('DOMContentLoaded', function () {
             sel.style.backgroundImage = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")";
         }
     }
-});
+}
+

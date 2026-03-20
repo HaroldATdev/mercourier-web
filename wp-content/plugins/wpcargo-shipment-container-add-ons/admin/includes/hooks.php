@@ -497,14 +497,14 @@ function wpcsc_container_details( $shipment_id ){
                             </select>
 						</div>
 					<?php else: ?>
-						<!-- Otros tipos: mostrar UN solo contenedor (compatibilidad) -->
+						<!-- EXPRESS, FULL_FITMENT, u otros: Mostrar SOLO contenedor de ENTREGA -->
 						<div class="form-group">
-							<label><?php _e( 'Shipment Container', 'wpcargo-shipment-container' ); ?></label>                   
-                            <select name="shipment_container" class="mdb-select mt-0 form-control browser-default" id="shipment_container" >
-                                <option value=""><?php esc_html_e('-- Select Container --','wpcargo-shipment-container'); ?></option>
+							<label><?php _e( 'Contenedor de ENTREGA', 'wpcargo-shipment-container' ); ?></label>                   
+                            <select name="shipment_container_entrega" class="mdb-select mt-0 form-control browser-default" id="shipment_container_entrega" >
+                                <option value=""><?php esc_html_e('-- Seleccionar Contenedor --','wpcargo-shipment-container'); ?></option>
                                 <?php if( $containers ): ?>
                                     <?php foreach( $containers as $container ): ?>
-                                        <option value="<?php echo $container->ID; ?>" <?php selected($container_id, $container->ID); ?>><?php echo $container->post_title; ?></option>
+                                        <option value="<?php echo $container->ID; ?>" <?php selected($container_entrega, $container->ID); ?>><?php echo $container->post_title; ?></option>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </select>
@@ -568,10 +568,13 @@ function save_shipment_container_frontend_callback( $post_id, $post ){
             }
         }
     } else {
-        // Otros tipos: Guardar un solo contenedor (compatibilidad)
-        if( isset($post['shipment_container']) && !empty($post['shipment_container']) ) {
-            update_post_meta( $post_id, 'shipment_container', sanitize_text_field( $post['shipment_container'] ) );
-            error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container guardado desde frontend");
+        // EXPRESS, FULL_FITMENT: Guardar SOLO en shipment_container_entrega (no usar shipment_container)
+        if( isset($post['shipment_container_entrega']) ) {
+            $container_entrega = sanitize_text_field( $post['shipment_container_entrega'] );
+            if( !empty($container_entrega) ) {
+                update_post_meta( $post_id, 'shipment_container_entrega', (int)$container_entrega );
+                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_entrega #{$container_entrega} guardado desde frontend (EXPRESS/FULL_FITMENT)");
+            }
         }
     }
 }

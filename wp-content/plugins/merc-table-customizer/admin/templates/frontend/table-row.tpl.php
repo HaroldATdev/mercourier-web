@@ -17,7 +17,17 @@
  * del <tr> que WPCargo ya abrió mediante el hook wpcfe_shipment_table_data.
  */
 ?>
-<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>" data-cliente-id="<?php echo esc_attr( $cliente_id ?: '' ); ?>" data-shipment-id="<?php echo esc_attr( $shipment_id ); ?>" data-distrito="<?php echo esc_attr( $distrito_recojo ?: '' ); ?>" data-motorizo="<?php echo esc_attr( isset( $motorizo_recojo_name ) ? $motorizo_recojo_name : '' ); ?>">
+<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>" data-cliente-id="<?php echo esc_attr( $cliente_id ?: '' ); ?>" data-cliente-nombre="<?php 
+	$cliente_nombre = '';
+	if ( $cliente_id ) {
+		$first_name = get_user_meta( intval( $cliente_id ), 'first_name', true );
+		$last_name = get_user_meta( intval( $cliente_id ), 'last_name', true );
+		if ( $first_name || $last_name ) {
+			$cliente_nombre = trim( $first_name . ' ' . $last_name );
+		}
+	}
+	echo esc_attr( $cliente_nombre );
+?>" data-shipment-id="<?php echo esc_attr( $shipment_id ); ?>" data-distrito="<?php echo esc_attr( $distrito_recojo ?: '' ); ?>" data-motorizo="<?php echo esc_attr( isset( $motorizo_recojo_name ) ? $motorizo_recojo_name : '' ); ?>">
 	<?php if ( $tienda ) : ?>
 		<strong><?php echo esc_html( $tienda ); ?></strong><br>
 	<?php endif; ?>
@@ -32,7 +42,7 @@
 
 <td><?php echo esc_html( $fecha ); ?></td>
 
-<td style="text-align:center;"><?php echo $tipo_html; ?></td>
+<td style=""><?php echo $tipo_html; ?></td>
 
 <td style="text-align:center;"><?php echo $cambio_html; ?></td>
 
@@ -40,5 +50,6 @@
 
 
 <td><?php echo $motorizo_entrega_html; ?></td>
+
 
 
