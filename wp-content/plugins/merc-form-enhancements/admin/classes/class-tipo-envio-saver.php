@@ -107,7 +107,7 @@ class MERC_Tipo_Envio_Saver {
 		$raw        = strtolower( $tipo );
 
 		$grupos = [
-			[ ['normal','emprendedor'],        '10:00 AM',  '10:00 AM'        ],
+			[ ['normal','emprendedor'],        '11:00 AM',  '11:00 AM'        ],
 			[ ['express','agencia'],            '12:30 PM',  '13:00 (1:00 PM)' ],
 			[ ['full_fitment','full'],          '11:30 AM',  '12:15 PM'        ],
 		];
@@ -126,4 +126,5 @@ class MERC_Tipo_Envio_Saver {
 }
 
 new MERC_Tipo_Envio_Saver();
+
 

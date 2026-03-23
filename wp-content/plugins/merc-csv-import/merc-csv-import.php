@@ -21,3 +21,11 @@ require_once MERC_CSV_PATH . 'admin/classes/class-tipo-envio-normalizer.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-sender-autofill.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-financial-import.php';
 
+/**
+ * Inicializar clases principales
+ */
+if ( is_admin() ) {
+	new MERC_Tracking_Validator();
+}
+
+

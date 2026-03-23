@@ -596,7 +596,7 @@ add_action('admin_footer', function() {
                 if(!resp.success || !resp.data) return;
                 var now = resp.data.now;
                 var types = resp.data.types;
-                if((types.normal.count === 0 && now >= '10:00') || (types.normal.count > 0 && types.normal.all_collected)) {
+                if((types.normal.count === 0 && now >= '11:00') || (types.normal.count > 0 && types.normal.all_collected)) {
                     modal.find(".modal-body .card:contains('MERC EMPRENDEDOR')").css({opacity:0.5, pointerEvents:'none'});
                 }
                 if((types.express.count === 0 && now >= '12:30') || (types.express.count > 0 && now >= '13:00')) {
@@ -1519,83 +1519,10 @@ add_action( 'plugins_loaded', 'wpcargo_manipulate_shipment_column_table_callback
 
 //===============================================================================================================
 // STEP 0A: Filtro de Pre-insersión - Asegurar unicidad del post_title (números de tracking)
-add_filter('wp_insert_post_data', 'merc_ensure_unique_tracking_on_insert', 10, 2);
-function merc_ensure_unique_tracking_on_insert($data, $postarr) {
-    // Solo aplicar a shipments
-    if ($data['post_type'] !== 'wpcargo_shipment') {
-        return $data;
-    }
-    
-    // Si es una actualización (ID existe), no modificar
-    if (!empty($postarr['ID'])) {
-        return $data;
-    }
-    
-    $post_title = $data['post_title'];
-    if (empty($post_title)) {
-        return $data;
-    }
-    
-    error_log('🔒 [PRE-INSERT] Verificando unicidad de tracking: ' . $post_title);
-    
-    global $wpdb;
-    
-    // Función para verificar si un tracking ya existe
-    $tracking_exists = function($title) use ($wpdb) {
-        return $wpdb->get_var($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} 
-            WHERE post_type = 'wpcargo_shipment' 
-            AND post_status = 'publish' 
-            AND post_title = %s
-            LIMIT 1",
-            $title
-        ));
-    };
-    
-    // Verificar si ya existe
-    $existing_id = $tracking_exists($post_title);
-    
-    if (!$existing_id) {
-        error_log('✅ [PRE-INSERT] Tracking único: ' . $post_title);
-        return $data;
-    }
-    
-    // Si existe, extraer número y incrementar
-    error_log('❌ [PRE-INSERT] TRACKING DUPLICADO DETECTADO: ' . $post_title . ' (existe ID: ' . $existing_id . ')');
-    
-    // Extraer el número al final (ej: MERC-000348 → MERC- + 000348 → MERC- + 000349)
-    if (preg_match('/^(MERC-)?(\d+)$/', $post_title, $matches)) {
-        $prefix = !empty($matches[1]) ? $matches[1] : 'MERC-';  // MERC-
-        $number = (int)$matches[2];                             // 348
-        $new_number = $number + 1;
-        $num_length = strlen($matches[2]);                      // Mantener mismo número de dígitos
-        $new_title = $prefix . str_pad($new_number, $num_length, '0', STR_PAD_LEFT);
-        
-        // Verificar recursivamente si el nuevo número también existe
-        $attempts = 0;
-        $max_attempts = 10;
-        while ($tracking_exists($new_title) && $attempts < $max_attempts) {
-            $new_number++;
-            $new_title = $prefix . str_pad($new_number, strlen($matches[2]), '0', STR_PAD_LEFT);
-            $attempts++;
-        }
-        
-        if ($attempts >= $max_attempts) {
-            error_log('⚠️  [PRE-INSERT] Se alcanzó máximo de intentos, usando fallback con timestamp');
-            $new_title = $post_title . '-' . time();
-        }
-        
-        $data['post_title'] = $new_title;
-        error_log('✅ [PRE-INSERT] TRACKING INCREMENTADO: ' . $post_title . ' → ' . $new_title);
-    } else {
-        // Si no puede parsear, usar timestamp como fallback
-        $new_title = $post_title . '-' . time();
-        $data['post_title'] = $new_title;
-        error_log('⚠️  [PRE-INSERT] No se pudo extraer número, usando fallback: ' . $new_title);
-    }
-    
-    return $data;
-}
+// ⚠️ RACE CONDITION FIX: Usar transactional lock para evitar inserciones simultáneas con mismo tracking
+// 🔒 LÓGICA DE VALIDACIÓN DE TRACKING ÚNICA MIGRADA AL PLUGIN
+// Ubicación: wp-content/plugins/merc-csv-import/admin/classes/class-tracking-validator.php
+// Función: ensure_unique_tracking() con transactional lock
 
 
 // ==================================================================================
@@ -1871,27 +1798,30 @@ function custom_block_calendar_script() {
             
             if (dateInput) {
                             const currentDate = new Date();
-                            let targetDate = new Date(currentDate);
+							let targetDate = new Date(currentDate);
 
-                            // Si el servidor indicó una fecha forzada (DD/MM/YYYY), usarla como targetDate
-                            if (forcedDateStr) {
-                                // convertir DD/MM/YYYY a YYYY,MM-1,DD
-                                const parts = forcedDateStr.split('/');
-                                if (parts.length === 3) {
-                                    const d = parseInt(parts[0],10);
-                                    const m = parseInt(parts[1],10) - 1;
-                                    const y = parseInt(parts[2],10);
-                                    const parsed = new Date(y, m, d);
-                                    if (!isNaN(parsed.getTime())) {
-                                        // solo tomarla si es mayor o igual a hoy
-                                        const todayZero = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-                                        if (parsed.getTime() >= todayZero.getTime()) {
-                                            targetDate = parsed;
-                                            console.log('🔒 Fecha forzada detectada desde servidor: ' + forcedDateStr);
-                                        }
-                                    }
-                                }
-                            }
+							// Si el servidor indicó una fecha forzada (DD/MM/YYYY), usarla como targetDate
+							// ⭐ PERO solo si NO hay desbloqueo manual activo
+							if (forcedDateStr && !tieneDesbloqueoManual) {
+								const parts = forcedDateStr.split('/');
+								if (parts.length === 3) {
+									const d = parseInt(parts[0],10);
+									const m = parseInt(parts[1],10) - 1;
+									const y = parseInt(parts[2],10);
+									const parsed = new Date(y, m, d);
+									if (!isNaN(parsed.getTime())) {
+										const todayZero = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+										if (parsed.getTime() >= todayZero.getTime()) {
+											targetDate = parsed;
+											console.log('🔒 Fecha forzada detectada desde servidor: ' + forcedDateStr);
+										}
+									}
+								}
+							} else if (tieneDesbloqueoManual) {
+								// ✅ Desbloqueo manual: ignorar fecha forzada, usar HOY
+								targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+								console.log('🔓 Desbloqueo manual activo - Fecha forzada ignorada, usando HOY');
+							}
               
               // ⭐ NUEVA LÓGICA SIMPLIFICADA: Solo bloquear días anteriores y domingos
               function adjustTargetDate() {
@@ -2079,7 +2009,7 @@ add_action('template_redirect', function(){
                             onclick="selectShipmentType('normal')"
                             <?php else: ?>
                             style="cursor: not-allowed; opacity: 0.5;"
-                            onclick="alert('🔒 MERC EMPRENDEDOR está bloqueado\n\nYa pasaron las 10:00 AM sin envíos registrados, o tienes envíos que ya fueron recogidos.')"
+                            onclick="alert('🔒 MERC EMPRENDEDOR está bloqueado\n\nYa pasaron las 11:00 AM sin envíos registrados, o tienes envíos que ya fueron recogidos.')"
                             <?php endif; ?>
                         >
                             <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-normal.png" alt="Normal" class="img-fluid mb-3">
@@ -4293,27 +4223,32 @@ function merc_motorizado_resumen( $driver_id ) {
 
 function merc_motorizado_entregas( $driver_id ) {
     global $wpdb;
-    // Restringir a la fecha actual (hora del sitio)
+    // Restringir a la fecha de envio (meta) — usar fecha de envío en vez de post_date
     $now = current_time('timestamp');
-    $start = date('Y-m-d 00:00:00', $now);
-    $end   = date('Y-m-d 23:59:59', $now);
+    $start_date = date('Y-m-d', $now);
+    $end_date   = date('Y-m-d', $now);
 
     // Mostrar solo envíos donde este usuario está asignado COMO motorizado de ENTREGA
-    $shipments = $wpdb->get_results( $wpdb->prepare( "
+    $query = "
         SELECT p.ID, p.post_title,
                pm_estado_motorizado.meta_value as estado_motorizado,
-               pm_destino.meta_value as destino
+               pm_destino.meta_value as destino,
+               pm_pickup_date.meta_value as envio_fecha
         FROM {$wpdb->posts} p
         LEFT JOIN {$wpdb->postmeta} pm_me ON p.ID = pm_me.post_id AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
         LEFT JOIN {$wpdb->postmeta} pm_estado_motorizado ON p.ID = pm_estado_motorizado.post_id AND pm_estado_motorizado.meta_key = 'wpcargo_estado_pago_motorizado'
         LEFT JOIN {$wpdb->postmeta} pm_destino ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
+        LEFT JOIN {$wpdb->postmeta} pm_pickup_date ON p.ID = pm_pickup_date.post_id AND pm_pickup_date.meta_key IN ('wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_fecha_envio')
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
         AND pm_me.meta_value = %s
-        AND p.post_date BETWEEN %s AND %s
+        AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('%s', '%%Y-%%m-%%d')
+        AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('%s', '%%Y-%%m-%%d')
         ORDER BY p.post_date DESC
         LIMIT 50
-    ", $driver_id, $start, $end ) );
+    ";
+
+    $shipments = $wpdb->get_results( $wpdb->prepare( $query, $driver_id, $start_date, $end_date ) );
 
     if ( empty( $shipments ) ) {
         echo '<div class="alert alert-warning">No tienes entregas asignadas.</div>';
@@ -6054,16 +5989,16 @@ function merc_check_tipo_normal_blocked($client_id, $tipo_envio = 'normal') {
         return true;
     }
     
-    // 1. Si NO tiene envíos y es >= 10:00 AM → BLOQUEADO
+    // 1. Si NO tiene envíos y es >= 11:00 AM → BLOQUEADO
     $envios_tipo = merc_get_envios_hoy_por_tipo($client_id, 'normal');
     
-    if (empty($envios_tipo) && $hora_actual >= '10:00') {
-        error_log("🔴 [NORMAL] BLOQUEADO: Sin envíos y pasadas las 10:00 AM");
+    if (empty($envios_tipo) && $hora_actual >= '11:00') {
+        error_log("🔴 [NORMAL] BLOQUEADO: Sin envíos y pasadas las 11:00 AM");
         return true;
     }
     
-    // 2. Si TIENE envíos Y es >= 10:00 AM, verificar si todos están en "recogido" o "no recogido"
-    if (!empty($envios_tipo) && $hora_actual >= '10:00') {
+    // 2. Si TIENE envíos Y es >= 11:00 AM, verificar si todos están en "recogido" o "no recogido"
+    if (!empty($envios_tipo) && $hora_actual >= '11:00') {
         $todos_recogidos_o_no = true;
         
         foreach ($envios_tipo as $envio) {
@@ -6077,7 +6012,7 @@ function merc_check_tipo_normal_blocked($client_id, $tipo_envio = 'normal') {
         
         // Bloquear si TODOS son RECOGIDO O NO RECOGIDO
         if ($todos_recogidos_o_no) {
-            error_log("🔴 [NORMAL] BLOQUEADO: Es >= 10:00 AM y todos los envíos están en recogido/no recogido");
+            error_log("🔴 [NORMAL] BLOQUEADO: Es >= 11:00 AM y todos los envíos están en recogido/no recogido");
             return true;
         }
     }
@@ -6238,7 +6173,7 @@ function merc_get_envios_hoy_por_tipo($client_id, $tipo) {
  *     - Si no ha pasado hora límite → PERMITIR creación normal
  *     - Si SÍ pasó hora límite → PERMITIR pero forza fecha = MAÑANA
  *     Límites por tipo:
- *       • NORMAL (Emprendedor): 10:00 AM
+ *       • NORMAL (Emprendedor): 11:00 AM
  *       • EXPRESS (Agencia): 12:30 PM
  *       • FULL FITMENT: 11:30 AM
  * 
@@ -6256,7 +6191,7 @@ function merc_get_envios_hoy_por_tipo($client_id, $tipo) {
  *        - El cliente puede crear envíos para el día siguiente
  * 
  * Límites por tipo (con envíos):
- *   • NORMAL: comparar con 10:00 AM
+ *   • NORMAL: comparar con 11:00 AM
  *   • EXPRESS: comparar con 13:00 (1:00 PM)
  *   • FULL FITMENT: comparar con 12:15 PM
  * 
@@ -6334,8 +6269,8 @@ function merc_get_time_limits($tipo) {
         ];
     } elseif ($tipo_lower === 'normal' || stripos($tipo, 'emprendedor') !== false) {
         return [
-            'sin_envios' => '10:00',     // 10:00 AM
-            'con_envios' => '10:00',     // 10:00 AM
+            'sin_envios' => '11:00',     // 11:00 AM
+            'con_envios' => '11:00',     // 11:00 AM
             'nombre' => 'NORMAL'
         ];
     } elseif ($tipo_lower === 'full_fitment' || stripos($tipo, 'full') !== false) {
@@ -7098,8 +7033,8 @@ add_action('save_post_wpcargo_shipment', 'merc_asignar_estado_segun_tipo_servici
 // Asegurar que el total a cobrar se guarde como decimal (2 decimales) tras crear/guardar envío
 add_action('wpcfe_after_save_add_shipment', 'merc_force_decimal_total_on_save', 1);
 add_action('save_post_wpcargo_shipment', 'merc_force_decimal_total_on_save_post', 20, 3);
-// Hook para asignar unidades de full fitment
-add_action('save_post_wpcargo_shipment', 'merc_asignar_unidades_full_fitment', 12, 2);
+// Hook para asignar unidades de full fitment (ejecutar DESPUÉS de que el form normalice metas)
+add_action('save_post_wpcargo_shipment', 'merc_asignar_unidades_full_fitment', 21, 2);
 // Hook adicional para forzar el estado después de todo
 add_action('save_post_wpcargo_shipment', 'merc_forzar_estado_por_tipo', 13, 3);
 add_action('wp_footer', 'merc_cambiar_estado_en_frontend');
@@ -7133,58 +7068,68 @@ function merc_asignar_unidades_full_fitment($post_id, $post) {
         return;
     }
     
-    // Verificar si ya hay unidades asignadas
+    // Verificar si ya hay unidades asignadas (evitar doble asignación)
     $unidades_asignadas = get_post_meta($post_id, '_merc_producto_unidades', true);
     if (!empty($unidades_asignadas) && is_array($unidades_asignadas)) {
-        error_log("✅ Full Fitment #{$post_id} - Unidades ya asignadas: " . count($unidades_asignadas) . " [" . implode(',', $unidades_asignadas) . "]");
+        error_log("✅ Full Fitment #{$post_id} - Ya existen unidades asignadas: " . count($unidades_asignadas));
         return;
     }
-    
-    // Obtener producto y cantidad
-    $producto_id = intval(get_post_meta($post_id, '_merc_producto_id', true));
-    $cantidad = intval(get_post_meta($post_id, '_merc_producto_cantidad', true));
-    
-    // Si no hay cantidad pero hay producto seleccionado, intentar obtenerla desde POST
-    if ($cantidad === 0 && $producto_id > 0) {
-        $cantidad = isset($_POST['merc_producto_cantidad']) ? intval($_POST['merc_producto_cantidad']) : 1;
-        error_log("📝 Full Fitment #{$post_id} - Cantidad obtenida desde POST: {$cantidad}");
+
+    // Leer lista normalizada de productos (guardada por save_financial_data a prioridad 20)
+    $productos_multi = get_post_meta($post_id, '_merc_productos_multi', true);
+    if (empty($productos_multi) || ! is_array($productos_multi)) {
+        // Compatibilidad: intentar leer campos simples
+        $producto_id = intval(get_post_meta($post_id, '_merc_producto_id', true));
+        $cantidad = intval(get_post_meta($post_id, '_merc_producto_cantidad', true));
+        if ($producto_id > 0 && $cantidad > 0) {
+            $productos_multi = [ ['id' => $producto_id, 'cantidad' => $cantidad] ];
+        }
     }
-    
-    error_log("📦 Full Fitment #{$post_id} - Datos: Producto={$producto_id}, Cantidad={$cantidad}");
-    
-    if ($producto_id <= 0 || $cantidad <= 0) {
-        error_log("⚠️ Full Fitment #{$post_id} - NO SE PROCESÓ: Producto o cantidad inválidos");
+
+    if (empty($productos_multi) || ! is_array($productos_multi)) {
+        error_log("⚠️ Full Fitment #{$post_id} - No hay productos para procesar");
         return;
     }
-    
-    // Verificar stock disponible
-    $stock_disponible = merc_get_product_stock($producto_id);
-    $stock_disponible = intval($stock_disponible);
-    
-    error_log("📊 Full Fitment #{$post_id} - Stock disponible: {$stock_disponible} unidades");
-    
-    if ($cantidad > $stock_disponible) {
-        error_log("❌ Full Fitment #{$post_id} - STOCK INSUFICIENTE: Solicitado {$cantidad}, Disponible {$stock_disponible}");
-        return;
+
+    // Asignar unidades por cada producto en el array
+    $all_assigned = [];
+    $assigned_map = [];
+    foreach ($productos_multi as $item) {
+        $p_id = intval($item['id'] ?? 0);
+        $p_qty = intval($item['cantidad'] ?? 1);
+        if ($p_id <= 0 || $p_qty <= 0) continue;
+
+        $stock_disponible = merc_get_product_stock($p_id);
+        $stock_disponible = intval($stock_disponible);
+        if ($p_qty > $stock_disponible) {
+            error_log("❌ Full Fitment #{$post_id} - STOCK INSUFICIENTE para producto {$p_id}: solicitado {$p_qty}, disponible {$stock_disponible}");
+            // revertir asignaciones parciales
+            if (!empty($all_assigned)) merc_unassign_stock_units($all_assigned);
+            return;
+        }
+
+        error_log("🚀 Full Fitment #{$post_id} - ASIGNANDO {$p_qty} unidades del producto #{$p_id} al envío");
+        $assigned_units = merc_assign_stock_units($p_id, $p_qty, $post_id);
+        if ($assigned_units === false || count($assigned_units) < $p_qty) {
+            error_log("❌ Full Fitment #{$post_id} - Error asignando unidades para producto {$p_id}");
+            if (!empty($all_assigned)) merc_unassign_stock_units($all_assigned);
+            return;
+        }
+
+        $assigned_map[$p_id] = $assigned_units;
+        $all_assigned = array_merge($all_assigned, $assigned_units);
+        update_post_meta($p_id, '_merc_producto_estado', 'asignado');
+        $motorizado = get_post_meta($post_id, 'wpcargo_driver', true);
+        if (!empty($motorizado)) update_post_meta($p_id, '_merc_producto_motorizado', $motorizado);
     }
-    
-    // Asignar unidades
-    error_log("🚀 Full Fitment #{$post_id} - ASIGNANDO {$cantidad} unidades del producto #{$producto_id} al envío");
-    $assigned_units = merc_assign_stock_units($producto_id, $cantidad, $post_id);
-    
-    if ($assigned_units === false) {
-        error_log("❌ Full Fitment #{$post_id} - merc_assign_stock_units() retornó FALSE");
-        return;
-    }
-    
-    if (empty($assigned_units)) {
-        error_log("❌ Full Fitment #{$post_id} - merc_assign_stock_units() retornó array vacío");
-        return;
-    }
-    
-    // Guardar unidades asignadas
-    update_post_meta($post_id, '_merc_producto_unidades', $assigned_units);
-    error_log("✅ Full Fitment #{$post_id} - Unidades ASIGNADAS EXITOSAMENTE: " . implode(',', $assigned_units) . " (Total: " . count($assigned_units) . ")");
+
+    if (!empty($all_assigned)) update_post_meta($post_id, '_merc_producto_unidades', $all_assigned);
+    if (!empty($assigned_map)) update_post_meta($post_id, '_merc_producto_unidades_multi', $assigned_map);
+    // compatibilidad: guardar primer producto en meta antigua
+    update_post_meta($post_id, '_merc_producto_id', $productos_multi[0]['id']);
+    update_post_meta($post_id, '_merc_producto_cantidad', $productos_multi[0]['cantidad']);
+
+    error_log("✅ Full Fitment #{$post_id} - Unidades ASIGNADAS EXITOSAMENTE: " . implode(',', $all_assigned));
 }
 
 /**
@@ -7999,6 +7944,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                             <tr>
                                 <th>Pedido</th>
 								<th>Estado</th>
+                                <th>Marca</th>
                                 <th>Pago a Motorizado</th>
                                 <th>Pago a MERC</th>
                                 <th>Pago a MARCA</th>
@@ -8029,6 +7975,23 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
 								$tracking_num = get_the_title( $entrega->ID );
 								$tracking_url = home_url( '/dashboard/?wpcfe=track&num=' . $tracking_num );
 								$estado_envio = get_post_meta( $entrega->ID, 'wpcargo_status', true ) ?: '—';
+								
+								// Obtener nombre de la marca (remitente) - billing_company
+								$marca_id = get_post_meta( $entrega->ID, 'registered_shipper', true );
+								$marca_nombre = '—';
+								if ( ! empty( $marca_id ) ) {
+									$billing_company = get_user_meta( $marca_id, 'billing_company', true );
+									if ( ! empty( $billing_company ) ) {
+										$marca_nombre = $billing_company;
+									}
+								}
+								
+								// Estilo condicional para estado REPROGRAMADO
+								$estado_lower = strtolower( $estado_envio );
+								$estado_bg = 'background:#eef6fc;color:#075985;';
+								if ( $estado_lower === 'reprogramado' ) {
+									$estado_bg = 'background:#ffcccc;color:#c0392b;';
+								}
 								?>
 								<tr>
 									<td>
@@ -8039,10 +8002,11 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
 									</td>
 									<td>
 										<span style="display:inline-block;padding:2px 8px;border-radius:10px;
-													 font-size:11px;font-weight:600;background:#eef6fc;color:#075985;">
+													 font-size:11px;font-weight:600;<?php echo $estado_bg; ?>">
 											<?php echo esc_html( $estado_envio ); ?>
 										</span>
 									</td>
+									<td><?php echo esc_html( $marca_nombre ); ?></td>
                                     <td>
                                         <strong>S/. <?php echo number_format( $totales_entrega['efectivo'], 2 ); ?></strong>
                                             <?php if ( $totales_entrega['efectivo'] > 0 && $is_admin && merc_shipment_method_has_image( $entrega->ID, 'efectivo' ) ) : ?>
@@ -8078,6 +8042,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         <tfoot>
                                 <tr>
                                     <td><strong>TOTAL:</strong></td>
+									<td></td>
 									<td></td>
                                     <td><strong>S/. <?php echo number_format( $subtotal_efectivo, 2 ); ?></strong></td>
                                     <td><strong>S/. <?php echo number_format( $subtotal_merc, 2 ); ?></strong></td>
@@ -8401,8 +8366,15 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
 									</td>
 									<td><strong style="color: <?php echo $color_estado; ?>;"><?php echo $estado_texto; ?></strong></td>
 									<td>
+										<?php
+										$estado_cli_lower = strtolower( $estado_envio_cli );
+										$estado_cli_bg = 'background:#eef6fc;color:#075985;';
+										if ( $estado_cli_lower === 'reprogramado' ) {
+											$estado_cli_bg = 'background:#ffcccc;color:#c0392b;';
+										}
+										?>
 										<span style="display:inline-block;padding:2px 8px;border-radius:10px;
-													 font-size:11px;font-weight:600;background:#eef6fc;color:#075985;">
+													 font-size:11px;font-weight:600;<?php echo $estado_cli_bg; ?>">
 											<?php echo esc_html( $estado_envio_cli ); ?>
 										</span>
 									</td>
@@ -11442,20 +11414,21 @@ function merc_get_all_container_shipments($container_id) {
  * de todos los usuarios porque la asignación es manual y diaria
  */
 
-// Registrar el evento programado - FUERZA UTC (05:01 UTC = 00:01 Perú)
-add_action('init', function() {
-    // LIMPIAR evento anterior si existe
+// Registrar el evento programado - FUERZA UTC (04:59 UTC = 23:59 Perú)
+// Solo se programa UNA VEZ, no en cada init
+add_action('wp_loaded', function() {
+    // ✅ VERIFICAR si el evento YA está programado
     $timestamp = wp_next_scheduled('merc_daily_cleanup_motorizo_default');
     if ($timestamp) {
-        wp_unschedule_event($timestamp, 'merc_daily_cleanup_motorizo_default');
-        error_log('[MERC CLEANUP SCHEDULE] Evento anterior removido que estaba en: ' . gmdate('Y-m-d H:i:s', $timestamp));
+        error_log('[MERC CLEANUP SCHEDULE] ℹ️  Evento ya programado para: ' . gmdate('Y-m-d H:i:s e', $timestamp) . ' (UTC)');
+        return;  // Evento ya existe, no reprogramar
     }
     
-    // Calcular próximo tiempo de ejecución a las 05:01 UTC
+    // Calcular próximo tiempo de ejecución a las 04:59 UTC (23:59 Perú)
     // Usar strtotime con zona UTC para mayor confiabilidad
     $current_time = time();
     $today_utc = gmdate('Y-m-d', $current_time);
-    $target_time_today = strtotime($today_utc . ' 05:01:00 UTC');
+    $target_time_today = strtotime($today_utc . ' 04:59:00 UTC');
     
     // Si ya pasó hoy, programar para mañana
     if ($target_time_today <= $current_time) {
@@ -11465,8 +11438,8 @@ add_action('init', function() {
     // Programar el evento
     wp_schedule_event($target_time_today, 'daily', 'merc_daily_cleanup_motorizo_default');
     
-    error_log('[MERC CLEANUP SCHEDULE] ✅ Evento programado para: ' . gmdate('Y-m-d H:i:s e', $target_time_today) . ' (UTC) | Hora Perú: ' . date('Y-m-d H:i:s', $target_time_today - (5*3600)));
-});
+    error_log('[MERC CLEANUP SCHEDULE] ✅ Evento PROGRAMADO para: ' . gmdate('Y-m-d H:i:s e', $target_time_today) . ' (UTC) | Hora Perú: ' . date('Y-m-d H:i:s', $target_time_today - (5*3600)));
+}, 999);  // Baja prioridad para ejecutar al final
 
 /**
  * Guardar histórico de cambios de motorizados en un envío
@@ -11494,6 +11467,59 @@ function merc_add_motorizado_history($shipment_id, $tipo, $motorizado_anterior, 
     $historia[] = $entrada;
     update_post_meta($shipment_id, 'merc_motorizado_historia', $historia);
 }
+
+// 🔍 DIAGNÓSTICO: Verificar estado del scheduler de WordPress
+// Ejecutar: wp eval 'do_action("merc_debug_cleanup_schedule")'
+add_action('merc_debug_cleanup_schedule', function() {
+    global $wpdb;
+    
+    $timestamp = wp_next_scheduled('merc_daily_cleanup_motorizo_default');
+    
+    echo "═══════════════════════════════════════════════\n";
+    echo "🔍 DIAGNÓSTICO: Estado del Scheduler de Limpieza\n";
+    echo "═══════════════════════════════════════════════\n\n";
+    
+    // Verificar WordPress Cron
+    $loopback_request_running = (defined('DOING_CRON') && DOING_CRON);
+    echo "⏱️  DOING_CRON activo: " . ($loopback_request_running ? "✅ SÍ" : "❌ NO") . "\n";
+    echo "ℹ️  Si DOING_CRON=NO, WordPress Cron NO está funcional\n\n";
+    
+    // Verificar evento programado
+    if ($timestamp) {
+        $tiempo_restante = $timestamp - time();
+        echo "📅 Evento PROGRAMADO para:\n";
+        echo "   " . gmdate('Y-m-d H:i:s', $timestamp) . " (UTC)\n";
+        echo "   " . date('Y-m-d H:i:s', $timestamp - (5*3600)) . " (Perú)\n";
+        echo "   ⏳ En " . ($tiempo_restante > 0 ? $tiempo_restante . "s" : "HACE " . abs($tiempo_restante) . "s") . "\n\n";
+    } else {
+        echo "❌ Evento NO PROGRAMADO\n";
+        echo "   Será programado automáticamente en próxima carga de WordPress\n\n";
+    }
+    
+    // Verificar existencia de registros limpios
+    $historia_count = $wpdb->get_var(
+        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta} 
+        WHERE meta_key = 'merc_motorizado_historia' 
+        AND meta_value LIKE '%limpieza_diaria%'"
+    );
+    echo "📊 Envíos con historial de limpieza: " . ($historia_count ?: "0") . "\n";
+    
+    // Último log en error_log
+    echo "\n📝 Últimas líneas en debug.log:\n";
+    $log_path = WP_CONTENT_DIR . '/debug.log';
+    if (file_exists($log_path)) {
+        $lines = array_slice(explode("\n", file_get_contents($log_path)), -10);
+        foreach ($lines as $line) {
+            if (strpos($line, 'MERC CLEANUP') !== false || strpos($line, 'LIMPIEZA DIARIA') !== false) {
+                echo "   " . trim($line) . "\n";
+            }
+        }
+    } else {
+        echo "   ⚠️  debug.log no existe o WP_DEBUG no está activado\n";
+    }
+    
+    echo "\n═══════════════════════════════════════════════\n";
+});
 
 // Hook que se ejecuta diariamente
 add_action('merc_daily_cleanup_motorizo_default', 'merc_cleanup_motorizo_recojo_default');
@@ -11529,69 +11555,69 @@ function merc_cleanup_motorizo_recojo_default() {
     
     error_log("🔄 Total usuarios limpios: $deleted_count");
     
+// ══════════════════════════════════════════════════════════════════
+    // FASE 2: Limpiar motorizados de envíos NO entregados con fecha de envío HOY
     // ══════════════════════════════════════════════════════════════════
-    // FASE 2: Limpiar motorizados de envíos NO entregados de hoy
-    // ══════════════════════════════════════════════════════════════════
-    error_log("\n🧹 [LIMPIEZA DIARIA] Fase 2: Limpiando motorizados de envíos no entregados de hoy");
+    error_log("\n🧹 [LIMPIEZA DIARIA] Fase 2: Limpiando motorizados de envíos NO ENTREGADOS con fecha de envío HOY");
     
-    $hoy = current_time('Y-m-d');
-    $shipments = get_posts([
-        'post_type' => 'wpcargo_shipment',
-        'posts_per_page' => -1,
-        'date_query' => [
-            [
-                'year' => intval(date('Y', strtotime($hoy))),
-                'month' => intval(date('m', strtotime($hoy))),
-                'day' => intval(date('d', strtotime($hoy)))
-            ]
-        ]
-    ]);
+    // Usar consulta directa por fecha de envío (pickup_date), no por post_date
+    global $wpdb;
+    $hoy = current_time('d/m/Y');  // Formato que usa WordPress: d/m/Y
     
-    error_log("📦 Envíos creados hoy: " . count($shipments));
+    $shipments = $wpdb->get_col($wpdb->prepare(
+        "SELECT DISTINCT p.ID 
+        FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} pm_pickup ON p.ID = pm_pickup.post_id 
+            AND pm_pickup.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'wpcargo_fecha_envio')
+        LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        WHERE p.post_type = 'wpcargo_shipment' 
+        AND p.post_status != 'trash'
+        AND pm_pickup.meta_value = %s
+        AND UPPER(pm_status.meta_value) != 'ENTREGADO'",
+        $hoy
+    ));
+    
+    error_log("📦 Envíos con fecha de envío HOY (" . $hoy . ") NO ENTREGADOS: " . count($shipments));
     
     $cleaned_count = 0;
-    foreach ($shipments as $shipment) {
-        // Obtener estado del envío
-        $estado = get_post_meta($shipment->ID, 'wpcargo_status', true);
+    foreach ($shipments as $shipment_id) {
+        // Obtener estado del envío para logging
+        $estado = get_post_meta($shipment_id, 'wpcargo_status', true);
         
-        // Si el estado es ENTREGADO, no tocar
-        if (strtoupper($estado) === 'ENTREGADO') {
-            continue;
-        }
-        
-        // Limpiar motorizado de RECOJO
-        $motorizado_recojo_anterior = get_post_meta($shipment->ID, 'wpcargo_motorizo_recojo', true);
+        // ✅ Limpiar motorizado de RECOJO
+        $motorizado_recojo_anterior = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
         if (!empty($motorizado_recojo_anterior)) {
-            delete_post_meta($shipment->ID, 'wpcargo_motorizo_recojo');
+            delete_post_meta($shipment_id, 'wpcargo_motorizo_recojo');
             
             // Registrar en historial
             merc_add_motorizado_history(
-                $shipment->ID,
+                $shipment_id,
                 'recojo',
                 $motorizado_recojo_anterior,
                 0,
                 'limpieza_diaria_reprogramacion'
             );
             
-            error_log("   ✅ Envío #{$shipment->ID}: Motorizado de RECOJO #$motorizado_recojo_anterior eliminado (estado: $estado)");
+            error_log("   ✅ Envío #{$shipment_id}: Motorizado RECOJO #$motorizado_recojo_anterior ELIMINADO (estado: $estado)");
             $cleaned_count++;
         }
         
-        // Limpiar motorizado de ENTREGA
-        $motorizado_entrega_anterior = get_post_meta($shipment->ID, 'wpcargo_motorizo_entrega', true);
+        // ✅ Limpiar motorizado de ENTREGA
+        $motorizado_entrega_anterior = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
         if (!empty($motorizado_entrega_anterior)) {
-            delete_post_meta($shipment->ID, 'wpcargo_motorizo_entrega');
+            delete_post_meta($shipment_id, 'wpcargo_motorizo_entrega');
             
             // Registrar en historial
             merc_add_motorizado_history(
-                $shipment->ID,
+                $shipment_id,
                 'entrega',
                 $motorizado_entrega_anterior,
                 0,
                 'limpieza_diaria_reprogramacion'
             );
             
-            error_log("   ✅ Envío #{$shipment->ID}: Motorizado de ENTREGA #$motorizado_entrega_anterior eliminado (estado: $estado)");
+            error_log("   ✅ Envío #{$shipment_id}: Motorizado ENTREGA #$motorizado_entrega_anterior ELIMINADO (estado: $estado)");
             $cleaned_count++;
         }
     }
@@ -11600,6 +11626,35 @@ function merc_cleanup_motorizo_recojo_default() {
     error_log("✅ [LIMPIEZA DIARIA COMPLETADA] Próxima ejecución en 24 horas");
     error_log("════════════════════════════════════════════════════════════\n");
 }
+
+/**
+ * 🧪 PRUEBA MANUAL: Ejecutar la limpieza diaria manualmente
+ * 
+ * Formas de ejecutar:
+ * 1. WP CLI: wp eval 'do_action("merc_cleanup_motorizo_recojo_default_test")'
+ * 2. Terminal: cd /laragon/www/mercourier-web && wp eval 'do_action("merc_cleanup_motorizo_recojo_default_test")'
+ * 3. URL directa (requiere estar logueado): https://tudominio.com/wp-admin/admin-ajax.php?action=merc_test_cleanup&_wpnonce=NONCE
+ */
+add_action('merc_cleanup_motorizo_recojo_default_test', function() {
+    error_log("\n🧪 TEST MANUAL: Ejecutando limpieza manualmente...");
+    merc_cleanup_motorizo_recojo_default();
+});
+
+// AJAX para trigger manual desde admin
+add_action('wp_ajax_merc_test_cleanup', function() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('No tienes permisos');
+        return;
+    }
+    
+    error_log("\n🧪 TEST AJAX: Ejecutando limpieza manualmente desde admin...");
+    merc_cleanup_motorizo_recojo_default();
+    
+    wp_send_json_success([
+        'message' => 'Limpieza ejecutada. Revisa wp-content/debug.log para detalles',
+        'time' => current_time('Y-m-d H:i:s')
+    ]);
+});
 
 /**
  * AJAX handler: Asignar / Desasignar motorizado masivamente a envíos (RECOJO)
@@ -12625,8 +12680,8 @@ function merc_wpcr_bulk_update_ajax() {
             // Crear registro del estado anterior
             $previous_state_record = array(
                 'status' => $old_status,
-                'date' => date('Y-m-d'),
-                'time' => date('H:i:s'),
+                'date' => current_time('Y-m-d'),
+                'time' => current_time('H:i:s'),
                 'updated-name' => wp_get_current_user()->display_name,
                 'location' => get_post_meta($shipment_id, 'location', true),
                 'remarks' => 'Estado anterior (actualización masiva a LISTO PARA SALIR)'
@@ -13892,6 +13947,12 @@ function merc_envio_producto_meta_box() {
     }
 }
 
+/**
+ * Soft-hide productos entregados en el listado del almacén.
+ * Para ver los archivados añada `?show_archived_products=1` a la URL.
+ */
+// Soft-hide moved to plugin merc-warehouse-admin
+
 function merc_envio_producto_callback($post) {
     wp_nonce_field('merc_envio_producto_guardar', 'merc_envio_producto_nonce');
     
@@ -14046,10 +14107,23 @@ function merc_guardar_envio_producto($post_id, $post) {
         return;
     }
     
-    error_log("✅ Iniciando guardado de producto para envío #{$post_id}");
-    
-    $producto_id = isset($_POST['merc_producto_id']) ? intval($_POST['merc_producto_id']) : 0;
-    $cantidad = isset($_POST['merc_producto_cantidad']) ? intval($_POST['merc_producto_cantidad']) : 1;
+    // Obtener producto(s) del POST
+    $raw_ids = isset($_POST['merc_producto_id']) ? $_POST['merc_producto_id'] : null;
+    $raw_qtys = isset($_POST['merc_producto_cantidad']) ? $_POST['merc_producto_cantidad'] : null;
+
+    $producto_id = 0;
+    $cantidad = 0;
+
+    // Normalizar entrada: si vienen arrays, tomar el primero para compatibilidad
+    if (is_array($raw_ids)) {
+        $ids = array_map('intval', $raw_ids);
+        $qtys = is_array($raw_qtys) ? array_map('intval', $raw_qtys) : [];
+        $producto_id = intval($ids[0] ?? 0);
+        $cantidad = intval($qtys[0] ?? ($ids ? 1 : 0));
+    } else {
+        $producto_id = isset($raw_ids) ? intval($raw_ids) : 0;
+        $cantidad = isset($raw_qtys) ? intval($raw_qtys) : 1;
+    }
     
     // Obtener tipo de envío: primero desde REQUEST (durante la creación), luego desde meta (durante edición)
     $tipo_envio = '';
@@ -14075,49 +14149,85 @@ function merc_guardar_envio_producto($post_id, $post) {
         if (!empty($prev_units) && is_array($prev_units)) {
             merc_unassign_stock_units($prev_units);
             delete_post_meta($post_id, '_merc_producto_unidades');
+            delete_post_meta($post_id, '_merc_producto_unidades_multi');
         }
 
-        // Si el envío es tipo FULL/FULL_FITMENT entonces asignar unidades al envío
+        // Si el formulario incluyó múltiples productos, procesarlos
+        $productos_multi = get_post_meta($post_id, '_merc_productos_multi', true);
+        if ( empty( $productos_multi ) || ! is_array( $productos_multi ) ) {
+            // Si no hay meta normalizada, intentar leer desde POST
+            if (is_array($raw_ids)) {
+                $productos_multi = [];
+                foreach ($ids as $i => $id_val) {
+                    if ($id_val <= 0) continue;
+                    $cant = isset($qtys[$i]) && intval($qtys[$i]) > 0 ? intval($qtys[$i]) : 1;
+                    $productos_multi[] = ['id' => intval($id_val), 'cantidad' => $cant];
+                }
+            } else {
+                $productos_multi = [ ['id' => $producto_id, 'cantidad' => $cantidad] ];
+            }
+        }
+
         if ($es_full_fitment) {
-            // Verificar stock disponible (unidades disponibles)
-            $stock_disponible = merc_get_product_stock($producto_id);
-            $stock_disponible = intval($stock_disponible);
+            // Asignar unidades por cada producto en el array
+            $all_assigned = [];
+            $assigned_map = [];
+            foreach ($productos_multi as $item) {
+                $p_id = intval($item['id'] ?? 0);
+                $p_qty = intval($item['cantidad'] ?? 1);
+                if ($p_id <= 0 || $p_qty <= 0) continue;
 
-            if ($cantidad > $stock_disponible) {
-                // No hay suficiente stock
-                error_log("⚠️ Stock insuficiente - Producto #{$producto_id}: Solicitado {$cantidad}, Disponible {$stock_disponible}");
-                return;
+                $stock_disponible = merc_get_product_stock($p_id);
+                $stock_disponible = intval($stock_disponible);
+
+                if ($p_qty > $stock_disponible) {
+                    error_log("⚠️ Stock insuficiente - Producto #{$p_id}: Solicitado {$p_qty}, Disponible {$stock_disponible}");
+                    // Antes de abortar, revertir cualquier asignación parcial
+                    if (!empty($all_assigned)) {
+                        merc_unassign_stock_units($all_assigned);
+                    }
+                    return;
+                }
+
+                $assigned_units = merc_assign_stock_units($p_id, $p_qty, $post_id);
+                if ($assigned_units === false || count($assigned_units) < $p_qty) {
+                    error_log("⚠️ Error asignando unidades - Producto #{$p_id}");
+                    if (!empty($all_assigned)) {
+                        merc_unassign_stock_units($all_assigned);
+                    }
+                    return;
+                }
+
+                // Consolidar
+                $assigned_map[$p_id] = $assigned_units;
+                $all_assigned = array_merge($all_assigned, $assigned_units);
+
+                // Actualizar estado por producto
+                update_post_meta($p_id, '_merc_producto_estado', 'asignado');
+                $motorizado = get_post_meta($post_id, 'wpcargo_driver', true);
+                if (!empty($motorizado)) update_post_meta($p_id, '_merc_producto_motorizado', $motorizado);
             }
 
-            // Intentar asignar unidades y guardarlas en meta del envío
-            $assigned_units = merc_assign_stock_units($producto_id, $cantidad, $post_id);
-            if ($assigned_units === false || count($assigned_units) < $cantidad) {
-                error_log("⚠️ Error asignando unidades - Producto #{$producto_id}");
-                return;
-            }
+            // Guardar metas: arreglo plano y mapping por producto
+            if (!empty($all_assigned)) update_post_meta($post_id, '_merc_producto_unidades', $all_assigned);
+            if (!empty($assigned_map)) update_post_meta($post_id, '_merc_producto_unidades_multi', $assigned_map);
 
-            // Guardar producto y cantidad (meta del envío) y las unidades asignadas
-            update_post_meta($post_id, '_merc_producto_id', $producto_id);
-            update_post_meta($post_id, '_merc_producto_cantidad', $cantidad);
-            update_post_meta($post_id, '_merc_producto_unidades', $assigned_units);
+            // Guardar compatibilidad: primer producto en metas antiguas
+            update_post_meta($post_id, '_merc_producto_id', $productos_multi[0]['id']);
+            update_post_meta($post_id, '_merc_producto_cantidad', $productos_multi[0]['cantidad']);
 
-            // Actualizar estado del producto a 'asignado' (si corresponde)
-            update_post_meta($producto_id, '_merc_producto_estado', 'asignado');
-
-            // Guardar motorizado en el producto (si está disponible)
-            $motorizado = get_post_meta($post_id, 'wpcargo_driver', true);
-            if (!empty($motorizado)) {
-                update_post_meta($producto_id, '_merc_producto_motorizado', $motorizado);
-            }
-
-            error_log("📦 Unidades asignadas al envío #{$post_id}: " . implode(',', $assigned_units));
+            error_log("📦 Unidades asignadas al envío #{$post_id}: " . implode(',', $all_assigned));
         } else {
-            // Para envíos NO full_fitment, no asignar unidades: solo registrar el producto seleccionado y cantidad en el envío
-            update_post_meta($post_id, '_merc_producto_id', $producto_id);
-            update_post_meta($post_id, '_merc_producto_cantidad', $cantidad);
-            // No guardar _merc_producto_unidades ni alterar estados de stock
-            update_post_meta($producto_id, '_merc_producto_estado', 'sin_asignar');
-            error_log("ℹ️ Envío #{$post_id} NO es full_fitment - producto registrado sin asignar unidades");
+            // Para envíos NO full_fitment, mantener metas de productos (ya guardadas por el form) y marcar 'sin_asignar'
+            if (!empty($productos_multi)) {
+                // Asegurar compatibilidad con meta simple
+                update_post_meta($post_id, '_merc_producto_id', $productos_multi[0]['id']);
+                update_post_meta($post_id, '_merc_producto_cantidad', $productos_multi[0]['cantidad']);
+                foreach ($productos_multi as $pitem) {
+                    update_post_meta(intval($pitem['id']), '_merc_producto_estado', 'sin_asignar');
+                }
+            }
+            error_log("ℹ️ Envío #{$post_id} NO es full_fitment - productos registrados sin asignar unidades");
         }
     } else {
         // Si no hay producto, devolver stock del anterior si existía
@@ -14152,21 +14262,33 @@ function merc_actualizar_estado_producto_entregado($new_status, $old_status, $po
     $estado_envio = get_post_meta($post->ID, 'wpcargo_status', true);
     
     if ($estado_envio == 'Delivered' || $estado_envio == 'delivered') {
-        $producto_id = get_post_meta($post->ID, '_merc_producto_id', true);
+        // Marcar todas las unidades asociadas a este envío como entregadas
         $units = get_post_meta($post->ID, '_merc_producto_unidades', true);
         if (!empty($units) && is_array($units)) {
             merc_mark_units_delivered($units);
             error_log("✅ Unidades marcadas como entregadas para Envío #{$post->ID}: " . implode(',', $units));
         }
 
-        // Si todas las unidades del producto están entregadas, marcar producto como entregado
-        if ($producto_id) {
+        // Revisar cada producto del envío y, si todas sus unidades están entregadas, marcar producto como 'entregado'
+        $productos_multi = get_post_meta($post->ID, '_merc_productos_multi', true);
+        if (empty($productos_multi) || ! is_array($productos_multi)) {
+            // Compatibilidad: fallback al campo simple
+            $single_id = get_post_meta($post->ID, '_merc_producto_id', true);
+            if ($single_id) $productos_multi = [ ['id' => intval($single_id), 'cantidad' => intval(get_post_meta($post->ID, '_merc_producto_cantidad', true))] ];
+        }
+
+        if (!empty($productos_multi) && is_array($productos_multi)) {
             global $wpdb;
             $table = merc_get_stock_table_name();
-            $total = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d", $producto_id)));
-            $delivered = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d AND status = 'delivered'", $producto_id)));
-            if ($total > 0 && $delivered === $total) {
-                update_post_meta($producto_id, '_merc_producto_estado', 'entregado');
+            foreach ($productos_multi as $pitem) {
+                $p_id = intval($pitem['id'] ?? 0);
+                if (!$p_id) continue;
+                $total = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d", $p_id)));
+                $delivered = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d AND status = 'delivered'", $p_id)));
+                if ($total > 0 && $delivered === $total) {
+                    update_post_meta($p_id, '_merc_producto_estado', 'entregado');
+                    error_log("✅ Producto #{$p_id} marcado como entregado (todas las unidades entregadas)");
+                }
             }
         }
     }
@@ -14201,15 +14323,25 @@ function merc_handle_shipment_cancelled_modal($new_status, $old_status, $post) {
                 delete_post_meta($post->ID, '_merc_producto_cantidad');
                 error_log("🔁 Envío full_fitment anulado (#{$post->ID}) - Unidades restauradas: " . implode(',', $units));
 
-                // Si el producto ya no tiene unidades asignadas, marcar como sin_asignar
-                if ($producto_id) {
+                // Evaluar todos los productos relacionados con el envío y, si no tienen asignaciones, marcarlos como 'sin_asignar'
+                $productos_multi_check = get_post_meta($post->ID, '_merc_productos_multi', true);
+                if (empty($productos_multi_check) || ! is_array($productos_multi_check)) {
+                    $productos_multi_check = [];
+                    if ($producto_id) $productos_multi_check[] = [ 'id' => intval($producto_id), 'cantidad' => intval(get_post_meta($post->ID, '_merc_producto_cantidad', true)) ];
+                }
+
+                if (!empty($productos_multi_check)) {
                     global $wpdb;
                     $table = merc_get_stock_table_name();
-                    $assigned_remaining = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d AND status = 'assigned'", $producto_id)));
-                    if ($assigned_remaining === 0) {
-                        update_post_meta($producto_id, '_merc_producto_estado', 'sin_asignar');
-                        update_post_meta($producto_id, '_merc_producto_motorizado', '-');
-                        error_log("ℹ️ Producto #{$producto_id} ahora sin asignaciones restantes - estado actualizado a sin_asignar");
+                    foreach ($productos_multi_check as $pcheck) {
+                        $p_id = intval($pcheck['id'] ?? 0);
+                        if (!$p_id) continue;
+                        $assigned_remaining = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d AND status = 'assigned'", $p_id)));
+                        if ($assigned_remaining === 0) {
+                            update_post_meta($p_id, '_merc_producto_estado', 'sin_asignar');
+                            update_post_meta($p_id, '_merc_producto_motorizado', '-');
+                            error_log("ℹ️ Producto #{$p_id} ahora sin asignaciones restantes - estado actualizado a sin_asignar");
+                        }
                     }
                 }
             }
@@ -15495,7 +15627,7 @@ function merc_update_delivery_status_ajax() {
     
     $new_update = [
         'status' => $new_status,
-        'date' => date('Y-m-d'),
+        'date' => current_time('Y-m-d'),
         'time' => current_time('H:i:s'),
         'updated-name' => $user_name,
         'remarks' => 'Estado actualizado desde el planificador de rutas' . (!empty($signature_data) ? ' (con firma)' : '')

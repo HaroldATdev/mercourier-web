@@ -621,7 +621,7 @@ function wpcfe_bulk_update_action_callback(){
 	if( !in_array( 'wpcargo_client', $user_roles ) ){
 		?>
 		<!-- Button trigger modal -->
-		<button id="shipmentBulkUpdate" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#shipmentBulkUpdateModal"><i class="fa fa-edit text-white"></i> <?php esc_html_e('Bulk Assign', 'wpcargo-frontend-manager'); ?></button>
+		<button id="shipmentBulkUpdate" type="button" class="btn btn-info btn-sm d-none" data-toggle="modal" data-target="#shipmentBulkUpdateModal"><i class="fa fa-edit text-white"></i> <?php esc_html_e('Bulk Assign', 'wpcargo-frontend-manager'); ?></button>
 		<!-- Modal -->
 		<?php
 	}

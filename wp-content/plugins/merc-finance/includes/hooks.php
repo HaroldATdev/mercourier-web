@@ -80,8 +80,8 @@ add_action('update_post_meta', function($meta_id, $post_id, $meta_key, $meta_val
             // Crear registro del estado anterior
             $previous_state_record = array(
                 'status' => $estado_actual,
-                'date' => date('Y-m-d'),
-                'time' => date('H:i:s'),
+                'date' => current_time('Y-m-d'),
+                'time' => current_time('H:i:s'),
                 'updated-name' => wp_get_current_user()->display_name,
                 'location' => get_post_meta($post_id, 'location', true),
                 'remarks' => 'Estado anterior (cambio a LISTO PARA SALIR)'
@@ -183,4 +183,5 @@ add_action('wp_ajax_merc_generate_penalties_today', function() {
     $msg = sprintf('Penalidades creadas: %d, omitidos: %d', $created, $skipped);
     wp_send_json_success(array('message'=>$msg,'details'=>$details));
 });
+
 

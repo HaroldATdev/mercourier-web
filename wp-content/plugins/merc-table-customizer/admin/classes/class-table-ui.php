@@ -667,7 +667,7 @@ class MERC_Table_UI {
             const esClienteLocal = <?php echo $is_client ? 'true' : 'false'; ?>;
             const esAdmin        = <?php echo $is_admin  ? 'true' : 'false'; ?>;
 
-            if (esClienteLocal) {
+            if (esClienteLocal || esAdmin) {
                 $('tr.merc-estado-reprogramado').each(function() {
                     const $row = $(this);
                     if ($row.find('.merc-btn-reprogramar').length > 0) return;

@@ -80,8 +80,8 @@ class MERC_Table_Ajax {
         $remarks_final  = ! empty( $observaciones ) ? $observaciones : 'Estado actualizado desde la tabla de pedidos';
         $nuevo_registro = [
             'status'       => $nuevo_estado,
-            'date'         => date( 'Y-m-d' ),
-            'time'         => date( 'H:i:s' ),
+            'date'         => current_time( 'Y-m-d' ),
+            'time'         => current_time( 'H:i:s' ),
             'updated-name' => wp_get_current_user()->display_name,
             'remarks'      => $remarks_final,
         ];
@@ -155,8 +155,8 @@ class MERC_Table_Ajax {
             if ( ! is_array( $historial ) ) $historial = [];
             array_unshift( $historial, [
                 'status'       => 'REPROGRAMADO',
-                'date'         => date( 'Y-m-d' ),
-                'time'         => date( 'H:i:s' ),
+                'date'         => current_time( 'Y-m-d' ),
+                'time'         => current_time( 'H:i:s' ),
                 'updated-name' => 'Sistema',
                 'remarks'      => "Notificación enviada a {$cliente_nombre} ({$cliente_email})",
             ] );
@@ -237,8 +237,8 @@ class MERC_Table_Ajax {
         $usuario = wp_get_current_user();
         array_unshift( $historial, [
             'status'       => $nuevo_estado,
-            'date'         => date( 'd/m/Y' ),
-            'time'         => date( 'H:i:s' ),
+            'date'         => current_time( 'd/m/Y' ),
+            'time'         => current_time( 'H:i:s' ),
             'updated-name' => $usuario->display_name . ' (Cliente)',
             'remarks'      => "Envío reprogramado. Fecha anterior: {$fecha_anterior} → Nueva fecha: {$nueva_fecha}. Estado: {$nuevo_estado}.",
         ] );
@@ -319,8 +319,8 @@ class MERC_Table_Ajax {
         if ( ! is_array( $historial ) ) $historial = [];
         array_unshift( $historial, [
             'status'       => 'ANULADO',
-            'date'         => date( 'd/m/Y' ),
-            'time'         => date( 'H:i:s' ),
+            'date'         => current_time( 'd/m/Y' ),
+            'time'         => current_time( 'H:i:s' ),
             'updated-name' => $current_user->display_name . ' (Cliente)',
             'remarks'      => "Envío anulado por el cliente. Estado anterior: {$estado_actual}. Motivo: {$motivo}",
         ] );
@@ -393,8 +393,8 @@ class MERC_Table_Ajax {
         if ( ! is_array( $historial ) ) $historial = [];
         array_unshift( $historial, [
             'status'       => 'ELIMINADO',
-            'date'         => date( 'd/m/Y' ),
-            'time'         => date( 'H:i:s' ),
+            'date'         => current_time( 'd/m/Y' ),
+            'time'         => current_time( 'H:i:s' ),
             'updated-name' => $usuario_actual->display_name . ' (Admin)',
             'remarks'      => "Envío eliminado. Estado anterior: {$estado_anterior}. Eliminado por: {$usuario_actual->display_name}",
         ] );
@@ -453,4 +453,5 @@ class MERC_Table_Ajax {
 if ( class_exists( 'MERC_Table_Ajax' ) ) {
     new MERC_Table_Ajax();
 }
+
 

@@ -572,11 +572,12 @@ class MERC_Shipment_Form_Fields {
 														$stock        = ! empty( $stock ) ? intval( $stock ) : 0;
 														$codigo       = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
 														$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
+														$valor_medida = get_post_meta( $prod->ID, '_merc_producto_valor_medida', true );
 														$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
 														$sel = ( $prod->ID == $selected_id ) ? 'selected' : '';
 													?>
 														<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>" <?php echo $sel; ?>>
-															<?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?>
+															<?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?><?php if ( $tipo_medida || $valor_medida ) : ?> (<?php if ( $tipo_medida && $valor_medida ) { echo esc_html( $tipo_medida . ': ' . $valor_medida ); } elseif ( $tipo_medida ) { echo esc_html( $tipo_medida ); } else { echo esc_html( $valor_medida ); } ?>)<?php endif; ?>
 															<?php if ( $codigo ) : ?> [<?php echo esc_html( $codigo ); ?>]<?php endif; ?>
 															<?php if ( $tipo_medida ) : ?> | Tipo: <?php echo esc_html( $tipo_medida ); ?><?php endif; ?>
 															<?php if ( ! empty( $dimensiones ) && is_array( $dimensiones ) ) : ?> | Dim: <?php echo intval( $dimensiones['largo'] ?? 0 ) . 'x' . intval( $dimensiones['ancho'] ?? 0 ) . 'x' . intval( $dimensiones['alto'] ?? 0 ); ?> cm<?php endif; ?>
@@ -598,9 +599,10 @@ class MERC_Shipment_Form_Fields {
 													$stock        = ! empty( $stock ) ? intval( $stock ) : 0;
 													$codigo       = get_post_meta( $prod->ID, '_merc_producto_codigo_barras', true );
 													$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
+													$valor_medida = get_post_meta( $prod->ID, '_merc_producto_valor_medida', true );
 													$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
 												?>
-													<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?></option>
+													<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?><?php if ( $tipo_medida || $valor_medida ) : ?> (<?php if ( $tipo_medida && $valor_medida ) { echo esc_html( $tipo_medida . ': ' . $valor_medida ); } elseif ( $tipo_medida ) { echo esc_html( $tipo_medida ); } else { echo esc_html( $valor_medida ); } ?>)<?php endif; ?></option>
 												<?php endforeach; ?>
 											</select>
 
@@ -613,16 +615,18 @@ class MERC_Shipment_Form_Fields {
 								<!-- Plantilla para clon (oculta, usada por JS) -->
 								<div id="merc_product_template" style="display:none;">
 									<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
-										<select class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
+										<select name="merc_producto_id[]" class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
 											<option value="">-- Selecciona un producto --</option>
 											<?php foreach ( $productos_disponibles as $prod ) :
 												$stock = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
 												$stock = ! empty( $stock ) ? intval( $stock ) : 0;
+												$valor_medida = get_post_meta( $prod->ID, '_merc_producto_valor_medida', true );
+												$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
 											?>
-												<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?></option>
+												<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?><?php if ( $tipo_medida || $valor_medida ) : ?> (<?php if ( $tipo_medida && $valor_medida ) { echo esc_html( $tipo_medida . ': ' . $valor_medida ); } elseif ( $tipo_medida ) { echo esc_html( $tipo_medida ); } else { echo esc_html( $valor_medida ); } ?>)<?php endif; ?></option>
 											<?php endforeach; ?>
 										</select>
-										<input type="number" class="form-control merc_producto_cantidad" value="1" min="1" max="999" required style="width:120px;">
+										<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="1" min="1" max="999" required style="width:120px;">
 										<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
 									</div>
 								</div>
@@ -645,7 +649,6 @@ class MERC_Shipment_Form_Fields {
 		<script>
 		jQuery(document).ready(function($) {
 			var $productRows     = $('#merc_product_rows');
-			var $productTemplate = $('#merc_product_template').html ? $('#merc_product_template').html() : null;
 			var $stockDisplay    = $('#merc_stock_display');
 			var $warning         = $('#merc_stock_warning');
 			var $warningText     = $('#merc_warning_text');
@@ -684,22 +687,30 @@ class MERC_Shipment_Form_Fields {
 				});
 			}
 
-			// Si no hay template en el DOM, crear una desde el HTML generado en PHP
-			if (!$productTemplate) {
-				$productTemplate = '<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">';
-				$productTemplate += $('select[name="merc_producto_id[]"]').first().prop('outerHTML');
-				$productTemplate += '<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="1" min="1" max="999" required style="width:120px;">';
-				$productTemplate += '<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>';
-				$productTemplate += '</div>';
-			}
-
 			// Inicializar filas existentes
 			$productRows.find('.merc-product-row').each(function() { bindRowEvents($(this)); });
 
+			function generarTemplateRow() {
+				// Clonar desde la plantilla oculta (que ya tiene los names correctos)
+				var $template = $('#merc_product_template').find('.merc-product-row').first();
+				if (!$template.length) {
+					console.error('❌ [TEMPLATE_ERROR] No se encontró #merc_product_template');
+					return null;
+				}
+				
+				var $clone = $template.clone();
+				return $clone;
+			}
+
 			$('#merc_add_product_btn').on('click', function() {
-				var $new = $($productTemplate);
+				var $new = generarTemplateRow();
+				if (!$new) {
+					console.error('❌ No se pudo generar template');
+					return;
+				}
+				
 				$new.find('select').val('');
-				$new.find('input').val('1');
+				$new.find('input[type="number"]').val('1');
 				$productRows.append($new);
 				bindRowEvents($new);
 			});
@@ -826,12 +837,21 @@ class MERC_Shipment_Form_Fields {
 		if ( isset( $_POST['merc_producto_id'] ) ) {
 			// Validar nonce si viene presente
 			if ( isset( $_POST['merc_envio_producto_nonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['merc_envio_producto_nonce'] ) ), 'merc_envio_producto_guardar' ) ) {
+				error_log("❌ [MERC_SAVE] Nonce inválido para envío #{$post_id}");
 				return;
 			}
+
+			// DIAGNÓSTICO: Ver qué recibe del formulario
+			$raw_ids = $_POST['merc_producto_id'];
+			$raw_qtys = isset($_POST['merc_producto_cantidad']) ? $_POST['merc_producto_cantidad'] : [];
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_id tipo: " . gettype($raw_ids) . " | contenido: " . json_encode($raw_ids));
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_cantidad tipo: " . gettype($raw_qtys) . " | contenido: " . json_encode($raw_qtys));
 
 			$ids = array_map( 'intval', (array) $_POST['merc_producto_id'] );
 			$qtys = isset( $_POST['merc_producto_cantidad'] ) ? (array) $_POST['merc_producto_cantidad'] : [];
 			$qtys = array_map( 'intval', $qtys );
+
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - IDs procesados: " . json_encode($ids) . " | Cantidades: " . json_encode($qtys));
 
 			$productos_to_store = [];
 			foreach ( $ids as $i => $id ) {
@@ -840,16 +860,22 @@ class MERC_Shipment_Form_Fields {
 				$productos_to_store[] = [ 'id' => $id, 'cantidad' => $cant ];
 			}
 
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - Productos a guardar: " . json_encode($productos_to_store) . " (total: " . count($productos_to_store) . ")");
+
 			if ( ! empty( $productos_to_store ) ) {
 				update_post_meta( $post_id, '_merc_productos_multi', $productos_to_store );
 				// Mantener compatibilidad: guardar primer producto en meta antigua
 				update_post_meta( $post_id, '_merc_producto_id', $productos_to_store[0]['id'] );
 				update_post_meta( $post_id, '_merc_producto_cantidad', $productos_to_store[0]['cantidad'] );
+				error_log("✅ [MERC_SAVE] Envío #{$post_id} - Metas guardadas exitosamente");
 			} else {
 				delete_post_meta( $post_id, '_merc_productos_multi' );
 				delete_post_meta( $post_id, '_merc_producto_id' );
 				delete_post_meta( $post_id, '_merc_producto_cantidad' );
+				error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - Sin productos válidos para guardar");
 			}
+		} else {
+			error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - merc_producto_id no viene en POST");
 		}
 	}
 
@@ -889,5 +915,6 @@ class MERC_Shipment_Form_Fields {
 }
 
 new MERC_Shipment_Form_Fields();
+
 
 
