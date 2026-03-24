@@ -87,4 +87,27 @@ if (!empty($shipment_type)) {
 	<div class="clearfix"></div>
 </form>
 
+<script>
+(function() {
+    const form = document.querySelector('.add-shipment');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        // Obtener el tipo de envío
+        const shipmentType = document.querySelector('input[name="shipment_type"]')?.value;
+        
+        // Si es full_fitment, validar que haya producto seleccionado
+        if (shipmentType === 'full_fitment') {
+            const productoSelect = document.getElementById('merc_producto_select');
+            if (productoSelect && !productoSelect.value) {
+                e.preventDefault();
+                alert('❌ Error: Debe seleccionar un producto para envíos tipo MERC AGENCIA (Full Fulfillment)');
+                productoSelect.focus();
+                return false;
+            }
+        }
+    });
+})();
+</script>
+
 <?php do_action( 'before_wpcargo_shipment_history', 0); ?>

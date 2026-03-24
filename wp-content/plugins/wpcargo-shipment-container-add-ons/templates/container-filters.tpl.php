@@ -65,16 +65,15 @@
 
 				// No additional GET filters here: only filter by pickup date (today)
 				
-				// Puntos de Recojo: contar usuarios ÚNICOS (registered_shipper) que tengan un valor en shipment_container_recojo para la fecha de pickup
+				// Puntos de Recojo: contar usuarios ÚNICOS (registered_shipper) de envíos tipo normal para HOY (sin requisito de contenedor)
 				$recojo_query = "
 					SELECT COUNT(DISTINCT CAST(pm_shipper.meta_value AS UNSIGNED)) as conteo
 					FROM {$wpdb->posts} p
 					INNER JOIN {$wpdb->postmeta} pm_shipper ON pm_shipper.post_id = p.ID AND pm_shipper.meta_key = 'registered_shipper'
-					INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = 'shipment_container_recojo'
 					INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 					INNER JOIN {$wpdb->postmeta} pd ON pd.post_id = p.ID AND pd.meta_key = 'wpcargo_pickup_date_picker'
 					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
-					AND pm.meta_value != '' AND pm_shipper.meta_value != ''
+					AND pm_shipper.meta_value != ''
 					AND pm_tipo.meta_value = 'normal'
 					AND (pd.meta_value = '{$today_peru}' OR pd.meta_value = '{$today_peru_alt}')
 				";
@@ -98,29 +97,23 @@
 				error_log("DEBUG RECOJO QUERY: " . $recojo_values_query);
 				error_log("DEBUG RECOJO VALUES: " . var_export($recojo_values, true));
 				
-				// Puntos de Entrega: contar total de envíos express y fullfillment que tengan shipment_container_entrega (HOY)
+				// Puntos de Entrega: contar total de envíos (sin restricción de tipo) de HOY (sin importar si tienen contenedor asignado)
 				$entrega_query = "
 					SELECT COUNT(DISTINCT p.ID) as conteo
 					FROM {$wpdb->posts} p
-					INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 					INNER JOIN {$wpdb->postmeta} pm_fecha ON pm_fecha.post_id = p.ID AND pm_fecha.meta_key = 'wpcargo_pickup_date_picker'
-					INNER JOIN {$wpdb->postmeta} pm_entrega ON pm_entrega.post_id = p.ID AND pm_entrega.meta_key = 'shipment_container_entrega'
-					WHERE p.post_type = 'wpcargo_shipment'				AND p.post_status = 'publish'					AND pm_tipo.meta_value IN ('normal', 'express', 'fullfillment')
-					AND pm_entrega.meta_value != ''
+					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
 					AND (pm_fecha.meta_value = '{$today_peru}' OR pm_fecha.meta_value = '{$today_peru_alt}')
 				";
 				$puntos_entrega = $wpdb->get_var($entrega_query);
 				
 				// Debug detallado de los envíos
 				$detail_entrega = "
-					SELECT DISTINCT p.ID, pm_tipo.meta_value as tipo_envio, pm_fecha.meta_value as fecha_envio, pm_entrega.meta_value as container_entrega
+					SELECT DISTINCT p.ID, pm_fecha.meta_value as fecha_envio, pm_entrega.meta_value as container_entrega
 					FROM {$wpdb->posts} p
-					INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 					INNER JOIN {$wpdb->postmeta} pm_fecha ON pm_fecha.post_id = p.ID AND pm_fecha.meta_key = 'wpcargo_pickup_date_picker'
-					INNER JOIN {$wpdb->postmeta} pm_entrega ON pm_entrega.post_id = p.ID AND pm_entrega.meta_key = 'shipment_container_entrega'
-					WHERE p.post_type = 'wpcargo_shipment'
-				AND p.post_status = 'publish'
-					AND pm_entrega.meta_value != ''
+					LEFT JOIN {$wpdb->postmeta} pm_entrega ON pm_entrega.post_id = p.ID AND pm_entrega.meta_key = 'shipment_container_entrega'
+					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
 					AND (pm_fecha.meta_value = '{$today_peru}' OR pm_fecha.meta_value = '{$today_peru_alt}')
 				";
 				$details_entrega = $wpdb->get_results($detail_entrega);
@@ -129,13 +122,9 @@
 				$entrega_ids_query = "
 					SELECT DISTINCT p.ID
 					FROM {$wpdb->posts} p
-					INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 					INNER JOIN {$wpdb->postmeta} pm_fecha ON pm_fecha.post_id = p.ID AND pm_fecha.meta_key = 'wpcargo_pickup_date_picker'
-					INNER JOIN {$wpdb->postmeta} pm_entrega ON pm_entrega.post_id = p.ID AND pm_entrega.meta_key = 'shipment_container_entrega'
-					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' AND pm_tipo.meta_value IN ('normal', 'express', 'fullfillment')
-					AND pm_entrega.meta_value != ''
+					WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
 					AND (pm_fecha.meta_value = '{$today_peru}' OR pm_fecha.meta_value = '{$today_peru_alt}')
-					{$extra_where}
 				";
 				$entrega_ids = $wpdb->get_col($entrega_ids_query);
 				error_log("DEBUG ENTREGA IDS QUERY: " . $entrega_ids_query);
@@ -186,6 +175,7 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 
 
 

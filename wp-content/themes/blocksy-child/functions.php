@@ -14005,8 +14005,8 @@ function merc_envio_producto_callback($post) {
     </style>
     
     <div class="merc-envio-producto-field">
-        <label for="merc_producto_select">Producto a Entregar</label>
-        <select id="merc_producto_select" name="merc_producto_id">
+        <label for="merc_producto_select">Producto a Entregar <span style="color: red;">*</span></label>
+        <select id="merc_producto_select" name="merc_producto_id" required>
             <option value="">-- Seleccionar Producto --</option>
             <?php foreach ($productos as $producto): 
                 $cantidad_disponible = merc_get_product_stock($producto->ID);
@@ -14138,6 +14138,16 @@ function merc_guardar_envio_producto($post_id, $post) {
     $es_full_fitment = (strpos($tipo_envio, 'full') !== false || strpos($tipo_envio, 'fitment') !== false || $tipo_envio === 'full_fitment');
     
     error_log("📦 Datos recibidos - Producto ID: {$producto_id}, Cantidad: {$cantidad}, Tipo: '{$tipo_envio}', Es Full Fitment: " . ($es_full_fitment ? 'SI' : 'NO'));
+    
+    // ❌ VALIDACIÓN: Para envíos Full Fitment, producto es obligatorio
+    if ($es_full_fitment && $producto_id <= 0) {
+        error_log("🚫 RECHAZO: Intento de guardar envío Full Fitment sin producto - Post ID: {$post_id}");
+        wp_die(
+            'Error: No se puede crear un envío MERC AGENCIA (Full Fulfillment) sin seleccionar un producto. Por favor, selecciona un producto e intenta de nuevo.',
+            'Producto Requerido',
+            array('back_link' => true)
+        );
+    }
     
     if ($producto_id > 0) {
         // Obtener cantidad anterior si existe
