@@ -667,6 +667,24 @@ class MERC_Table_UI {
             const esClienteLocal = <?php echo $is_client ? 'true' : 'false'; ?>;
             const esAdmin        = <?php echo $is_admin  ? 'true' : 'false'; ?>;
 
+            // Asegura que exista una columna/td para acciones. Si no existe, la crea.
+            function ensureAccionesCell($row) {
+                if (!$row || $row.length === 0) return $();
+                const $table = $row.closest('table');
+                if ($table.length) {
+                    const $thead = $table.find('thead tr:first');
+                    if ($thead.length && $thead.find('th.merc-acciones-th').length === 0) {
+                        $thead.append('<th class="merc-acciones-th" style="text-align:center;">Acciones</th>');
+                    }
+                }
+                let $celda = $row.find('td.merc-acciones-cell');
+                if ($celda.length === 0) {
+                    $celda = $('<td class="merc-acciones-cell" style="text-align:center;"></td>');
+                    $row.append($celda);
+                }
+                return $celda;
+            }
+
             if (esClienteLocal || esAdmin) {
                 $('tr.merc-estado-reprogramado').each(function() {
                     const $row = $(this);
@@ -675,7 +693,7 @@ class MERC_Table_UI {
                     const match = rowId.match(/shipment-(\d+)/); if (!match) return;
                     const shipmentId     = match[1];
                     const shipmentNumber = $row.find('td').first().text().trim();
-                    const $celdaAcciones = $row.find('td.merc-acciones-cell');
+                        let $celdaAcciones = ensureAccionesCell($row);
                     const $cont          = $('<div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;"></div>');
                     const $btnReprogramar = $('<button class="merc-btn-reprogramar" data-shipment-id="' + shipmentId + '" data-shipment-number="' + shipmentNumber + '" style="background:#ff5722;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;">📅 Reprogramar</button>');
                     $btnReprogramar.on('click', function(e) { e.preventDefault(); mostrarModalReprogramacion(shipmentId, shipmentNumber); });
@@ -695,8 +713,7 @@ class MERC_Table_UI {
                         const match = rowId.match(/shipment-(\d+)/); if (!match) return;
                         const shipmentId     = match[1];
                         const shipmentNumber = $row.find('td').first().text().trim();
-                        const $celdaAcciones = $row.find('td.merc-acciones-cell');
-                        if ($celdaAcciones.length === 0) return;
+                            let $celdaAcciones = ensureAccionesCell($row);
                         const $tipoCell = $row.find('td[data-tipo-envio]');
                         const tipoEnvio = $tipoCell.length > 0 ? $tipoCell.attr('data-tipo-envio').toLowerCase() : '';
                         if (tipoEnvio.indexOf('full') !== -1 || tipoEnvio.indexOf('fit') !== -1) return;
