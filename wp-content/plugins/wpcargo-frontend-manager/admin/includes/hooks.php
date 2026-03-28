@@ -645,6 +645,68 @@ function wpcfe_bulk_update_modal_action_callback(){
 add_action( 'wp', 'wpcfe_add_shipment' );
 function wpcfe_add_shipment(){
     if ( isset( $_POST['wpcfe_add_form_fields'] ) && wp_verify_nonce( $_POST['wpcfe_add_form_fields'], 'wpcfe_add_action' ) ) {
+    	
+        // VALIDACIÓN: Campos obligatorios del destinatario (server-side)
+        $required_receiver_fields = array(
+            'wpcargo_receiver_name'    => __('Nombre del destinatario', 'wpcargo-frontend-manager'),
+            'wpcargo_receiver_phone'   => __('Teléfono del destinatario', 'wpcargo-frontend-manager'),
+            'wpcargo_receiver_address' => __('Dirección del destinatario', 'wpcargo-frontend-manager'),
+        );
+        $missing_fields = array();
+        foreach ( $required_receiver_fields as $meta_key => $label ) {
+            if ( ! isset( $_POST[ $meta_key ] ) ) {
+                $missing_fields[] = $label;
+                continue;
+            }
+            $val = $_POST[ $meta_key ];
+            if ( is_array( $val ) ) {
+                // address fields can be arrays; check any non-empty element
+                $has_value = false;
+                foreach ( $val as $sub ) {
+                    if ( trim( (string) $sub ) !== '' ) { $has_value = true; break; }
+                }
+                if ( ! $has_value ) $missing_fields[] = $label;
+            } else {
+                if ( trim( (string) $val ) === '' ) $missing_fields[] = $label;
+            }
+        }
+        if ( ! empty( $missing_fields ) ) {
+            $_POST['wpcfe-notification'] = array(
+                'status'    => 'danger',
+                'icon'      => 'exclamation',
+                'message'   => sprintf( __('Faltan campos obligatorios: %s', 'wpcargo-frontend-manager'), implode(', ', $missing_fields) )
+            );
+            return false;
+        }
+
+        // VALIDACIÓN: Si es FULL FITMENT, debe tener al menos un producto
+    	$tipo_envio = isset( $_POST['tipo_envio'] ) ? sanitize_text_field( $_POST['tipo_envio'] ) : '';
+    	if ( $tipo_envio === 'full_fitment' ) {
+    		$productos = isset( $_POST['merc_producto_id'] ) ? $_POST['merc_producto_id'] : [];
+    		$cantidades = isset( $_POST['merc_producto_cantidad'] ) ? $_POST['merc_producto_cantidad'] : [];
+    		
+    		// Validar que haya al menos un producto seleccionado
+    		$tiene_productos = false;
+    		foreach ( (array) $productos as $idx => $producto_id ) {
+    			$producto_id = intval( $producto_id );
+    			$cantidad = isset( $cantidades[ $idx ] ) ? intval( $cantidades[ $idx ] ) : 0;
+    			
+    			if ( $producto_id > 0 && $cantidad > 0 ) {
+    				$tiene_productos = true;
+    				break;
+    			}
+    		}
+    		
+    		if ( ! $tiene_productos ) {
+    			$_POST['wpcfe-notification'] = array(
+    				'status'    => 'danger',
+    				'icon'      => 'exclamation',
+    				'message'   => __('Debes seleccionar al menos un producto para crear un envío FULL FITMENT.', 'wpcargo-frontend-manager')
+    			);
+    			return false;
+    		}
+    	}
+    	
     	wpcfe_save_shipment( $_POST );
     }else{
         return false;
@@ -654,6 +716,67 @@ add_action( 'wp', 'wpcfe_update_shipment' );
 function wpcfe_update_shipment(){
     global $WPCCF_Fields;
     if ( isset( $_POST['wpcfe_form_fields'] ) && wp_verify_nonce( $_POST['wpcfe_form_fields'], 'wpcfe_edit_action' ) && isset( $_POST['shipment_id'] ) && is_wpcfe_shipment($_POST['shipment_id'] )  ) {
+    	
+         // VALIDACIÓN: Campos obligatorios del destinatario (server-side) para actualización
+         $required_receiver_fields = array(
+            'wpcargo_receiver_name'    => __('Nombre del destinatario', 'wpcargo-frontend-manager'),
+            'wpcargo_receiver_phone'   => __('Teléfono del destinatario', 'wpcargo-frontend-manager'),
+            'wpcargo_receiver_address' => __('Dirección del destinatario', 'wpcargo-frontend-manager'),
+         );
+         $missing_fields = array();
+         foreach ( $required_receiver_fields as $meta_key => $label ) {
+             if ( ! isset( $_POST[ $meta_key ] ) ) {
+                 $missing_fields[] = $label;
+                 continue;
+             }
+             $val = $_POST[ $meta_key ];
+             if ( is_array( $val ) ) {
+                 $has_value = false;
+                 foreach ( $val as $sub ) {
+                     if ( trim( (string) $sub ) !== '' ) { $has_value = true; break; }
+                 }
+                 if ( ! $has_value ) $missing_fields[] = $label;
+             } else {
+                 if ( trim( (string) $val ) === '' ) $missing_fields[] = $label;
+             }
+         }
+         if ( ! empty( $missing_fields ) ) {
+             $_POST['wpcfe-notification'] = array(
+                 'status'    => 'danger',
+                 'icon'      => 'exclamation',
+                 'message'   => sprintf( __('Faltan campos obligatorios: %s', 'wpcargo-frontend-manager'), implode(', ', $missing_fields) )
+             );
+             return false;
+         }
+
+         // VALIDACIÓN: Si es FULL FITMENT, debe tener al menos un producto
+    	$tipo_envio = isset( $_POST['tipo_envio'] ) ? sanitize_text_field( $_POST['tipo_envio'] ) : '';
+    	if ( $tipo_envio === 'full_fitment' ) {
+    		$productos = isset( $_POST['merc_producto_id'] ) ? $_POST['merc_producto_id'] : [];
+    		$cantidades = isset( $_POST['merc_producto_cantidad'] ) ? $_POST['merc_producto_cantidad'] : [];
+    		
+    		// Validar que haya al menos un producto seleccionado
+    		$tiene_productos = false;
+    		foreach ( (array) $productos as $idx => $producto_id ) {
+    			$producto_id = intval( $producto_id );
+    			$cantidad = isset( $cantidades[ $idx ] ) ? intval( $cantidades[ $idx ] ) : 0;
+    			
+    			if ( $producto_id > 0 && $cantidad > 0 ) {
+    				$tiene_productos = true;
+    				break;
+    			}
+    		}
+    		
+    		if ( ! $tiene_productos ) {
+    			$_POST['wpcfe-notification'] = array(
+    				'status'    => 'danger',
+    				'icon'      => 'exclamation',
+    				'message'   => __('Debes seleccionar al menos un producto para crear un envío FULL FITMENT.', 'wpcargo-frontend-manager')
+    			);
+    			return false;
+    		}
+    	}
+    	
     	wpcfe_save_shipment( $_POST, $_POST['shipment_id'] ); 
     }else{
         return false;

@@ -23,6 +23,10 @@ function wpcfe_autocomplete_address_field_template( $html_field, $field_key, $po
     ob_start();
     $value 		= (int)$post_id ? maybe_unserialize( get_post_meta( $post_id, $field['field_key'], TRUE ) ) : '';
     $required 	= ( $field['required'] ) ? 'required' : '' ;
+    // Si el campo es 'location' (campo auxiliar no usado), no hacerlo obligatorio
+    if ( isset( $field['field_key'] ) && $field['field_key'] === 'location' ) {
+        $required = '';
+    }
     $wrap_class = isset($field['classes']) ? $field['classes'] : '';
     $wrap_class = strpos( $wrap_class, 'col-') === false ? $wrap_class.' col-md-12' : $wrap_class;
     $form_label = apply_filters( 'wpccf_field_form_label_'.$field['field_key'], stripslashes( $field['label'] ) );

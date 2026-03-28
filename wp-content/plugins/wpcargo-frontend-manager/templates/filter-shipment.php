@@ -55,12 +55,17 @@ $s_status 		= isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) 
 		</div>
 	</form>
 </div>
+<?php $user_roles = wpcfe_current_user_role(); if( in_array( 'administrator', (array) $user_roles, true ) || in_array( 'wpcargo_driver', (array) $user_roles, true ) ): ?>
 <div class="col-lg-3 col-md-4 mt-0 p-0">
 	<form id="wpcfe-search" class="float-md-none float-lg-right" action="<?php echo esc_url( $page_url ); ?>" method="get">
 		<div class="form-sm">
 			<label for="search-shipment" class="sr-only"><?php echo apply_filters('wpcfe_shipment_number_label', __('Shipment Number', 'wpcargo-frontend-manager' ) ); ?></label>
-			<input type="text" class="form-control form-control-sm" name="wpcfes" id="search-shipment" placeholder="<?php echo apply_filters('wpcfe_shipment_number_label', __('Shipment Number', 'wpcargo-frontend-manager' ) ); ?>" value="<?php echo $s_shipment; ?>">
+			<input type="text" class="form-control form-control-sm" name="wpcfes" id="search-shipment" placeholder="<?php echo apply_filters('wpcfe_shipment_number_label', __('Shipment Number', 'wpcargo-frontend-manager' ) ); ?>" value="<?php echo esc_attr( $s_shipment ); ?>">
+			<input type="hidden" name="shipper" value="<?php echo esc_attr( $s_shipper ); ?>">
+			<input type="hidden" name="receiver" value="<?php echo esc_attr( $s_receiver ); ?>">
+			<input type="hidden" name="status" value="<?php echo esc_attr( $s_status ); ?>">
 			<button type="submit" class="btn btn-primary btn-sm mx-md-0 ml-2"><?php esc_html_e('Search', 'wpcargo-frontend-manager' ); ?></button>
 		</div>
 	</form>
 </div>
+<?php endif; ?>

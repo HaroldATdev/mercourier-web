@@ -599,10 +599,11 @@ add_action('admin_footer', function() {
                 if((types.normal.count === 0 && now >= '11:00') || (types.normal.count > 0 && types.normal.all_collected)) {
                     modal.find(".modal-body .card:contains('MERC EMPRENDEDOR')").css({opacity:0.5, pointerEvents:'none'});
                 }
-                if((types.express.count === 0 && now >= '12:30') || (types.express.count > 0 && now >= '13:00')) {
+                // Bloquear MERC AGENCIA y MERC FULL FITMENT a partir de las 13:00 (independiente de conteo)
+                if ( now >= '13:00' ) {
                     modal.find(".modal-body .card:contains('MERC AGENCIA')").css({opacity:0.5, pointerEvents:'none'});
                 }
-                if((types.full_fitment.count === 0 && now >= '11:30') || (types.full_fitment.count > 0 && now >= '12:15')) {
+                if ( now >= '13:00' ) {
                     modal.find(".modal-body .card:contains('MERC FULL FITMENT')").css({opacity:0.5, pointerEvents:'none'});
                 }
             });
@@ -680,8 +681,9 @@ add_action('wp_footer', function() {
     (function(){
         try{
             document.addEventListener('DOMContentLoaded', function(){
-                // Desactivar validación nativa en formularios de alta de envíos
-                document.querySelectorAll('form.add-shipment, form#form-producto-envio, form#form-producto').forEach(function(f){
+                // Desactivar validación nativa solo en formularios de producto (no bloquear Add Shipment)
+                // Nota: dejamos fuera `form.add-shipment` para que la validación HTML5 funcione correctamente.
+                document.querySelectorAll('form#form-producto-envio, form#form-producto').forEach(function(f){
                     f.setAttribute('novalidate','novalidate');
                 });
 
@@ -1990,8 +1992,9 @@ add_action('template_redirect', function(){
             $full_fitment_bloqueado = false;
             
             if (in_array('wpcargo_client', $current_user->roles)) {
-                // Usar la nueva lógica centralizada por tipo (permite forzar fecha mañana)
-                $normal_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'normal');
+                // NORMAL: Usar la lógica específica que respeta estados RECOGIDO/NO RECOGIDO
+                $normal_bloqueado = merc_check_tipo_normal_blocked($current_user->ID, 'normal');
+                // EXPRESS y FULL_FITMENT: Usar la lógica centralizada
                 $express_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'express');
                 $full_fitment_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'full_fitment');
             }
@@ -6001,19 +6004,34 @@ function merc_check_tipo_normal_blocked($client_id, $tipo_envio = 'normal') {
     if (!empty($envios_tipo) && $hora_actual >= '11:00') {
         $todos_recogidos_o_no = true;
         
+        error_log("📊 [NORMAL] Validando {$client_id} - " . count($envios_tipo) . " envíos tipo NORMAL encontrados:");
+        
         foreach ($envios_tipo as $envio) {
-            $estado = strtolower(trim($envio->estado));
+            $estado_raw = $envio->estado;
+            $estado = strtolower(trim($envio->estado ?? ''));
+            
+            error_log("   - Envío #{$envio->ID}: estado_raw='{$estado_raw}' → estado_lowercase='{$estado}'");
+            
+            // Normalizar comparación: aceptar variaciones de RECOGIDO/NO RECOGIDO
+            $es_recogido = (stripos($estado, 'recogido') !== false && stripos($estado, 'no') === false);
+            $es_no_recogido = (stripos($estado, 'no recogido') !== false || (stripos($estado, 'no') !== false && stripos($estado, 'recogido') !== false));
+            
             // Si hay algún estado que NO sea "recogido" ni "no recogido", permitir crear más
-            if ($estado !== 'recogido' && $estado !== 'no recogido') {
+            if (!$es_recogido && !$es_no_recogido) {
                 $todos_recogidos_o_no = false;
+                error_log("      ✅ Estado DIFERENTE detectado → Permite crear más envíos");
                 break;
+            } else { 
+                error_log("      🔴 Estado es RECOGIDO o NO RECOGIDO → Continúa validando");
             }
         }
         
         // Bloquear si TODOS son RECOGIDO O NO RECOGIDO
         if ($todos_recogidos_o_no) {
-            error_log("🔴 [NORMAL] BLOQUEADO: Es >= 11:00 AM y todos los envíos están en recogido/no recogido");
+            error_log("🔴 [NORMAL] BLOQUEADO: Es >= 11:00 AM y TODOS los envíos están en RECOGIDO o NO RECOGIDO (count={count($envios_tipo)})");
             return true;
+        } else {
+            error_log("✅ [NORMAL] PERMITIDO: Hay al menos 1 envío en estado diferente a RECOGIDO/NO RECOGIDO");
         }
     }
     
@@ -6054,15 +6072,9 @@ function merc_check_tipo_express_blocked($client_id, $tipo_envio = 'express') {
     
     $envios_tipo = merc_get_envios_hoy_por_tipo($client_id, 'express');
     
-    // 1. Si NO tiene envíos y son >= 12:30 PM → BLOQUEADO
-    if (empty($envios_tipo) && $hora_actual >= '12:30') {
-        error_log("🔴 [EXPRESS] BLOQUEADO: Sin envíos y pasadas las 12:30 PM");
-        return true;
-    }
-    
-    // 2. Si TIENE envíos y es después de la 1:00 PM → BLOQUEADO
-    if (!empty($envios_tipo) && $hora_actual >= '13:00') {
-        error_log("🔴 [EXPRESS] BLOQUEADO: Con envíos y pasadas las 1:00 PM");
+    // EXPRESS: Bloquea a partir de 13:00 (1:00 PM) sin importar si tiene envíos o no
+    if ($hora_actual >= '13:00') {
+        error_log("🔴 [EXPRESS] BLOQUEADO: Ya pasó la 1:00 PM (13:00)");
         return true;
     }
     
@@ -6103,15 +6115,9 @@ function merc_check_tipo_full_fitment_blocked($client_id, $tipo_envio = 'full_fi
     
     $envios_tipo = merc_get_envios_hoy_por_tipo($client_id, 'full_fitment');
     
-    // 1. Si NO tiene envíos y son >= 11:30 AM → BLOQUEADO
-    if (empty($envios_tipo) && $hora_actual >= '11:30') {
-        error_log("🔴 [FULL_FITMENT] BLOQUEADO: Sin envíos y pasadas las 11:30 AM");
-        return true;
-    }
-    
-    // 2. Si TIENE envíos y es después de las 12:15 PM → BLOQUEADO
-    if (!empty($envios_tipo) && $hora_actual >= '12:15') {
-        error_log("🔴 [FULL_FITMENT] BLOQUEADO: Con envíos y pasadas las 12:15 PM");
+    // FULL FITMENT: Bloquea a partir de 13:00 (1:00 PM) sin importar si tiene envíos o no
+    if ($hora_actual >= '13:00') {
+        error_log("🔴 [FULL_FITMENT] BLOQUEADO: Ya pasó la 1:00 PM (13:00)");
         return true;
     }
     
@@ -6151,13 +6157,37 @@ function merc_get_envios_hoy_por_tipo($client_id, $tipo) {
     // Filtrar por fecha de pickup = hoy
     $envios_hoy = array();
     foreach ($envios as $envio) {
-        $fecha_pickup = !empty($envio->fecha_pickup) ? date('Y-m-d', strtotime($envio->fecha_pickup)) : date('Y-m-d', strtotime($envio->post_date));
+        // Parsear fecha correctamente (formato puede ser DD/MM/YYYY)
+        $fecha_pickup_raw = $envio->fecha_pickup;
+        
+        if (!empty($fecha_pickup_raw)) {
+            // Intentar parsear como DD/MM/YYYY primero
+            $datetime = DateTime::createFromFormat('d/m/Y', $fecha_pickup_raw);
+            if ($datetime) {
+                $fecha_pickup = $datetime->format('Y-m-d');
+            } else {
+                // Fallback: intentar otras interpretaciones
+                $timestamp = strtotime($fecha_pickup_raw);
+                $fecha_pickup = ($timestamp !== false) ? date('Y-m-d', $timestamp) : null;
+            }
+        } else {
+            // Si no hay fecha pickup, usar post_date
+            $timestamp = strtotime($envio->post_date);
+            $fecha_pickup = ($timestamp !== false) ? date('Y-m-d', $timestamp) : null;
+        }
+        
+        // DEBUG
+        error_log("🔍 [FECHA_PARSER] Envío #{$envio->ID}: fecha_raw='{$fecha_pickup_raw}' → fecha_parsed='{$fecha_pickup}' (hoy='{$hoy}')");
         
         if ($fecha_pickup === $hoy) {
+            error_log("   ✅ INCLUIDO: Fecha coincide");
             $envios_hoy[] = $envio;
+        } else {
+            error_log("   ❌ EXCLUIDO: Fecha NO coincide");
         }
     }
     
+    error_log("📊 [FECHA_PARSER] Total enviós: " . count($envios) . " | Hoy: " . count($envios_hoy));
     return $envios_hoy;
 }
 
@@ -11420,7 +11450,6 @@ add_action('wp_loaded', function() {
     // ✅ VERIFICAR si el evento YA está programado
     $timestamp = wp_next_scheduled('merc_daily_cleanup_motorizo_default');
     if ($timestamp) {
-        error_log('[MERC CLEANUP SCHEDULE] ℹ️  Evento ya programado para: ' . gmdate('Y-m-d H:i:s e', $timestamp) . ' (UTC)');
         return;  // Evento ya existe, no reprogramar
     }
     
@@ -13459,6 +13488,53 @@ function merc_mark_units_delivered(array $unit_ids) {
     $ids = implode(',', array_map('intval', $unit_ids));
     if (empty($ids)) return false;
     $wpdb->query("UPDATE {$table} SET status = 'delivered', updated_at = '" . current_time('mysql') . "' WHERE id IN ({$ids})");
+    return true;
+}
+
+/**
+ * Desasignar X unidades de un producto que estaban asignadas a un envío específico
+ * Útil cuando se actualiza un envío y se reducen o remueven productos
+ */
+function merc_unassign_stock_by_shipment($product_id, $quantity, $shipment_id) {
+    global $wpdb;
+    $table = merc_get_stock_table_name();
+    
+    $product_id = intval($product_id);
+    $quantity = intval($quantity);
+    $shipment_id = intval($shipment_id);
+    
+    if ($quantity <= 0) return false;
+    
+    // 🔧 FIX: LIMIT no debe estar en prepare, construir query manualmente
+    $query = $wpdb->prepare(
+        "SELECT id FROM {$table} WHERE product_id = %d AND shipment_id = %d AND status = 'assigned' ORDER BY id ASC LIMIT " . intval($quantity),
+        $product_id,
+        $shipment_id
+    );
+    
+    $unit_ids = $wpdb->get_col($query);
+    
+    error_log("🔍 [UNASSIGN_DEBUG] Query ejecutada: {$query}");
+    error_log("🔍 [UNASSIGN_DEBUG] Unidades encontradas: " . count((array)$unit_ids) . " de {$quantity} requeridas");
+    if ($unit_ids) {
+        error_log("🔍 [UNASSIGN_DEBUG] IDs: " . implode(',', $unit_ids));
+    }
+    
+    if (empty($unit_ids)) {
+        error_log("⚠️ merc_unassign_stock_by_shipment() - No encontrado: prod={$product_id}, qty={$quantity}, shipment={$shipment_id}");
+        return false;
+    }
+    
+    // Desasignar estas unidades (volver a 'available')
+    $ids_str = implode(',', array_map('intval', $unit_ids));
+    $update_query = "UPDATE {$table} SET status = 'available', shipment_id = NULL, updated_at = '" . current_time('mysql') . "' WHERE id IN ({$ids_str})";
+    
+    error_log("🔧 [UNASSIGN_SQL] UPDATE: {$update_query}");
+    
+    $result = $wpdb->query($update_query);
+    
+    error_log("✅ merc_unassign_stock_by_shipment() - Desasignadas " . count($unit_ids) . " unidades (UPDATE afectó {$result} filas): prod={$product_id}, shipment={$shipment_id}");
+    
     return true;
 }
 
@@ -16164,42 +16240,4 @@ function merc_parse_date_for_migration( $date_str ) {
     return false;
 }
 
-/**
- * PASO 1: Añadir el <select> con los clientes en el historial
- */
-add_action( 'wpcfe_after_shipment_filters', function() {
-
-    $clientes = get_users( array(
-        'role'    => 'wpcargo_client',
-        'orderby' => 'display_name',
-        'order'   => 'ASC',
-    ) );
-
-    $selected = isset( $_GET['filter_wpcargoclient'] ) ? intval( $_GET['filter_wpcargoclient'] ) : 0;
-    ?>
-    <div class="form-group wpcfe-filter p-0 mx-1">
-        <select name="filter_wpcargoclient" class="form-control md-form browser-default wpcfe-select">
-            <option value=""> Marca por Nombre </option>
-            <?php foreach ( $clientes as $cliente ) : ?>
-                <option value="<?php echo esc_attr( $cliente->ID ); ?>" <?php selected( $selected, $cliente->ID ); ?>>
-                    <?php echo esc_html( trim( $cliente->first_name . ' ' . $cliente->last_name ) ?: $cliente->display_name ); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <?php
-}, 100 );
-
-/**
- * PASO 2: Conectar con la query del dashboard
- */
-add_filter( 'wpcfe_dashboard_arguments', function( $args ) {
-    if ( ! empty( $_GET['filter_wpcargoclient'] ) ) {
-        $args['meta_query']['filter_wpcargoclient'] = array(
-            'key'     => 'registered_shipper', // ← meta_key real de WPCargo
-            'value'   => intval( $_GET['filter_wpcargoclient'] ),
-            'compare' => '=',
-        );
-    }
-    return $args;
-} );
+// Movido a MERC_Shipment_Filters::render_filter_cliente() en merc-table-customizer plugin

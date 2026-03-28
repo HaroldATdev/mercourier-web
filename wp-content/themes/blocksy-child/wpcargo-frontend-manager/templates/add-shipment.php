@@ -92,21 +92,41 @@ if (!empty($shipment_type)) {
     const form = document.querySelector('.add-shipment');
     if (!form) return;
     
-    form.addEventListener('submit', function(e) {
-        // Obtener el tipo de envío
-        const shipmentType = document.querySelector('input[name="shipment_type"]')?.value;
+	form.addEventListener('submit', function(e) {
+		// Validación adicional: validar solo campos `required` VISIBLES
+		// Esto evita el problema "An invalid form control is not focusable" causado por campos ocultos
+		const requiredFields = Array.from(form.querySelectorAll('[required]'));
+		for (const field of requiredFields) {
+			// Considerar visible si tiene rects en layout
+			const rects = field.getClientRects();
+			if (!rects || rects.length === 0) continue; // campo no visible
+
+			if (!field.checkValidity()) {
+				e.preventDefault();
+				try { field.focus({preventScroll:true}); } catch(err) { try { field.focus(); } catch(e) {} }
+				if (typeof field.reportValidity === 'function') {
+					field.reportValidity();
+				} else {
+					alert(field.validationMessage || 'Por favor completa el campo requerido.');
+				}
+				return false;
+			}
+		}
+
+		// Obtener el tipo de envío
+		const shipmentType = document.querySelector('input[name="shipment_type"]')?.value;
         
-        // Si es full_fitment, validar que haya producto seleccionado
-        if (shipmentType === 'full_fitment') {
-            const productoSelect = document.getElementById('merc_producto_select');
-            if (productoSelect && !productoSelect.value) {
-                e.preventDefault();
-                alert('❌ Error: Debe seleccionar un producto para envíos tipo MERC AGENCIA (Full Fulfillment)');
-                productoSelect.focus();
-                return false;
-            }
-        }
-    });
+		// Si es full_fitment, validar que haya producto seleccionado
+		if (shipmentType === 'full_fitment') {
+			const productoSelect = document.getElementById('merc_producto_select');
+			if (productoSelect && !productoSelect.value) {
+				e.preventDefault();
+				alert('❌ Error: Debe seleccionar un producto para envíos tipo MERC AGENCIA (Full Fulfillment)');
+				productoSelect.focus();
+				return false;
+			}
+		}
+	});
 })();
 </script>
 

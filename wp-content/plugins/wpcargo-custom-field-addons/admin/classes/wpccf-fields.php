@@ -118,6 +118,11 @@ class WPCCF_Fields{
 		foreach( $fields as $field):
 			$value 		= (int)$post_id ? maybe_unserialize( get_post_meta( $post_id, $field['field_key'], TRUE ) ) : '';
 			$required 	= ( $field['required'] ) ? 'required' : '' ;
+			// Si el campo corresponde al link de Google Maps en la sección receiver_info,
+			// forzar que no sea obligatorio en el formulario (no mostrar atributo required).
+			if( !empty($field['field_key']) && stripos($field['field_key'], 'link_maps') !== false && isset($field['section']) && $field['section'] === 'receiver_info' ){
+				$required = '';
+			}
 			$wrap_class = isset($field['classes'])? $field['classes'] : '';
 			$wrap_class = strpos( $wrap_class, 'col-') === false ? $wrap_class.' col-md-12' : $wrap_class;
 			$form_label = apply_filters( 'wpccf_field_form_label_'.$field['field_key'], stripslashes( $field['label'] ) );

@@ -454,14 +454,19 @@ class MERC_Shipment_Form_Fields {
 			$tipo_envio = get_post_meta( $shipment_id, 'tipo_envio', true );
 		}
 		
+		// DEBUG: Loguear entrada a la función
+		error_log("📦 [MERC_FORM] render_producto_selector() - shipment_id={$shipment_id}, tipo_envio={$tipo_envio}, URL params: " . json_encode($_GET));
+		
 		// Solo mostrar si el tipo de envío es MERC FULL FITMENT
 		if ( $tipo_envio !== 'full_fitment' ) {
+			error_log("📦 [MERC_FORM] Tipo no es FULL FITMENT, saliendo de render_producto_selector()");
 			return;
 		}
 
 		// Evitar renderizado múltiple
 		static $ya_renderizado = false;
 		if ( $ya_renderizado ) {
+			error_log("📦 [MERC_FORM] Ya fue renderizado, evitando duplicación");
 			return;
 		}
 		$ya_renderizado = true;
@@ -503,38 +508,67 @@ class MERC_Shipment_Form_Fields {
 			}
 		}
 
+		error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Productos disponibles iniciales: " . count( $productos_disponibles ));
+
 		// Obtener producto(s) ya seleccionado(s) (si existe)
 		$producto_seleccionado  = get_post_meta( $shipment_id, '_merc_producto_id', true );
 		$cantidad_seleccionada  = get_post_meta( $shipment_id, '_merc_producto_cantidad', true );
 		$productos_multi        = get_post_meta( $shipment_id, '_merc_productos_multi', true );
+		
+		// Asegurar que la cantidad tenga un valor válido por defecto
+		$cantidad_seleccionada = ! empty( $cantidad_seleccionada ) ? intval( $cantidad_seleccionada ) : 1;
+		
+		error_log("📦 [MERC_FORM] Envío #{$shipment_id} - _merc_producto_id=" . json_encode($producto_seleccionado) . ", _merc_cantidad=" . $cantidad_seleccionada . ", _merc_productos_multi=" . json_encode($productos_multi));
+		
 		if ( empty( $productos_multi ) || ! is_array( $productos_multi ) ) {
 			// Normalizar formato: si hay un producto simple, usarlo como array de un elemento
 			if ( $producto_seleccionado ) {
-				$productos_multi = [ [ 'id' => intval( $producto_seleccionado ), 'cantidad' => intval( $cantidad_seleccionada ?: 1 ) ] ];
+				$productos_multi = [ [ 'id' => intval( $producto_seleccionado ), 'cantidad' => $cantidad_seleccionada ] ];
+				error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Normalizando desde _merc_producto_id a array: id=" . intval( $producto_seleccionado ) . ", cantidad=" . $cantidad_seleccionada);
 			} else {
 				$productos_multi = [];
+				error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Sin productos asignados");
 			}
+		} else {
+			// Si ya existe `$productos_multi` como array, asegurar que cada item tiene cantidad válida
+			foreach ( $productos_multi as &$item ) {
+				if ( empty( $item['cantidad'] ) ) {
+					$item['cantidad'] = 1;
+				}
+			}
+			error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Cargado array _merc_productos_multi con " . count($productos_multi) . " productos");
 		}
 
-		// Si hay producto seleccionado y no está en la lista, agregarlo
-		if ( $producto_seleccionado ) {
-			$producto_actual = get_post( $producto_seleccionado );
-			if ( $producto_actual ) {
+		// En modo edición: SIEMPRE agregar los productos ya asignados a este envío
+		// (incluso si no tienen stock disponible, porque ya están asignados aquí)
+		if ( $shipment_id > 0 && ! empty( $productos_multi ) ) {
+			error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Agregando productos asignados: " . count( $productos_multi ) . " productos");
+			foreach ( $productos_multi as $p_item ) {
+				$p_id = intval( $p_item['id'] ?? 0 );
+				if ( $p_id <= 0 ) continue;
+				
+				// Verificar si ya está en la lista
 				$ya_incluido = false;
 				foreach ( $productos_disponibles as $p ) {
-					if ( $p->ID == $producto_seleccionado ) {
+					if ( $p->ID == $p_id ) {
 						$ya_incluido = true;
 						break;
 					}
 				}
+				
+				// Si NO está en la lista, SIEMPRE agregarlo (sin importar stock o estado)
 				if ( ! $ya_incluido ) {
-					$productos_disponibles[] = $producto_actual;
+					$producto_actual = get_post( $p_id );
+					if ( $producto_actual && $producto_actual->post_type === 'merc_producto' ) {
+						$productos_disponibles[] = $producto_actual;
+						error_log("📦 [MERC_FORM] Envío #{$shipment_id} - ✅ Agregado producto #{$p_id} ({$producto_actual->post_title}) al selector");
+					} else {
+						error_log("📦 [MERC_FORM] Envío #{$shipment_id} - ❌ Producto #{$p_id} no encontrado o no es tipo merc_producto");
+					}
+				} else {
+					error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Producto #{$p_id} ya estaba en lista");
 				}
 			}
-		}
-
-		if ( empty( $cantidad_seleccionada ) ) {
-			$cantidad_seleccionada = 1;
 		}
 
 		ob_start();
@@ -563,9 +597,10 @@ class MERC_Shipment_Form_Fields {
 										<?php foreach ( $productos_multi as $p_index => $p_item ) :
 											$selected_id = intval( $p_item['id'] ?? 0 );
 											$selected_qty = intval( $p_item['cantidad'] ?? 1 );
+											error_log("📦 [MERC_FORM_RENDER] Renderizando producto seleccionado en fila: id={$selected_id}, qty={$selected_qty}");
 										?>
 											<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
-												<select name="merc_producto_id[]" class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
+											<select name="merc_producto_id[]" class="form-control merc_producto_id" style="flex:1; display:block !important; width:100% !important;">
 													<option value="">-- Selecciona un producto --</option>
 													<?php foreach ( $productos_disponibles as $prod ) :
 														$stock        = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
@@ -575,6 +610,9 @@ class MERC_Shipment_Form_Fields {
 														$valor_medida = get_post_meta( $prod->ID, '_merc_producto_valor_medida', true );
 														$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
 														$sel = ( $prod->ID == $selected_id ) ? 'selected' : '';
+														if ( $sel ) {
+															error_log("📦 [MERC_FORM_RENDER] Producto encontrado en lista: #{$prod->ID} ({$prod->post_title}) - stock={$stock}");
+														}
 													?>
 														<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>" <?php echo $sel; ?>>
 															<?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?><?php if ( $tipo_medida || $valor_medida ) : ?> (<?php if ( $tipo_medida && $valor_medida ) { echo esc_html( $tipo_medida . ': ' . $valor_medida ); } elseif ( $tipo_medida ) { echo esc_html( $tipo_medida ); } else { echo esc_html( $valor_medida ); } ?>)<?php endif; ?>
@@ -583,16 +621,43 @@ class MERC_Shipment_Form_Fields {
 															<?php if ( ! empty( $dimensiones ) && is_array( $dimensiones ) ) : ?> | Dim: <?php echo intval( $dimensiones['largo'] ?? 0 ) . 'x' . intval( $dimensiones['ancho'] ?? 0 ) . 'x' . intval( $dimensiones['alto'] ?? 0 ); ?> cm<?php endif; ?>
 														</option>
 													<?php endforeach; ?>
+													<?php 
+													// GARANTÍA FINAL: Si el producto asignado NO está en la lista, agregarlo manualmente
+													// (esto puede pasar si tiene stock=0 y no fue incluido en $productos_disponibles)
+													if ( $selected_id > 0 ) {
+														$encontrado = false;
+														foreach ( $productos_disponibles as $p ) {
+															if ( $p->ID == $selected_id ) {
+																$encontrado = true;
+																break;
+															}
+														}
+														
+														if ( ! $encontrado ) {
+															$prod_asignado = get_post( $selected_id );
+															if ( $prod_asignado && $prod_asignado->post_type === 'merc_producto' ) {
+																$stock_asignado = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod_asignado->ID ) : 0;
+																$stock_asignado = ! empty( $stock_asignado ) ? intval( $stock_asignado ) : 0;
+																error_log("📦 [MERC_FORM_RENDER] ⚠️ Producto asignado NO estaba en lista - Agregándolo manualmente: #{$selected_id} ({$prod_asignado->post_title}) - stock={$stock_asignado}");
+																?>
+																<option value="<?php echo esc_attr( $prod_asignado->ID ); ?>" data-stock="<?php echo esc_attr( $stock_asignado ); ?>" selected>
+																	<?php echo esc_html( $prod_asignado->post_title ); ?> - Stock: <?php echo esc_html( $stock_asignado ); ?> [ASIGNADO A ESTE ENVÍO]
+																</option>
+																<?php
+															}
+														}
+													}
+													?>
 												</select>
 
-												<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="<?php echo esc_attr( $selected_qty ); ?>" min="1" max="999" required style="width:120px;">
+												<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="<?php echo esc_attr( $selected_qty ); ?>" min="1" max="999" style="width:120px;">
 
 												<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
 											</div>
 										<?php endforeach; ?>
 									<?php else : ?>
 										<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
-											<select name="merc_producto_id[]" class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
+											<select name="merc_producto_id[]" class="form-control merc_producto_id" style="flex:1; display:block !important; width:100% !important;">
 												<option value="">-- Selecciona un producto --</option>
 												<?php foreach ( $productos_disponibles as $prod ) :
 													$stock        = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
@@ -606,29 +671,9 @@ class MERC_Shipment_Form_Fields {
 												<?php endforeach; ?>
 											</select>
 
-											<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="<?php echo esc_attr( $cantidad_seleccionada ); ?>" min="1" max="999" required style="width:120px;">
-
-											<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
+									<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="<?php echo esc_attr( $cantidad_seleccionada ); ?>" min="1" max="999" style="width:120px;">
 										</div>
 									<?php endif; ?>
-								</div>
-								<!-- Plantilla para clon (oculta, usada por JS) -->
-								<div id="merc_product_template" style="display:none;">
-									<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
-										<select name="merc_producto_id[]" class="form-control merc_producto_id" required style="flex:1; display:block !important; width:100% !important;">
-											<option value="">-- Selecciona un producto --</option>
-											<?php foreach ( $productos_disponibles as $prod ) :
-												$stock = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-												$stock = ! empty( $stock ) ? intval( $stock ) : 0;
-												$valor_medida = get_post_meta( $prod->ID, '_merc_producto_valor_medida', true );
-												$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
-											?>
-												<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?><?php if ( $tipo_medida || $valor_medida ) : ?> (<?php if ( $tipo_medida && $valor_medida ) { echo esc_html( $tipo_medida . ': ' . $valor_medida ); } elseif ( $tipo_medida ) { echo esc_html( $tipo_medida ); } else { echo esc_html( $valor_medida ); } ?>)<?php endif; ?></option>
-											<?php endforeach; ?>
-										</select>
-										<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="1" min="1" max="999" required style="width:120px;">
-										<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
-									</div>
 								</div>
 								<div style="margin-top:8px;">
 									<button type="button" id="merc_add_product_btn" class="button" style="background:#2ecc71;color:#fff;border:none;padding:6px 10px;border-radius:4px;">+ Agregar producto</button>
@@ -644,6 +689,25 @@ class MERC_Shipment_Form_Fields {
 				</section>
 			</div>
 		</div>
+
+		<!-- Plantilla para clon - FUERA de merc_product_rows para evitar ser serializada en POST -->
+		<div id="merc_product_template" style="display:none !important; visibility:hidden !important; position:absolute !important; pointer-events:none !important;">
+			<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
+				<select name="merc_producto_id[]" class="form-control merc_producto_id" style="flex:1; display:block !important; width:100% !important;">
+					<option value="">-- Selecciona un producto --</option>
+					<?php foreach ( $productos_disponibles as $prod ) :
+						$stock = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+						$stock = ! empty( $stock ) ? intval( $stock ) : 0;
+						$valor_medida = get_post_meta( $prod->ID, '_merc_producto_valor_medida', true );
+						$tipo_medida  = get_post_meta( $prod->ID, '_merc_producto_tipo_medida', true );
+					?>
+						<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>"><?php echo esc_html( $prod->post_title ); ?> - Stock: <?php echo esc_html( $stock ); ?><?php if ( $tipo_medida || $valor_medida ) : ?> (<?php if ( $tipo_medida && $valor_medida ) { echo esc_html( $tipo_medida . ': ' . $valor_medida ); } elseif ( $tipo_medida ) { echo esc_html( $tipo_medida ); } else { echo esc_html( $valor_medida ); } ?>)<?php endif; ?></option>
+					<?php endforeach; ?>
+				</select>
+				<input type="number" name="merc_producto_cantidad[]" class="form-control merc_producto_cantidad" value="1" min="1" max="999" style="width:120px;">
+				<button type="button" class="button merc_remove_product" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:4px;">−</button>
+			</div>
+		</div>
 		<!-- FIN SELECTOR PRODUCTOS MERC -->
 
 		<script>
@@ -652,6 +716,8 @@ class MERC_Shipment_Form_Fields {
 			var $stockDisplay    = $('#merc_stock_display');
 			var $warning         = $('#merc_stock_warning');
 			var $warningText     = $('#merc_warning_text');
+			var $form            = $('form.wpcfe-new-shipment-form, form[name="wpcfe-shipment-form"], form.add-shipment');
+			var isEditMode       = getUrlParameter('wpcfe') === 'update' || $('input[name="post_ID"]').length > 0;
 
 			function actualizarStockRow($row) {
 				var $select  = $row.find('.merc_producto_id');
@@ -667,19 +733,40 @@ class MERC_Shipment_Form_Fields {
 				}
 
 				$stockDisplay.html('📦 Disponible: <strong>' + stock + '</strong>');
-				$input.attr('max', stock);
-
-				if (cantidad > stock) {
-					$warning.show();
-					$warningText.text('Stock insuficiente. Solo hay ' + stock + ' unidades disponibles.');
-					$input.val(stock);
-				} else {
+				
+				// En modo edición, permitir cantidades mayores que el stock actual
+				// porque el producto ya está asignado a este envío
+				if (isEditMode) {
+					// No limitar el máximo en modo edición
+					$input.removeAttr('max');
 					$warning.hide();
+				} else {
+					// En modo creación, limitar por stock disponible
+					$input.attr('max', Math.max(stock, 999)); // Permitir hasta 999 si no hay stock
+
+					if (cantidad > stock && stock > 0) {
+						$warning.show();
+						$warningText.text('Stock insuficiente. Solo hay ' + stock + ' unidades disponibles.');
+						// NO cambiar el valor automáticamente, dejar que el usuario decida
+					} else {
+						$warning.hide();
+					}
 				}
 			}
 
+			function getUrlParameter(name) {
+				var url = window.location.href;
+				var regex = new RegExp('[?&]' + name + '=([^&#]*)');
+				var match = regex.exec(url);
+				return match ? match[1] : null;
+			}
+
 			function bindRowEvents($row) {
-				$row.find('.merc_producto_id').on('change', function() { actualizarStockRow($row); });
+				$row.find('.merc_producto_id').on('change', function() { 
+					actualizarStockRow($row);
+					// Limpiar estilos de error al cambiar
+					$(this).css('border-color', '').css('background-color', '');
+				});
 				$row.find('.merc_producto_cantidad').on('input change', function() { actualizarStockRow($row); });
 				$row.find('.merc_remove_product').on('click', function() {
 					if ($productRows.find('.merc-product-row').length <= 1) return; // mantener al menos una
@@ -688,7 +775,11 @@ class MERC_Shipment_Form_Fields {
 			}
 
 			// Inicializar filas existentes
-			$productRows.find('.merc-product-row').each(function() { bindRowEvents($(this)); });
+			$productRows.find('.merc-product-row').each(function() { 
+				bindRowEvents($(this));
+				// Asignar required a todos los selects visibles
+				$(this).find('select[name="merc_producto_id[]"]').prop('required', true).attr('data-parsley-required', 'true');
+			});
 
 			function generarTemplateRow() {
 				// Clonar desde la plantilla oculta (que ya tiene los names correctos)
@@ -711,32 +802,139 @@ class MERC_Shipment_Form_Fields {
 				
 				$new.find('select').val('');
 				$new.find('input[type="number"]').val('1');
+				// Agregar atributo required solo a la nueva fila visible
+				$new.find('select[name="merc_producto_id[]"]').prop('required', true).attr('data-parsley-required', 'true');
 				$productRows.append($new);
 				bindRowEvents($new);
 			});
 
-			$('form.wpcfe-new-shipment-form, form[name="wpcfe-shipment-form"]').on('submit', function(e) {
-				var valid = true;
+			// Función para actualizar atributos required basado en visibilidad
+			function actualizarRequiredAttributes() {
+				// Asignar required SOLO a selects visibles que tienen un valor seleccionado
+				$productRows.find('.merc-product-row').each(function() {
+					var $row = $(this);
+					var $select = $row.find('select[name="merc_producto_id[]"]');
+					
+					if ($row.is(':visible')) {
+						// Asignar required
+						$select.prop('required', true);
+					} else {
+						// Remover required de filas ocultas
+						$select.prop('required', false);
+					}
+				});
+				
+				// Manejar otros campos que puedan estar ocultos (location, etc.)
+				// Remover required de cualquier campo oculto
+				$form.find('input, select, textarea').each(function() {
+					var $field = $(this);
+					
+					// Si el campo está oculto, remover required
+					if (!$field.is(':visible') || $field.css('display') === 'none') {
+						$field.prop('required', false);
+					}
+				});
+			}
+
+			// Ejecutar al cargar
+			actualizarRequiredAttributes();
+			
+			// También ejecutar cuando cambien condiciones que afecten visibilidad
+			$(document).on('change', 'input, select', function() {
+				setTimeout(function() { actualizarRequiredAttributes(); }, 100);
+			});
+
+			$form.on('submit', function(e) {
+				// Actualizar required attributes antes de validar
+				actualizarRequiredAttributes();
+				
+				// CRÍTICO: Remover filas vacías del POST
+				$productRows.find('.merc-product-row').each(function() {
+					var $row = $(this);
+					var productoId = $row.find('.merc_producto_id').val().trim();
+					// Si la fila está vacía, remover el atributo name para que no se envíe
+					if (!productoId) {
+						$row.find('select, input').removeAttr('name');
+					}
+				});
+				
+				var $form = $(this);
+				var tipoEnvio = $('#tipo-envio-actual').val() || $('input[name="tipo_envio"]').val() || '';
+				var tipoLower = (tipoEnvio + '').trim().toLowerCase();
+				var isFullFitment = (tipoLower === 'full_fitment' || tipoLower.includes('full'));
+				
+				// LOG: Ver formulario siendo enviado
+				console.log('🚀 [SUBMIT] Formulario siendo enviado - tipo_envio:', tipoEnvio, '| isFullFitment:', isFullFitment);
+				console.log('🚀 [SUBMIT] Action:', $form.attr('action'), '| Method:', $form.attr('method'));
+				
+				// LOG: Ver qué se va a enviar
+				console.log('📋 Datos a enviar:');
+				var productosArray = [];
 				$productRows.find('.merc-product-row').each(function() {
 					var $row = $(this);
 					var productoId = $row.find('.merc_producto_id').val();
-					var cantidad = parseInt($row.find('.merc_producto_cantidad').val()) || 0;
-					var stock = parseInt($row.find('.merc_producto_id option:selected').data('stock')) || 0;
-					if (!productoId) {
-						valid = false;
-						alert('⚠️ Debes seleccionar un producto en todas las filas');
-						return false;
-					}
-					if (cantidad < 1 || cantidad > stock) {
-						valid = false;
-						alert('⚠️ Cantidad inválida o mayor al stock disponible.');
-						return false;
+					var cantidad = $row.find('.merc_producto_cantidad').val();
+					console.log('  - Producto ID:', productoId, 'Cantidad:', cantidad);
+					if (productoId) {
+						productosArray.push({id: productoId, cantidad: cantidad});
 					}
 				});
-				if (!valid) {
-					e.preventDefault();
-					return false;
+				console.log('📋 Array final productos:', productosArray);
+				console.log('📋 Nonce presente:', $form.find('input[name="merc_envio_producto_nonce"]').val() ? 'SÍ' : 'NO');
+				
+				// VALIDACIÓN ESPECÍFICA: Solo validar campos FULL FITMENT si aplica
+				if (isFullFitment) {
+					var hasValidProduct = false;
+					var emptySelectFound = false;
+					var errorMsg = '';
+					
+					$productRows.find('.merc-product-row').each(function() {
+						var $row = $(this);
+						var productoId = $row.find('.merc_producto_id').val();
+						var cantidad = parseInt($row.find('.merc_producto_cantidad').val()) || 0;
+						var stock = parseInt($row.find('.merc_producto_id option:selected').data('stock')) || 0;
+						
+						if (!productoId) {
+							emptySelectFound = true;
+							// Marcar visualmente el select como error
+							$row.find('.merc_producto_id').css('border-color', '#dc3545').css('background-color', '#fff5f5');
+							console.log('❌ Producto vacío en fila');
+							return true; // continue
+						} else {
+							// Limpiar estilos de error si ahora está ok
+							$row.find('.merc_producto_id').css('border-color', '').css('background-color', '');
+						}
+						
+						if (cantidad < 1) {
+							errorMsg = '⚠️ Cantidad debe ser mayor a 0.';
+							console.log('❌ Cantidad inválida:', cantidad);
+							e.preventDefault();
+							alert(errorMsg);
+							return false;
+						}
+						
+						hasValidProduct = true;
+						console.log('✅ Producto válido - ID:', productoId, 'Cantidad:', cantidad, 'Stock:', stock);
+					});
+					
+					if (emptySelectFound) {
+						console.log('❌ Se encontraron selects vacíos');
+						alert('⚠️ Debes seleccionar un producto en todas las filas antes de guardar.');
+						e.preventDefault();
+						return false;
+					}
+					
+					if (!hasValidProduct && $productRows.find('.merc-product-row').length > 0) {
+						console.log('❌ No hay productos válidos');
+						alert('⚠️ FULL FITMENT requiere al menos un producto válido.');
+						e.preventDefault();
+						return false;
+					}
 				}
+				
+				// NO usar reportValidity() porque bloquea campos requeridos no enfocables
+				// Solo permitir que el navegador envíe el formulario
+				console.log('✅ Validación completada, permitiendo envío de formulario');
 			});
 
 			// Ejecutar una vez para sincronizar displays
@@ -777,7 +975,72 @@ class MERC_Shipment_Form_Fields {
 					if (weightField.length && !weightField.val()) weightField.val('3');
 				});
 			}, 500);
+
+			// Validación adicional: verificar campos del destinatario (frontend)
+			// Sólo en formulario de creación (wpcfe=add)
+			try {
+				var addForm = $('form.wpcfe-new-shipment-form, form[name="wpcfe-shipment-form"], form.add-shipment');
+				if (addForm.length) {
+					addForm.on('submit', function(e){
+						var invalid = null;
+						$(this).find('input,select,textarea').filter(function(){
+							var name = $(this).attr('name') || '';
+							if (name.indexOf('wpcargo_receiver_') !== 0) return false;
+							if (/map|link/i.test(name)) return false; // excluir mapas/links
+							if (!$(this).is(':visible')) return false;
+							var val = $.trim($(this).val());
+							if ($(this).is('select')) return (val === '' || val === null);
+							return (val === '');
+						}).each(function(){ if (!invalid) invalid = this; });
+						if (invalid) {
+							e.preventDefault(); e.stopPropagation();
+							try { $(invalid).focus(); } catch(err){}
+							alert('Complete los campos obligatorios del destinatario antes de guardar.');
+							return false;
+						}
+					});
+				}
+			} catch(err) { console && console.error && console.error(err); }
 		});
+		</script>
+
+		<script>
+		// Fallback robusto: forzar validación HTML5 aun si el formulario tiene 'novalidate'
+		(function(){
+			try {
+				var selectors = 'form.wpcfe-new-shipment-form, form[name="wpcfe-shipment-form"], form.add-shipment';
+				var nodeList = document.querySelectorAll(selectors);
+				Array.prototype.forEach.call(nodeList, function(f){
+					if (!f) return;
+					// Interceptar submit (capturing) para evitar envío si inválido
+					f.addEventListener('submit', function(ev){
+						try {
+							if (!f.checkValidity()) {
+								ev.preventDefault(); ev.stopPropagation();
+								if (typeof f.reportValidity === 'function') {
+									f.reportValidity();
+								} else {
+									alert('Complete los campos obligatorios antes de guardar.');
+								}
+								return false;
+							}
+						} catch(e) { /* ignore */ }
+					}, true);
+
+					// Proteger contra submit programático: envolver form.submit
+					try {
+						var origSubmit = f.submit;
+						f.submit = function(){
+							if (!f.checkValidity()) {
+								if (typeof f.reportValidity === 'function') f.reportValidity();
+								return false;
+							}
+							return origSubmit.apply(f, arguments);
+						};
+					} catch(err) { /* ignore non-writable submit */ }
+				});
+			} catch(e) { console && console.error && console.error(e); }
+		})();
 		</script>
 		<?php
 	}
@@ -805,6 +1068,8 @@ class MERC_Shipment_Form_Fields {
 
 	public function save_financial_data( int $post_id ): void {
 		if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) return;
+
+		error_log("🔔 [HOOK_TRIGGERED] save_financial_data() ejecutado para envío #{$post_id}");
 
 		if ( isset( $_POST['wpcargo_costo_producto'] ) ) {
 			update_post_meta( $post_id, 'wpcargo_costo_producto',
@@ -834,33 +1099,68 @@ class MERC_Shipment_Form_Fields {
 		}
 
 		/* ── Guardar productos MERC (soporta múltiples) ───────────────── */
+		error_log("🔍 [MERC_SAVE_CHECK] Verificando si merc_producto_id existe en POST...");
+		error_log("📮 [POST_DUMP] POST keys: " . json_encode(array_keys($_POST)));
+		
 		if ( isset( $_POST['merc_producto_id'] ) ) {
+			error_log("✅ [MERC_FOUND] merc_producto_id encontrado en POST");
+			
 			// Validar nonce si viene presente
-			if ( isset( $_POST['merc_envio_producto_nonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['merc_envio_producto_nonce'] ) ), 'merc_envio_producto_guardar' ) ) {
-				error_log("❌ [MERC_SAVE] Nonce inválido para envío #{$post_id}");
-				return;
+			if ( isset( $_POST['merc_envio_producto_nonce'] ) ) {
+				if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['merc_envio_producto_nonce'] ) ), 'merc_envio_producto_guardar' ) ) {
+					error_log("❌ [NONCE_FAIL] Nonce inválido para envío #{$post_id}");
+					return;
+				}
+				error_log("✅ [NONCE_OK] Nonce válido");
+			} else {
+				error_log("⚠️ [NONCE_MISSING] Nonce no presente en POST");
 			}
 
-			// DIAGNÓSTICO: Ver qué recibe del formulario
+			// DIAGNÓSTICO: Ver qué recibe del formulario (ANTES de filtrar)
 			$raw_ids = $_POST['merc_producto_id'];
 			$raw_qtys = isset($_POST['merc_producto_cantidad']) ? $_POST['merc_producto_cantidad'] : [];
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_id tipo: " . gettype($raw_ids) . " | contenido: " . json_encode($raw_ids));
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_cantidad tipo: " . gettype($raw_qtys) . " | contenido: " . json_encode($raw_qtys));
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_id BRUTO: " . json_encode($raw_ids));
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_cantidad BRUTO: " . json_encode($raw_qtys));
 
-			$ids = array_map( 'intval', (array) $_POST['merc_producto_id'] );
-			$qtys = isset( $_POST['merc_producto_cantidad'] ) ? (array) $_POST['merc_producto_cantidad'] : [];
-			$qtys = array_map( 'intval', $qtys );
+			// CRÍTICO: Filtrar elementos vacíos del array antes de procesar
+			$ids = [];
+			$qtys = [];
+			foreach ( (array) $_POST['merc_producto_id'] as $idx => $id ) {
+				$id = intval( $id );
+				// Solo agregar si el ID es válido (> 0)
+				if ( $id > 0 ) {
+					$ids[] = $id;
+					// Agregar la cantidad correspondiente
+					$qty = isset( $_POST['merc_producto_cantidad'][ $idx ] ) ? intval( $_POST['merc_producto_cantidad'][ $idx ] ) : 1;
+					$qtys[] = $qty;
+				}
+			}
 
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - IDs procesados: " . json_encode($ids) . " | Cantidades: " . json_encode($qtys));
+			error_log("📦 [MERC_SAVE] Envío #{$post_id} - IDs filtrados: " . json_encode($ids) . " | Cantidades filtradas: " . json_encode($qtys));
 
 			$productos_to_store = [];
 			foreach ( $ids as $i => $id ) {
-				if ( $id <= 0 ) continue;
+				if ( $id <= 0 ) {
+					error_log("📦 [MERC_SAVE] Envío #{$post_id} - ID #{$i} es inválido (valor: {$id}), saltando");
+					continue;
+				}
 				$cant = isset( $qtys[ $i ] ) && intval( $qtys[ $i ] ) > 0 ? intval( $qtys[ $i ] ) : 1;
 				$productos_to_store[] = [ 'id' => $id, 'cantidad' => $cant ];
+				error_log("📦 [MERC_SAVE] Envío #{$post_id} - Agregado: id={$id}, cantidad={$cant}");
 			}
 
 			error_log("📦 [MERC_SAVE] Envío #{$post_id} - Productos a guardar: " . json_encode($productos_to_store) . " (total: " . count($productos_to_store) . ")");
+
+			// Obtener productos anteriores para saber cuáles liberar si se remueven
+			$old_productos = get_post_meta( $post_id, '_merc_productos_multi', true );
+			$old_data = []; // Array: product_id => cantidad
+			if ( ! empty( $old_productos ) && is_array( $old_productos ) ) {
+				foreach ( $old_productos as $op ) {
+					if ( ! empty( $op['id'] ) ) {
+						$old_data[ intval( $op['id'] ) ] = intval( $op['cantidad'] ?? 1 );
+					}
+				}
+			}
 
 			if ( ! empty( $productos_to_store ) ) {
 				update_post_meta( $post_id, '_merc_productos_multi', $productos_to_store );
@@ -868,15 +1168,119 @@ class MERC_Shipment_Form_Fields {
 				update_post_meta( $post_id, '_merc_producto_id', $productos_to_store[0]['id'] );
 				update_post_meta( $post_id, '_merc_producto_cantidad', $productos_to_store[0]['cantidad'] );
 				error_log("✅ [MERC_SAVE] Envío #{$post_id} - Metas guardadas exitosamente");
+				
+				// 🚨 CRÍTICO: Manejar asignación/desasignación en la tabla de stock por SKU
+				$affected_products = [];
+				
+				foreach ( $productos_to_store as $p_item ) {
+					$product_id = intval( $p_item['id'] ?? 0 );
+					$required_qty = intval( $p_item['cantidad'] ?? 1 );
+					
+					if ( $product_id <= 0 ) continue;
+					
+					$affected_products[ $product_id ] = $required_qty;
+					
+					// Contar cuántos SKUs ya están asignados a este envío en la tabla
+					$current_assigned = $this->merc_count_assigned_units( $product_id, $post_id );
+					
+					error_log("📦 [MERC_STOCK] Producto #{$product_id} - Requerido: {$required_qty}, Asignado en tabla: {$current_assigned}");
+					
+					// Si necesitamos más unidades que las asignadas, asignar el resto
+					if ( $required_qty > $current_assigned ) {
+						$qty_to_assign = $required_qty - $current_assigned;
+						if ( function_exists( 'merc_assign_stock_units' ) ) {
+							$result = merc_assign_stock_units( $product_id, $qty_to_assign, $post_id );
+							if ( $result ) {
+								error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Asignadas {$qty_to_assign} unidades al envío #{$post_id}");
+							} else {
+								error_log("📦 [MERC_STOCK] Producto #{$product_id} - ❌ No se pudieron asignar {$qty_to_assign} unidades (stock insuficiente)");
+							}
+						}
+					}
+					// Si necesitamos menos, desasignar el exceso
+					elseif ( $required_qty < $current_assigned ) {
+						$qty_to_unassign = $current_assigned - $required_qty;
+						if ( function_exists( 'merc_unassign_stock_by_shipment' ) ) {
+							merc_unassign_stock_by_shipment( $product_id, $qty_to_unassign, $post_id );
+							error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Desasignadas {$qty_to_unassign} unidades");
+						}
+					}
+				}
+				
+				// Desasignar productos que se removieron completamente
+				foreach ( $old_data as $product_id => $old_qty ) {
+					if ( ! isset( $affected_products[ $product_id ] ) ) {
+						// Este producto ya no está en el envío, desasignarlo todo
+						$current_assigned = $this->merc_count_assigned_units( $product_id, $post_id );
+						if ( $current_assigned > 0 && function_exists( 'merc_unassign_stock_by_shipment' ) ) {
+							merc_unassign_stock_by_shipment( $product_id, $current_assigned, $post_id );
+							error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Desasignadas todas {$current_assigned} unidades (producto removido)");
+						}
+						$affected_products[ $product_id ] = 0; // Marcar para actualizar estado
+					}
+				}
+				
+				// Actualizar estado de todos los productos afectados
+				foreach ( array_keys( $affected_products ) as $product_id ) {
+					$this->merc_update_product_estado( $product_id );
+				}
+				
+				// Verificación final
+				$verificacion = get_post_meta( $post_id, '_merc_productos_multi', true );
+				error_log("✅ [MERC_VERIFY] Envío #{$post_id} - Verificación POST-SAVE: " . json_encode($verificacion));
 			} else {
+				error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - Sin productos válidos para guardar, limpiando metas");
 				delete_post_meta( $post_id, '_merc_productos_multi' );
 				delete_post_meta( $post_id, '_merc_producto_id' );
 				delete_post_meta( $post_id, '_merc_producto_cantidad' );
-				error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - Sin productos válidos para guardar");
+				
+				// Desasignar TODOS los productos porque se vació la selección
+				foreach ( $old_data as $product_id => $old_qty ) {
+					if ( function_exists( 'merc_unassign_stock_by_shipment' ) ) {
+						merc_unassign_stock_by_shipment( $product_id, $old_qty, $post_id );
+						error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Desasignadas todas {$old_qty} unidades (envío limpiado)");
+					}
+					$this->merc_update_product_estado( $product_id );
+				}
+
+				error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - Metas borradas");
 			}
 		} else {
-			error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - merc_producto_id no viene en POST");
+			error_log("⚠️ [MERC_SAVE] Envío #{$post_id} - merc_producto_id NO está en POST");
 		}
+	}
+
+	/**
+	 * Helper: Contar cuántos SKUs están asignados a este envío
+	 */
+	private function merc_count_assigned_units( int $product_id, int $shipment_id ): int {
+		global $wpdb;
+		$table = 'merc_product_stock'; // Cambiar si la tabla tiene otro nombre
+		
+		// Intentar obtener el nombre de la tabla dinámicamente si existe la función
+		if ( function_exists( 'merc_get_stock_table_name' ) ) {
+			$table = merc_get_stock_table_name();
+		}
+		
+		$count = intval( $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$table} WHERE product_id = %d AND shipment_id = %d AND status = 'assigned'",
+			$product_id,
+			$shipment_id
+		) ) );
+		
+		return $count;
+	}
+
+	/**
+	 * Helper: Actualizar estado del producto basado en stock disponible
+	 * - Si stock > 0 → 'sin_asignar'
+	 * - Si stock = 0 → 'asignado'
+	 */
+	private function merc_update_product_estado( int $product_id ): void {
+		$stock = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $product_id ) : 0;
+		$nuevo_estado = ( intval( $stock ) > 0 ) ? 'sin_asignar' : 'asignado';
+		update_post_meta( $product_id, '_merc_producto_estado', $nuevo_estado );
+		error_log("📦 [MERC_ESTADO_CALC] Producto #{$product_id} - Stock={$stock} → Estado: '{$nuevo_estado}'");
 	}
 
 	/* ── Verificación final del costo de envío (logging) ─────────────────── */
@@ -915,6 +1319,7 @@ class MERC_Shipment_Form_Fields {
 }
 
 new MERC_Shipment_Form_Fields();
+
 
 
 

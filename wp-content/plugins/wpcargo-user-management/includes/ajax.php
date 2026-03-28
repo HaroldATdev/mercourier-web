@@ -313,48 +313,63 @@ function wpcumanage_branch_options_callback(){
 add_action( 'wp_ajax_branch_options', 'wpcumanage_branch_options_callback' );
 
 // Desbloquear usuario manualmente
-function wpcumanage_unblock_user_callback(){
-    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-    $envios_permitidos = isset($_POST['envios_permitidos']) ? intval($_POST['envios_permitidos']) : 1;
-    
-    if (!$user_id) {
-        wp_send_json(array(
-            'status' => 'error',
-            'message' => __('ID de usuario inválido', 'wpcargo-umanagement')
-        ));
-        wp_die();
-    }
-    
-    // Validar que la cantidad sea al menos 1
-    if ($envios_permitidos < 1) {
-        $envios_permitidos = 1;
-    }
-    
-    // Eliminar bloqueo manual
-    delete_user_meta($user_id, 'merc_bloqueado_manual');
-    
-    // Habilitar los 3 tipos de envíos
-    delete_user_meta($user_id, 'merc_tipo_normal_bloqueado');
-    delete_user_meta($user_id, 'merc_tipo_express_bloqueado');
-    delete_user_meta($user_id, 'merc_tipo_full_fitment_bloqueado');
-    
-    // Guardar un meta para indicar que el usuario fue desbloqueado manualmente
-    $today = current_time('Y-m-d');
-    update_user_meta($user_id, 'merc_desbloqueado_manualmente_fecha', $today);
-    update_user_meta($user_id, 'merc_desbloqueo_manual_envios_permitidos', $envios_permitidos);
-    
-    $mensaje_log = $envios_permitidos === 1 
-        ? "🔓 DESBLOQUEO MANUAL: Usuario #{$user_id} desbloqueado. Todos los tipos de envío habilitados."
-        : "🔓 DESBLOQUEO MANUAL: Usuario #{$user_id} desbloqueado. Todos los tipos de envío habilitados.";
-    error_log($mensaje_log);
-    
-    $mensaje_usuario = __('Usuario desbloqueado. Todos los tipos de envío habilitados.', 'wpcargo-umanagement');
-    
-    wp_send_json(array(
-        'status' => 'success',
-        'message' => $mensaje_usuario
-    ));
-    
-    wp_die();
-}
-add_action( 'wp_ajax_wpcumanage_unblock_user', 'wpcumanage_unblock_user_callback' );
+/**
+ * DEPRECATED: Permanent unlock handler
+ * 
+ * This handler has been deprecated in favor of time-based temporary unlocking via
+ * wpcumanage_unblock_user_minutes_callback(). 
+ * 
+ * The system now uses: merc_desbloqueo_manual_hasta (unix timestamp)
+ * Users can only be unlocked for a specific duration (1-1440 minutes), ensuring
+ * proper re-evaluation of blocking conditions after that period.
+ * 
+ * If permanent unlock is needed, use: wpcumanage_unblock_user_minutes_callback()
+ * with a large value (e.g., 1440 minutes = 24 hours)
+ * 
+ * Disabled: 2024 - User requested consolidation on temporary unlock system
+ */
+// function wpcumanage_unblock_user_callback(){
+//     $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+//     $envios_permitidos = isset($_POST['envios_permitidos']) ? intval($_POST['envios_permitidos']) : 1;
+//     
+//     if (!$user_id) {
+//         wp_send_json(array(
+//             'status' => 'error',
+//             'message' => __('ID de usuario inválido', 'wpcargo-umanagement')
+//         ));
+//         wp_die();
+//     }
+//     
+//     // Validar que la cantidad sea al menos 1
+//     if ($envios_permitidos < 1) {
+//         $envios_permitidos = 1;
+//     }
+//     
+//     // Eliminar bloqueo manual
+//     delete_user_meta($user_id, 'merc_bloqueado_manual');
+//     
+//     // Habilitar los 3 tipos de envíos
+//     delete_user_meta($user_id, 'merc_tipo_normal_bloqueado');
+//     delete_user_meta($user_id, 'merc_tipo_express_bloqueado');
+//     delete_user_meta($user_id, 'merc_tipo_full_fitment_bloqueado');
+//     
+//     // Guardar un meta para indicar que el usuario fue desbloqueado manualmente
+//     $today = current_time('Y-m-d');
+//     update_user_meta($user_id, 'merc_desbloqueado_manualmente_fecha', $today);
+//     update_user_meta($user_id, 'merc_desbloqueo_manual_envios_permitidos', $envios_permitidos);
+//     
+//     $mensaje_log = $envios_permitidos === 1 
+//         ? "🔓 DESBLOQUEO MANUAL: Usuario #{$user_id} desbloqueado. Todos los tipos de envío habilitados."
+//         : "🔓 DESBLOQUEO MANUAL: Usuario #{$user_id} desbloqueado. Todos los tipos de envío habilitados.";
+//     error_log($mensaje_log);
+//     
+//     $mensaje_usuario = __('Usuario desbloqueado. Todos los tipos de envío habilitados.', 'wpcargo-umanagement');
+//     
+//     wp_send_json(array(
+//         'status' => 'success',
+//         'message' => $mensaje_usuario
+//     ));
+//     
+//     wp_die();
+// }
+// add_action( 'wp_ajax_wpcumanage_unblock_user', 'wpcumanage_unblock_user_callback' );

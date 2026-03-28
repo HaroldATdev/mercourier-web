@@ -94,8 +94,6 @@
 					GROUP BY pm.meta_value, pd.meta_value
 				";
 				$recojo_values = $wpdb->get_results($recojo_values_query);
-				error_log("DEBUG RECOJO QUERY: " . $recojo_values_query);
-				error_log("DEBUG RECOJO VALUES: " . var_export($recojo_values, true));
 				
 				// Puntos de Entrega: contar total de envíos (sin restricción de tipo) de HOY (sin importar si tienen contenedor asignado)
 				$entrega_query = "
@@ -155,9 +153,7 @@
 				}
 				
 				error_log("DEBUG ENTREGA TODAY: {$today_peru} / {$today_peru_alt}");
-				error_log("DEBUG ENTREGA QUERY: " . $entrega_query);
 				error_log("DEBUG ENTREGA RESULT: " . $puntos_entrega);
-				error_log("DEBUG ENTREGA DETAILS: " . var_export($details_entrega, true));
 				
 				$puntos_entrega = $puntos_entrega ?: 0;
 			?>
@@ -175,6 +171,7 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 
 
 

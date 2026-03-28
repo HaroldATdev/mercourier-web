@@ -28,6 +28,7 @@ class MERC_Shipment_Filters {
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_marca_filter' ],   101 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_celular_filter' ], 102 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_driver_filters' ], 103 );
+        add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_filter_cliente' ], 104 );
 
         // ── Query: todos los filtros via EXISTS (sin JOINs en WP_Query) ───
         // Preparamos las condiciones en wpcfe_dashboard_arguments y las
@@ -72,6 +73,12 @@ class MERC_Shipment_Filters {
     /* ── UI: Filtro por Marca (Nombre de Tienda) ────────────────────────── */
 
     public function render_marca_filter(): void {
+        $current_user = wp_get_current_user();
+        if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
+            return;
+        }
+
         $marcas       = $this->get_marcas();
         $marca_actual = isset( $_GET['wpcargo_tiendaname'] )
             ? sanitize_text_field( $_GET['wpcargo_tiendaname'] )
@@ -95,6 +102,12 @@ class MERC_Shipment_Filters {
     /* ── UI: Filtro por Celular del Destinatario ────────────────────────── */
 
     public function render_celular_filter(): void {
+        $current_user = wp_get_current_user();
+        if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
+            return;
+        }
+
         $celulares      = $this->get_celulares();
         $celular_actual = isset( $_GET['celular_destinatario'] )
             ? sanitize_text_field( $_GET['celular_destinatario'] )
@@ -154,7 +167,8 @@ class MERC_Shipment_Filters {
 
     public function render_driver_filters(): void {
         $current_user = wp_get_current_user();
-        if ( in_array( 'wpcargo_client', (array) $current_user->roles ) ) {
+        if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
             return;
         }
 
@@ -210,6 +224,38 @@ class MERC_Shipment_Filters {
             </div>
         </div>
 
+        <?php
+    }
+
+    /* ── UI: Filtro de Cliente (Marca por Nombre) ─────────────────────────────────── */
+
+    public function render_filter_cliente(): void {
+        $current_user = wp_get_current_user();
+        if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
+            return;
+        }
+
+        $clientes = get_users( [
+            'role'    => 'wpcargo_client',
+            'orderby' => 'display_name',
+            'order'   => 'ASC',
+        ] );
+
+        $selected = isset( $_GET['filter_wpcargoclient'] ) ? intval( $_GET['filter_wpcargoclient'] ) : 0;
+        ?>
+        <div class="form-group wpcfe-filter p-0 mx-1">
+            <div class="md-form form-group" style="margin:0;">
+                <select name="filter_wpcargoclient" class="form-control form-control-sm wpcfe-select">
+                    <option value="">Marca por Nombre</option>
+                    <?php foreach ( $clientes as $cliente ) : ?>
+                        <option value="<?php echo esc_attr( $cliente->ID ); ?>" <?php selected( $selected, $cliente->ID ); ?>>
+                            <?php echo esc_html( trim( $cliente->first_name . ' ' . $cliente->last_name ) ?: $cliente->display_name ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
         <?php
     }
 
@@ -313,7 +359,11 @@ class MERC_Shipment_Filters {
         }
 
         // ── Marca ─────────────────────────────────────────────────────────
-        if ( ! empty( $_GET['wpcargo_tiendaname'] ) ) {
+        $current_user = wp_get_current_user();
+        $is_admin_or_driver = in_array( 'administrator', (array) $current_user->roles ) ||
+                              in_array( 'wpcargo_driver', (array) $current_user->roles );
+        
+        if ( ! empty( $_GET['wpcargo_tiendaname'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
                 "EXISTS (
@@ -327,7 +377,7 @@ class MERC_Shipment_Filters {
         }
 
         // ── Celular ───────────────────────────────────────────────────────
-        if ( ! empty( $_GET['celular_destinatario'] ) ) {
+        if ( ! empty( $_GET['celular_destinatario'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
                 "EXISTS (
@@ -341,7 +391,7 @@ class MERC_Shipment_Filters {
         }
 
         // ── Motorizado Recojo ─────────────────────────────────────────────
-        if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) ) {
+        if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
                 "EXISTS (
@@ -355,7 +405,7 @@ class MERC_Shipment_Filters {
         }
 
         // ── Motorizado Entrega ────────────────────────────────────────────
-        if ( ! empty( $_GET['wpcargo_motorizo_entrega'] ) ) {
+        if ( ! empty( $_GET['wpcargo_motorizo_entrega'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
                 "EXISTS (
@@ -365,6 +415,20 @@ class MERC_Shipment_Filters {
                       AND pm_me.meta_value = %s
                 )",
                 intval( $_GET['wpcargo_motorizo_entrega'] )
+            );
+        }
+
+        // ── Cliente (Marca por Nombre) ────────────────────────────────────
+        if ( ! empty( $_GET['filter_wpcargoclient'] ) && $is_admin_or_driver ) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->custom_where_conds[] = $wpdb->prepare(
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_cl
+                    WHERE pm_cl.post_id = {$wpdb->posts}.ID
+                      AND pm_cl.meta_key = 'registered_shipper'
+                      AND pm_cl.meta_value = %s
+                )",
+                intval( $_GET['filter_wpcargoclient'] )
             );
         }
 
@@ -488,4 +552,5 @@ class MERC_Shipment_Filters {
 if ( class_exists( 'MERC_Shipment_Filters' ) ) {
     new MERC_Shipment_Filters();
 }
+
 

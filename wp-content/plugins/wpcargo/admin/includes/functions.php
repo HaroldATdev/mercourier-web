@@ -237,6 +237,12 @@ function wpcargo_field_generator($field_data, $field_meta, $value = '', $class =
 {
     $value = esc_html($value);
     $required = $field_data['required'] == 'true' ? 'required' : '';
+    // El campo auxiliar 'location' no se utiliza en el formulario activo;
+    // evitar marcarlo como required para que no bloquee el envío con
+    // "An invalid form control with name='location' is not focusable".
+    if ( isset( $field_meta ) && $field_meta === 'location' ) {
+        $required = '';
+    }
     if ($field_data['field'] == 'textarea') {
         $field = '<textarea id="' . $field_meta . '" class="' . $class . '" name="' . $field_meta . '" ' . $required . '>' . $value . '</textarea>';
     } elseif ($field_data['field'] == 'select') {
@@ -942,3 +948,4 @@ function wpcargo_file_contents_exist($url, $response_code = 200)
         return FALSE;
     }
 }
+
