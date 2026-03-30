@@ -1994,9 +1994,9 @@ add_action('template_redirect', function(){
             if (in_array('wpcargo_client', $current_user->roles)) {
                 // NORMAL: Usar la lógica específica que respeta estados RECOGIDO/NO RECOGIDO
                 $normal_bloqueado = merc_check_tipo_normal_blocked($current_user->ID, 'normal');
-                // EXPRESS y FULL_FITMENT: Usar la lógica centralizada
-                $express_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'express');
-                $full_fitment_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'full_fitment');
+                // EXPRESS y FULL_FITMENT: Usar sus funciones específicas con bloqueo por hora
+                $express_bloqueado = merc_check_tipo_express_blocked($current_user->ID, 'express');
+                $full_fitment_bloqueado = merc_check_tipo_full_fitment_blocked($current_user->ID, 'full_fitment');
             }
             ?>
             <!-- POPUP SOBRE EL CONTENIDO EXISTENTE -->
@@ -6445,8 +6445,37 @@ function merc_check_tipo_envio_blocked($client_id, $tipo_envio) {
         return false;
     }
     
-    // YA PASÓ LA HORA LÍMITE → Evaluar estado financiero
+    // YA PASÓ LA HORA LÍMITE → Verificar estado de los envíos ANTES de forzar fecha
     error_log("   ⏰ YA PASÓ LA HORA LÍMITE ({$hora_limite_con_envios})");
+    
+    // Obtener envíos de este tipo para verificar sus estados
+    $envios_tipo = merc_get_envios_hoy_por_tipo($client_id, $tipo_envio);
+    $todos_recogidos_o_no = true;
+    
+    error_log("   📊 Verificando estado de {$cuenta_envios} envíos...");
+    
+    foreach ($envios_tipo as $envio) {
+        $estado = strtolower(trim($envio->estado ?? ''));
+        $es_recogido = (stripos($estado, 'recogido') !== false && stripos($estado, 'no') === false);
+        $es_no_recogido = (stripos($estado, 'no recogido') !== false || (stripos($estado, 'no') !== false && stripos($estado, 'recogido') !== false));
+        
+        error_log("      - Envío #{$envio->ID}: estado='{$estado}' | recogido={$es_recogido}, no_recogido={$es_no_recogido}");
+        
+        if (!$es_recogido && !$es_no_recogido) {
+            $todos_recogidos_o_no = false;
+            error_log("      ✅ Estado DIFERENTE detectado → NO forzar fecha");
+            break;
+        }
+    }
+    
+    // Si HAY AL MENOS UN envío en estado diferente de Recogido/No Recogido → PERMITIR sin forzar fecha
+    if (!$todos_recogidos_o_no) {
+        error_log("   ✅ PERMITIDO: Hay al menos 1 envío en estado diferente a RECOGIDO/NO RECOGIDO");
+        return false;
+    }
+    
+    // TODOS LOS ENVÍOS están en Recogido o No Recogido → Evaluar estado financiero para forzar fecha
+    error_log("   🔍 TODOS LOS ENVÍOS EN RECOGIDO/NO RECOGIDO → Evaluando estado financiero");
     
     $financiero = merc_get_estado_financiero($client_id);
     error_log("   💰 Estado financiero: {$financiero['estado']} - {$financiero['descripcion']}");
@@ -6485,7 +6514,7 @@ function merc_check_tipo_envio_blocked($client_id, $tipo_envio) {
     
     // --- CASO 3: BALANCE = 0 → PERMITIR con fecha mañana ---
     if ($financiero['estado'] === 'balance_cero') {
-        error_log("   ✅ BALANCE CERO → PERMITIR CON FECHA MAÑANA");
+        error_log("   ✅ BALANCE CERO + TODOS ENVÍOS EN RECOGIDO/NO RECOGIDO → PERMITIR CON FECHA MAÑANA");
         
         $meta_key = "merc_desbloqueo_parcial_{$limits['nombre']}";
         update_user_meta($client_id, $meta_key, [
