@@ -86,6 +86,12 @@ class MERC_Tipo_Envio_Normalizer {
 		$candidate = trim( (string) ( $keys['registered_shipper'] ?? $keys['registeredshipper'] ?? '' ) );
 		if ( $candidate === '' ) return;
 
+		// Only allow registered_shipper when the importer is an admin
+		if ( function_exists( 'current_user_can' ) && ! current_user_can( 'manage_options' ) ) {
+			error_log( "⚠️ [MERC_CSV] Ignorando registered_shipper para shipment #{$shipment_id} (importador no admin)" );
+			return;
+		}
+
 		$user = false;
 		if ( ctype_digit( $candidate ) )           $user = get_userdata( (int) $candidate );
 		if ( ! $user && str_contains( $candidate, '@' ) ) $user = get_user_by( 'email', $candidate );
@@ -208,13 +214,30 @@ class MERC_Tipo_Envio_Normalizer {
 			if ( function_exists('current_user_can') && ( current_user_can('manage_options') || current_user_can('administrator') ) ) {
 				error_log( '[MERC_CSV] IMPORTADOR ADMIN - Ignorando merc_force_pickup_date para shipment ' . $shipment_id . ' (usuario importador es admin)' );
 			} else {
-				update_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', $forced_date );
-				update_post_meta( $shipment_id, 'wpcargo_pickup_date',        $forced_date );
+				// Normalizar formato de fecha antes de persistir (para evitar 6/4/2026 vs 06/04/2026)
+				$normalized_forced = $forced_date;
+				if ( class_exists( 'MERC_CSV_Preprocessor' ) && method_exists( 'MERC_CSV_Preprocessor', 'parse_possibly_formatted_date' ) ) {
+					$dt = MERC_CSV_Preprocessor::parse_possibly_formatted_date( (string) $forced_date );
+					if ( $dt instanceof \DateTime ) {
+						$normalized_forced = $dt->format('d/m/Y');
+					}
+				} else {
+					if ( is_string( $forced_date ) && preg_match('/^(\d{1,2})\s*[\/\-\s]\s*(\d{1,2})\s*[\/\-\s]\s*(\d{2,4})$/', trim( $forced_date ), $m) ) {
+						$dd = str_pad( $m[1], 2, '0', STR_PAD_LEFT );
+						$mm = str_pad( $m[2], 2, '0', STR_PAD_LEFT );
+						$yy = $m[3]; if ( strlen( $yy ) === 2 ) $yy = '20' . $yy;
+						$normalized_forced = sprintf('%s/%s/%s', $dd, $mm, $yy);
+					}
+				}
+
+				update_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', $normalized_forced );
+				update_post_meta( $shipment_id, 'wpcargo_pickup_date',        $normalized_forced );
 			}
 		}
 	}
 }
 
 new MERC_Tipo_Envio_Normalizer();
+
 
 

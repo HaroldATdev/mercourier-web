@@ -1991,13 +1991,13 @@ add_action('template_redirect', function(){
             $express_bloqueado = false;
             $full_fitment_bloqueado = false;
             
-            if (in_array('wpcargo_client', $current_user->roles)) {
-                // NORMAL: Usar la lógica específica que respeta estados RECOGIDO/NO RECOGIDO
-                $normal_bloqueado = merc_check_tipo_normal_blocked($current_user->ID, 'normal');
-                // EXPRESS y FULL_FITMENT: Usar sus funciones específicas con bloqueo por hora
-                $express_bloqueado = merc_check_tipo_express_blocked($current_user->ID, 'express');
-                $full_fitment_bloqueado = merc_check_tipo_full_fitment_blocked($current_user->ID, 'full_fitment');
-            }
+                if (in_array('wpcargo_client', $current_user->roles)) {
+                    // Usar la lógica centralizada por tipo para que el popup refleje exactamente
+                    // las mismas reglas (incluido el comportamiento 19:30 y fecha forzada).
+                    $normal_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'normal');
+                    $express_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'express');
+                    $full_fitment_bloqueado = merc_check_tipo_envio_blocked($current_user->ID, 'full_fitment');
+                }
             ?>
             <!-- POPUP SOBRE EL CONTENIDO EXISTENTE -->
             <div class="modal-overlay-shipment" id="modalPopup">
@@ -2012,7 +2012,7 @@ add_action('template_redirect', function(){
                             onclick="selectShipmentType('normal')"
                             <?php else: ?>
                             style="cursor: not-allowed; opacity: 0.5;"
-                            onclick="alert('🔒 MERC EMPRENDEDOR está bloqueado\n\nYa pasaron las 11:00 AM sin envíos registrados, o tienes envíos que ya fueron recogidos.')"
+                            onclick="showBlockedInfo('normal')"
                             <?php endif; ?>
                         >
                             <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-normal.png" alt="Normal" class="img-fluid mb-3">
@@ -2027,7 +2027,7 @@ add_action('template_redirect', function(){
                             onclick="selectShipmentType('express')"
                             <?php else: ?>
                             style="cursor: not-allowed; opacity: 0.5;"
-                            onclick="alert('🔒 MERC AGENCIA está bloqueado\n\nSin envíos: Ya pasaron las 12:30 PM\nCon envíos: Ya pasó la 1:00 PM')"
+                            onclick="showBlockedInfo('express')"
                             <?php endif; ?>
                         >
                             <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-express.png" alt="Express" class="img-fluid mb-3">
@@ -2042,7 +2042,7 @@ add_action('template_redirect', function(){
                             onclick="selectShipmentType('full_fitment')"
                             <?php else: ?>
                             style="cursor: not-allowed; opacity: 0.5;"
-                            onclick="alert('🔒 MERC FULL FITMENT está bloqueado\n\nSin envíos: Ya pasaron las 11:30 AM\nCon envíos: Ya pasaron las 12:15 PM')"
+                            onclick="showBlockedInfo('full_fitment')"
                             <?php endif; ?>
                         >
                             <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-express.png" alt="Express" class="img-fluid mb-3">
@@ -2341,6 +2341,51 @@ add_action('template_redirect', function(){
                 function closeModalShipment() {
                     document.body.style.overflow = 'auto';
                     history.back();
+                }
+
+                function showBlockedInfo(tipo) {
+                    var data = new FormData();
+                    data.append('action', 'merc_get_partial_unlock_info');
+                    data.append('tipo', tipo);
+
+                    fetch('<?php echo admin_url("admin-ajax.php"); ?>', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        body: data
+                    }).then(function(resp){
+                        return resp.json();
+                    }).then(function(json){
+                        if (!json || !json.success || !json.data) {
+                            alert('🔒 Servicio bloqueado.');
+                            return;
+                        }
+                        var d = json.data;
+                        var now = d.now || '';
+                        var forced = d.forced_date || '';
+                        var unlock = d.unlock_info || null;
+
+                        if (unlock && Object.keys(unlock).length) {
+                            var fa = unlock.fecha_asignada || forced || '';
+                            alert('🔓 Desbloqueo parcial activo. Fecha asignada: ' + fa + '\n\nSi creas ahora, la fecha se aplicará automáticamente.');
+                            return;
+                        }
+
+                        // Si ya son >= 19:30 mostrar que se permitirá pero forzará fecha mañana
+                        if (now >= '19:30') {
+                            if (forced) {
+                                alert('🔓 Se permite crear ahora, pero la fecha será forzada a: ' + forced);
+                            } else {
+                                alert('🔓 Se permite crear ahora, pero la fecha será forzada a mañana.');
+                            }
+                            return;
+                        }
+
+                        // Caso por defecto: bloqueado hasta las 19:30
+                        alert('🔒 Servicio bloqueado por reglas de horario. Se desbloquea a las 19:30 o permitirá crear con fecha mañana después de esa hora.');
+                    }).catch(function(err){
+                        console.error(err);
+                        alert('🔒 Servicio bloqueado. (Error al consultar)');
+                    });
                 }
 
                 // Prevenir scroll SOLO si el modal está visible
@@ -6177,13 +6222,11 @@ function merc_get_envios_hoy_por_tipo($client_id, $tipo) {
         }
         
         // DEBUG
-        error_log("🔍 [FECHA_PARSER] Envío #{$envio->ID}: fecha_raw='{$fecha_pickup_raw}' → fecha_parsed='{$fecha_pickup}' (hoy='{$hoy}')");
         
         if ($fecha_pickup === $hoy) {
             error_log("   ✅ INCLUIDO: Fecha coincide");
             $envios_hoy[] = $envio;
         } else {
-            error_log("   ❌ EXCLUIDO: Fecha NO coincide");
         }
     }
     
@@ -6293,7 +6336,7 @@ function merc_get_time_limits($tipo) {
     
     if ($tipo_lower === 'express' || stripos($tipo, 'agencia') !== false) {
         return [
-            'sin_envios' => '12:30',     // 12:30 PM
+            'sin_envios' => '13:00',     // 1:00 PM (13:00)
             'con_envios' => '13:00',     // 1:00 PM (13:00)
             'nombre' => 'EXPRESS'
         ];
@@ -6305,8 +6348,8 @@ function merc_get_time_limits($tipo) {
         ];
     } elseif ($tipo_lower === 'full_fitment' || stripos($tipo, 'full') !== false) {
         return [
-            'sin_envios' => '11:30',     // 11:30 AM
-            'con_envios' => '12:15',     // 12:15 PM
+            'sin_envios' => '13:00',     // 1:00 PM (13:00)
+            'con_envios' => '13:00',     // 1:00 PM (13:00)
             'nombre' => 'FULL FITMENT'
         ];
     }
@@ -6345,10 +6388,13 @@ function merc_count_envios_del_tipo_hoy($client_id, $tipo) {
     ", $client_id, $hoy);
     
     $result = $wpdb->get_row($query);
-    $total = isset($result->total) ? intval($result->total) : 0;
-    
-    error_log("📊 [CONTAR ENVÍOS] Cliente {$client_id} | Tipo: {$tipo_search} | Hoy: {$hoy} | Total: {$total}");
-    
+
+    // Recalcular usando merc_get_envios_hoy_por_tipo (parsea pickup date y tipo correctamente)
+    $envios_hoy = merc_get_envios_hoy_por_tipo($client_id, $tipo);
+    $total = is_array($envios_hoy) ? count($envios_hoy) : 0;
+
+    error_log("📊 [CONTAR ENVÍOS] Cliente {$client_id} | Tipo: {$tipo_search} | Hoy: {$hoy} | Total (por pickup/tipo): {$total}");
+
     return $total;
 }
 
@@ -6415,21 +6461,27 @@ function merc_check_tipo_envio_blocked($client_id, $tipo_envio) {
             error_log("   ✅ AÚN NO PASÓ LA HORA LÍMITE → PERMITIR CREACIÓN");
             return false;
         } else {
-            // Ya pasó la hora límite → PERMITIR pero guardar que necesita fecha mañana
-            error_log("   ✅ PASÓ LA HORA LÍMITE → PERMITIR CON FECHA MAÑANA");
-            
-            // Guardar que este cliente debe usar fecha mañana para este tipo
+            // Ya pasó la hora límite → decidir según hora de desbloqueo (19:30)
+            error_log("   ⏰ PASÓ LA HORA LÍMITE → Evaluando desbloqueo posterior a 19:30");
+
+            // Si aún NO son las 19:30 -> BLOQUEAR (no permitir crear hoy)
+            if (!merc_is_after_unlock_time()) {
+                error_log("   🔒 SIN ENVÍOS + PASADA HORA LÍMITE + AÚN NO SON 19:30 → BLOQUEADO");
+                return true;
+            }
+
+            // Si ya son >= 19:30 -> permitir pero forzar fecha mañana
+            error_log("   🔓 PASÓ LA HORA LÍMITE Y SON >19:30 → PERMITIR CON FECHA MAÑANA");
             $meta_key = "merc_desbloqueo_parcial_{$limits['nombre']}";
             update_user_meta($client_id, $meta_key, [
                 'tipo' => $tipo_envio,
                 'fecha' => $hoy,
-                'razon' => 'sin_envios_pasada_hora',
+                'razon' => 'sin_envios_pasada_hora_post_1930',
                 'fecha_asignada' => merc_get_tomorrow_formatted()
             ]);
-            
             update_user_meta($client_id, 'merc_force_pickup_date', merc_get_tomorrow_formatted());
-            
-            return false; // NO BLOQUEAR, pero hay que manipular el campo de fecha
+
+            return false; // PERMITIR pero forzar la fecha
         }
     }
     
@@ -6848,7 +6900,6 @@ function merc_cliente_tiene_envios_pendientes_hoy($client_id) {
         AND pm_shipper.meta_value = %s
     ", $client_id);
     
-    error_log("🔎 SQL Query: " . $query);
     $envios_hoy = $wpdb->get_results($query);
     error_log("📊 Total envíos del cliente (sin filtrar): " . count($envios_hoy));
     

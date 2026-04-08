@@ -20,6 +20,15 @@ require_once MERC_CSV_PATH . 'admin/classes/class-tracking-validator.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-tipo-envio-normalizer.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-sender-autofill.php';
 require_once MERC_CSV_PATH . 'admin/classes/class-financial-import.php';
+require_once MERC_CSV_PATH . 'admin/classes/class-csv-preprocessor.php';
+require_once MERC_CSV_PATH . 'admin/classes/class-import-guard.php';
+require_once MERC_CSV_PATH . 'admin/classes/class-import-job.php';
+require_once MERC_CSV_PATH . 'admin/classes/class-import-ajax.php';
+
+// Register DB table on plugin activation
+register_activation_hook( __FILE__, array( 'MERC_Import_Job', 'install_table' ) );
+
+// WP-CLI worker: removed — processing runs via web importer or external worker.
 
 /**
  * Inicializar clases principales
@@ -27,5 +36,6 @@ require_once MERC_CSV_PATH . 'admin/classes/class-financial-import.php';
 if ( is_admin() ) {
 	new MERC_Tracking_Validator();
 }
+
 
 

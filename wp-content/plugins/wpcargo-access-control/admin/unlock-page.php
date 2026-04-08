@@ -125,11 +125,14 @@ function wpcac_handle_toggle_unlock_post() {
     $action = sanitize_text_field($_POST['toggle_action'] ?? '');
     
     if ($action === 'enable') {
+        // Enable MON-SAT bypass when using the admin form
         update_option('merc_skip_blocks_today', wpcac_get_today());
+        update_option('merc_skip_blocks_mode', 'mon-sat');
         wpcac_apply_skip_to_all_clients(true);
-        error_log("✅ Admin activó bypass de bloqueos para hoy (form): " . wpcac_get_today());
+        error_log("✅ Admin activó bypass de bloqueos (MON-SAT) (form): " . wpcac_get_today());
     } elseif ($action === 'disable') {
         update_option('merc_skip_blocks_today', '');
+        update_option('merc_skip_blocks_mode', '');
         wpcac_apply_skip_to_all_clients(false);
         error_log("❌ Admin desactivó bypass de bloqueos (form)");
     }
@@ -140,4 +143,5 @@ function wpcac_handle_toggle_unlock_post() {
 }
 
 add_action('admin_post_wpcac_toggle_unlock_post', 'wpcac_handle_toggle_unlock_post');
+
 

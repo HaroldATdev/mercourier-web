@@ -47,6 +47,7 @@ class MERC_Financial_Import {
 		'Villa El Salvador'                                 => 10.00,
 		'Chorrillos'                                        => 8.00,
 		'Barranco'                                          => 8.00,
+		'Miraflores'                                        => 10.00,
 		'Jesús María'                                       => 8.00,
 		'Lince'                                             => 8.00,
 		'La Victoria'                                       => 8.00,
@@ -92,6 +93,7 @@ class MERC_Financial_Import {
 		'Villa El Salvador'                                 => 12.00,
 		'Chorrillos'                                        => 10.00,
 		'Barranco'                                          => 10.00,
+		'Miraflores'                                        => 8.00,
 		'Jesús María'                                       => 10.00,
 		'Lince'                                             => 10.00,
 		'La Victoria'                                       => 10.00,
@@ -234,3 +236,4 @@ if ( ! function_exists( 'merc_find_district_price' ) ) {
 		return MERC_Financial_Import::find_district_price( $destination, $tipo );
 	}
 }
+

@@ -12,7 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class MERC_Date_Fixer {
 
 	public function __construct() {
-		add_action( 'wpcie_after_save_csv_import', [ $this, 'fix_pickup_dates' ], 5, 2 );
+		// Desactivado temporalmente: comentar el hook para evitar que el Date Fixer
+		// modifique/normalice fechas durante las pruebas de importación.
+		// add_action( 'wpcie_after_save_csv_import', [ $this, 'fix_pickup_dates' ], 5, 2 );
 	}
 	/**
 	 * Corrige las fechas de pickup de distintos formatos y las guarda como DD/MM/YYYY
@@ -105,8 +107,12 @@ class MERC_Date_Fixer {
 		// No se pudo parsear
 		return false;
 	}
+
 }
 
-new MERC_Date_Fixer();
+// Instanciación desactivada para pruebas: el Date Fixer queda comentado
+// para que las validaciones de fecha del preprocesador no se vean alteradas.
+// new MERC_Date_Fixer();
+
 
 

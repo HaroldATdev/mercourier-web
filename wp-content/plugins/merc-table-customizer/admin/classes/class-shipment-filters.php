@@ -278,16 +278,11 @@ class MERC_Shipment_Filters {
         $to   = isset( $_GET['shipping_date_end'] )
             ? sanitize_text_field( $_GET['shipping_date_end'] )   : '';
 
-        error_log( sprintf(
-            '📅 CLASS_SHIPMENT_FILTERS - receive: from=%s, to=%s',
-            $from ?: 'EMPTY',
-            $to ?: 'EMPTY'
-        ));
+
 
         if ( empty( $from ) && empty( $to ) ) {
             $from = current_time( 'Y-m-d' );
             $to   = current_time( 'Y-m-d' );
-            error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - using today: %s', $from ) );
         }
 
         $has_from = $from && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $from );
@@ -299,7 +294,6 @@ class MERC_Shipment_Filters {
                 $d        = \DateTime::createFromFormat( 'Y-m-d', $from );
                 $date_dmy = $d ? $d->format( 'd/m/Y' ) : null;
 
-                error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - SINGLE_DAY: from=%s (dmy=%s)', $from, $date_dmy ?: 'NULL' ) );
 
                 if ( $date_dmy ) {
                     // Buscar AMBOS formatos: ISO (YYYY-MM-DD) o Legacy (DD/MM/YYYY)
@@ -315,10 +309,8 @@ class MERC_Shipment_Filters {
                         $from
                     );
                 }
-                error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - SINGLE_DAY condition: %s', $date_cond ) );
             } else {
                 // Rango de fechas
-                error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - RANGE: from=%s, to=%s', $from ?: 'NULL', $to ?: 'NULL' ) );
                 
                 $parts = [];
                 if ( $has_from ) {
@@ -330,7 +322,6 @@ class MERC_Shipment_Filters {
                         $from       // para STR_TO_DATE
                     );
                     $parts[] = $from_cond;
-                    error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - FROM condition added: %s', $from_cond ) );
                 }
                 if ( $has_to ) {
                     $to_dmy = \DateTime::createFromFormat( 'Y-m-d', $to )->format( 'd/m/Y' );
@@ -340,7 +331,6 @@ class MERC_Shipment_Filters {
                         $to         // para STR_TO_DATE
                     );
                     $parts[] = $to_cond;
-                    error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - TO condition added: %s', $to_cond ) );
                 }
                 $date_cond = implode( ' AND ', $parts );
             }
@@ -354,7 +344,6 @@ class MERC_Shipment_Filters {
                   AND ( {$date_cond} )
             )";
             
-            error_log( sprintf( '📅 CLASS_SHIPMENT_FILTERS - FINAL_CONDITION: %s', $final_condition ) );
             $this->custom_where_conds[] = $final_condition;
         }
 
@@ -433,14 +422,8 @@ class MERC_Shipment_Filters {
         }
 
         if ( ! empty( $this->custom_where_conds ) ) {
-            error_log( sprintf(
-                '📅 CLASS_SHIPMENT_FILTERS - Adding filter hook (conditions_count=%d): %s',
-                count( $this->custom_where_conds ),
-                json_encode( $this->custom_where_conds )
-            ));
             add_filter( 'posts_where', [ $this, 'inject_custom_where' ], 99, 2 );
         } else {
-            error_log( '📅 CLASS_SHIPMENT_FILTERS - NO CONDITIONS to add (empty custom_where_conds)' );
         }
 
         return $args;
@@ -462,15 +445,6 @@ class MERC_Shipment_Filters {
             $where .= " AND ({$cond})";
         }
 
-        error_log( sprintf(
-            '📅 CLASS_SHIPMENT_FILTERS::inject_custom_where - ORIGINAL_WHERE: %s',
-            $original_where
-        ));
-        
-        error_log( sprintf(
-            '📅 CLASS_SHIPMENT_FILTERS::inject_custom_where - FINAL_WHERE: %s',
-            $where
-        ));
 
         return $where;
     }
@@ -552,5 +526,6 @@ class MERC_Shipment_Filters {
 if ( class_exists( 'MERC_Shipment_Filters' ) ) {
     new MERC_Shipment_Filters();
 }
+
 
 

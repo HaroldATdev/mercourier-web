@@ -349,6 +349,7 @@ function wpcfe_shipment_searched_callback(){
         foreach ( $period as $dt ) {
             $dates_iso[] = $dt->format('Y-m-d');
             $dates_dmy[] = $dt->format('d/m/Y');
+            $dates_dmy[] = $dt->format('j/m/Y'); // add variant like 6/04/2026
             $dates_dmy[] = $dt->format('j/n/Y');
         }
         if ( ! empty( $dates_iso ) ) {

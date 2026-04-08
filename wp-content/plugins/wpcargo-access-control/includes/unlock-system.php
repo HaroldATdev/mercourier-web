@@ -60,11 +60,15 @@ function wpcac_handle_admin_unlock_toggle() {
         $action = sanitize_text_field($_GET['wpcac_toggle_skip_today']);
         
         if ($action === 'enable') {
+            // Enable bypass mode for Monday-Saturday (skip Sundays)
             update_option('merc_skip_blocks_today', wpcac_get_today());
+            update_option('merc_skip_blocks_mode', 'mon-sat');
             wpcac_apply_skip_to_all_clients(true);
-            error_log("✅ Admin activó bypass de bloqueos para hoy: " . wpcac_get_today());
+            error_log("✅ Admin activó bypass de bloqueos (MON-SAT): " . wpcac_get_today());
         } elseif ($action === 'disable') {
+            // Clear both legacy and mode options
             update_option('merc_skip_blocks_today', '');
+            update_option('merc_skip_blocks_mode', '');
             wpcac_apply_skip_to_all_clients(false);
             error_log("❌ Admin desactivó bypass de bloqueos");
         }
@@ -118,15 +122,18 @@ function wpcac_ajax_toggle_unlock() {
     $action = sanitize_text_field($_POST['action_type'] ?? '');
 
     if ($action === 'enable') {
+        // Enable MON-SAT bypass
         update_option('merc_skip_blocks_today', wpcac_get_today());
+        update_option('merc_skip_blocks_mode', 'mon-sat');
         wpcac_apply_skip_to_all_clients(true);
         wp_send_json_success(array(
-            'message' => 'Bypass habilitado',
+            'message' => 'Bypass habilitado (MON-SAT)',
             'status' => 'enabled',
             'date' => wpcac_get_today(),
         ));
     } elseif ($action === 'disable') {
         update_option('merc_skip_blocks_today', '');
+        update_option('merc_skip_blocks_mode', '');
         wpcac_apply_skip_to_all_clients(false);
         wp_send_json_success(array(
             'message' => 'Bypass deshabilitado',
@@ -138,4 +145,5 @@ function wpcac_ajax_toggle_unlock() {
 }
 
 add_action('wp_ajax_wpcac_toggle_unlock', 'wpcac_ajax_toggle_unlock');
+
 

@@ -76,3 +76,41 @@
     <section id="wpcie-import-notification_wrapper" class="col-md-6"></section>
 </div>
 
+<?php
+// Mostrar resumen de rechazos si viene token en la URL
+$token = isset( $_GET['merc_import_token'] ) ? sanitize_text_field( wp_unslash( $_GET['merc_import_token'] ) ) : '';
+if ( $token ) {
+    $summary_key = 'merc_import_rejected_summary_' . sanitize_key( $token );
+    $summary = get_option( $summary_key );
+    if ( empty( $summary ) ) {
+        // intentar transient
+        $summary = function_exists( 'get_transient' ) ? get_transient( $summary_key ) : array();
+    }
+    if ( ! empty( $summary ) && is_array( $summary ) ) {
+        ?>
+        <div class="wrap mt-3">
+            <h4>Resumen de filas rechazadas</h4>
+            <p class="record_count-notice">Se han detectado <strong><?php echo count( $summary ); ?></strong> filas rechazadas en esta importación.</p>
+            <ul class="import-record-list">
+                <?php foreach ( $summary as $item ) :
+                    $row = isset( $item['row'] ) ? intval( $item['row'] ) : ( isset( $item['opt'] ) ? esc_html( $item['opt'] ) : '?' );
+                    $logs = isset( $item['logs'] ) ? $item['logs'] : ( isset( $item['errors'] ) ? $item['errors'] : array() );
+                    $opt = isset( $item['opt'] ) ? esc_html( $item['opt'] ) : '';
+                ?>
+                    <li class="error">
+                        <strong>Fila <?php echo $row; ?></strong>
+                        <?php if ( $opt ) : ?> — <em><?php echo $opt; ?></em><?php endif; ?>
+                        <br/>
+                        <?php if ( ! empty( $logs ) ) : ?>
+                            <small><?php echo esc_html( is_array( $logs ) ? implode( ' | ', $logs ) : (string) $logs ); ?></small>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php
+    }
+}
+?>
+
+
