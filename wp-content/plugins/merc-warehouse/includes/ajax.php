@@ -29,17 +29,29 @@ function merc_almacen_get_productos() {
         'order' => 'ASC'
     );
     
-    // Si es cliente (no admin), filtrar solo productos asignados a él
-    if ($is_client && !$is_admin) {
-        $args['meta_query'] = array(
-            array(
-                'key' => '_merc_producto_cliente_asignado',
-                'value' => (string) $current_user->ID,
-                'compare' => '=',
-                'type' => 'CHAR'
-            )
-        );
-    }
+// Si es cliente (no admin), filtrar solo productos asignados a él
+if ($is_client && !$is_admin) {
+    $args['meta_query'] = array(
+        array(
+            'key' => '_merc_producto_cliente_asignado',
+            'value' => (string) $current_user->ID,
+            'compare' => '=',
+            'type' => 'CHAR'
+        )
+    );
+}
+
+// Si es admin y seleccionó un cliente, filtrar por ese cliente
+if ($is_admin && !empty($_POST['cliente_id'])) {
+    $args['meta_query'] = array(
+        array(
+            'key' => '_merc_producto_cliente_asignado',
+            'value' => (string) intval($_POST['cliente_id']),
+            'compare' => '=',
+            'type' => 'CHAR'
+        )
+    );
+}
     
     $ps = get_posts($args);
     $lista = array();
