@@ -1549,7 +1549,7 @@ function custom_rename_create_shipment_callback( $text ) {
     return 'Crear servicio';
 }
 add_filter( 'wpcfe_create_shipment', 'custom_rename_create_shipment_callback' );
-
+/*
 // AGREGAR ENVIOS MASIVOS debajo de CREAR SERVICIO
 function custom_render_envios_masivos_menu() {
     ?>
@@ -1566,7 +1566,7 @@ add_action('wp_footer', 'merc_ocultar_solo_import_export', 1);
 function merc_ocultar_solo_import_export() {
     ?>
     <style>
-        /* Ocultar SOLO los elementos de Importar/Exportar que NO sean Envíos Masivos */
+        /* Ocultar SOLO los elementos de Importar/Exportar que NO sean Envíos Masivos *//*
         .wpcie-menu a[href*="import-export"][href*="type=export"],
         .wpcie-menu a[href*="type=export"],
         .list-group-item[href*="import-export"][href*="type=export"],
@@ -1604,7 +1604,7 @@ function merc_ocultar_solo_import_export() {
     </script>
     <?php
 }
-
+*/
 
 
 // RENOMBRANDO RECEIVING (Correcto - usa wpcfe_after_sidebar_menu_items)
