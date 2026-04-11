@@ -5065,6 +5065,8 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     $por_pagar_rem    = 0.0;
     $pos_recaudado    = 0.0; // nuevo: recaudado por POS (para mostrar en panel)
     $total_entregados = 0.0; // total de envíos ENTREGADOS (para Total General)
+    $wpcargo_monto_total = 0.0; // total historic of shipment amount
+    $has_remitente_liquidated = false; // detect if any shipment was liquidated for remitente
 
     error_log('═══════════════════════════════════════════════════════════');
     error_log('🔍 MERC_ADMIN_DEBUG - INICIANDO CÁLCULOS DEL PANEL');
@@ -5097,6 +5099,19 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
             error_log(sprintf('   ✅ SUMADO A TOTAL ENTREGADOS: S/. %01.2f (producto=%.2f, Total: S/. %01.2f)', $producto, $producto, $total_entregados));
         } else {
             error_log(sprintf('   ❌ NO ENTREGADO aún (estado: %s)', $wpcargo_status ?: 'sin estado'));
+        }
+
+        // Calcular monto histórico del envío según wpcargo_monto o sus alternativas.
+        $monto_meta = floatval( get_post_meta( $shipment->ID, 'wpcargo_monto', true ) );
+        if ( $monto_meta <= 0 ) {
+            $monto_meta = floatval( get_post_meta( $shipment->ID, 'wpcargo_total_cobrar', true ) );
+        }
+        if ( $monto_meta <= 0 ) {
+            $monto_meta = $envio + $producto;
+        }
+        $wpcargo_monto_total += $monto_meta;
+        if ( ! $has_remitente_liquidated ) {
+            $has_remitente_liquidated = ! empty( get_post_meta( $shipment->ID, 'merc_remitente_liquidated', true ) );
         }
 
         if ( $filtro_estado === 'pendiente' && $estado_motorizado !== 'pendiente' ) {
@@ -5269,9 +5284,18 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
         }
     }
 
-    // Balance neto: POS_RECAUDADO + Efectivo Total + PAGO_MERC
-    $balance_neto = floatval($pos_recaudado) + floatval($efectivo_total) + floatval($pago_merc_total);
-
+    if ( $has_remitente_liquidated ) {
+        // Después de la liquidación: restar todos los montos ya recaudados.
+        $balance_neto = floatval($wpcargo_monto_total)
+            - floatval($recaudado_marca)
+            - floatval($pos_recaudado)
+            - floatval($recaudado_merc)
+            - floatval($efectivo_total);
+    } else {
+        // Antes de la liquidación: usar el monto de envío menos lo recaudado por marca.
+        $balance_neto = floatval($wpcargo_monto_total) - floatval($recaudado_marca);
+    }
+    
     // DEBUG FINAL: resumen de todos los cálculos
     error_log('');
     error_log('═══════════════════════════════════════════════════════════');
@@ -9112,10 +9136,14 @@ function merc_liquidar_todo_ajax() {
             LEFT JOIN {$wpdb->postmeta} pm_included 
                 ON p.ID = pm_included.post_id 
                 AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
+            LEFT JOIN {$wpdb->postmeta} pm_remitente_liq
+                ON p.ID = pm_remitente_liq.post_id
+                AND pm_remitente_liq.meta_key = 'merc_remitente_liquidated'
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
             AND pm_sender.meta_value = %s
             AND (pm_included.meta_value IS NULL)
+            AND (pm_remitente_liq.meta_value IS NULL)
         ", $user_id ) );
         // Filtrar sólo envíos del día actual (evitar incluir reprogramados)
         if ( is_array( $shipments ) && function_exists('merc_pickup_date_is_today') ) {
@@ -9252,22 +9280,9 @@ function merc_liquidar_todo_ajax() {
                 }
 
                 if ( $changed ) {
-                    // Guardar cambios en methods y metas totales del envío
-                    update_post_meta( $shipment_id, 'pod_payment_methods', json_encode( $methods ) );
-                    // Recalcular totales por método
-                    $tot_ef = $tot_pm = $tot_mm = $tot_pos = 0.0;
-                    foreach ( $methods as $m ) {
-                        $met = isset( $m['metodo'] ) ? $m['metodo'] : '';
-                        $mon = isset( $m['monto'] ) ? floatval( $m['monto'] ) : 0.0;
-                        if ( $met === 'efectivo' ) $tot_ef += $mon;
-                        elseif ( $met === 'pago_merc' ) $tot_pm += $mon;
-                        elseif ( $met === 'pago_marca' ) $tot_mm += $mon;
-                        elseif ( $met === 'pos' ) $tot_pos += $mon;
-                    }
-                    update_post_meta( $shipment_id, 'wpcargo_efectivo', $tot_ef );
-                    update_post_meta( $shipment_id, 'wpcargo_pago_merc', $tot_pm );
-                    update_post_meta( $shipment_id, 'wpcargo_pago_marca', $tot_mm );
-                    update_post_meta( $shipment_id, 'wpcargo_pos', $tot_pos );
+                    // No actualizamos los métodos de pago o las metas de envío aquí,
+                    // para que las tarjetas del panel sigan mostrando sus valores
+                    // originales incluso después de realizar la liquidación.
                 }
             }
 
@@ -9275,12 +9290,10 @@ function merc_liquidar_todo_ajax() {
             $liquidation['covered_by_recaudado'] = $to_cover;
         }
 
-        // Marcar servicios como cobrados y vincular envíos a esta liquidación
-        $liquidation_id = $liquidation['id'];
+        // Marcar envíos como procesados por la liquidación masiva sin alterar
+        // los campos que usan las tarjetas del panel.
         foreach ( $shipments as $shipment_id ) {
-            update_post_meta( $shipment_id, 'wpcargo_servicio_cobrado', 'si' );
-            update_post_meta( $shipment_id, 'wpcargo_included_in_liquidation', $liquidation_id );
-            update_post_meta( $shipment_id, 'wpcargo_fecha_liquidacion_remitente', current_time( 'mysql' ) );
+            update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
         }
 
         // Determinar actor e historial donde guardar la liquidación.
