@@ -5065,6 +5065,8 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     $por_pagar_rem    = 0.0;
     $pos_recaudado    = 0.0; // nuevo: recaudado por POS (para mostrar en panel)
     $total_entregados = 0.0; // total de envíos ENTREGADOS (para Total General)
+    $wpcargo_monto_total = 0.0; // total historic of shipment amount
+    $has_remitente_liquidated = false; // detect if any shipment was liquidated for remitente
 
     error_log('═══════════════════════════════════════════════════════════');
     error_log('🔍 MERC_ADMIN_DEBUG - INICIANDO CÁLCULOS DEL PANEL');
@@ -5097,6 +5099,19 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
             error_log(sprintf('   ✅ SUMADO A TOTAL ENTREGADOS: S/. %01.2f (producto=%.2f, Total: S/. %01.2f)', $producto, $producto, $total_entregados));
         } else {
             error_log(sprintf('   ❌ NO ENTREGADO aún (estado: %s)', $wpcargo_status ?: 'sin estado'));
+        }
+
+        // Calcular monto histórico del envío según wpcargo_monto o sus alternativas.
+        $monto_meta = floatval( get_post_meta( $shipment->ID, 'wpcargo_monto', true ) );
+        if ( $monto_meta <= 0 ) {
+            $monto_meta = floatval( get_post_meta( $shipment->ID, 'wpcargo_total_cobrar', true ) );
+        }
+        if ( $monto_meta <= 0 ) {
+            $monto_meta = $envio + $producto;
+        }
+        $wpcargo_monto_total += $monto_meta;
+        if ( ! $has_remitente_liquidated ) {
+            $has_remitente_liquidated = ! empty( get_post_meta( $shipment->ID, 'merc_remitente_liquidated', true ) );
         }
 
         if ( $filtro_estado === 'pendiente' && $estado_motorizado !== 'pendiente' ) {
@@ -5264,9 +5279,18 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
         }
     }
 
-    // Balance neto: POS_RECAUDADO + Efectivo Total + PAGO_MERC
-    $balance_neto = floatval($pos_recaudado) - floatval($efectivo_total) - floatval($pago_merc_total);
-
+    if ( $has_remitente_liquidated ) {
+        // Después de la liquidación: restar todos los montos ya recaudados.
+        $balance_neto = floatval($wpcargo_monto_total)
+            - floatval($recaudado_marca)
+            - floatval($pos_recaudado)
+            - floatval($recaudado_merc)
+            - floatval($efectivo_total);
+    } else {
+        // Antes de la liquidación: usar el monto de envío menos lo recaudado por marca.
+        $balance_neto = floatval($wpcargo_monto_total) - floatval($recaudado_marca);
+    }
+    
     // DEBUG FINAL: resumen de todos los cálculos
     error_log('');
     error_log('═══════════════════════════════════════════════════════════');
