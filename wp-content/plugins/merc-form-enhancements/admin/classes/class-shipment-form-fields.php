@@ -475,13 +475,28 @@ class MERC_Shipment_Form_Fields {
 		$current_user_id = get_current_user_id();
 		$es_admin        = current_user_can( 'manage_options' ) || current_user_can( 'edit_others_posts' );
 
+		// Determinar ID del cliente a filtrar
+		// Prioridad: 1) shipper_id del POST (cliente seleccionado en el formulario)
+		//            2) Usuario actual si no es admin
+		//            3) No filtrar si es admin sin shipper_id específico
+		$cliente_id = null;
+		if ( ! empty( $_POST['shipper_id'] ) ) {
+			$cliente_id = intval( $_POST['shipper_id'] );
+			error_log("📦 [MERC_FORM] Cliente desde POST (shipper_id): {$cliente_id}");
+		} elseif ( ! $es_admin ) {
+			$cliente_id = $current_user_id;
+			error_log("📦 [MERC_FORM] Cliente: usuario actual (no-admin): {$cliente_id}");
+		} else {
+			error_log("📦 [MERC_FORM] Admin sin shipper_id específico - mostrar todos los productos");
+		}
+
 		// Construir meta_query para filtrar por cliente
 		$meta_query = [];
-		if ( ! $es_admin ) {
+		if ( $cliente_id !== null ) {
 			$meta_query = [
 				[
 					'key'     => '_merc_producto_cliente_asignado',
-					'value'   => $current_user_id,
+					'value'   => $cliente_id,
 					'compare' => '=',
 				],
 			];
