@@ -1549,7 +1549,7 @@ function custom_rename_create_shipment_callback( $text ) {
     return 'Crear servicio';
 }
 add_filter( 'wpcfe_create_shipment', 'custom_rename_create_shipment_callback' );
-
+/*
 // AGREGAR ENVIOS MASIVOS debajo de CREAR SERVICIO
 function custom_render_envios_masivos_menu() {
     ?>
@@ -1566,7 +1566,7 @@ add_action('wp_footer', 'merc_ocultar_solo_import_export', 1);
 function merc_ocultar_solo_import_export() {
     ?>
     <style>
-        /* Ocultar SOLO los elementos de Importar/Exportar que NO sean Envíos Masivos */
+        /* Ocultar SOLO los elementos de Importar/Exportar que NO sean Envíos Masivos *//*
         .wpcie-menu a[href*="import-export"][href*="type=export"],
         .wpcie-menu a[href*="type=export"],
         .list-group-item[href*="import-export"][href*="type=export"],
@@ -1604,7 +1604,7 @@ function merc_ocultar_solo_import_export() {
     </script>
     <?php
 }
-
+*/
 
 
 // RENOMBRANDO RECEIVING (Correcto - usa wpcfe_after_sidebar_menu_items)
@@ -5158,7 +5158,7 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
         } else {
             if ( ! isset( $client_balances ) ) $client_balances = array();
             if ( ! isset( $client_balances[ $shipper_id ] ) ) {
-                $client_balances[ $shipper_id ] = array('pago_merc'=>0.0, 'pos'=>0.0, 'pago_marca'=>0.0, 'servicio'=>0.0);
+                $client_balances[ $shipper_id ] = array('pago_merc'=>0.0, 'efectivo'=>0.0, 'pos'=>0.0, 'pago_marca'=>0.0, 'servicio'=>0.0);
             }
             $is_verified = merc_is_shipment_liquidation_verified( $shipment->ID );
             $totales = get_payment_totals_by_method( $shipment->ID );
@@ -5166,6 +5166,8 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
             if ( ! $is_verified ) {
                 // pago a MERC (solo el campo 'pago_merc' del shipment, sin incluir POS)
                 $client_balances[ $shipper_id ]['pago_merc'] += floatval( $totales['pago_merc'] );
+                // pago a motorizado (MOTO - efectivo)
+                $client_balances[ $shipper_id ]['efectivo'] += floatval( $totales['efectivo'] );
                 // POS neto
                 $pos_display = get_pos_net_for_shipment( $shipment->ID, $totales );
                 $client_balances[ $shipper_id ]['pos'] += $pos_display;
@@ -5218,7 +5220,7 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     }
 
     // Calcular suma de balances positivos por cliente usando fórmula:
-    // (PAGO_A_MERC + POS - PAGO_A_MARCA - SERVICIO)
+    // (MER + MOTO + POS - MARCA - ENVIO)
     $por_pagar_rem = 0.0;
     
     error_log('');
@@ -5229,21 +5231,24 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     if ( isset( $client_balances ) && is_array( $client_balances ) ) {
         foreach ( $client_balances as $cid => $vals ) {
             // Fórmula corregida según descripción del negocio:
-            // Monto a pagar al remitente = (PAGO_A_MERC + POS) - SERVICIO
-            $cliente_balance = (floatval($vals['pago_merc']) + floatval($vals['pos'])) - floatval($vals['servicio']);
+            // Monto a pagar al remitente = MER + MOTO + POS - MARCA - ENVIO
+            $cliente_balance = (floatval($vals['pago_merc']) + floatval($vals['efectivo']) + floatval($vals['pos'])) - floatval($vals['pago_marca']) - floatval($vals['servicio']);
             if ( $cliente_balance > 0 ) {
                 $por_pagar_rem += $cliente_balance;
             }
             // Depuración: registrar detalle por cliente para detectar doble conteo
             if ( function_exists('current_user_can') && current_user_can('administrator') ) {
                 error_log(sprintf('👤 Cliente %s', $cid));
-                error_log(sprintf('   pago_merc: S/. %01.2f', floatval($vals['pago_merc'])));
+                error_log(sprintf('   pago_merc (MER): S/. %01.2f', floatval($vals['pago_merc'])));
+                error_log(sprintf('   efectivo (MOTO): S/. %01.2f', floatval($vals['efectivo'])));
                 error_log(sprintf('   pos: S/. %01.2f', floatval($vals['pos'])));
-                error_log(sprintf('   pago_marca: S/. %01.2f', floatval($vals['pago_marca'])));
-                error_log(sprintf('   servicio: S/. %01.2f', floatval($vals['servicio'])));
-                error_log(sprintf('   balance = (pago_merc + pos) - servicio = (%.2f + %.2f) - %.2f = S/. %01.2f',
+                error_log(sprintf('   pago_marca (MARCA): S/. %01.2f', floatval($vals['pago_marca'])));
+                error_log(sprintf('   servicio (ENVIO): S/. %01.2f', floatval($vals['servicio'])));
+                error_log(sprintf('   balance = MER + MOTO + POS - MARCA - ENVIO = (%.2f + %.2f + %.2f) - %.2f - %.2f = S/. %01.2f',
                     floatval($vals['pago_merc']),
+                    floatval($vals['efectivo']),
                     floatval($vals['pos']),
+                    floatval($vals['pago_marca']),
                     floatval($vals['servicio']),
                     $cliente_balance
                 ));

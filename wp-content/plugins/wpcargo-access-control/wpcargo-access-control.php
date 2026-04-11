@@ -77,6 +77,7 @@ function wpcac_uninstall() {
     // Delete all plugin options
     delete_option('wpcac_permissions_matrix');
     delete_option('merc_skip_blocks_today');
+    delete_option('merc_skip_blocks_mode');
     
     // Clean user meta
     $users = get_users(array('fields' => 'ID', 'number' => -1));
@@ -89,3 +90,4 @@ function wpcac_uninstall() {
 }
 
 register_uninstall_hook(__FILE__, 'wpcac_uninstall');
+
