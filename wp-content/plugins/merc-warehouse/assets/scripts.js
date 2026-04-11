@@ -980,10 +980,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 res.data.forEach((unit, idx) => {
                     const bgcolor = idx % 2 === 0 ? '#ffffff' : '#f9f9f9';
-                    const statusText = unit.estado === 'entregado' ? '✅ Entregado' : 
-                                       (unit.estado === 'asignado' ? '🚚 Asignado' : '📦 Disponible');
-                    const statusColor = unit.estado === 'entregado' ? '#27ae60' : 
-                                        (unit.estado === 'asignado' ? '#3498db' : '#95a5a6');
+                    const statusText = unit.status === 'delivered' ? '✅ Entregado' : 
+                                       (unit.status === 'assigned' ? '🚚 Asignado' : '📦 Disponible');
+                    const statusColor = unit.status === 'delivered' ? '#27ae60' : 
+                                        (unit.status === 'assigned' ? '#3498db' : '#95a5a6');
                     
                     unitsHtml += `
                         <tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">
