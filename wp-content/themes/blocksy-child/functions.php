@@ -4522,6 +4522,30 @@ function merc_panel_admin_shortcode() {
             margin-top: 10px;
         }
         .merc-btn-liquidar-todo:hover { background: #d35400; }
+
+        .merc-btn-cierre-caja {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .merc-btn-cierre-caja:hover {
+            background: #2c3e50;
+        }
+        .merc-estado-cierre {
+            display: inline-block;
+            width: 100%;
+            padding: 5px 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            font-weight: 500;
+        }
         
         /* Tarjetas de usuario */
         .merc-user-card { 
@@ -4729,6 +4753,36 @@ function merc_panel_admin_shortcode() {
                         var textoTodo = tipo === 'motorizado' ? 'Registrar Entrega de Efectivo' : 'Liquidar Todo';
                         btn.prop('disabled', false).html((tipo === 'motorizado' ? '💵 ' : '💰 ') + textoTodo + ' (S/. ' + monto + ')');
                     }
+                });
+            });
+        });
+
+        $(document).on('click', '.merc-btn-cierre-caja', function(e) {
+            e.preventDefault();
+
+            const btn = $(this);
+
+            Swal.fire({
+                title: 'Confirmar cierre de caja',
+                text: 'Esto convertirá los combobox de estado en texto y bloqueará la reconversión durante esta sesión.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Cerrar caja',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#34495e',
+                cancelButtonColor: '#bdc3c7'
+            }).then(function(result) {
+                if (!result.isConfirmed) return;
+
+                localStorage.setItem('merc_caja_cerrada', '1');
+                window.dispatchEvent(new Event('merc-caja-cerrada'));
+
+                btn.prop('disabled', true).text('Caja cerrada');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Caja cerrada',
+                    text: 'Los estados quedaron como texto.'
                 });
             });
         });
@@ -8064,11 +8118,10 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h6 style="margin: 0;">📋 Todos los Envíos del Motorizado (Entregados y No Entregados):</h6>
                         <?php if ( $efectivo_total > 0 ) : ?>
-                        <button class="merc-btn-liquidar-todo" 
+                        <button class="merc-btn-cierre-caja" 
                                 data-user-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
-                                data-tipo="motorizado"
-                                data-monto="<?php echo number_format( $efectivo_total, 2 ); ?>">
-                            💵 Registrar Entrega de Efectivo (S/. <?php echo number_format( $efectivo_total, 2 ); ?>)
+                                data-tipo="motorizado">
+                            🔒 Cierre de caja
                         </button>
                         <?php endif; ?>
                     </div>
