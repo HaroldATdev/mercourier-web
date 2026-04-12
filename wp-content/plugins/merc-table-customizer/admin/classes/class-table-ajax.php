@@ -27,6 +27,7 @@ class MERC_Table_Ajax {
         add_action( 'wp_ajax_merc_reprogramar_envio',          [ $this, 'ajax_reprogramar_envio' ] );
         add_action( 'wp_ajax_merc_anular_envio_cliente',       [ $this, 'ajax_anular_envio' ] );
         add_action( 'wp_ajax_merc_delete_shipment',            [ $this, 'ajax_delete_shipment' ] );
+        add_action( 'wp_ajax_merc_cerrar_caja',                [ $this, 'ajax_cerrar_caja' ] );
     }
 
     /* ── Filtro: mostrar fecha desde meta, no desde post_date ───────────── */
@@ -444,6 +445,29 @@ class MERC_Table_Ajax {
         wp_send_json_success( [
             'message'     => 'Envío eliminado correctamente',
             'shipment_id' => $shipment_id,
+        ] );
+    }
+
+    public function ajax_cerrar_caja(): void {
+        check_ajax_referer( 'merc_cerrar_caja', 'nonce' );
+
+        if ( ! current_user_can( 'administrator' ) ) {
+            wp_send_json_error( [ 'message' => 'No tienes permisos para esta acción' ] );
+        }
+
+        $shipment_ids = isset( $_POST['shipment_ids'] ) ? array_map( 'intval', (array) $_POST['shipment_ids'] ) : [];
+
+        if ( empty( $shipment_ids ) ) {
+            wp_send_json_error( [ 'message' => 'No hay envíos para cerrar' ] );
+        }
+
+        foreach ( $shipment_ids as $shipment_id ) {
+            update_post_meta( $shipment_id, 'merc_caja_cerrada', '1' );
+        }
+
+        wp_send_json_success( [
+            'message' => 'Caja cerrada correctamente',
+            'count'   => count( $shipment_ids ),
         ] );
     }
 }
