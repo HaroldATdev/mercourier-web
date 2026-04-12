@@ -5273,52 +5273,29 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
         }
     }
 
-    // Calcular suma de balances positivos por cliente usando fórmula:
-    // (MER + MOTO + POS - MARCA - ENVIO)
-    $por_pagar_rem = 0.0;
+    // Calcular "Por pagar remitentes" usando la fórmula TOTAL GENERAL:
+    // RECAUDADO_MER + EFECTIVO_TOTAL + POS_RECAUDADO - RECAUDADO_MARCA - INGRESOS_ENVIOS
+    $por_pagar_rem = floatval($recaudado_merc) + floatval($efectivo_total) + floatval($pos_recaudado) - floatval($recaudado_marca) - floatval($ingresos_envios);
     
     error_log('');
     error_log('═══════════════════════════════════════════════════════════');
-    error_log('🔍 CÁLCULO DE SALDOS POR CLIENTE');
+    error_log('🔍 CÁLCULO DE "POR PAGAR REMITENTES" - FÓRMULA TOTAL GENERAL');
     error_log('═══════════════════════════════════════════════════════════');
-    
-    if ( isset( $client_balances ) && is_array( $client_balances ) ) {
-        foreach ( $client_balances as $cid => $vals ) {
-            // Fórmula corregida según descripción del negocio:
-            // Monto a pagar al remitente = MER + MOTO + POS - MARCA - ENVIO
-            $cliente_balance = (floatval($vals['pago_merc']) + floatval($vals['efectivo']) + floatval($vals['pos'])) - floatval($vals['pago_marca']) - floatval($vals['servicio']);
-            if ( $cliente_balance > 0 ) {
-                $por_pagar_rem += $cliente_balance;
-            }
-            // Depuración: registrar detalle por cliente para detectar doble conteo
-            if ( function_exists('current_user_can') && current_user_can('administrator') ) {
-                error_log(sprintf('👤 Cliente %s', $cid));
-                error_log(sprintf('   pago_merc (MER): S/. %01.2f', floatval($vals['pago_merc'])));
-                error_log(sprintf('   efectivo (MOTO): S/. %01.2f', floatval($vals['efectivo'])));
-                error_log(sprintf('   pos: S/. %01.2f', floatval($vals['pos'])));
-                error_log(sprintf('   pago_marca (MARCA): S/. %01.2f', floatval($vals['pago_marca'])));
-                error_log(sprintf('   servicio (ENVIO): S/. %01.2f', floatval($vals['servicio'])));
-                error_log(sprintf('   balance = MER + MOTO + POS - MARCA - ENVIO = (%.2f + %.2f + %.2f) - %.2f - %.2f = S/. %01.2f',
-                    floatval($vals['pago_merc']),
-                    floatval($vals['efectivo']),
-                    floatval($vals['pos']),
-                    floatval($vals['pago_marca']),
-                    floatval($vals['servicio']),
-                    $cliente_balance
-                ));
-                if ( $cliente_balance > 0 ) {
-                    error_log(sprintf('   ✅ SUMADO A POR_PAGAR_REM (Total: S/. %01.2f)', $por_pagar_rem));
-                } else {
-                    error_log(sprintf('   ❌ NO SUMADO (balance ≤ 0)'));
-                }
-            }
-        }
-
-        // Log final acumulado
-        if ( function_exists('current_user_can') && current_user_can('administrator') ) {
-            error_log(sprintf('MERC_DEBUG_CLIENT_BALANCE_SUM - por_pagar_rem=%01.2f', $por_pagar_rem));
-        }
-    }
+    error_log(sprintf('RECAUDADO_MER (MER): S/. %01.2f', floatval($recaudado_merc)));
+    error_log(sprintf('EFECTIVO_TOTAL (MOTO): S/. %01.2f', floatval($efectivo_total)));
+    error_log(sprintf('POS_RECAUDADO (POS): S/. %01.2f', floatval($pos_recaudado)));
+    error_log(sprintf('RECAUDADO_MARCA (MARCA): S/. %01.2f', floatval($recaudado_marca)));
+    error_log(sprintf('INGRESOS_ENVIOS (ENVIOS): S/. %01.2f', floatval($ingresos_envios)));
+    error_log(sprintf('─────────────────────────────────────────────────────'));
+    error_log(sprintf('por_pagar_rem = MER + MOTO + POS - MARCA - ENVIOS'));
+    error_log(sprintf('por_pagar_rem = (%.2f + %.2f + %.2f) - %.2f - %.2f',
+        floatval($recaudado_merc),
+        floatval($efectivo_total),
+        floatval($pos_recaudado),
+        floatval($recaudado_marca),
+        floatval($ingresos_envios)
+    ));
+    error_log(sprintf('por_pagar_rem = S/. %01.2f', $por_pagar_rem));
 
     // Nuevo: Total General = suma de todos los envíos del día + suma de liquidaciones por penalidades del día
     $penalties_sum = 0.0;
