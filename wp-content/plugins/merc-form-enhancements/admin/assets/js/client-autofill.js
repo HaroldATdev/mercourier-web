@@ -256,6 +256,9 @@ jQuery(document).ready(function ($) {
                     console.warn('[ClientAutofill] ⚠️ Respuesta recibida pero sin data para rellenar');
                     toast('⚠️ No se pudieron rellenar los campos', '#f39c12');
                 }
+                
+                // 🔄 RECARGAR PRODUCTOS DEL CLIENTE
+                recargarProductosCliente(userId);
             } else {
                 console.warn('[ClientAutofill] ⚠️ Respuesta sin datos:', resp);
                 if (resp && resp.data && resp.data.message) {
@@ -282,6 +285,66 @@ jQuery(document).ready(function ($) {
         })
         .always(function () {
             cargando = false;
+        });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+     * RECARGAR PRODUCTOS DEL CLIENTE
+     * ══════════════════════════════════════════════════════════════ */
+    function recargarProductosCliente(shipperId) {
+        console.log('[ProductReload] 🔄 Iniciando recarga de productos para shipper:', shipperId);
+        
+        if (!shipperId) {
+            console.warn('[ProductReload] ⚠️ shipperId vacío, abortando');
+            return;
+        }
+
+        // Obtener shipment_id del formulario (asumiendo que existe)
+        var shipmentId = jQuery('input[name="post_ID"], input[name="shipment_id"]').first().val();
+        if (!shipmentId) {
+            console.warn('[ProductReload] ⚠️ No se encontró shipment_id en el formulario');
+            return;
+        }
+
+        console.log('[ProductReload] 📤 Enviando AJAX para recargar productos...');
+        console.log('[ProductReload]    shipment_id:', shipmentId, '| shipper_id:', shipperId);
+
+        $.post(ajaxurl, {
+            action:     'merc_reload_productos',
+            nonce:      nonce,
+            shipment_id: shipmentId,
+            shipper_id: shipperId
+        })
+        .done(function (resp) {
+            console.log('[ProductReload] <─── Respuesta AJAX:', resp);
+            if (resp && resp.success && resp.data && resp.data.html) {
+                // Buscar todos los selects de productos y actualizarlos
+                var $productSelects = jQuery('select[name="merc_producto_id[]"], .merc_producto_id');
+                console.log('[ProductReload] 📋 Encontrados', $productSelects.length, 'selectores de producto');
+
+                if ($productSelects.length > 0) {
+                    $productSelects.each(function (index) {
+                        console.log('[ProductReload] ✅ Actualizando selector #', index);
+                        jQuery(this).html(resp.data.html);
+                    });
+                    console.log('[ProductReload] ✅ Todos los selectores actualizados exitosamente');
+                    toast('✅ Productos del cliente cargados', '#4CAF50');
+                } else {
+                    console.warn('[ProductReload] ⚠️ No se encontraron selectores de productos');
+                    toast('⚠️ No se encontró selector de productos', '#f39c12');
+                }
+            } else {
+                console.warn('[ProductReload] ⚠️ Respuesta sin datos:', resp);
+                if (resp && resp.data && resp.data.message) {
+                    console.error('[ProductReload] Mensaje del servidor:', resp.data.message);
+                }
+                toast('⚠️ Error al cargar productos', '#f39c12');
+            }
+        })
+        .fail(function (xhr) {
+            console.error('[ProductReload] ❌ Error AJAX status:', xhr.status);
+            console.error('[ProductReload] Response text:', xhr.responseText);
+            toast('❌ Error al recargar productos', '#e74c3c');
         });
     }
 

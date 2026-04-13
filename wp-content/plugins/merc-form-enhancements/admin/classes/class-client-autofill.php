@@ -50,7 +50,7 @@ class MERC_Client_Autofill {
 		if ( ! $es_formulario ) return;
 
 		$ajaxurl = admin_url( 'admin-ajax.php' );
-		$nonce   = wp_create_nonce( 'merc_get_client_data' );
+		$nonce   = wp_create_nonce( 'merc_form_nonce' );
 		$debug   = defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false';
 		$js_url  = MERC_FORM_URL . 'admin/assets/js/client-autofill.js?ver=' . MERC_FORM_VERSION;
 		?>
@@ -63,7 +63,7 @@ class MERC_Client_Autofill {
 
 	public function get_client_data_ajax(): void {
 		// Validar nonce manualmente para devolver error JSON si falla
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_get_client_data' ) ) {
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_form_nonce' ) ) {
 			wp_send_json_error( [ 'message' => 'Nonce inválido o expirado' ] );
 		}
 
