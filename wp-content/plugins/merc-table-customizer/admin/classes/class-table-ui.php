@@ -223,7 +223,6 @@ class MERC_Table_UI {
         const isAdmin = <?php echo current_user_can('manage_options') ? 'true' : 'false'; ?>;
         const isDriver = <?php echo in_array('wpcargo_driver', wp_get_current_user()->roles) ? 'true' : 'false'; ?>;
         const canSign = isAdmin || isDriver;
-        let mercCajaCerrada = localStorage.getItem('merc_caja_cerrada') === '1';
         
         console.log('🔐 isAdmin:', isAdmin, '| isDriver:', isDriver, '| canSign:', canSign);
         
@@ -507,46 +506,59 @@ class MERC_Table_UI {
         }
         setTimeout(reemplazarEtiquetaShipmentStatus, 300);
 
-        function convertirEstadosATextoMerc() {
-            $('td.shipment-status').each(function() {
-                const $cell = $(this);
-                const $select = $cell.find('.merc-estado-select');
-
-                if (!$select.length) return;
-
-                const texto = $select.find('option:selected').text().trim() || $select.val() || $cell.text().trim();
-                const textoSeguro = $('<div>').text(texto).html();
-
-                $cell.html('<span class="merc-estado-cierre">' + textoSeguro + '</span>');
-                $cell.closest('tr').addClass('merc-caja-cerrada');
-            });
+        function mercCajaKey(driverId) {
+            return driverId ? 'merc_caja_cerrada_' + driverId : 'merc_caja_cerrada';
         }
 
-        window.addEventListener('merc-caja-cerrada', function() {
-            mercCajaCerrada = true;
-            convertirEstadosATextoMerc();
+        function mercGetDriverIdFromRow($row) {
+            return String($row.data('driver-id') || '').trim();
+        }
+
+        window.addEventListener('merc-caja-cerrada', function(event) {
+            const driverId = event && event.detail && event.detail.driverId
+                ? String(event.detail.driverId).trim()
+                : '';
+
+            if (!driverId) return;
+
+            localStorage.setItem(mercCajaKey(driverId), '1');
+            convertirEstadosATextoMerc(driverId);
         });
 
-        if (mercCajaCerrada) {
-            setTimeout(convertirEstadosATextoMerc, 400);
-        }
+        (function inicializarCierresDeCaja() {
+            const driverIds = [];
+
+            $('tr[data-driver-id]').each(function() {
+                const driverId = String($(this).data('driver-id') || '').trim();
+                if (driverId && driverIds.indexOf(driverId) === -1) {
+                    driverIds.push(driverId);
+                }
+            });
+
+            driverIds.forEach(function(driverId) {
+                if (localStorage.getItem(mercCajaKey(driverId)) === '1') {
+                    setTimeout(function() {
+                        convertirEstadosATextoMerc(driverId);
+                    }, 400);
+                }
+            });
+        })();
 
         function convertirEstadoASelect() {
-            if (mercCajaCerrada || localStorage.getItem('merc_caja_cerrada') === '1') {
-                console.log('🔒 Caja cerrada: no se reconvierten estados a SELECT');
-                return;
-            }
-
             if (esCliente) { console.log('👤 Usuario es cliente - estados solo en modo lectura'); return; }
 
             let contadorConvertidos = 0;
 
             $('td.shipment-status').each(function() {
-                if ($estadoCell.closest('tr').hasClass('merc-caja-cerrada')) return;
                 const $estadoCell = $(this);
-                if ($estadoCell.find('.merc-estado-select').length > 0) return;
-                const estadoActual = $estadoCell.text().trim();
                 const $row         = $estadoCell.closest('tr');
+                const rowDriverId = mercGetDriverIdFromRow($row);
+
+                if (rowDriverId && localStorage.getItem(mercCajaKey(rowDriverId)) === '1') return;
+                if ($row.hasClass('merc-caja-cerrada')) return;
+                if ($estadoCell.find('.merc-estado-select').length > 0) return;
+
+                const estadoActual = $estadoCell.text().trim();
                 if (estadoActual.length < 2) return;
                 if (estadoActual.toUpperCase().includes('ENTREGADO') || estadoActual.toUpperCase().includes('DELIVERED')) { console.log('⏭️ Saltando estado ENTREGADO:', estadoActual); return; }
 
@@ -691,7 +703,6 @@ class MERC_Table_UI {
             const $selects     = $tabla.find('.merc-estado-select');
             const $estadoCells = $('td.shipment-status');
             if ($estadoCells.length > 0 && $selects.length === 0) { console.log('🔄 Convirtiendo estados a SELECT...'); convertirEstadoASelect(); }
-            if ($estadoCells.length > 0 && $selects.length === 0) { convertirEstadoASelect(); }
             agregarBotonesReprogramar();
         }, 2000);
 
