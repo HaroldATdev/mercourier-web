@@ -4757,14 +4757,49 @@ function merc_panel_admin_shortcode() {
             });
         });
 
+        const mercAjaxUrl = '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
+        const mercCerrarCajaNonce = '<?php echo esc_js( wp_create_nonce( 'merc_cerrar_caja' ) ); ?>';
+
+        function mercCajaKey(driverId) {
+            return driverId ? 'merc_caja_cerrada_' + driverId : 'merc_caja_cerrada';
+        }
+
         $(document).on('click', '.merc-btn-cierre-caja', function(e) {
             e.preventDefault();
 
             const btn = $(this);
+            const $card = btn.closest('.merc-user-card');
+            const driverId = String(
+                btn.data('driver-id') ||
+                $card.data('driver-id') ||
+                ''
+            ).trim();
+
+            const shipmentIds = $card.find('tbody tr[data-shipment-id]').map(function() {
+                return parseInt($(this).data('shipment-id'), 10) || null;
+            }).get().filter(Boolean);
+
+            if (!driverId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo identificar el motorizado.'
+                });
+                return;
+            }
+
+            if (!shipmentIds.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin envíos',
+                    text: 'No se encontraron envíos para cerrar.'
+                });
+                return;
+            }
 
             Swal.fire({
                 title: 'Confirmar cierre de caja',
-                text: 'Esto convertirá los combobox de estado en texto y bloqueará la reconversión durante esta sesión.',
+                text: 'Esto convertirá los combobox de estado en texto solo para este motorizado.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Cerrar caja',
@@ -4774,15 +4809,40 @@ function merc_panel_admin_shortcode() {
             }).then(function(result) {
                 if (!result.isConfirmed) return;
 
-                localStorage.setItem('merc_caja_cerrada', '1');
-                window.dispatchEvent(new Event('merc-caja-cerrada'));
+                $.post(mercAjaxUrl, {
+                    action: 'merc_cerrar_caja',
+                    nonce: mercCerrarCajaNonce,
+                    driver_id: driverId,
+                    shipment_ids: shipmentIds
+                }, function(response) {
+                    if (!response || !response.success) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: (response && response.data && response.data.message) ? response.data.message : 'No se pudo cerrar la caja.'
+                        });
+                        return;
+                    }
 
-                btn.prop('disabled', true).text('Caja cerrada');
+                    localStorage.setItem(mercCajaKey(driverId), '1');
+                    localStorage.removeItem('merc_caja_cerrada'); // limpieza de la clave vieja
+                    window.dispatchEvent(new CustomEvent('merc-caja-cerrada', {
+                        detail: { driverId: driverId }
+                    }));
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Caja cerrada',
-                    text: 'Los estados quedaron como texto.'
+                    btn.prop('disabled', true).text('Caja cerrada');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Caja cerrada',
+                        text: 'Los estados quedaron como texto.'
+                    });
+                }, 'json').fail(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Falló la petición AJAX.'
+                    });
                 });
             });
         });
@@ -8096,7 +8156,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         <h6 style="margin: 0;">📋 Todos los Envíos del Motorizado (Entregados y No Entregados):</h6>
                         <?php if ( $efectivo_total > 0 ) : ?>
                         <button class="merc-btn-cierre-caja" 
-                                data-user-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
+                                data-driver-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
                                 data-tipo="motorizado">
                             🔒 Cierre de caja
                         </button>
@@ -8162,7 +8222,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
 									$estado_bg = 'background:#ffcccc;color:#c0392b;';
 								}
 								?>
-								<tr>
+								<tr id="shipment-<?php echo esc_attr( $entrega->ID ); ?>" data-shipment-id="<?php echo esc_attr( $entrega->ID ); ?>" data-driver-id="<?php echo esc_attr( $driver->driver_id ); ?>">
 									<td>
 										<a href="<?php echo esc_url( $tracking_url ); ?>" target="_blank"
 										   style="font-weight:bold;color:#2980b9;text-decoration:underline;">
@@ -8836,7 +8896,7 @@ function merc_admin_liquidaciones( $fecha_inicio = '', $fecha_fin = '', $filtro_
 
         // ID único del card para toggle
         $card_id = 'merc_card_' . $user->ID . '_' . sanitize_title( $label );
-        echo '<div class="merc-user-card" style="width:100%;box-sizing:border-box;margin-bottom:12px;border-left-color:#2980b9;">';
+        echo '<div class="merc-user-card" data-driver-id="<?php echo esc_attr( $driver->driver_id ); ?>" style="width:100%;box-sizing:border-box;margin-bottom:12px;border-left-color:#2980b9;">';
         echo '<div class="merc-user-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" data-target="#' . esc_attr( $card_id ) . '">';
         echo '<div><h4 style="margin:0;">🏢 ' . esc_html( $label ) . '</h4><span class="badge badge-secondary" style="margin-left:8px;">' . intval( $count_entries ) . ' entradas</span></div>';
         echo '<div class="merc-card-toggle" style="font-size:18px;padding-left:8px;">▾</div>';

@@ -451,11 +451,34 @@ class MERC_Table_Ajax {
     public function ajax_cerrar_caja(): void {
         check_ajax_referer( 'merc_cerrar_caja', 'nonce' );
 
-        if ( ! current_user_can( 'administrator' ) ) {
+        if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( [ 'message' => 'No tienes permisos para esta acción' ] );
         }
 
+        $driver_id    = isset( $_POST['driver_id'] ) ? absint( $_POST['driver_id'] ) : 0;
         $shipment_ids = isset( $_POST['shipment_ids'] ) ? array_map( 'intval', (array) $_POST['shipment_ids'] ) : [];
+
+        if ( empty( $shipment_ids ) && $driver_id > 0 ) {
+            global $wpdb;
+
+            $shipment_ids = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT p.ID
+                    FROM {$wpdb->posts} p
+                    INNER JOIN {$wpdb->postmeta} pm_entrega
+                        ON pm_entrega.post_id = p.ID
+                    AND pm_entrega.meta_key = 'wpcargo_motorizo_entrega'
+                    WHERE p.post_type = 'wpcargo_shipment'
+                    AND p.post_status = 'publish'
+                    AND pm_entrega.meta_value = %s",
+                    (string) $driver_id
+                )
+            );
+
+            $shipment_ids = array_map( 'intval', (array) $shipment_ids );
+        }
+
+        $shipment_ids = array_values( array_filter( $shipment_ids ) );
 
         if ( empty( $shipment_ids ) ) {
             wp_send_json_error( [ 'message' => 'No hay envíos para cerrar' ] );
@@ -466,8 +489,9 @@ class MERC_Table_Ajax {
         }
 
         wp_send_json_success( [
-            'message' => 'Caja cerrada correctamente',
-            'count'   => count( $shipment_ids ),
+            'message'    => 'Caja cerrada correctamente',
+            'count'      => count( $shipment_ids ),
+            'driver_id'  => $driver_id,
         ] );
     }
 }
