@@ -478,7 +478,7 @@ class MERC_Shipment_Form_Fields {
 		// Determinar ID del cliente a filtrar
 		// Prioridad: 1) shipper_id del POST (cliente seleccionado en el formulario)
 		//            2) Usuario actual si no es admin
-		//            3) No filtrar si es admin sin shipper_id específico
+		//            3) NO FILTRAR si es admin sin shipper_id específico
 		$cliente_id = null;
 		if ( ! empty( $_POST['shipper_id'] ) ) {
 			$cliente_id = intval( $_POST['shipper_id'] );
@@ -487,7 +487,9 @@ class MERC_Shipment_Form_Fields {
 			$cliente_id = $current_user_id;
 			error_log("📦 [MERC_FORM] Cliente: usuario actual (no-admin): {$cliente_id}");
 		} else {
-			error_log("📦 [MERC_FORM] Admin sin shipper_id específico - mostrar todos los productos");
+			// Admin sin shipper_id: No hay cliente definido aún
+			// El selector se llenará cuando el admin seleccione un cliente vía AJAX
+			error_log("📦 [MERC_FORM] Admin sin shipper_id específico - selector vacío inicialmente");
 		}
 
 		// Construir meta_query para filtrar por cliente
@@ -502,24 +504,33 @@ class MERC_Shipment_Form_Fields {
 			];
 		}
 
-		// Obtener productos disponibles filtrados por cliente
-		$productos = get_posts( [
-			'post_type'      => 'merc_producto',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'meta_query'     => $meta_query,
-		] );
+		// IMPORTANTE: Si no hay cliente definido (admin en creación), mostrar lista VACÍA
+		// La lista se llenará cuando el usuario seleccione un cliente vía AJAX
+		$mostrar_todos = ( $cliente_id === null );
+		
+		if ( $mostrar_todos ) {
+			error_log("📦 [MERC_FORM] Sin cliente definido - mostrando selector VACÍO");
+			$productos_disponibles = [];
+		} else {
+			// Obtener productos disponibles filtrados por cliente
+			$productos = get_posts( [
+				'post_type'      => 'merc_producto',
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'meta_query'     => $meta_query,
+			] );
 
-		// Filtrar productos con stock disponible
-		$productos_disponibles = [];
-		foreach ( $productos as $prod ) {
-			$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
-			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+			// Filtrar productos con stock disponible
+			$productos_disponibles = [];
+			foreach ( $productos as $prod ) {
+				$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
+				$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
 
-			if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
-				$productos_disponibles[] = $prod;
+				if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
+					$productos_disponibles[] = $prod;
+				}
 			}
 		}
 
@@ -1344,7 +1355,8 @@ class MERC_Shipment_Form_Fields {
 		$shipment_id = isset( $_POST['shipment_id'] ) ? intval( $_POST['shipment_id'] ) : 0;
 		$shipper_id  = isset( $_POST['shipper_id'] ) ? intval( $_POST['shipper_id'] ) : 0;
 
-		if ( ! $shipment_id || ! $shipper_id ) {
+		// shipment_id puede ser 0 en creación de envíos, pero shipper_id es requerido
+		if ( ! $shipper_id ) {
 			wp_send_json_error( [ 'message' => 'Datos inválidos' ] );
 		}
 
