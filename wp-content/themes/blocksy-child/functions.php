@@ -5377,11 +5377,7 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
 
     if ( $has_remitente_liquidated ) {
         // Después de la liquidación: restar todos los montos ya recaudados.
-        $balance_neto = floatval($wpcargo_monto_total)
-            - floatval($recaudado_marca)
-            - floatval($pos_recaudado)
-            - floatval($recaudado_merc)
-            - floatval($efectivo_total);
+        $balance_neto = floatval($wpcargo_monto_total) - floatval($recaudado_marca) - floatval($pos_recaudado) - floatval($recaudado_merc) - floatval($efectivo_total);
     } else {
         // Antes de la liquidación: usar el monto de envío menos lo recaudado por marca.
         $balance_neto = floatval($wpcargo_monto_total) - floatval($recaudado_marca);
