@@ -257,8 +257,13 @@ jQuery(document).ready(function ($) {
                     toast('⚠️ No se pudieron rellenar los campos', '#f39c12');
                 }
                 
-                // 🔄 RECARGAR PRODUCTOS DEL CLIENTE
-                recargarProductosCliente(userId);
+                // 🔄 ACTUALIZAR SELECTOR DE PRODUCTOS DESDE LA RESPUESTA
+                if (resp.data.productos && Array.isArray(resp.data.productos)) {
+                    console.log('[ClientAutofill] 🔄 Actualizando productos (' + resp.data.productos.length + ' encontrados)');
+                    actualizarSelectorProductos(resp.data.productos);
+                } else {
+                    console.warn('[ClientAutofill] ⚠️ Sin array de productos en respuesta');
+                }
             } else {
                 console.warn('[ClientAutofill] ⚠️ Respuesta sin datos:', resp);
                 if (resp && resp.data && resp.data.message) {
@@ -289,43 +294,61 @@ jQuery(document).ready(function ($) {
     }
 
     /* ══════════════════════════════════════════════════════════════
-     * RECARGAR PRODUCTOS DEL CLIENTE
+     * ACTUALIZAR SELECTOR DE PRODUCTOS CON ARRAY
      * ══════════════════════════════════════════════════════════════ */
-    function recargarProductosCliente(shipperId) {
-        // Recarga las opciones del selector de productos para el cliente dado.
-        if (!shipperId) return;
+    function actualizarSelectorProductos(productosArray) {
+        // productosArray = [ { id, titulo, stock }, ... ]
+        console.log('[ClientAutofill] 🔄 actualizarSelectorProductos() llamado');
+        console.log('[ClientAutofill]   Productos recibidos:', productosArray.length);
 
-        // Obtener shipment_id (0 si es creación)
-        var shipmentId = jQuery('input[name="post_ID"]').val() || jQuery('input[name="shipment_id"]').val() || '0';
-        shipmentId = parseInt(shipmentId) || 0;
+        if (!productosArray || productosArray.length === 0) {
+            console.warn('[ClientAutofill] ⚠️ Array de productos vacío');
+            toast('⚠️ Sin productos disponibles para este cliente', '#f39c12');
+            return;
+        }
 
-        $.post(ajaxurl, {
-            action:      'merc_reload_productos',
-            nonce:       nonce,
-            shipment_id: shipmentId,
-            shipper_id:  shipperId
-        })
-        .done(function (resp) {
-            if (resp && resp.success && resp.data && resp.data.html) {
-                // Actualizar todos los selects y la plantilla de fila
-                var $productSelects = jQuery('select[name="merc_producto_id[]"]');
-                $productSelects.each(function () { jQuery(this).html(resp.data.html); });
+        // Construir HTML de opciones
+        var html = '<option value="">-- Selecciona un producto --</option>';
+        for (var i = 0; i < productosArray.length; i++) {
+            var prod = productosArray[i];
+            var label = (prod.titulo || 'Producto sin nombre') + ' (Stock: ' + (prod.stock || 0) + ')';
+            html += '<option value="' + prod.id + '">' + label + '</option>';
+        }
 
-                var $template = jQuery('#merc_product_template');
-                if ($template.length) $template.find('select[name="merc_producto_id[]"]').html(resp.data.html);
+        console.log('[ClientAutofill]   HTML generado, actualizando selects...');
 
-                // Actualizar pequeño contador si existe
-                var $contador = jQuery('#merc_producto_wrapper').find('small.text-muted').first();
-                if ($contador.length) $contador.text('Solo se muestran productos disponibles (' + (resp.data.count || 0) + ' total)');
-
-                toast('✅ Productos del cliente cargados', '#4CAF50');
-            } else {
-                toast('⚠️ Error al cargar productos', '#f39c12');
-            }
-        })
-        .fail(function () {
-            toast('❌ Error al recargar productos', '#e74c3c');
+        // Actualizar todos los selects y la plantilla de fila
+        var $productSelects = jQuery('select[name="merc_producto_id[]"]');
+        console.log('[ClientAutofill]   - Selects encontrados:', $productSelects.length);
+        $productSelects.each(function () { 
+            jQuery(this).html(html);
+            console.log('[ClientAutofill]   ✓ Select actualizado');
         });
+
+        var $template = jQuery('#merc_product_template');
+        console.log('[ClientAutofill]   - Template encontrado:', $template.length > 0 ? '✓' : '✗');
+        if ($template.length) {
+            $template.find('select[name="merc_producto_id[]"]').html(html);
+            console.log('[ClientAutofill]   ✓ Template actualizado');
+        }
+
+        // Actualizar pequeño contador si existe
+        var $contador = jQuery('#merc_producto_wrapper').find('small.text-muted').first();
+        console.log('[ClientAutofill]   - Contador encontrado:', $contador.length > 0 ? '✓' : '✗');
+        if ($contador.length) {
+            $contador.text('Solo se muestran productos disponibles (' + productosArray.length + ' total)');
+            console.log('[ClientAutofill]   ✓ Contador actualizado');
+        }
+
+        // Ocultar alerta de "No hay productos" si existe
+        var $alerta = jQuery('#merc_producto_wrapper').find('.alert-warning').first();
+        if ($alerta.length && productosArray.length > 0) {
+            $alerta.hide();
+            console.log('[ClientAutofill]   ✓ Alerta oculta');
+        }
+
+        console.log('[ClientAutofill] ✅ Selector de productos actualizado');
+        toast('✅ Productos cargados (' + productosArray.length + ' disponibles)', '#4CAF50');
     }
 
     /* ══════════════════════════════════════════════════════════════

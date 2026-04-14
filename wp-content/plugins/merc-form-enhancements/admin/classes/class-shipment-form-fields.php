@@ -30,6 +30,9 @@ class MERC_Shipment_Form_Fields {
 		// También ejecutar la verificación final después del flujo de importación CSV
 		add_action( 'wpcie_after_save_csv_import', [ $this, 'verify_final_shipping_cost' ], 99999, 2 );
 		add_action( 'edit_post',                   [ $this, 'log_edit_shipping_cost' ], 10, 2 );
+
+		// Registrar handlers AJAX desde la misma instancia para evitar doble instanciación
+		$this->__construct_ajax_handlers();
 	}
 
 	/* ── Desglose del costo de envío ─────────────────────────────────────── */
@@ -1341,72 +1344,13 @@ class MERC_Shipment_Form_Fields {
 	/* ── AJAX: Recargar productos cuando cambia el cliente ─────────────────── */
 
 	public function __construct_ajax_handlers() {
-		add_action( 'wp_ajax_merc_reload_productos', [ $this, 'ajax_reload_productos' ] );
+		// El handler AJAX ahora se ejecuta en get_client_data_ajax()
+		// (generar_opciones_productos_cliente()) para optimizar y evitar llamadas innecesarias
 	}
 
-	public function ajax_reload_productos() {
-		check_ajax_referer( 'merc_form_nonce', 'nonce' );
-
-		$shipment_id = isset( $_POST['shipment_id'] ) ? intval( $_POST['shipment_id'] ) : 0;
-		$shipper_id  = isset( $_POST['shipper_id'] ) ? intval( $_POST['shipper_id'] ) : 0;
-
-		// shipment_id puede ser 0 en creación de envíos, pero shipper_id es requerido
-		if ( ! $shipper_id ) {
-			wp_send_json_error( [ 'message' => 'Datos inválidos' ] );
-		}
-
-		error_log( "🔄 [AJAX_RELOAD] Recargando productos para shipper_id={$shipper_id}, shipment_id={$shipment_id}" );
-
-		// Construir meta_query para filtrar por cliente
-		$meta_query = [
-			[
-				'key'     => '_merc_producto_cliente_asignado',
-				'value'   => $shipper_id,
-				'compare' => '=',
-			],
-		];
-
-		// Obtener productos disponibles filtrados por cliente
-		$productos = get_posts( [
-			'post_type'      => 'merc_producto',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'meta_query'     => $meta_query,
-		] );
-
-		// Filtrar productos con stock disponible
-		$productos_disponibles = [];
-		foreach ( $productos as $prod ) {
-			$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
-			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-
-			if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
-				$productos_disponibles[] = $prod;
-			}
-		}
-
-		// Construir HTML del selector
-		$html = '<option value="">-- Selecciona un producto --</option>';
-		foreach ( $productos_disponibles as $prod ) {
-			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-			$label    = $prod->post_title . ' (Stock: ' . $cantidad . ')';
-			$html    .= '<option value="' . esc_attr( $prod->ID ) . '">' . esc_html( $label ) . '</option>';
-		}
-
-		error_log( "🔄 [AJAX_RELOAD] Retornando " . count( $productos_disponibles ) . " productos" );
-
-		wp_send_json_success( [
-			'html'    => $html,
-			'count'   => count( $productos_disponibles ),
-		] );
-	}
 }
 
-// Inicializar Ajax handlers en construct
-add_action( 'wp_ajax_merc_reload_productos', [ new MERC_Shipment_Form_Fields(), 'ajax_reload_productos' ] );
-
+// Inicializar la clase (una sola instancia)
 new MERC_Shipment_Form_Fields();
 
 
