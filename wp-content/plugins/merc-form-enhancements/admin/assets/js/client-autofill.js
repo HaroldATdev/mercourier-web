@@ -299,11 +299,12 @@ jQuery(document).ready(function ($) {
     function actualizarSelectorProductos(productosArray) {
         // productosArray = [ { id, titulo, stock }, ... ]
         console.log('[ClientAutofill] 🔄 actualizarSelectorProductos() llamado');
-        console.log('[ClientAutofill]   Productos recibidos:', productosArray.length);
+        console.log('[ClientAutofill]   Productos recibidos:', productosArray);
+        console.log('[ClientAutofill]   Array length:', productosArray ? productosArray.length : 'null');
 
         if (!productosArray || productosArray.length === 0) {
-            console.warn('[ClientAutofill] ⚠️ Array de productos vacío');
-            toast('⚠️ Sin productos disponibles para este cliente', '#f39c12');
+            console.warn('[ClientAutofill] ⚠️ Array de productos vacío o null');
+            alert('⚠️ Sin productos disponibles para este cliente');
             return;
         }
 
@@ -315,14 +316,21 @@ jQuery(document).ready(function ($) {
             html += '<option value="' + prod.id + '">' + label + '</option>';
         }
 
-        console.log('[ClientAutofill]   HTML generado, actualizando selects...');
+        console.log('[ClientAutofill]   HTML generado (' + productosArray.length + ' opciones), actualizando selects...');
 
         // Actualizar todos los selects y la plantilla de fila
         var $productSelects = jQuery('select[name="merc_producto_id[]"]');
         console.log('[ClientAutofill]   - Selects encontrados:', $productSelects.length);
-        $productSelects.each(function () { 
+        
+        if ($productSelects.length === 0) {
+            console.error('[ClientAutofill] ❌ NO HAY SELECTS CON NAME "merc_producto_id[]"');
+            alert('❌ Error: No se encontró el selector de productos en el formulario');
+            return;
+        }
+        
+        $productSelects.each(function (idx) { 
             jQuery(this).html(html);
-            console.log('[ClientAutofill]   ✓ Select actualizado');
+            console.log('[ClientAutofill]   ✓ Select #' + idx + ' actualizado');
         });
 
         var $template = jQuery('#merc_product_template');
@@ -337,18 +345,19 @@ jQuery(document).ready(function ($) {
         console.log('[ClientAutofill]   - Contador encontrado:', $contador.length > 0 ? '✓' : '✗');
         if ($contador.length) {
             $contador.text('Solo se muestran productos disponibles (' + productosArray.length + ' total)');
-            console.log('[ClientAutofill]   ✓ Contador actualizado');
+            console.log('[ClientAutofill]   ✓ Contador actualizado a: ' + productosArray.length);
         }
 
         // Ocultar alerta de "No hay productos" si existe
         var $alerta = jQuery('#merc_producto_wrapper').find('.alert-warning').first();
+        console.log('[ClientAutofill]   - Alerta encontrada:', $alerta.length > 0 ? '✓' : '✗');
         if ($alerta.length && productosArray.length > 0) {
             $alerta.hide();
             console.log('[ClientAutofill]   ✓ Alerta oculta');
         }
 
-        console.log('[ClientAutofill] ✅ Selector de productos actualizado');
-        toast('✅ Productos cargados (' + productosArray.length + ' disponibles)', '#4CAF50');
+        console.log('[ClientAutofill] ✅ Selector de productos actualizado con éxito');
+        alert('✅ Productos cargados (' + productosArray.length + ' disponibles)');
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -438,6 +447,16 @@ jQuery(document).ready(function ($) {
         var v = $(this).val();
         console.log('[ClientAutofill] [EVENT:change] Cliente seleccionado:', v, '| Selector:', this.name || this.id);
         if (v && v !== '0' && v !== '') cargarDatosCliente(v);
+    });
+
+    // Listener DIRECTO para #registered_client (para asegurar que se ejecute)
+    jQuery('#registered_client').on('change select2:select', function() {
+        var v = jQuery(this).val();
+        console.log('[ClientAutofill] [DIRECT_LISTENER] #registered_client cambió a:', v);
+        if (v && v !== '0' && v !== '') {
+            console.log('[ClientAutofill] 📞 Ejecutando cargarDatosCliente(' + v + ')');
+            cargarDatosCliente(v);
+        }
     });
 
     // Select2 dispara este evento en adición a change

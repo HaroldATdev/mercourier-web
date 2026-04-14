@@ -504,10 +504,12 @@ class MERC_Shipment_Form_Fields {
 			];
 		}
 
-		// Obtener productos disponibles filtrados por cliente
+		// Obtener productos disponibles
+		// Si hay cliente definido, filtrar por ese cliente
+		// Si no hay cliente (creación de envío por admin), obtener TODOS los productos
 		$productos = [];
 		if ( $cliente_id !== null ) {
-			// Si hay cliente definido, obtener sus productos
+			// Cliente específico: obtener solo sus productos
 			$productos = get_posts( [
 				'post_type'      => 'merc_producto',
 				'posts_per_page' => -1,
@@ -516,10 +518,18 @@ class MERC_Shipment_Form_Fields {
 				'order'          => 'ASC',
 				'meta_query'     => $meta_query,
 			] );
-			// Products found for client: count can be used for display
+			// Products found for specific client
 		} else {
-			// Admin sin cliente: Iniciar lista vacía, se llenará con productos ya asignados
-			// Admin without defined client — initialize empty product list
+			// Sin cliente definido (creación): mostrar TODOS los productos disponibles
+			// (El admin podrá filtrar luego al seleccionar cliente)
+			$productos = get_posts( [
+				'post_type'      => 'merc_producto',
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			] );
+			// All products shown in creation mode (to be filtered by client selection)
 		}
 
 		// Filtrar productos con stock disponible
@@ -609,8 +619,13 @@ class MERC_Shipment_Form_Fields {
 				<section class="card-body">
 					<?php if ( empty( $productos_disponibles ) ) : ?>
 						<div class="alert alert-warning">
-							<strong>⚠️ No hay productos disponibles</strong><br>
-							Por favor, agrega productos al almacén desde el panel de administración.
+							<?php if ( $es_admin && $cliente_id === null && $shipment_id === 0 ) : ?>
+								<strong>ℹ️ Selecciona un cliente</strong><br>
+								Los productos disponibles aparecerán automáticamente cuando selecciones un cliente remitente.
+							<?php else : ?>
+								<strong>⚠️ No hay productos disponibles</strong><br>
+								Por favor, agrega productos al almacén desde el panel de administración.
+							<?php endif; ?>
 						</div>
 					<?php else : ?>
 					<div class="row">
