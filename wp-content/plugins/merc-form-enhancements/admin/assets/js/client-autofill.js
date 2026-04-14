@@ -292,21 +292,21 @@ jQuery(document).ready(function ($) {
      * RECARGAR PRODUCTOS DEL CLIENTE
      * ══════════════════════════════════════════════════════════════ */
     function recargarProductosCliente(shipperId) {
-        console.log('[ProductReload] 🔄 Iniciando recarga de productos para shipper:', shipperId);
+        console.log('[ProductReload] 🔄 FUNCIÓN LLAMADA - shipperId:', shipperId);
+        console.log('[ProductReload] DEBUG: ajaxurl=', typeof ajaxurl, 'nonce=', typeof nonce);
         
         if (!shipperId) {
             console.warn('[ProductReload] ⚠️ shipperId vacío, abortando');
             return;
         }
 
-        // Obtener shipment_id del formulario (asumiendo que existe)
-        var shipmentId = jQuery('input[name="post_ID"], input[name="shipment_id"]').first().val();
-        if (!shipmentId) {
-            console.warn('[ProductReload] ⚠️ No se encontró shipment_id en el formulario');
-            return;
-        }
-
+        // Obtener shipment_id - puede ser 0 en creación de envíos
+        var shipmentId = jQuery('input[name="post_ID"]').val() || jQuery('input[name="shipment_id"]').val() || '0';
+        shipmentId = parseInt(shipmentId) || 0;
+        
         console.log('[ProductReload] 📤 Enviando AJAX para recargar productos...');
+        console.log('[ProductReload]    ajaxurl:', ajaxurl);
+        console.log('[ProductReload]    nonce:', nonce);
         console.log('[ProductReload]    shipment_id:', shipmentId, '| shipper_id:', shipperId);
 
         $.post(ajaxurl, {
@@ -319,7 +319,7 @@ jQuery(document).ready(function ($) {
             console.log('[ProductReload] <─── Respuesta AJAX:', resp);
             if (resp && resp.success && resp.data && resp.data.html) {
                 // Buscar todos los selects de productos y actualizarlos
-                var $productSelects = jQuery('select[name="merc_producto_id[]"], .merc_producto_id');
+                var $productSelects = jQuery('select[name="merc_producto_id[]"]');
                 console.log('[ProductReload] 📋 Encontrados', $productSelects.length, 'selectores de producto');
 
                 if ($productSelects.length > 0) {
