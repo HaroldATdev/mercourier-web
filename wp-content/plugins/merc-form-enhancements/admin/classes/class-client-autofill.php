@@ -86,6 +86,9 @@ class MERC_Client_Autofill {
 			get_user_meta( $user_id, 'last_name',  true )
 		);
 
+		// 🔄 GENERAR ARRAY DE PRODUCTOS DEL CLIENTE
+		$productos_opciones = $this->generar_opciones_productos_cliente( $user_id );
+
 		wp_send_json_success( [
 			'nombre'    => $nombre_completo ?: $user->display_name,
 			'telefono'  => get_user_meta( $user_id, 'phone',               true ),
@@ -95,7 +98,50 @@ class MERC_Client_Autofill {
 			'empresa'   => get_user_meta( $user_id, 'billing_company',     true ),
 			'link_maps' => get_user_meta( $user_id, 'link_maps_remitente', true ),
 			'motorizado_recojo_default' => get_user_meta( $user_id, 'merc_motorizo_recojo_default', true ),
+			'productos' => $productos_opciones, // Array de opciones del selector
 		] );
+	}
+
+	/**
+	 * Genera el array de opciones de productos para un cliente
+	 * Retorna array de [ 'id' => product_id, 'titulo' => product_title, 'stock' => stock_qty ]
+	 */
+	private function generar_opciones_productos_cliente( int $user_id ): array {
+		// Meta query para filtrar productos asignados a este cliente
+		$meta_query = [
+			[
+				'key'     => '_merc_producto_cliente_asignado',
+				'value'   => $user_id,
+				'compare' => '=',
+			],
+		];
+
+		// Obtener productos disponibles filtrados por cliente
+		$productos = get_posts( [
+			'post_type'      => 'merc_producto',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+			'meta_query'     => $meta_query,
+		] );
+
+		// Filtrar productos con stock disponible
+		$productos_opciones = [];
+		foreach ( $productos as $prod ) {
+			$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
+			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+
+			if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
+				$productos_opciones[] = [
+					'id'     => intval( $prod->ID ),
+					'titulo' => sanitize_text_field( $prod->post_title ),
+					'stock'  => intval( $cantidad ),
+				];
+			}
+		}
+
+		return $productos_opciones;
 	}
 }
 
