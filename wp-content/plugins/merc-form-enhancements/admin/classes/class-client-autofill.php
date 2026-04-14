@@ -107,31 +107,28 @@ class MERC_Client_Autofill {
 	 * Retorna array de [ 'id' => product_id, 'titulo' => product_title, 'stock' => stock_qty ]
 	 */
 	private function generar_opciones_productos_cliente( int $user_id ): array {
-		// Meta query para filtrar productos asignados a este cliente
-		$meta_query = [
-			[
-				'key'     => '_merc_producto_cliente_asignado',
-				'value'   => $user_id,
-				'compare' => '=',
-			],
-		];
-
-		// Obtener productos disponibles filtrados por cliente
+		// SIMPLIFICADO: Mostrar TODOS los productos disponibles sin filtrar por cliente
+		// (Los productos se pueden filtrar después si es necesario, pero por ahora mostramos todos)
+		
 		$productos = get_posts( [
 			'post_type'      => 'merc_producto',
 			'posts_per_page' => -1,
 			'post_status'    => 'publish',
 			'orderby'        => 'title',
 			'order'          => 'ASC',
-			'meta_query'     => $meta_query,
 		] );
 
-		// Filtrar productos con stock disponible
+		error_log( "📦 [generar_opciones] Encontrados " . count($productos) . " productos en total para user_id=$user_id" );
+
+		// Filtrar productos con stock disponible o sin estado asignado
 		$productos_opciones = [];
 		foreach ( $productos as $prod ) {
 			$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
 			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
 
+			// Incluir producto si:
+			// - No tiene estado asignado (sin_asignar)
+			// - O si tiene estado 'asignado' pero tiene stock > 0
 			if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
 				$productos_opciones[] = [
 					'id'     => intval( $prod->ID ),
@@ -140,6 +137,8 @@ class MERC_Client_Autofill {
 				];
 			}
 		}
+
+		error_log( "✅ [generar_opciones] Retornando " . count($productos_opciones) . " opciones disponibles para user_id=$user_id" );
 
 		return $productos_opciones;
 	}
