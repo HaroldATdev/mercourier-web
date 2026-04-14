@@ -30,6 +30,9 @@ class MERC_Shipment_Form_Fields {
 		// También ejecutar la verificación final después del flujo de importación CSV
 		add_action( 'wpcie_after_save_csv_import', [ $this, 'verify_final_shipping_cost' ], 99999, 2 );
 		add_action( 'edit_post',                   [ $this, 'log_edit_shipping_cost' ], 10, 2 );
+
+		// Registrar handlers AJAX desde la misma instancia para evitar doble instanciación
+		$this->__construct_ajax_handlers();
 	}
 
 	/* ── Desglose del costo de envío ─────────────────────────────────────── */
@@ -454,19 +457,18 @@ class MERC_Shipment_Form_Fields {
 			$tipo_envio = get_post_meta( $shipment_id, 'tipo_envio', true );
 		}
 		
-		// DEBUG: Loguear entrada a la función
-		error_log("📦 [MERC_FORM] render_producto_selector() - shipment_id={$shipment_id}, tipo_envio={$tipo_envio}, URL params: " . json_encode($_GET));
+		// render_producto_selector() called
 		
 		// Solo mostrar si el tipo de envío es MERC FULL FITMENT
 		if ( $tipo_envio !== 'full_fitment' ) {
-			error_log("📦 [MERC_FORM] Tipo no es FULL FITMENT, saliendo de render_producto_selector()");
+			// Not a full_fitment shipment — do not render product selector
 			return;
 		}
 
 		// Evitar renderizado múltiple
 		static $ya_renderizado = false;
 		if ( $ya_renderizado ) {
-			error_log("📦 [MERC_FORM] Ya fue renderizado, evitando duplicación");
+			// Already rendered; avoid duplication
 			return;
 		}
 		$ya_renderizado = true;
@@ -478,16 +480,16 @@ class MERC_Shipment_Form_Fields {
 		// Determinar ID del cliente a filtrar
 		// Prioridad: 1) shipper_id del POST (cliente seleccionado en el formulario)
 		//            2) Usuario actual si no es admin
-		//            3) No filtrar si es admin sin shipper_id específico
+		//            3) NO FILTRAR si es admin sin shipper_id específico
 		$cliente_id = null;
 		if ( ! empty( $_POST['shipper_id'] ) ) {
 			$cliente_id = intval( $_POST['shipper_id'] );
-			error_log("📦 [MERC_FORM] Cliente desde POST (shipper_id): {$cliente_id}");
 		} elseif ( ! $es_admin ) {
 			$cliente_id = $current_user_id;
-			error_log("📦 [MERC_FORM] Cliente: usuario actual (no-admin): {$cliente_id}");
 		} else {
-			error_log("📦 [MERC_FORM] Admin sin shipper_id específico - mostrar todos los productos");
+			// Admin sin shipper_id: No hay cliente definido aún
+			// El selector se llenará cuando el admin seleccione un cliente vía AJAX
+			// Admin without shipper_id: selector will remain empty until client selection
 		}
 
 		// Construir meta_query para filtrar por cliente
@@ -502,15 +504,33 @@ class MERC_Shipment_Form_Fields {
 			];
 		}
 
-		// Obtener productos disponibles filtrados por cliente
-		$productos = get_posts( [
-			'post_type'      => 'merc_producto',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'meta_query'     => $meta_query,
-		] );
+		// Obtener productos disponibles
+		// Si hay cliente definido, filtrar por ese cliente
+		// Si no hay cliente (creación de envío por admin), obtener TODOS los productos
+		$productos = [];
+		if ( $cliente_id !== null ) {
+			// Cliente específico: obtener solo sus productos
+			$productos = get_posts( [
+				'post_type'      => 'merc_producto',
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'meta_query'     => $meta_query,
+			] );
+			// Products found for specific client
+		} else {
+			// Sin cliente definido (creación): mostrar TODOS los productos disponibles
+			// (El admin podrá filtrar luego al seleccionar cliente)
+			$productos = get_posts( [
+				'post_type'      => 'merc_producto',
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			] );
+			// All products shown in creation mode (to be filtered by client selection)
+		}
 
 		// Filtrar productos con stock disponible
 		$productos_disponibles = [];
@@ -523,7 +543,7 @@ class MERC_Shipment_Form_Fields {
 			}
 		}
 
-		error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Productos disponibles iniciales: " . count( $productos_disponibles ));
+		// Productos disponibles iniciales: count($productos_disponibles)
 
 		// Obtener producto(s) ya seleccionado(s) (si existe)
 		$producto_seleccionado  = get_post_meta( $shipment_id, '_merc_producto_id', true );
@@ -533,16 +553,16 @@ class MERC_Shipment_Form_Fields {
 		// Asegurar que la cantidad tenga un valor válido por defecto
 		$cantidad_seleccionada = ! empty( $cantidad_seleccionada ) ? intval( $cantidad_seleccionada ) : 1;
 		
-		error_log("📦 [MERC_FORM] Envío #{$shipment_id} - _merc_producto_id=" . json_encode($producto_seleccionado) . ", _merc_cantidad=" . $cantidad_seleccionada . ", _merc_productos_multi=" . json_encode($productos_multi));
+		// Carga de producto(s) seleccionado(s) para el envío
 		
 		if ( empty( $productos_multi ) || ! is_array( $productos_multi ) ) {
 			// Normalizar formato: si hay un producto simple, usarlo como array de un elemento
 			if ( $producto_seleccionado ) {
 				$productos_multi = [ [ 'id' => intval( $producto_seleccionado ), 'cantidad' => $cantidad_seleccionada ] ];
-				error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Normalizando desde _merc_producto_id a array: id=" . intval( $producto_seleccionado ) . ", cantidad=" . $cantidad_seleccionada);
+				// Normalizar producto simple a array multi
 			} else {
 				$productos_multi = [];
-				error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Sin productos asignados");
+				// No products assigned to this shipment
 			}
 		} else {
 			// Si ya existe `$productos_multi` como array, asegurar que cada item tiene cantidad válida
@@ -551,13 +571,13 @@ class MERC_Shipment_Form_Fields {
 					$item['cantidad'] = 1;
 				}
 			}
-			error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Cargado array _merc_productos_multi con " . count($productos_multi) . " productos");
+			// Loaded productos_multi array
 		}
 
 		// En modo edición: SIEMPRE agregar los productos ya asignados a este envío
 		// (incluso si no tienen stock disponible, porque ya están asignados aquí)
 		if ( $shipment_id > 0 && ! empty( $productos_multi ) ) {
-			error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Agregando productos asignados: " . count( $productos_multi ) . " productos");
+			// Adding already-assigned products to selector (edit mode)
 			foreach ( $productos_multi as $p_item ) {
 				$p_id = intval( $p_item['id'] ?? 0 );
 				if ( $p_id <= 0 ) continue;
@@ -576,12 +596,12 @@ class MERC_Shipment_Form_Fields {
 					$producto_actual = get_post( $p_id );
 					if ( $producto_actual && $producto_actual->post_type === 'merc_producto' ) {
 						$productos_disponibles[] = $producto_actual;
-						error_log("📦 [MERC_FORM] Envío #{$shipment_id} - ✅ Agregado producto #{$p_id} ({$producto_actual->post_title}) al selector");
+						// Added assigned product to selector
 					} else {
-						error_log("📦 [MERC_FORM] Envío #{$shipment_id} - ❌ Producto #{$p_id} no encontrado o no es tipo merc_producto");
+						// Assigned product not found or not of type merc_producto
 					}
 				} else {
-					error_log("📦 [MERC_FORM] Envío #{$shipment_id} - Producto #{$p_id} ya estaba en lista");
+					// Assigned product already in available list
 				}
 			}
 		}
@@ -599,8 +619,13 @@ class MERC_Shipment_Form_Fields {
 				<section class="card-body">
 					<?php if ( empty( $productos_disponibles ) ) : ?>
 						<div class="alert alert-warning">
-							<strong>⚠️ No hay productos disponibles</strong><br>
-							Por favor, agrega productos al almacén desde el panel de administración.
+							<?php if ( $es_admin && $cliente_id === null && $shipment_id === 0 ) : ?>
+								<strong>ℹ️ Selecciona un cliente</strong><br>
+								Los productos disponibles aparecerán automáticamente cuando selecciones un cliente remitente.
+							<?php else : ?>
+								<strong>⚠️ No hay productos disponibles</strong><br>
+								Por favor, agrega productos al almacén desde el panel de administración.
+							<?php endif; ?>
 						</div>
 					<?php else : ?>
 					<div class="row">
@@ -612,7 +637,7 @@ class MERC_Shipment_Form_Fields {
 										<?php foreach ( $productos_multi as $p_index => $p_item ) :
 											$selected_id = intval( $p_item['id'] ?? 0 );
 											$selected_qty = intval( $p_item['cantidad'] ?? 1 );
-											error_log("📦 [MERC_FORM_RENDER] Renderizando producto seleccionado en fila: id={$selected_id}, qty={$selected_qty}");
+											// Render selected product row
 										?>
 											<div class="merc-product-row" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
 											<select name="merc_producto_id[]" class="form-control merc_producto_id" style="flex:1; display:block !important; width:100% !important;">
@@ -626,7 +651,7 @@ class MERC_Shipment_Form_Fields {
 														$dimensiones  = get_post_meta( $prod->ID, '_merc_producto_dimensiones', true );
 														$sel = ( $prod->ID == $selected_id ) ? 'selected' : '';
 														if ( $sel ) {
-															error_log("📦 [MERC_FORM_RENDER] Producto encontrado en lista: #{$prod->ID} ({$prod->post_title}) - stock={$stock}");
+															// Product matched in available list
 														}
 													?>
 														<option value="<?php echo esc_attr( $prod->ID ); ?>" data-stock="<?php echo esc_attr( $stock ); ?>" <?php echo $sel; ?>>
@@ -653,7 +678,7 @@ class MERC_Shipment_Form_Fields {
 															if ( $prod_asignado && $prod_asignado->post_type === 'merc_producto' ) {
 																$stock_asignado = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod_asignado->ID ) : 0;
 																$stock_asignado = ! empty( $stock_asignado ) ? intval( $stock_asignado ) : 0;
-																error_log("📦 [MERC_FORM_RENDER] ⚠️ Producto asignado NO estaba en lista - Agregándolo manualmente: #{$selected_id} ({$prod_asignado->post_title}) - stock={$stock_asignado}");
+																// Assigned product not in available list; adding manually
 																?>
 																<option value="<?php echo esc_attr( $prod_asignado->ID ); ?>" data-stock="<?php echo esc_attr( $stock_asignado ); ?>" selected>
 																	<?php echo esc_html( $prod_asignado->post_title ); ?> - Stock: <?php echo esc_html( $stock_asignado ); ?> [ASIGNADO A ESTE ENVÍO]
@@ -1134,8 +1159,7 @@ class MERC_Shipment_Form_Fields {
 			// DIAGNÓSTICO: Ver qué recibe del formulario (ANTES de filtrar)
 			$raw_ids = $_POST['merc_producto_id'];
 			$raw_qtys = isset($_POST['merc_producto_cantidad']) ? $_POST['merc_producto_cantidad'] : [];
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_id BRUTO: " . json_encode($raw_ids));
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - POST recibido | merc_producto_cantidad BRUTO: " . json_encode($raw_qtys));
+				// POST raw product ids and quantities received (for debugging)
 
 			// CRÍTICO: Filtrar elementos vacíos del array antes de procesar
 			$ids = [];
@@ -1151,20 +1175,20 @@ class MERC_Shipment_Form_Fields {
 				}
 			}
 
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - IDs filtrados: " . json_encode($ids) . " | Cantidades filtradas: " . json_encode($qtys));
+				// IDs and quantities filtered for storage
 
 			$productos_to_store = [];
 			foreach ( $ids as $i => $id ) {
 				if ( $id <= 0 ) {
-					error_log("📦 [MERC_SAVE] Envío #{$post_id} - ID #{$i} es inválido (valor: {$id}), saltando");
+						// Invalid product id; skipping
 					continue;
 				}
 				$cant = isset( $qtys[ $i ] ) && intval( $qtys[ $i ] ) > 0 ? intval( $qtys[ $i ] ) : 1;
 				$productos_to_store[] = [ 'id' => $id, 'cantidad' => $cant ];
-				error_log("📦 [MERC_SAVE] Envío #{$post_id} - Agregado: id={$id}, cantidad={$cant}");
+						// Product added to list for saving
 			}
 
-			error_log("📦 [MERC_SAVE] Envío #{$post_id} - Productos a guardar: " . json_encode($productos_to_store) . " (total: " . count($productos_to_store) . ")");
+						// Products prepared for storage (count: " . count($productos_to_store) . ")
 
 			// Obtener productos anteriores para saber cuáles liberar si se remueven
 			$old_productos = get_post_meta( $post_id, '_merc_productos_multi', true );
@@ -1198,7 +1222,7 @@ class MERC_Shipment_Form_Fields {
 					// Contar cuántos SKUs ya están asignados a este envío en la tabla
 					$current_assigned = $this->merc_count_assigned_units( $product_id, $post_id );
 					
-					error_log("📦 [MERC_STOCK] Producto #{$product_id} - Requerido: {$required_qty}, Asignado en tabla: {$current_assigned}");
+								// Stock assignment details for product
 					
 					// Si necesitamos más unidades que las asignadas, asignar el resto
 					if ( $required_qty > $current_assigned ) {
@@ -1206,9 +1230,9 @@ class MERC_Shipment_Form_Fields {
 						if ( function_exists( 'merc_assign_stock_units' ) ) {
 							$result = merc_assign_stock_units( $product_id, $qty_to_assign, $post_id );
 							if ( $result ) {
-								error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Asignadas {$qty_to_assign} unidades al envío #{$post_id}");
+										// Assigned units to shipment
 							} else {
-								error_log("📦 [MERC_STOCK] Producto #{$product_id} - ❌ No se pudieron asignar {$qty_to_assign} unidades (stock insuficiente)");
+										// Could not assign some units (insufficient stock)
 							}
 						}
 					}
@@ -1217,7 +1241,7 @@ class MERC_Shipment_Form_Fields {
 						$qty_to_unassign = $current_assigned - $required_qty;
 						if ( function_exists( 'merc_unassign_stock_by_shipment' ) ) {
 							merc_unassign_stock_by_shipment( $product_id, $qty_to_unassign, $post_id );
-							error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Desasignadas {$qty_to_unassign} unidades");
+												// Units unassigned
 						}
 					}
 				}
@@ -1229,7 +1253,7 @@ class MERC_Shipment_Form_Fields {
 						$current_assigned = $this->merc_count_assigned_units( $product_id, $post_id );
 						if ( $current_assigned > 0 && function_exists( 'merc_unassign_stock_by_shipment' ) ) {
 							merc_unassign_stock_by_shipment( $product_id, $current_assigned, $post_id );
-							error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Desasignadas todas {$current_assigned} unidades (producto removido)");
+													// All units unassigned (product removed)
 						}
 						$affected_products[ $product_id ] = 0; // Marcar para actualizar estado
 					}
@@ -1253,7 +1277,7 @@ class MERC_Shipment_Form_Fields {
 				foreach ( $old_data as $product_id => $old_qty ) {
 					if ( function_exists( 'merc_unassign_stock_by_shipment' ) ) {
 						merc_unassign_stock_by_shipment( $product_id, $old_qty, $post_id );
-						error_log("📦 [MERC_STOCK] Producto #{$product_id} - ✅ Desasignadas todas {$old_qty} unidades (envío limpiado)");
+														// All units unassigned (shipment cleaned)
 					}
 					$this->merc_update_product_estado( $product_id );
 				}
@@ -1295,7 +1319,7 @@ class MERC_Shipment_Form_Fields {
 		$stock = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $product_id ) : 0;
 		$nuevo_estado = ( intval( $stock ) > 0 ) ? 'sin_asignar' : 'asignado';
 		update_post_meta( $product_id, '_merc_producto_estado', $nuevo_estado );
-		error_log("📦 [MERC_ESTADO_CALC] Producto #{$product_id} - Stock={$stock} → Estado: '{$nuevo_estado}'");
+					// Updated product state based on stock
 	}
 
 	/* ── Verificación final del costo de envío (logging) ─────────────────── */
@@ -1335,71 +1359,13 @@ class MERC_Shipment_Form_Fields {
 	/* ── AJAX: Recargar productos cuando cambia el cliente ─────────────────── */
 
 	public function __construct_ajax_handlers() {
-		add_action( 'wp_ajax_merc_reload_productos', [ $this, 'ajax_reload_productos' ] );
+		// El handler AJAX ahora se ejecuta en get_client_data_ajax()
+		// (generar_opciones_productos_cliente()) para optimizar y evitar llamadas innecesarias
 	}
 
-	public function ajax_reload_productos() {
-		check_ajax_referer( 'merc_form_nonce', 'nonce' );
-
-		$shipment_id = isset( $_POST['shipment_id'] ) ? intval( $_POST['shipment_id'] ) : 0;
-		$shipper_id  = isset( $_POST['shipper_id'] ) ? intval( $_POST['shipper_id'] ) : 0;
-
-		if ( ! $shipment_id || ! $shipper_id ) {
-			wp_send_json_error( [ 'message' => 'Datos inválidos' ] );
-		}
-
-		error_log( "🔄 [AJAX_RELOAD] Recargando productos para shipper_id={$shipper_id}, shipment_id={$shipment_id}" );
-
-		// Construir meta_query para filtrar por cliente
-		$meta_query = [
-			[
-				'key'     => '_merc_producto_cliente_asignado',
-				'value'   => $shipper_id,
-				'compare' => '=',
-			],
-		];
-
-		// Obtener productos disponibles filtrados por cliente
-		$productos = get_posts( [
-			'post_type'      => 'merc_producto',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'meta_query'     => $meta_query,
-		] );
-
-		// Filtrar productos con stock disponible
-		$productos_disponibles = [];
-		foreach ( $productos as $prod ) {
-			$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
-			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-
-			if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
-				$productos_disponibles[] = $prod;
-			}
-		}
-
-		// Construir HTML del selector
-		$html = '<option value="">-- Selecciona un producto --</option>';
-		foreach ( $productos_disponibles as $prod ) {
-			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
-			$label    = $prod->post_title . ' (Stock: ' . $cantidad . ')';
-			$html    .= '<option value="' . esc_attr( $prod->ID ) . '">' . esc_html( $label ) . '</option>';
-		}
-
-		error_log( "🔄 [AJAX_RELOAD] Retornando " . count( $productos_disponibles ) . " productos" );
-
-		wp_send_json_success( [
-			'html'    => $html,
-			'count'   => count( $productos_disponibles ),
-		] );
-	}
 }
 
-// Inicializar Ajax handlers en construct
-add_action( 'wp_ajax_merc_reload_productos', [ new MERC_Shipment_Form_Fields(), 'ajax_reload_productos' ] );
-
+// Inicializar la clase (una sola instancia)
 new MERC_Shipment_Form_Fields();
 
 

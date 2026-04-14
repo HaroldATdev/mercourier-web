@@ -86,6 +86,9 @@ class MERC_Client_Autofill {
 			get_user_meta( $user_id, 'last_name',  true )
 		);
 
+		// 🔄 GENERAR ARRAY DE PRODUCTOS DEL CLIENTE
+		$productos_opciones = $this->generar_opciones_productos_cliente( $user_id );
+
 		wp_send_json_success( [
 			'nombre'    => $nombre_completo ?: $user->display_name,
 			'telefono'  => get_user_meta( $user_id, 'phone',               true ),
@@ -95,7 +98,77 @@ class MERC_Client_Autofill {
 			'empresa'   => get_user_meta( $user_id, 'billing_company',     true ),
 			'link_maps' => get_user_meta( $user_id, 'link_maps_remitente', true ),
 			'motorizado_recojo_default' => get_user_meta( $user_id, 'merc_motorizo_recojo_default', true ),
+			'productos' => $productos_opciones, // Array de opciones del selector
 		] );
+	}
+
+	/**
+	 * Genera el array de opciones de productos para un cliente
+	 * Retorna array de [ 'id' => product_id, 'titulo' => product_title, 'stock' => stock_qty ]
+	 */
+	private function generar_opciones_productos_cliente( int $user_id ): array {
+		// Asegurar que user_id es válido
+		$user_id = intval( $user_id );
+		if ( $user_id <= 0 ) {
+			error_log( "MERC_DEBUG_PRODUCTOS: ❌ user_id inválido: $user_id" );
+			return [];
+		}
+
+		// Verificar que el usuario existe
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			error_log( "MERC_DEBUG_PRODUCTOS: ❌ Usuario no existe: $user_id" );
+			return [];
+		}
+
+		error_log( "MERC_DEBUG_PRODUCTOS: 🔍 [INICIO] Buscando productos para usuario: " . $user->user_login . " (ID: $user_id)" );
+
+		// Buscar productos asignados EXPLÍCITAMENTE a este cliente por meta
+		$productos = get_posts( [
+			'post_type'      => 'merc_producto',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+			'meta_query'     => [
+				[
+					'key'     => '_merc_producto_cliente_asignado',
+					'value'   => $user_id, // Valor exacto, no conversión
+					'compare' => '=',
+					'type'    => 'NUMERIC', // Comparación numérica
+				],
+			],
+		] );
+
+		error_log( "MERC_DEBUG_PRODUCTOS: ✅ Query devolvió " . count($productos) . " productos para user_id=$user_id" );
+
+		// Filtrar productos con stock disponible
+		$productos_opciones = [];
+		foreach ( $productos as $prod ) {
+			$estado   = get_post_meta( $prod->ID, '_merc_producto_estado', true );
+			$cantidad = function_exists( 'merc_get_product_stock' ) ? merc_get_product_stock( $prod->ID ) : 0;
+			$cliente_meta = get_post_meta( $prod->ID, '_merc_producto_cliente_asignado', true );
+			error_log( "MERC_DEBUG_PRODUCTOS: Producto ID=" . $prod->ID . " titulo=" . $prod->post_title . " meta_cliente=" . $cliente_meta . " estado=" . $estado . " stock=" . $cantidad );
+
+			// Debug: verificar que la meta realmente coincide
+			if ( intval( $cliente_meta ) !== $user_id ) {
+				error_log( "MERC_DEBUG_PRODUCTOS: ⚠️ SALTANDO Producto ID=" . $prod->ID . " - meta_cliente=" . $cliente_meta . " !== user_id=" . $user_id );
+				continue; // Saltar este producto
+			}
+
+			if ( empty( $estado ) || $estado === 'sin_asignar' || ( $estado === 'asignado' && intval( $cantidad ) > 0 ) ) {
+				$productos_opciones[] = [
+					'id'     => intval( $prod->ID ),
+					'titulo' => sanitize_text_field( $prod->post_title ),
+					'stock'  => intval( $cantidad ),
+				];
+				error_log( "MERC_DEBUG_PRODUCTOS: ✓ INCLUIDO Producto ID=" . $prod->ID . " en opciones" );
+			}
+		}
+
+		error_log( "MERC_DEBUG_PRODUCTOS: 🎯 [FIN] Retornando " . count($productos_opciones) . " opciones filtradas para user_id=$user_id (desde " . count($productos) . " totales)" );
+
+		return $productos_opciones;
 	}
 }
 

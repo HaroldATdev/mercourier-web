@@ -257,8 +257,13 @@ jQuery(document).ready(function ($) {
                     toast('⚠️ No se pudieron rellenar los campos', '#f39c12');
                 }
                 
-                // 🔄 RECARGAR PRODUCTOS DEL CLIENTE
-                recargarProductosCliente(userId);
+                // 🔄 ACTUALIZAR SELECTOR DE PRODUCTOS DESDE LA RESPUESTA
+                if (resp.data.productos && Array.isArray(resp.data.productos)) {
+                    console.log('[ClientAutofill] 🔄 Actualizando productos (' + resp.data.productos.length + ' encontrados)');
+                    actualizarSelectorProductos(resp.data.productos);
+                } else {
+                    console.warn('[ClientAutofill] ⚠️ Sin array de productos en respuesta');
+                }
             } else {
                 console.warn('[ClientAutofill] ⚠️ Respuesta sin datos:', resp);
                 if (resp && resp.data && resp.data.message) {
@@ -289,63 +294,70 @@ jQuery(document).ready(function ($) {
     }
 
     /* ══════════════════════════════════════════════════════════════
-     * RECARGAR PRODUCTOS DEL CLIENTE
+     * ACTUALIZAR SELECTOR DE PRODUCTOS CON ARRAY
      * ══════════════════════════════════════════════════════════════ */
-    function recargarProductosCliente(shipperId) {
-        console.log('[ProductReload] 🔄 Iniciando recarga de productos para shipper:', shipperId);
+    function actualizarSelectorProductos(productosArray) {
+        // productosArray = [ { id, titulo, stock }, ... ]
+        console.log('[ClientAutofill] 🔄 actualizarSelectorProductos() llamado');
+        console.log('[ClientAutofill]   Productos recibidos:', productosArray);
+        console.log('[ClientAutofill]   Array length:', productosArray ? productosArray.length : 'null');
+
+        if (!productosArray || productosArray.length === 0) {
+            console.warn('[ClientAutofill] ⚠️ Array de productos vacío o null');
+            alert('⚠️ Sin productos disponibles para este cliente');
+            return;
+        }
+
+        // Construir HTML de opciones
+        var html = '<option value="">-- Selecciona un producto --</option>';
+        for (var i = 0; i < productosArray.length; i++) {
+            var prod = productosArray[i];
+            var label = (prod.titulo || 'Producto sin nombre') + ' (Stock: ' + (prod.stock || 0) + ')';
+            html += '<option value="' + prod.id + '">' + label + '</option>';
+        }
+
+        console.log('[ClientAutofill]   HTML generado (' + productosArray.length + ' opciones), actualizando selects...');
+
+        // Actualizar todos los selects y la plantilla de fila
+        var $productSelects = jQuery('select[name="merc_producto_id[]"]');
+        console.log('[ClientAutofill]   - Selects encontrados:', $productSelects.length);
         
-        if (!shipperId) {
-            console.warn('[ProductReload] ⚠️ shipperId vacío, abortando');
+        if ($productSelects.length === 0) {
+            console.error('[ClientAutofill] ❌ NO HAY SELECTS CON NAME "merc_producto_id[]"');
+            alert('❌ Error: No se encontró el selector de productos en el formulario');
             return;
         }
-
-        // Obtener shipment_id del formulario (asumiendo que existe)
-        var shipmentId = jQuery('input[name="post_ID"], input[name="shipment_id"]').first().val();
-        if (!shipmentId) {
-            console.warn('[ProductReload] ⚠️ No se encontró shipment_id en el formulario');
-            return;
-        }
-
-        console.log('[ProductReload] 📤 Enviando AJAX para recargar productos...');
-        console.log('[ProductReload]    shipment_id:', shipmentId, '| shipper_id:', shipperId);
-
-        $.post(ajaxurl, {
-            action:     'merc_reload_productos',
-            nonce:      nonce,
-            shipment_id: shipmentId,
-            shipper_id: shipperId
-        })
-        .done(function (resp) {
-            console.log('[ProductReload] <─── Respuesta AJAX:', resp);
-            if (resp && resp.success && resp.data && resp.data.html) {
-                // Buscar todos los selects de productos y actualizarlos
-                var $productSelects = jQuery('select[name="merc_producto_id[]"], .merc_producto_id');
-                console.log('[ProductReload] 📋 Encontrados', $productSelects.length, 'selectores de producto');
-
-                if ($productSelects.length > 0) {
-                    $productSelects.each(function (index) {
-                        console.log('[ProductReload] ✅ Actualizando selector #', index);
-                        jQuery(this).html(resp.data.html);
-                    });
-                    console.log('[ProductReload] ✅ Todos los selectores actualizados exitosamente');
-                    toast('✅ Productos del cliente cargados', '#4CAF50');
-                } else {
-                    console.warn('[ProductReload] ⚠️ No se encontraron selectores de productos');
-                    toast('⚠️ No se encontró selector de productos', '#f39c12');
-                }
-            } else {
-                console.warn('[ProductReload] ⚠️ Respuesta sin datos:', resp);
-                if (resp && resp.data && resp.data.message) {
-                    console.error('[ProductReload] Mensaje del servidor:', resp.data.message);
-                }
-                toast('⚠️ Error al cargar productos', '#f39c12');
-            }
-        })
-        .fail(function (xhr) {
-            console.error('[ProductReload] ❌ Error AJAX status:', xhr.status);
-            console.error('[ProductReload] Response text:', xhr.responseText);
-            toast('❌ Error al recargar productos', '#e74c3c');
+        
+        $productSelects.each(function (idx) { 
+            jQuery(this).html(html);
+            console.log('[ClientAutofill]   ✓ Select #' + idx + ' actualizado');
         });
+
+        var $template = jQuery('#merc_product_template');
+        console.log('[ClientAutofill]   - Template encontrado:', $template.length > 0 ? '✓' : '✗');
+        if ($template.length) {
+            $template.find('select[name="merc_producto_id[]"]').html(html);
+            console.log('[ClientAutofill]   ✓ Template actualizado');
+        }
+
+        // Actualizar pequeño contador si existe
+        var $contador = jQuery('#merc_producto_wrapper').find('small.text-muted').first();
+        console.log('[ClientAutofill]   - Contador encontrado:', $contador.length > 0 ? '✓' : '✗');
+        if ($contador.length) {
+            $contador.text('Solo se muestran productos disponibles (' + productosArray.length + ' total)');
+            console.log('[ClientAutofill]   ✓ Contador actualizado a: ' + productosArray.length);
+        }
+
+        // Ocultar alerta de "No hay productos" si existe
+        var $alerta = jQuery('#merc_producto_wrapper').find('.alert-warning').first();
+        console.log('[ClientAutofill]   - Alerta encontrada:', $alerta.length > 0 ? '✓' : '✗');
+        if ($alerta.length && productosArray.length > 0) {
+            $alerta.hide();
+            console.log('[ClientAutofill]   ✓ Alerta oculta');
+        }
+
+        console.log('[ClientAutofill] ✅ Selector de productos actualizado con éxito');
+        alert('✅ Productos cargados (' + productosArray.length + ' disponibles)');
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -435,6 +447,16 @@ jQuery(document).ready(function ($) {
         var v = $(this).val();
         console.log('[ClientAutofill] [EVENT:change] Cliente seleccionado:', v, '| Selector:', this.name || this.id);
         if (v && v !== '0' && v !== '') cargarDatosCliente(v);
+    });
+
+    // Listener DIRECTO para #registered_client (para asegurar que se ejecute)
+    jQuery('#registered_client').on('change select2:select', function() {
+        var v = jQuery(this).val();
+        console.log('[ClientAutofill] [DIRECT_LISTENER] #registered_client cambió a:', v);
+        if (v && v !== '0' && v !== '') {
+            console.log('[ClientAutofill] 📞 Ejecutando cargarDatosCliente(' + v + ')');
+            cargarDatosCliente(v);
+        }
     });
 
     // Select2 dispara este evento en adición a change
