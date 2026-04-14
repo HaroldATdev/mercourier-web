@@ -994,12 +994,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
 
                     res.data.forEach((unit, idx) => {
-                        const bgcolor = idx % 2 === 0 ? '#ffffff' : '#f9f9f9';
-                        const statusText = unit.estado === 'entregado' ? '✅ Entregado' :
-                            (unit.estado === 'asignado' ? '🚚 Asignado' : '📦 Disponible');
-                        const statusColor = unit.estado === 'entregado' ? '#27ae60' :
-                            (unit.estado === 'asignado' ? '#3498db' : '#95a5a6');
-
+                        const unitStatus = String(unit.status || unit.estado || '').toLowerCase();
+                        const isDelivered = ['entregado', 'delivered'].includes(unitStatus);
+                        const isAssigned = ['asignado', 'assigned'].includes(unitStatus);
+                        const statusText = isDelivered ? '✅ Entregado' :
+                            (isAssigned ? '🚚 Asignado' : '📦 Disponible');
+                        const statusColor = isDelivered ? '#27ae60' :
+                            (isAssigned ? '#3498db' : '#95a5a6');
                         unitsHtml += `
                         <tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">
                             <td style="padding: 10px; font-weight: 600; color: #2c3e50;">${unit.sku || unit.id}</td>

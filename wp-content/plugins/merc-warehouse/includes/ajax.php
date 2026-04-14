@@ -486,6 +486,7 @@ function merc_get_product_units_ajax() {
 
     // Agregar información del motorizado y tracking para cada unidad
     foreach ($rows as &$row) {
+        $status = strtolower(trim((string)($row['status'] ?? 'available')));
         $row['motorizado'] = '-';
         $row['tracking'] = '-';
         
@@ -513,7 +514,27 @@ function merc_get_product_units_ajax() {
                     $row['motorizado_id'] = $motorizado_user->ID;
                 }
             }
+
+            // Si la unidad ya está dentro de un envío, no debe seguir apareciendo como disponible.
+            if (in_array($status, array('', 'available', 'disponible', 'sin_asignar'), true)) {
+                $status = 'assigned';
+
+                $wpdb->update(
+                    $table,
+                    array(
+                        'status' => 'assigned',
+                    ),
+                    array(
+                        'id' => intval($row['id']),
+                    ),
+                    array('%s'),
+                    array('%d')
+                );
+            }
         }
+
+        $row['status'] = $status;
+        $row['estado'] = $status;
     }
 
     while ( ob_get_level() > 0 ) { ob_end_clean(); }
