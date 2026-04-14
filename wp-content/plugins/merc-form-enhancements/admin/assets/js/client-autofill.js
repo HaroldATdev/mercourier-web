@@ -292,58 +292,38 @@ jQuery(document).ready(function ($) {
      * RECARGAR PRODUCTOS DEL CLIENTE
      * ══════════════════════════════════════════════════════════════ */
     function recargarProductosCliente(shipperId) {
-        console.log('[ProductReload] 🔄 FUNCIÓN LLAMADA - shipperId:', shipperId);
-        console.log('[ProductReload] DEBUG: ajaxurl=', typeof ajaxurl, 'nonce=', typeof nonce);
-        
-        if (!shipperId) {
-            console.warn('[ProductReload] ⚠️ shipperId vacío, abortando');
-            return;
-        }
+        // Recarga las opciones del selector de productos para el cliente dado.
+        if (!shipperId) return;
 
-        // Obtener shipment_id - puede ser 0 en creación de envíos
+        // Obtener shipment_id (0 si es creación)
         var shipmentId = jQuery('input[name="post_ID"]').val() || jQuery('input[name="shipment_id"]').val() || '0';
         shipmentId = parseInt(shipmentId) || 0;
-        
-        console.log('[ProductReload] 📤 Enviando AJAX para recargar productos...');
-        console.log('[ProductReload]    ajaxurl:', ajaxurl);
-        console.log('[ProductReload]    nonce:', nonce);
-        console.log('[ProductReload]    shipment_id:', shipmentId, '| shipper_id:', shipperId);
 
         $.post(ajaxurl, {
-            action:     'merc_reload_productos',
-            nonce:      nonce,
+            action:      'merc_reload_productos',
+            nonce:       nonce,
             shipment_id: shipmentId,
-            shipper_id: shipperId
+            shipper_id:  shipperId
         })
         .done(function (resp) {
-            console.log('[ProductReload] <─── Respuesta AJAX:', resp);
             if (resp && resp.success && resp.data && resp.data.html) {
-                // Buscar todos los selects de productos y actualizarlos
+                // Actualizar todos los selects y la plantilla de fila
                 var $productSelects = jQuery('select[name="merc_producto_id[]"]');
-                console.log('[ProductReload] 📋 Encontrados', $productSelects.length, 'selectores de producto');
+                $productSelects.each(function () { jQuery(this).html(resp.data.html); });
 
-                if ($productSelects.length > 0) {
-                    $productSelects.each(function (index) {
-                        console.log('[ProductReload] ✅ Actualizando selector #', index);
-                        jQuery(this).html(resp.data.html);
-                    });
-                    console.log('[ProductReload] ✅ Todos los selectores actualizados exitosamente');
-                    toast('✅ Productos del cliente cargados', '#4CAF50');
-                } else {
-                    console.warn('[ProductReload] ⚠️ No se encontraron selectores de productos');
-                    toast('⚠️ No se encontró selector de productos', '#f39c12');
-                }
+                var $template = jQuery('#merc_product_template');
+                if ($template.length) $template.find('select[name="merc_producto_id[]"]').html(resp.data.html);
+
+                // Actualizar pequeño contador si existe
+                var $contador = jQuery('#merc_producto_wrapper').find('small.text-muted').first();
+                if ($contador.length) $contador.text('Solo se muestran productos disponibles (' + (resp.data.count || 0) + ' total)');
+
+                toast('✅ Productos del cliente cargados', '#4CAF50');
             } else {
-                console.warn('[ProductReload] ⚠️ Respuesta sin datos:', resp);
-                if (resp && resp.data && resp.data.message) {
-                    console.error('[ProductReload] Mensaje del servidor:', resp.data.message);
-                }
                 toast('⚠️ Error al cargar productos', '#f39c12');
             }
         })
-        .fail(function (xhr) {
-            console.error('[ProductReload] ❌ Error AJAX status:', xhr.status);
-            console.error('[ProductReload] Response text:', xhr.responseText);
+        .fail(function () {
             toast('❌ Error al recargar productos', '#e74c3c');
         });
     }
