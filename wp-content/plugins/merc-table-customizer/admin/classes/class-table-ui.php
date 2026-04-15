@@ -488,6 +488,16 @@ class MERC_Table_UI {
         }
         addListoParaSalirColumn();
 
+        // Unhide botones de firma (.wpcpod-sign_data) en accordion y en tabla original.
+        // pod-scripts.js solo los muestra en #shipment-list; cuando el accordion reemplaza
+        // la tabla, los botones quedan con .hide-me y no se ven.
+        function unhidePodSignButtons() {
+            $('.wpcpod-sign_data').removeClass('hide-me');
+        }
+        unhidePodSignButtons();
+        setTimeout(unhidePodSignButtons, 800);
+        setTimeout(unhidePodSignButtons, 2000);
+
         function reemplazarEtiquetaShipmentStatus() {
             $('*:not(script):not(style)').contents().filter(function() {
                 return this.nodeType === 3 && /ES\s*SHIPMENT\s*STATUS/gi.test(this.nodeValue);
@@ -760,6 +770,7 @@ class MERC_Table_UI {
             const $estadoCells = $('td.shipment-status');
             if ($estadoCells.length > 0 && $selects.length === 0) { console.log('🔄 Convirtiendo estados a SELECT...'); convertirEstadoASelect(); }
             agregarBotonesReprogramar();
+            unhidePodSignButtons();
         }, 2000);
 
         function agregarBotonesReprogramar() {
