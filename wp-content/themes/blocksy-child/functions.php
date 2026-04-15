@@ -4340,7 +4340,7 @@ function merc_motorizado_entregas( $driver_id ) {
                 $total_general += $totales['total'];
                 ?>
                 <tr>
-                    <td><strong><a href="<?php echo esc_url( $tracking_url ); ?>">#<?php echo esc_html( $tracking_number ); ?></a></strong></td>
+                    <td><strong><a href="<?php echo esc_url( $tracking_url ); ?>" target="_blank" rel="noopener noreferrer">#<?php echo esc_html( $tracking_number ); ?></a></strong></td>
                     <td><?php echo esc_html( $shipment->destino ); ?></td>
                     <td>S/. <?php echo number_format( $totales['efectivo'], 2 ); ?></td>
                     <td>S/. <?php echo number_format( $totales['pago_merc'], 2 ); ?></td>
