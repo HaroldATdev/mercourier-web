@@ -29,6 +29,7 @@
 			<div id="images-section">
                 <a href="#" id="wpcargo-pod-img-btn" class="wpcargo-btn wpcargo-btn-success"><?php esc_html_e( 'ADD IMAGES', 'wpcargo-pod' ); ?></a>	
                 <input type="file" id="wpcargo-pod-file-input" multiple accept="image/*" style="display:none;">
+                <input type="file" id="wpcargo-pod-camera-input" accept="image/*" capture="camera" style="display:none;">
                 <div id="wpcargo-pod-images">			
                     <?php
                     $cambio_producto = get_post_meta($get_sid, 'cambio_producto', true);
@@ -230,12 +231,43 @@ jQuery(document).ready(function ($) {
 		});
 		$( '#wpcargo-pod-img-btn' ).click(function(e) {
 			e.preventDefault();
-			$('#wpcargo-pod-file-input').click();
+
+			var swalAvailable = typeof window.Swal !== 'undefined' || typeof window.swal !== 'undefined';
+			var SwalLib = window.Swal || window.swal;
+
+			if (!swalAvailable || !SwalLib || typeof SwalLib.fire !== 'function') {
+				// Fallback: abrir selector de archivos directamente
+				$('#wpcargo-pod-file-input').click();
+				return;
+			}
+
+			SwalLib.fire({
+				title: 'Agregar imagen',
+				text: '¿Cómo deseas agregar la imagen?',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonText: '📷 Tomar foto',
+				cancelButtonText: '🖼️ Subir imagen',
+				cancelButtonColor: '#3085d6',
+				confirmButtonColor: '#28a745',
+				reverseButtons: false,
+				footerHtml: '',
+				customClass: {
+					actions: 'merc-pod-swal-actions'
+				}
+			}).then(function(result) {
+				if (result.isConfirmed) {
+					// Tomar foto con la cámara
+					$('#wpcargo-pod-camera-input').val('').click();
+				} else if (result.dismiss === SwalLib.DismissReason.cancel) {
+					// Subir imagen desde archivos
+					$('#wpcargo-pod-file-input').val('').click();
+				}
+			});
 		});
 
-		$('#wpcargo-pod-file-input').change(function(e) {
-			var files = this.files;
-			if (files.length === 0) return;
+		function mercPodSubirImagenes(files) {
+			if (!files || files.length === 0) return;
 
 			var formData = new FormData();
 			var validImages = 0;
@@ -285,9 +317,17 @@ jQuery(document).ready(function ($) {
 					}
 				}
 			});
+		}
 
-			$('#wpcargo-pod-file-input').val('');
-		});	
+		$('#wpcargo-pod-file-input').change(function() {
+			mercPodSubirImagenes(this.files);
+			$(this).val('');
+		});
+
+		$('#wpcargo-pod-camera-input').change(function() {
+			mercPodSubirImagenes(this.files);
+			$(this).val('');
+		});
 	});
 	// ---------------- MÉTODOS DE PAGO DINÁMICOS ------------------
     const paymentModes = <?php echo json_encode( get_option('wpcargo_payment_modes', []) ); ?>;
