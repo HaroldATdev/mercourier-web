@@ -24,6 +24,7 @@ class MERC_Table_Ajax {
         // AJAX: solo usuarios logueados
         add_action( 'wp_ajax_merc_actualizar_estado_rapido',   [ $this, 'ajax_actualizar_estado' ] );
         add_action( 'wp_ajax_merc_notificar_reprogramacion',   [ $this, 'ajax_notificar_reprogramacion' ] );
+        add_action( 'wp_ajax_merc_get_reprogram_constraints',   [ $this, 'ajax_get_reprogram_constraints' ] );
         add_action( 'wp_ajax_merc_reprogramar_envio',          [ $this, 'ajax_reprogramar_envio' ] );
         add_action( 'wp_ajax_merc_anular_envio_cliente',       [ $this, 'ajax_anular_envio' ] );
         add_action( 'wp_ajax_merc_delete_shipment',            [ $this, 'ajax_delete_shipment' ] );
@@ -175,6 +176,60 @@ class MERC_Table_Ajax {
 
     /* ── AJAX: Reprogramar fecha de envío (cliente) ──────────────────────── */
 
+    private function get_reprogram_constraints( WP_Post $shipment ): array {
+        $tz = wp_timezone();
+
+        $post_date_obj = DateTime::createFromFormat( 'Y-m-d H:i:s', $shipment->post_date, $tz );
+        if ( ! $post_date_obj ) {
+            $post_date_obj = new DateTime( 'now', $tz );
+        }
+        $post_date_obj->setTime( 0, 0, 0 );
+
+        $base_min = clone $post_date_obj;
+        $base_min->modify( '+1 day' );
+
+        $today = new DateTime( 'today', $tz );
+        $min_allowed = ( $base_min > $today ) ? clone $base_min : clone $today;
+
+        // Domingo siempre bloqueado para reprogramación.
+        while ( intval( $min_allowed->format( 'w' ) ) === 0 ) {
+            $min_allowed->modify( '+1 day' );
+        }
+
+        return [
+            'post_date'         => $post_date_obj,
+            'base_min'          => $base_min,
+            'min_allowed'       => $min_allowed,
+            'post_date_iso'     => $post_date_obj->format( 'Y-m-d' ),
+            'post_date_display' => $post_date_obj->format( 'd/m/Y' ),
+            'min_date_iso'      => $min_allowed->format( 'Y-m-d' ),
+            'min_date_display'  => $min_allowed->format( 'd/m/Y' ),
+        ];
+    }
+
+    public function ajax_get_reprogram_constraints(): void {
+        check_ajax_referer( 'merc_reprogram_constraints', 'nonce' );
+
+        $shipment_id = isset( $_POST['shipment_id'] ) ? intval( $_POST['shipment_id'] ) : 0;
+        if ( empty( $shipment_id ) ) {
+            wp_send_json_error( 'ID de envío inválido' );
+        }
+
+        $shipment = get_post( $shipment_id );
+        if ( ! $shipment || $shipment->post_type !== 'wpcargo_shipment' ) {
+            wp_send_json_error( 'Envío no encontrado' );
+        }
+
+        $constraints = $this->get_reprogram_constraints( $shipment );
+
+        wp_send_json_success( [
+            'post_date'         => $constraints['post_date_display'],
+            'post_date_iso'     => $constraints['post_date_iso'],
+            'min_date'          => $constraints['min_date_display'],
+            'min_date_iso'      => $constraints['min_date_iso'],
+        ] );
+    }
+
     public function ajax_reprogramar_envio(): void {
         check_ajax_referer( 'merc_reprogramar', 'nonce' );
 
@@ -190,16 +245,23 @@ class MERC_Table_Ajax {
             wp_send_json_error( 'Formato de fecha inválido. Use DD/MM/YYYY' );
         }
 
-        $hoy = new DateTime();
-        $hoy->setTime( 0, 0, 0 );
-        $fecha_obj->setTime( 0, 0, 0 );
-        if ( $fecha_obj <= $hoy ) {
-            wp_send_json_error( 'La fecha debe ser posterior a hoy' );
-        }
-
         $shipment = get_post( $shipment_id );
         if ( ! $shipment || $shipment->post_type !== 'wpcargo_shipment' ) {
             wp_send_json_error( 'Envío no encontrado' );
+        }
+
+        $tz = wp_timezone();
+        $fecha_obj->setTimezone( $tz );
+        $fecha_obj->setTime( 0, 0, 0 );
+
+        if ( intval( $fecha_obj->format( 'w' ) ) === 0 ) {
+            wp_send_json_error( 'No se puede reprogramar para domingo' );
+        }
+
+        $constraints = $this->get_reprogram_constraints( $shipment );
+        $min_allowed = $constraints['min_allowed'];
+        if ( $fecha_obj < $min_allowed ) {
+            wp_send_json_error( 'La fecha debe ser desde ' . $constraints['min_date_display'] . ' en adelante' );
         }
 
         if ( ! is_user_logged_in() ) {
@@ -501,5 +563,6 @@ class MERC_Table_Ajax {
 if ( class_exists( 'MERC_Table_Ajax' ) ) {
     new MERC_Table_Ajax();
 }
+
 
 
