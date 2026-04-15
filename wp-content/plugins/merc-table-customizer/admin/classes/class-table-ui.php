@@ -541,12 +541,10 @@ class MERC_Table_UI {
             return false;
         }
 
-        function mercEsVistaAdmin() {
-            return $('.merc-panel-admin').length > 0 || $('#adminTabs').length > 0;
-        }
+        const esMotorizadoTabla = <?php echo $is_driver ? 'true' : 'false'; ?>;
 
         function convertirEstadosATextoMerc(driverId) {
-            if (mercEsVistaAdmin()) return;
+            if (!esMotorizadoTabla) return;
             driverId = String(driverId || '').trim();
             if (!driverId) return;
 
@@ -575,7 +573,7 @@ class MERC_Table_UI {
         }
 
         window.addEventListener('merc-caja-cerrada', function(event) {
-            if (mercEsVistaAdmin()) return;
+            if (!esMotorizadoTabla) return;
             const driverId = event && event.detail && event.detail.driverId
                 ? String(event.detail.driverId).trim()
                 : '';
@@ -587,7 +585,7 @@ class MERC_Table_UI {
         });
 
         (function inicializarCierresDeCaja() {
-            if (mercEsVistaAdmin()) return;
+            if (!esMotorizadoTabla) return;
             const driverIds = [];
 
             $('tr[data-driver-id]').each(function() {
