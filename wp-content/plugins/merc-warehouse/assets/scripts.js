@@ -994,9 +994,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
 
                     res.data.forEach((unit, idx) => {
-                        const unitStatus = String(unit.status || unit.estado || '').toLowerCase();
+                        const bgcolor = idx % 2 === 0 ? '#ffffff' : '#f9f9f9';
+                        const unitStatusRaw = String(unit.status || unit.estado || '').toLowerCase().trim();
+                        const unitStatus = (unit.shipment_id && ['available', 'disponible', 'sin_asignar', ''].includes(unitStatusRaw)) ? 'assigned' : unitStatusRaw;
+                        
                         const isDelivered = ['entregado', 'delivered'].includes(unitStatus);
                         const isAssigned = ['asignado', 'assigned'].includes(unitStatus);
+
                         const statusText = isDelivered ? '✅ Entregado' :
                             (isAssigned ? '🚚 Asignado' : '📦 Disponible');
                         const statusColor = isDelivered ? '#27ae60' :

@@ -523,11 +523,12 @@ function merc_get_product_units_ajax() {
                     $table,
                     array(
                         'status' => 'assigned',
+                        'updated_at' => current_time('mysql'),
                     ),
                     array(
                         'id' => intval($row['id']),
                     ),
-                    array('%s'),
+                    array('%s', '%s'),
                     array('%d')
                 );
             }
