@@ -29,6 +29,7 @@ class MERC_Table_Ajax {
         add_action( 'wp_ajax_merc_anular_envio_cliente',       [ $this, 'ajax_anular_envio' ] );
         add_action( 'wp_ajax_merc_delete_shipment',            [ $this, 'ajax_delete_shipment' ] );
         add_action( 'wp_ajax_merc_cerrar_caja',                [ $this, 'ajax_cerrar_caja' ] );
+        add_action( 'wp_ajax_merc_obtener_cajas_cerradas',    [ $this, 'ajax_obtener_cajas_cerradas' ] );
     }
 
     /* ── Filtro: mostrar fecha desde meta, no desde post_date ───────────── */
@@ -554,6 +555,47 @@ class MERC_Table_Ajax {
             'message'    => 'Caja cerrada correctamente',
             'count'      => count( $shipment_ids ),
             'driver_id'  => $driver_id,
+        ] );
+    }
+
+    public function ajax_obtener_cajas_cerradas(): void {
+        check_ajax_referer( 'merc_caja_estado', 'nonce' );
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => 'Sesión no válida' ] );
+        }
+
+        $driver_id = isset( $_POST['driver_id'] )
+            ? sanitize_text_field( wp_unslash( $_POST['driver_id'] ) )
+            : '';
+
+        if ( '' === $driver_id ) {
+            wp_send_json_error( [ 'message' => 'No se recibió el motorizado' ] );
+        }
+
+        global $wpdb;
+
+        $shipment_ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT DISTINCT p.ID
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm_driver
+                    ON pm_driver.post_id = p.ID
+                AND pm_driver.meta_key = 'wpcargo_motorizo_entrega'
+                INNER JOIN {$wpdb->postmeta} pm_caja
+                    ON pm_caja.post_id = p.ID
+                AND pm_caja.meta_key = 'merc_caja_cerrada'
+                AND pm_caja.meta_value = '1'
+                WHERE p.post_type = 'wpcargo_shipment'
+                AND p.post_status IN ('publish','private')
+                AND pm_driver.meta_value = %s",
+                (string) $driver_id
+            )
+        );
+
+        wp_send_json_success( [
+            'driver_id'    => $driver_id,
+            'shipment_ids' => array_values( array_map( 'intval', (array) $shipment_ids ) ),
         ] );
     }
 }
