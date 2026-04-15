@@ -531,7 +531,12 @@ class MERC_Table_UI {
             return false;
         }
 
+        function mercDebeAplicarCajaCerrada() {
+            return esMotorizado === true;
+        }
+
         function convertirEstadosATextoMerc(driverId) {
+            if (!mercDebeAplicarCajaCerrada()) return;
             driverId = String(driverId || '').trim();
             if (!driverId) return;
 
@@ -560,6 +565,7 @@ class MERC_Table_UI {
         }
 
         window.addEventListener('merc-caja-cerrada', function(event) {
+            if (!mercDebeAplicarCajaCerrada()) return;
             const driverId = event && event.detail && event.detail.driverId
                 ? String(event.detail.driverId).trim()
                 : '';
@@ -571,6 +577,7 @@ class MERC_Table_UI {
         });
 
         (function inicializarCierresDeCaja() {
+            if (!mercDebeAplicarCajaCerrada()) return;
             const driverIds = [];
 
             $('tr[data-driver-id]').each(function() {
@@ -601,7 +608,8 @@ class MERC_Table_UI {
                 const $row         = $estadoCell.closest('tr');
                 const rowDriverId = mercGetDriverIdFromRow($row);
 
-                if (mercFilaEstaCerrada($row, $estadoCell, rowDriverId)) return;
+                if (esMotorizado && rowDriverId && localStorage.getItem(mercCajaKey(rowDriverId)) === '1') return;
+                if (esMotorizado && ($row.hasClass('merc-caja-cerrada') || String($row.attr('data-merc-caja-cerrada') || '').trim() === '1')) return;
                 if ($estadoCell.find('.merc-estado-select').length > 0) return;
 
                 const estadoActual = $estadoCell.text().trim();
