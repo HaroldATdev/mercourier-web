@@ -508,55 +508,27 @@ class MERC_Table_UI {
         }
         setTimeout(reemplazarEtiquetaShipmentStatus, 300);
 
-        const mercCajasCerradas = {};
-
         function mercCajaKey(driverId) {
-            return driverId ? 'merc_caja_cerrada_' + driverId : 'merc_caja_cerrada';
+            return driverId ? 'merc_caja_cerrada_' + String(driverId).trim() : 'merc_caja_cerrada';
         }
 
         function mercGetDriverIdFromRow($row) {
             return String($row.data('driver-id') || '').trim();
         }
 
-        function mercGetShipmentIdFromRow($row) {
-            if (!$row || !$row.length) return '';
+        function mercFilaEstaCerrada($row, $estadoCell, driverId) {
+            const rowFlag = String($row.attr('data-merc-caja-cerrada') || '').trim();
+            const cellFlag = String($estadoCell.attr('data-merc-caja-cerrada') || '').trim();
 
-            const rowId = String($row.attr('id') || '').trim();
-            if (rowId) {
-                const match = rowId.match(/shipment-(\d+)/);
-                if (match) return match[1];
+            if (rowFlag === '1' || cellFlag === '1') {
+                return true;
             }
 
-            const dataId = String($row.data('shipment-id') || '').trim();
-            if (dataId) return dataId;
-
-            const $dataShipment = $row.find('[data-shipment-id]').first();
-            if ($dataShipment.length) {
-                return String($dataShipment.data('shipment-id') || '').trim();
+            if (driverId && localStorage.getItem(mercCajaKey(driverId)) === '1') {
+                return true;
             }
 
-            return '';
-        }
-
-        function mercSetCajasCerradas(driverId, shipmentIds) {
-            driverId = String(driverId || '').trim();
-            if (!driverId) return;
-
-            const mapa = {};
-            (shipmentIds || []).forEach(function(id) {
-                id = String(id || '').trim();
-                if (id) mapa[id] = true;
-            });
-
-            mercCajasCerradas[driverId] = mapa;
-        }
-
-        function mercCajaCerradaEnServidor(driverId, shipmentId) {
-            driverId = String(driverId || '').trim();
-            shipmentId = String(shipmentId || '').trim();
-
-            if (!driverId || !shipmentId) return false;
-            return !!(mercCajasCerradas[driverId] && mercCajasCerradas[driverId][shipmentId]);
+            return false;
         }
 
         function convertirEstadosATextoMerc(driverId) {
@@ -565,64 +537,25 @@ class MERC_Table_UI {
 
             $('tr[data-driver-id="' + driverId + '"]').each(function() {
                 const $row = $(this);
-                const shipmentId = mercGetShipmentIdFromRow($row);
-
-                const isClosed =
-                    localStorage.getItem(mercCajaKey(driverId)) === '1' ||
-                    mercCajaCerradaEnServidor(driverId, shipmentId);
-
-                if (!isClosed) return;
-
-                $row.addClass('merc-caja-cerrada').attr('data-merc-caja-cerrada', '1');
-
                 const $estadoCell = $row.find('td.shipment-status').first();
-                if (!$estadoCell.length || $estadoCell.attr('data-merc-caja-cerrada') === '1') return;
+                if (!$estadoCell.length) return;
+
+                if (!mercFilaEstaCerrada($row, $estadoCell, driverId)) return;
 
                 const $select = $estadoCell.find('select.merc-estado-select').first();
-                const estadoTexto = $select.length
+                const textoEstado = $select.length
                     ? $select.find('option:selected').text().trim()
-                    : $estadoCell.clone().children().remove().end().text().trim();
+                    : $estadoCell.text().trim();
 
                 $estadoCell
                     .attr('data-merc-caja-cerrada', '1')
                     .empty()
                     .append($('<span/>', {
                         class: 'merc-estado-texto-cerrado',
-                        text: estadoTexto || '—'
+                        text: textoEstado
                     }));
-            });
-        }
 
-        function mercCargarCajasCerradasServidor() {
-            const driverIds = [];
-
-            $('tr[data-driver-id]').each(function() {
-                const driverId = String($(this).data('driver-id') || '').trim();
-                if (driverId && driverIds.indexOf(driverId) === -1) {
-                    driverIds.push(driverId);
-                }
-            });
-
-            if (!driverIds.length) return;
-
-            driverIds.forEach(function(driverId) {
-                $.post(AJAX_URL, {
-                    action: 'merc_obtener_cajas_cerradas',
-                    nonce: NONCE_CIERRE_CAJA,
-                    driver_id: driverId
-                }, function(response) {
-                    if (!response || !response.success || !response.data) return;
-
-                    const shipmentIds = Array.isArray(response.data.shipment_ids)
-                        ? response.data.shipment_ids
-                        : [];
-
-                    if (!shipmentIds.length) return;
-
-                    mercSetCajasCerradas(driverId, shipmentIds);
-                    localStorage.setItem(mercCajaKey(driverId), '1');
-                    convertirEstadosATextoMerc(driverId);
-                }, 'json');
+                $row.attr('data-merc-caja-cerrada', '1').addClass('merc-caja-cerrada');
             });
         }
 
@@ -638,8 +571,6 @@ class MERC_Table_UI {
         });
 
         (function inicializarCierresDeCaja() {
-            mercCargarCajasCerradasServidor();
-
             const driverIds = [];
 
             $('tr[data-driver-id]').each(function() {
@@ -650,7 +581,9 @@ class MERC_Table_UI {
             });
 
             driverIds.forEach(function(driverId) {
-                if (localStorage.getItem(mercCajaKey(driverId)) === '1') {
+                const tieneFilaCerrada = $('tr[data-driver-id="' + driverId + '"] td.shipment-status[data-merc-caja-cerrada="1"]').length > 0;
+
+                if (tieneFilaCerrada || localStorage.getItem(mercCajaKey(driverId)) === '1') {
                     setTimeout(function() {
                         convertirEstadosATextoMerc(driverId);
                     }, 400);
@@ -668,9 +601,7 @@ class MERC_Table_UI {
                 const $row         = $estadoCell.closest('tr');
                 const rowDriverId = mercGetDriverIdFromRow($row);
 
-                if (rowDriverId && localStorage.getItem(mercCajaKey(rowDriverId)) === '1') return;
-                if ($row.hasClass('merc-caja-cerrada')) return;
-                if ($row.attr('data-merc-caja-cerrada') === '1') return;
+                if (mercFilaEstaCerrada($row, $estadoCell, rowDriverId)) return;
                 if ($estadoCell.find('.merc-estado-select').length > 0) return;
 
                 const estadoActual = $estadoCell.text().trim();

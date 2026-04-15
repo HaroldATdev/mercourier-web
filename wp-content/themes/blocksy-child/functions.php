@@ -8150,12 +8150,33 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                 <div class="mt-3">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h6 style="margin: 0;">📋 Todos los Envíos del Motorizado (Entregados y No Entregados):</h6>
+                        <?php
+                        $caja_cerrada = true;
+
+                        if ( ! empty( $entregas_pendientes ) ) {
+                            foreach ( $entregas_pendientes as $entrega_tmp ) {
+                                if ( '1' !== get_post_meta( $entrega_tmp->ID, 'merc_caja_cerrada', true ) ) {
+                                    $caja_cerrada = false;
+                                    break;
+                                }
+                            }
+                        } else {
+                            $caja_cerrada = false;
+                        }
+                        ?>
+
                         <?php if ( $efectivo_total > 0 ) : ?>
-                        <button class="merc-btn-cierre-caja" 
-                                data-driver-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
-                                data-tipo="motorizado">
-                            🔒 Cierre de caja
-                        </button>
+                            <?php if ( $caja_cerrada ) : ?>
+                                <button class="merc-btn-cierre-caja" disabled style="background:#27ae60;cursor:default;opacity:0.95;">
+                                    ✅ Caja cerrada
+                                </button>
+                            <?php else : ?>
+                                <button class="merc-btn-cierre-caja" 
+                                        data-driver-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
+                                        data-tipo="motorizado">
+                                    🔒 Cierre de caja
+                                </button>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                     <?php
