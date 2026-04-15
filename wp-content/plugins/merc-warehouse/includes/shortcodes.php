@@ -290,11 +290,11 @@ add_shortcode('merc_almacen_productos', function() {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <?php
-    $styles_ver  = file_exists(MERC_WAREHOUSE_DIR . 'assets/styles.css')  ? filemtime(MERC_WAREHOUSE_DIR . 'assets/styles.css')  : '1.0.0';
-    $scripts_ver = file_exists(MERC_WAREHOUSE_DIR . 'assets/scripts.js') ? filemtime(MERC_WAREHOUSE_DIR . 'assets/scripts.js') : '1.0.0';
+    $css_ver  = file_exists(MERC_WAREHOUSE_DIR . 'assets/styles.css') ? filemtime(MERC_WAREHOUSE_DIR . 'assets/styles.css') : time();
+    $js_ver   = file_exists(MERC_WAREHOUSE_DIR . 'assets/scripts.js') ? filemtime(MERC_WAREHOUSE_DIR . 'assets/scripts.js') : time();
     ?>
-    <link rel="stylesheet" href="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/styles.css?ver=' . $styles_ver); ?>">
-    <script src="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/scripts.js'); ?>"></script>
+    <link rel="stylesheet" href="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/styles.css?ver=' . $css_ver); ?>">
+    <script src="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/scripts.js?ver=' . $js_ver); ?>"></script>
     <?php
     return ob_get_clean();
 });
