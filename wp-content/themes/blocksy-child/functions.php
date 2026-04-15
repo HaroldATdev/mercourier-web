@@ -4329,6 +4329,8 @@ function merc_motorizado_entregas( $driver_id ) {
                 $totales           = get_payment_totals_by_method( $shipment->ID );
                 // Mostrar POS: usar el monto que llega (sin distinción bruto/neto)
                 $pos_display = get_pos_net_for_shipment( $shipment->ID, $totales );
+                $tracking_number = $shipment->post_title;
+                $tracking_url    = 'https://mercourier.com/dashboard/?wpcfe=track&num=' . rawurlencode( $tracking_number );
 
                 // Acumular totales
                 $total_efectivo_sum += $totales['efectivo'];
@@ -4338,7 +4340,7 @@ function merc_motorizado_entregas( $driver_id ) {
                 $total_general += $totales['total'];
                 ?>
                 <tr>
-                    <td><strong>#<?php echo esc_html( $shipment->post_title ); ?></strong></td>
+                    <td><strong><a href="<?php echo esc_url( $tracking_url ); ?>">#<?php echo esc_html( $tracking_number ); ?></a></strong></td>
                     <td><?php echo esc_html( $shipment->destino ); ?></td>
                     <td>S/. <?php echo number_format( $totales['efectivo'], 2 ); ?></td>
                     <td>S/. <?php echo number_format( $totales['pago_merc'], 2 ); ?></td>
