@@ -518,8 +518,12 @@ class MERC_Table_UI {
         }
         setTimeout(reemplazarEtiquetaShipmentStatus, 300);
 
-        function mercCajaKey(shipmentId) {
-            return shipmentId ? 'merc_caja_cerrada_' + String(shipmentId).trim() : 'merc_caja_cerrada';
+        const mercSessionUserId = <?php echo json_encode( get_current_user_id() ); ?>;
+        const mercSessionIsDriver = <?php echo $is_driver ? 'true' : 'false'; ?>;
+        const mercSessionDriverId = <?php echo json_encode( $is_driver ? get_current_user_id() : 0 ); ?>;
+
+        function mercCajaKey(driverId) {
+            return 'merc_caja_cerrada_' + String(mercSessionUserId || 0) + '_' + String(driverId || '').trim();
         }
 
         function mercGetDriverIdFromRow($row) {
@@ -530,7 +534,7 @@ class MERC_Table_UI {
             return String($row.data('shipment-id') || $row.attr('data-shipment-id') || '').trim();
         }
 
-        function mercFilaEstaCerrada($row, $estadoCell, shipmentId) {
+        function mercFilaEstaCerrada($row, $estadoCell, driverId) {
             const rowFlag = String($row.attr('data-merc-caja-cerrada') || '').trim();
             const cellFlag = String($estadoCell.attr('data-merc-caja-cerrada') || '').trim();
 
@@ -538,43 +542,50 @@ class MERC_Table_UI {
                 return true;
             }
 
-            if (shipmentId && localStorage.getItem(mercCajaKey(shipmentId)) === '1') {
+            if (mercSessionIsDriver && mercSessionDriverId && String(driverId) !== String(mercSessionDriverId)) {
+                return false;
+            }
+
+            if (driverId && localStorage.getItem(mercCajaKey(driverId)) === '1') {
                 return true;
             }
 
             return false;
         }
 
-        function convertirEstadosATextoMerc(driverId, shipmentIds) {
-            driverId = String(driverId || '').trim();
-            shipmentIds = Array.isArray(shipmentIds)
-                ? shipmentIds.map(function(id) {
-                    return String(id || '').trim();
-                }).filter(Boolean)
-                : [];
-
-            if (!driverId && shipmentIds.length === 0) return;
+        function convertirEstadosATextoMerc(driverId, shipmentIds, $scope) {
+            driverId    = String(driverId || '').trim();
+            shipmentIds = Array.isArray(shipmentIds) ? shipmentIds.map(function(id) {
+                return parseInt(id, 10) || null;
+            }).filter(Boolean) : [];
+            $scope = ($scope && $scope.length) ? $scope : null;
 
             let $rows = $();
 
             if (shipmentIds.length > 0) {
-                shipmentIds.forEach(function(shipmentId) {
-                    $rows = $rows.add($('tr[data-shipment-id="' + shipmentId + '"]'));
-                });
+                const selector = shipmentIds.map(function(id) {
+                    return 'tr[data-shipment-id="' + id + '"]';
+                }).join(', ');
+
+                if ($scope) {
+                    $rows = $scope.find(selector);
+                } else {
+                    $rows = $(selector);
+                }
             } else if (driverId) {
-                $rows = $('tr[data-driver-id="' + driverId + '"]');
+                const selector = 'tr[data-driver-id="' + driverId + '"]';
+                $rows = $scope ? $scope.find(selector) : $(selector);
             }
+
+            if (!$rows.length) return;
 
             $rows.each(function() {
                 const $row = $(this);
                 const $estadoCell = $row.find('td.shipment-status').first();
                 if (!$estadoCell.length) return;
 
-                const rowShipmentId = mercGetShipmentIdFromRow($row);
-                const debeForzar = shipmentIds.length > 0;
-
-                if (!debeForzar && !mercFilaEstaCerrada($row, $estadoCell, rowShipmentId)) return;
-                if ($estadoCell.find('.merc-estado-texto-cerrado').length > 0) return;
+                if (mercSessionIsDriver && mercSessionDriverId && String(driverId) !== String(mercSessionDriverId)) return;
+                if (!mercFilaEstaCerrada($row, $estadoCell, driverId)) return;
 
                 const $select = $estadoCell.find('select.merc-estado-select').first();
                 const textoEstado = $select.length
@@ -590,10 +601,6 @@ class MERC_Table_UI {
                     }));
 
                 $row.attr('data-merc-caja-cerrada', '1').addClass('merc-caja-cerrada');
-
-                if (rowShipmentId) {
-                    localStorage.setItem(mercCajaKey(rowShipmentId), '1');
-                }
             });
         }
 
@@ -601,32 +608,30 @@ class MERC_Table_UI {
             const detail = event && event.detail ? event.detail : {};
             const driverId = detail.driverId ? String(detail.driverId).trim() : '';
             const shipmentIds = Array.isArray(detail.shipmentIds) ? detail.shipmentIds : [];
+            const sessionUserId = detail.sessionUserId ? String(detail.sessionUserId).trim() : '';
+            const currentSessionUserId = String(mercSessionUserId || 0).trim();
 
+            if (sessionUserId && sessionUserId !== currentSessionUserId) return;
             if (!driverId || shipmentIds.length === 0) return;
 
-            shipmentIds.forEach(function(shipmentId) {
-                localStorage.setItem(mercCajaKey(shipmentId), '1');
-            });
-
-            convertirEstadosATextoMerc(driverId, shipmentIds);
+            localStorage.setItem(mercCajaKey(driverId), '1');
+            convertirEstadosATextoMerc(driverId, shipmentIds, detail.cardId ? $('#' + detail.cardId) : null);
         });
 
         (function inicializarCierresDeCaja() {
-            const shipmentIds = [];
-
             $('td.shipment-status[data-merc-caja-cerrada="1"]').each(function() {
                 const $cell = $(this);
                 const $row = $cell.closest('tr');
-                const shipmentId = mercGetShipmentIdFromRow($row);
-                if (shipmentId && shipmentIds.indexOf(shipmentId) === -1) {
-                    shipmentIds.push(shipmentId);
-                }
-            });
+                const driverId = mercGetDriverIdFromRow($row);
 
-            shipmentIds.forEach(function(shipmentId) {
-                setTimeout(function() {
-                    convertirEstadosATextoMerc('', [shipmentId]);
-                }, 400);
+                if (mercSessionIsDriver && mercSessionDriverId && String(driverId) !== String(mercSessionDriverId)) {
+                    return;
+                }
+
+                const shipmentId = mercGetShipmentIdFromRow($row);
+                if (shipmentId) {
+                    convertirEstadosATextoMerc(driverId, [shipmentId], null);
+                }
             });
         })();
 

@@ -4776,9 +4776,10 @@ function merc_panel_admin_shortcode() {
 
         const mercAjaxUrl = '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
         const mercCerrarCajaNonce = '<?php echo esc_js( wp_create_nonce( 'merc_cerrar_caja' ) ); ?>';
+        const mercSessionUserId = <?php echo json_encode( get_current_user_id() ); ?>;
 
-        function mercCajaKey(shipmentId) {
-            return shipmentId ? 'merc_caja_cerrada_' + String(shipmentId).trim() : 'merc_caja_cerrada';
+        function mercCajaKey(driverId) {
+            return 'merc_caja_cerrada_' + String(mercSessionUserId || 0) + '_' + String(driverId || '').trim();
         }
 
         $(document).on('click', '.merc-btn-cierre-caja', function(e) {
@@ -4791,6 +4792,8 @@ function merc_panel_admin_shortcode() {
                 $card.data('driver-id') ||
                 ''
             ).trim();
+
+            const cardId = String($card.attr('id') || '').trim();
 
             const shipmentIds = $card.find('tbody tr[data-shipment-id]').map(function() {
                 return parseInt($(this).data('shipment-id'), 10) || null;
@@ -4816,7 +4819,7 @@ function merc_panel_admin_shortcode() {
 
             Swal.fire({
                 title: 'Confirmar cierre de caja',
-                text: 'Esto convertirá los combobox de estado en texto solo para este motorizado.',
+                text: 'Esto convertirá los combobox de estado en texto solo para este motorizado y esta sesión.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Cerrar caja',
@@ -4849,7 +4852,9 @@ function merc_panel_admin_shortcode() {
                     window.dispatchEvent(new CustomEvent('merc-caja-cerrada', {
                         detail: {
                             driverId: driverId,
-                            shipmentIds: shipmentIds
+                            shipmentIds: shipmentIds,
+                            cardId: cardId,
+                            sessionUserId: mercSessionUserId
                         }
                     }));
 
