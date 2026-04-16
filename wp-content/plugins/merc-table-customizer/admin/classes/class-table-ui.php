@@ -518,15 +518,19 @@ class MERC_Table_UI {
         }
         setTimeout(reemplazarEtiquetaShipmentStatus, 300);
 
-        function mercCajaKey(driverId) {
-            return driverId ? 'merc_caja_cerrada_' + String(driverId).trim() : 'merc_caja_cerrada';
+        function mercCajaKey(shipmentId) {
+            return shipmentId ? 'merc_caja_cerrada_' + String(shipmentId).trim() : 'merc_caja_cerrada';
         }
 
         function mercGetDriverIdFromRow($row) {
             return String($row.data('driver-id') || '').trim();
         }
 
-        function mercFilaEstaCerrada($row, $estadoCell, driverId) {
+        function mercGetShipmentIdFromRow($row) {
+            return String($row.data('shipment-id') || $row.attr('data-shipment-id') || '').trim();
+        }
+
+        function mercFilaEstaCerrada($row, $estadoCell, shipmentId) {
             const rowFlag = String($row.attr('data-merc-caja-cerrada') || '').trim();
             const cellFlag = String($estadoCell.attr('data-merc-caja-cerrada') || '').trim();
 
@@ -534,23 +538,43 @@ class MERC_Table_UI {
                 return true;
             }
 
-            if (driverId && localStorage.getItem(mercCajaKey(driverId)) === '1') {
+            if (shipmentId && localStorage.getItem(mercCajaKey(shipmentId)) === '1') {
                 return true;
             }
 
             return false;
         }
 
-        function convertirEstadosATextoMerc(driverId) {
+        function convertirEstadosATextoMerc(driverId, shipmentIds) {
             driverId = String(driverId || '').trim();
-            if (!driverId) return;
+            shipmentIds = Array.isArray(shipmentIds)
+                ? shipmentIds.map(function(id) {
+                    return String(id || '').trim();
+                }).filter(Boolean)
+                : [];
 
-            $('tr[data-driver-id="' + driverId + '"]').each(function() {
+            if (!driverId && shipmentIds.length === 0) return;
+
+            let $rows = $();
+
+            if (shipmentIds.length > 0) {
+                shipmentIds.forEach(function(shipmentId) {
+                    $rows = $rows.add($('tr[data-shipment-id="' + shipmentId + '"]'));
+                });
+            } else if (driverId) {
+                $rows = $('tr[data-driver-id="' + driverId + '"]');
+            }
+
+            $rows.each(function() {
                 const $row = $(this);
                 const $estadoCell = $row.find('td.shipment-status').first();
                 if (!$estadoCell.length) return;
 
-                if (!mercFilaEstaCerrada($row, $estadoCell, driverId)) return;
+                const rowShipmentId = mercGetShipmentIdFromRow($row);
+                const debeForzar = shipmentIds.length > 0;
+
+                if (!debeForzar && !mercFilaEstaCerrada($row, $estadoCell, rowShipmentId)) return;
+                if ($estadoCell.find('.merc-estado-texto-cerrado').length > 0) return;
 
                 const $select = $estadoCell.find('select.merc-estado-select').first();
                 const textoEstado = $select.length
@@ -566,38 +590,43 @@ class MERC_Table_UI {
                     }));
 
                 $row.attr('data-merc-caja-cerrada', '1').addClass('merc-caja-cerrada');
+
+                if (rowShipmentId) {
+                    localStorage.setItem(mercCajaKey(rowShipmentId), '1');
+                }
             });
         }
 
         window.addEventListener('merc-caja-cerrada', function(event) {
-            const driverId = event && event.detail && event.detail.driverId
-                ? String(event.detail.driverId).trim()
-                : '';
+            const detail = event && event.detail ? event.detail : {};
+            const driverId = detail.driverId ? String(detail.driverId).trim() : '';
+            const shipmentIds = Array.isArray(detail.shipmentIds) ? detail.shipmentIds : [];
 
-            if (!driverId) return;
+            if (!driverId || shipmentIds.length === 0) return;
 
-            localStorage.setItem(mercCajaKey(driverId), '1');
-            convertirEstadosATextoMerc(driverId);
+            shipmentIds.forEach(function(shipmentId) {
+                localStorage.setItem(mercCajaKey(shipmentId), '1');
+            });
+
+            convertirEstadosATextoMerc(driverId, shipmentIds);
         });
 
         (function inicializarCierresDeCaja() {
-            const driverIds = [];
+            const shipmentIds = [];
 
-            $('tr[data-driver-id]').each(function() {
-                const driverId = String($(this).data('driver-id') || '').trim();
-                if (driverId && driverIds.indexOf(driverId) === -1) {
-                    driverIds.push(driverId);
+            $('td.shipment-status[data-merc-caja-cerrada="1"]').each(function() {
+                const $cell = $(this);
+                const $row = $cell.closest('tr');
+                const shipmentId = mercGetShipmentIdFromRow($row);
+                if (shipmentId && shipmentIds.indexOf(shipmentId) === -1) {
+                    shipmentIds.push(shipmentId);
                 }
             });
 
-            driverIds.forEach(function(driverId) {
-                const tieneFilaCerrada = $('tr[data-driver-id="' + driverId + '"] td.shipment-status[data-merc-caja-cerrada="1"]').length > 0;
-
-                if (tieneFilaCerrada || localStorage.getItem(mercCajaKey(driverId)) === '1') {
-                    setTimeout(function() {
-                        convertirEstadosATextoMerc(driverId);
-                    }, 400);
-                }
+            shipmentIds.forEach(function(shipmentId) {
+                setTimeout(function() {
+                    convertirEstadosATextoMerc('', [shipmentId]);
+                }, 400);
             });
         })();
 

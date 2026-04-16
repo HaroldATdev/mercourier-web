@@ -4777,8 +4777,8 @@ function merc_panel_admin_shortcode() {
         const mercAjaxUrl = '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
         const mercCerrarCajaNonce = '<?php echo esc_js( wp_create_nonce( 'merc_cerrar_caja' ) ); ?>';
 
-        function mercCajaKey(driverId) {
-            return driverId ? 'merc_caja_cerrada_' + driverId : 'merc_caja_cerrada';
+        function mercCajaKey(shipmentId) {
+            return shipmentId ? 'merc_caja_cerrada_' + String(shipmentId).trim() : 'merc_caja_cerrada';
         }
 
         $(document).on('click', '.merc-btn-cierre-caja', function(e) {
@@ -4841,10 +4841,16 @@ function merc_panel_admin_shortcode() {
                         return;
                     }
 
+                    shipmentIds.forEach(function(shipmentId) {
+                        localStorage.setItem(mercCajaKey(shipmentId), '1');
+                    });
+
                     localStorage.setItem(mercCajaKey(driverId), '1');
-                    localStorage.removeItem('merc_caja_cerrada'); // limpieza de la clave vieja
                     window.dispatchEvent(new CustomEvent('merc-caja-cerrada', {
-                        detail: { driverId: driverId }
+                        detail: {
+                            driverId: driverId,
+                            shipmentIds: shipmentIds
+                        }
                     }));
 
                     btn.prop('disabled', true).text('Caja cerrada');
