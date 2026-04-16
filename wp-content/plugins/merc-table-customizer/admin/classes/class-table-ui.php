@@ -99,6 +99,17 @@ class MERC_Table_UI {
         $is_driver = in_array( 'wpcargo_driver', $current_user->roles )
                   && ! current_user_can( 'manage_options' );
         $is_admin  = current_user_can( 'manage_options' );
+        $session_user_id = get_current_user_id();
+        $session_caja_cerrada_raw = (string) get_user_meta( $session_user_id, 'merc_caja_cerrada', true );
+        $session_caja_cierre_fecha = (string) get_user_meta( $session_user_id, 'merc_caja_cerrada_fecha', true );
+        $session_fecha_actual = wp_date( 'Y-m-d' );
+        $session_caja_activa = ( '1' === $session_caja_cerrada_raw && $session_caja_cierre_fecha === $session_fecha_actual );
+
+        // Si cambió el día, la caja se considera abierta automáticamente.
+        if ( '1' === $session_caja_cerrada_raw && ! $session_caja_activa ) {
+            update_user_meta( $session_user_id, 'merc_caja_cerrada', '0' );
+            $session_caja_cerrada_raw = '0';
+        }
 
         $clientes_options_html = '<option value="">-- Selecciona un cliente --</option>';
         $clientes_form = get_users( [ 'role' => 'wpcargo_client' ] );
@@ -518,9 +529,10 @@ class MERC_Table_UI {
         }
         setTimeout(reemplazarEtiquetaShipmentStatus, 300);
 
-        const mercSessionUserId = <?php echo json_encode( get_current_user_id() ); ?>;
+        const mercSessionUserId = <?php echo json_encode( $session_user_id ); ?>;
         const mercSessionIsDriver = <?php echo $is_driver ? 'true' : 'false'; ?>;
-        const mercSessionDriverId = <?php echo json_encode( $is_driver ? get_current_user_id() : 0 ); ?>;
+        const mercSessionDriverId = <?php echo json_encode( $is_driver ? $session_user_id : 0 ); ?>;
+        const mercSessionCajaCerradaActiva = <?php echo ( $is_driver && $session_caja_activa ) ? 'true' : 'false'; ?>;
 
         function mercCajaKey(driverId) {
             return 'merc_caja_cerrada_' + String(mercSessionUserId || 0) + '_' + String(driverId || '').trim();
@@ -535,6 +547,10 @@ class MERC_Table_UI {
         }
 
         function mercFilaEstaCerrada($row, $estadoCell, driverId) {
+            if (mercSessionCajaCerradaActiva) {
+                return true;
+            }
+
             const rowFlag = String($row.attr('data-merc-caja-cerrada') || '').trim();
             const cellFlag = String($estadoCell.attr('data-merc-caja-cerrada') || '').trim();
 
@@ -551,6 +567,32 @@ class MERC_Table_UI {
             }
 
             return false;
+        }
+
+        function convertirSelectsATextoPorCajaUsuario($scope) {
+            if (!mercSessionCajaCerradaActiva) return;
+
+            const $root = ($scope && $scope.length) ? $scope : $(document);
+            $root.find('td.shipment-status').each(function() {
+                const $estadoCell = $(this);
+                const $row = $estadoCell.closest('tr');
+                const $select = $estadoCell.find('select.merc-estado-select').first();
+
+                const textoEstado = $select.length
+                    ? $select.find('option:selected').text().trim()
+                    : $estadoCell.text().trim();
+
+                $estadoCell
+                    .attr('data-merc-caja-cerrada', '1')
+                    .empty()
+                    .append($('<span/>', {
+                        class: 'merc-estado-texto-cerrado',
+                        text: textoEstado
+                    }));
+
+                $row.attr('data-merc-caja-cerrada', '1').addClass('merc-caja-cerrada');
+                setRowStateClass($row, textoEstado);
+            });
         }
 
         function convertirEstadosATextoMerc(driverId, shipmentIds, $scope) {
@@ -637,6 +679,10 @@ class MERC_Table_UI {
 
         function convertirEstadoASelect() {
             if (esCliente) { console.log('👤 Usuario es cliente - estados solo en modo lectura'); return; }
+            if (mercSessionCajaCerradaActiva) {
+                convertirSelectsATextoPorCajaUsuario();
+                return;
+            }
 
             let contadorConvertidos = 0;
 
@@ -782,9 +828,17 @@ class MERC_Table_UI {
         }
 
         setTimeout(function() {
-            mercCargarCajasCerradasServidor();
-                convertirEstadoASelect();
-            }, 1000);
+            if (mercSessionCajaCerradaActiva) {
+                convertirSelectsATextoPorCajaUsuario();
+                return;
+            }
+
+            if (typeof mercCargarCajasCerradasServidor === 'function') {
+                mercCargarCajasCerradasServidor();
+            }
+
+            convertirEstadoASelect();
+        }, 1000);
         setTimeout(agregarBotonesReprogramar, 1500);
 
         setInterval(function() {
@@ -792,6 +846,14 @@ class MERC_Table_UI {
             const $tabla = $('#shipment-history-accordion, #shipment-list, table.shipment-list');
             if ($tabla.length === 0) return;
             if ($tabla.find('tbody tr').length === 0 && $tabla.find('td.shipment-status').length === 0) return;
+
+            if (mercSessionCajaCerradaActiva) {
+                convertirSelectsATextoPorCajaUsuario($tabla);
+                agregarBotonesReprogramar();
+                unhidePodSignButtons();
+                return;
+            }
+
             resaltarFilasReprogramadas();
             const $selects     = $tabla.find('.merc-estado-select');
             const $estadoCells = $('td.shipment-status');

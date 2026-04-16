@@ -4795,10 +4795,6 @@ function merc_panel_admin_shortcode() {
 
             const cardId = String($card.attr('id') || '').trim();
 
-            const shipmentIds = $card.find('tbody tr[data-shipment-id]').map(function() {
-                return parseInt($(this).data('shipment-id'), 10) || null;
-            }).get().filter(Boolean);
-
             if (!driverId) {
                 Swal.fire({
                     icon: 'error',
@@ -4808,18 +4804,9 @@ function merc_panel_admin_shortcode() {
                 return;
             }
 
-            if (!shipmentIds.length) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Sin envíos',
-                    text: 'No se encontraron envíos para cerrar.'
-                });
-                return;
-            }
-
             Swal.fire({
                 title: 'Confirmar cierre de caja',
-                text: 'Esto convertirá los combobox de estado en texto solo para este motorizado y esta sesión.',
+                text: 'Esto convertirá los combobox de estado en texto para este motorizado hasta el cierre del día.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Cerrar caja',
@@ -4832,8 +4819,7 @@ function merc_panel_admin_shortcode() {
                 $.post(mercAjaxUrl, {
                     action: 'merc_cerrar_caja',
                     nonce: mercCerrarCajaNonce,
-                    driver_id: driverId,
-                    shipment_ids: shipmentIds
+                    driver_id: driverId
                 }, function(response) {
                     if (!response || !response.success) {
                         Swal.fire({
@@ -4844,15 +4830,11 @@ function merc_panel_admin_shortcode() {
                         return;
                     }
 
-                    shipmentIds.forEach(function(shipmentId) {
-                        localStorage.setItem(mercCajaKey(shipmentId), '1');
-                    });
-
                     localStorage.setItem(mercCajaKey(driverId), '1');
                     window.dispatchEvent(new CustomEvent('merc-caja-cerrada', {
                         detail: {
                             driverId: driverId,
-                            shipmentIds: shipmentIds,
+                            shipmentIds: [],
                             cardId: cardId,
                             sessionUserId: mercSessionUserId
                         }
@@ -4863,7 +4845,7 @@ function merc_panel_admin_shortcode() {
                     Swal.fire({
                         icon: 'success',
                         title: 'Caja cerrada',
-                        text: 'Los estados quedaron como texto.'
+                        text: 'Caja cerrada para el motorizado seleccionado.'
                     });
                 }, 'json').fail(function() {
                     Swal.fire({
@@ -8179,17 +8161,15 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h6 style="margin: 0;">📋 Todos los Envíos del Motorizado (Entregados y No Entregados):</h6>
                         <?php
-                        $caja_cerrada = true;
+                        $caja_cerrada = false;
+                        $caja_cerrada_raw = (string) get_user_meta( $driver->driver_id, 'merc_caja_cerrada', true );
+                        $caja_cerrada_fecha = (string) get_user_meta( $driver->driver_id, 'merc_caja_cerrada_fecha', true );
+                        $fecha_actual = wp_date( 'Y-m-d' );
 
-                        if ( ! empty( $entregas_pendientes ) ) {
-                            foreach ( $entregas_pendientes as $entrega_tmp ) {
-                                if ( '1' !== get_post_meta( $entrega_tmp->ID, 'merc_caja_cerrada', true ) ) {
-                                    $caja_cerrada = false;
-                                    break;
-                                }
-                            }
-                        } else {
-                            $caja_cerrada = false;
+                        if ( '1' === $caja_cerrada_raw && $caja_cerrada_fecha === $fecha_actual ) {
+                            $caja_cerrada = true;
+                        } elseif ( '1' === $caja_cerrada_raw ) {
+                            update_user_meta( $driver->driver_id, 'merc_caja_cerrada', '0' );
                         }
                         ?>
 
