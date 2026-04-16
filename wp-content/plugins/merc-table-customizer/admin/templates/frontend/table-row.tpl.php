@@ -55,6 +55,3 @@
 
 
 <td><?php echo $motorizo_entrega_html; ?></td>
-
-
-
