@@ -488,6 +488,16 @@ class MERC_Table_UI {
         }
         addListoParaSalirColumn();
 
+        // Unhide botones de firma (.wpcpod-sign_data) en accordion y en tabla original.
+        // pod-scripts.js solo los muestra en #shipment-list; cuando el accordion reemplaza
+        // la tabla, los botones quedan con .hide-me y no se ven.
+        function unhidePodSignButtons() {
+            $('.wpcpod-sign_data').removeClass('hide-me');
+        }
+        unhidePodSignButtons();
+        setTimeout(unhidePodSignButtons, 800);
+        setTimeout(unhidePodSignButtons, 2000);
+
         function reemplazarEtiquetaShipmentStatus() {
             $('*:not(script):not(style)').contents().filter(function() {
                 return this.nodeType === 3 && /ES\s*SHIPMENT\s*STATUS/gi.test(this.nodeValue);
@@ -758,6 +768,7 @@ class MERC_Table_UI {
             const $estadoCells = $('td.shipment-status');
             if ($estadoCells.length > 0 && $selects.length === 0) { console.log('🔄 Convirtiendo estados a SELECT...'); convertirEstadoASelect(); }
             agregarBotonesReprogramar();
+            unhidePodSignButtons();
         }, 2000);
 
         function agregarBotonesReprogramar() {
@@ -977,57 +988,167 @@ class MERC_Table_UI {
                 return partes[2] + '/' + partes[1] + '/' + partes[0];
             }
 
+            function esDomingoISO(fechaISO) {
+                if (!fechaISO) return false;
+                const d = new Date(fechaISO + 'T00:00:00');
+                return d.getDay() === 0;
+            }
+
             const $row             = $('#shipment-' + shipmentId);
             const fechaActualMostrar = $row.find('td').eq(4).text().trim();
-            const tomorrow         = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-            const minDate          = tomorrow.toISOString().split('T')[0];
-            const minDateMostrar   = formatearFechaAMostrar(minDate);
 
-            const $modal = $('<div class="merc-modal-reprogram">' +
-                '<div class="merc-modal-reprogram-content">' +
-                    '<div class="merc-modal-reprogram-title">📅 Reprogramar Envío</div>' +
-                    '<div class="merc-modal-reprogram-info">' +
-                        '<p><strong>📦 Número de envío:</strong> ' + shipmentNumber + '</p>' +
-                        '<p><strong>📆 Fecha actual:</strong> ' + fechaActualMostrar + '</p>' +
-                        '<p style="font-size: 12px; color: #666; margin-top: 8px;">📌 Fecha mínima disponible: ' + minDateMostrar + '</p>' +
-                    '</div>' +
-                    '<label class="merc-modal-reprogram-label">Seleccione la nueva fecha de envío:</label>' +
-                    '<input type="date" class="merc-modal-reprogram-input" id="merc-nueva-fecha" min="' + minDate + '" required>' +
-                    '<div class="merc-modal-reprogram-buttons">' +
-                        '<button class="merc-modal-reprogram-btn merc-modal-reprogram-btn-confirmar">✓ Confirmar</button>' +
-                        '<button class="merc-modal-reprogram-btn merc-modal-reprogram-btn-cancelar">✗ Cancelar</button>' +
-                    '</div>' +
-                '</div>' +
-            '</div>');
-            $('body').append($modal);
+            $.ajax({
+                type: 'POST',
+                url: AJAX_URL,
+                dataType: 'json',
+                data: {
+                    action: 'merc_get_reprogram_constraints',
+                    shipment_id: shipmentId,
+                    nonce: '<?php echo wp_create_nonce( 'merc_reprogram_constraints' ); ?>'
+                }
+            }).done(function(resp) {
+                const minDate = (resp && resp.success && resp.data && resp.data.min_date_iso) ? resp.data.min_date_iso : '';
+                const minDateMostrar = (resp && resp.success && resp.data && resp.data.min_date) ? resp.data.min_date : formatearFechaAMostrar(minDate);
+                const postDateMostrar = (resp && resp.success && resp.data && resp.data.post_date) ? resp.data.post_date : 'N/D';
 
-            $modal.find('.merc-modal-reprogram-btn-confirmar').on('click', function() {
-                const nuevaFechaISO       = $('#merc-nueva-fecha').val();
-                if (!nuevaFechaISO) { alert('Por favor seleccione una fecha'); return; }
-                const nuevaFechaDDMMYYYY  = formatearFechaAMostrar(nuevaFechaISO);
-                if (!confirm('¿Confirmar reprogramación para el ' + nuevaFechaDDMMYYYY + '?')) return;
-                $(this).prop('disabled', true).text('Guardando...');
-                $.ajax({
-                    type: 'POST', url: AJAX_URL,
-                    data: { action: 'merc_reprogramar_envio', shipment_id: shipmentId, nueva_fecha: nuevaFechaDDMMYYYY, nonce: '<?php echo wp_create_nonce( 'merc_reprogramar' ); ?>' },
-                    success: function(response) {
-                        if (response.success) {
-                            $modal.remove();
-                            $(document).trigger('merc-fecha-reprogramada', [shipmentId]);
-                            const $notif = $('<div style="position: fixed; top: 20px; right: 20px; background: #4caf50; color: white; padding: 15px 25px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 999999; font-size: 14px;">✓ Fecha reprogramada exitosamente<br><small>Nueva fecha: ' + nuevaFechaDDMMYYYY + '</small></div>');
-                            $('body').append($notif);
-                            setTimeout(function() { $notif.fadeOut(300, function() { $(this).remove(); }); }, 3000);
-                            setTimeout(function() { window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime(); }, 2000);
-                        } else {
-                            alert('❌ Error: ' + (response.data || 'No se pudo reprogramar'));
-                            $modal.find('.merc-modal-reprogram-btn-confirmar').prop('disabled', false).text('✓ Confirmar');
+                const $modal = $('<div class="merc-modal-reprogram">' +
+                    '<div class="merc-modal-reprogram-content">' +
+                        '<div class="merc-modal-reprogram-title">📅 Reprogramar Envío</div>' +
+                        '<div class="merc-modal-reprogram-info">' +
+                            '<p><strong>📦 Número de envío:</strong> ' + shipmentNumber + '</p>' +
+                            '<p><strong>📆 Fecha actual:</strong> ' + fechaActualMostrar + '</p>' +
+                            '<p><strong>🧾 Fecha del pedido:</strong> ' + postDateMostrar + '</p>' +
+                            '<p style="font-size: 12px; color: #666; margin-top: 8px;">📌 Fecha mínima disponible: ' + minDateMostrar + '</p>' +
+                            '<p style="font-size: 12px; color: #666; margin-top: 4px;">🚫 Los domingos están bloqueados</p>' +
+                        '</div>' +
+                        '<label class="merc-modal-reprogram-label">Seleccione la nueva fecha de envío:</label>' +
+                        '<input type="date" class="merc-modal-reprogram-input" id="merc-nueva-fecha" min="' + minDate + '" required>' +
+                        '<div class="merc-modal-reprogram-buttons">' +
+                            '<button class="merc-modal-reprogram-btn merc-modal-reprogram-btn-confirmar">✓ Confirmar</button>' +
+                            '<button class="merc-modal-reprogram-btn merc-modal-reprogram-btn-cancelar">✗ Cancelar</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>');
+                $('body').append($modal);
+
+                let mercReprogFlatpickr = null;
+
+                function cerrarModalReprogramacion() {
+                    if (mercReprogFlatpickr && typeof mercReprogFlatpickr.destroy === 'function') {
+                        mercReprogFlatpickr.destroy();
+                    }
+                    $modal.remove();
+                    $(document).off('keyup.mercModalReprogram');
+                }
+
+                const $inputFecha = $modal.find('#merc-nueva-fecha');
+
+                function cargarFlatpickr(callback) {
+                    if (window.flatpickr) {
+                        callback();
+                        return;
+                    }
+
+                    if (!document.getElementById('merc-flatpickr-css')) {
+                        const link = document.createElement('link');
+                        link.id = 'merc-flatpickr-css';
+                        link.rel = 'stylesheet';
+                        link.href = 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css';
+                        document.head.appendChild(link);
+                    }
+
+                    const scriptExistente = document.getElementById('merc-flatpickr-js');
+                    if (scriptExistente) {
+                        scriptExistente.addEventListener('load', callback, { once: true });
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.id = 'merc-flatpickr-js';
+                    script.src = 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js';
+                    script.onload = callback;
+                    document.head.appendChild(script);
+                }
+
+                function inicializarFlatpickrReprogramacion() {
+                    if (!window.flatpickr || !$inputFecha.length) {
+                        return;
+                    }
+
+                    $inputFecha.attr('type', 'text');
+                    $inputFecha.attr('autocomplete', 'off');
+                    $inputFecha.prop('readonly', true);
+
+                    mercReprogFlatpickr = window.flatpickr($inputFecha.get(0), {
+                        dateFormat: 'Y-m-d',
+                        minDate: minDate || null,
+                        allowInput: false,
+                        disableMobile: true,
+                        disable: [function(date) { return date.getDay() === 0; }],
+                        onDayCreate: function(dObj, dStr, fp, dayElem) {
+                            const fecha = dayElem.dateObj;
+                            if (fecha && fecha.getDay() === 0) {
+                                dayElem.classList.add('flatpickr-disabled');
+                                dayElem.style.opacity = '0.35';
+                                dayElem.style.textDecoration = 'line-through';
+                                dayElem.style.cursor = 'not-allowed';
+                            }
                         }
-                    },
-                    error: function() { alert('❌ Error de conexión'); $modal.find('.merc-modal-reprogram-btn-confirmar').prop('disabled', false).text('✓ Confirmar'); }
+                    });
+                }
+
+                cargarFlatpickr(function() {
+                    inicializarFlatpickrReprogramacion();
                 });
+
+                $inputFecha.on('change input', function() {
+                    const valor = $(this).val();
+                    if (valor && esDomingoISO(valor)) {
+                        alert('No se puede reprogramar para domingo');
+                        $(this).val('');
+                    }
+                });
+
+                $modal.find('.merc-modal-reprogram-btn-confirmar').on('click', function() {
+                    const nuevaFechaISO = $inputFecha.val();
+                    if (!nuevaFechaISO) { alert('Por favor seleccione una fecha'); return; }
+                    if (minDate && nuevaFechaISO < minDate) {
+                        alert('La fecha debe ser desde ' + minDateMostrar + ' en adelante');
+                        return;
+                    }
+                    if (esDomingoISO(nuevaFechaISO)) {
+                        alert('No se puede reprogramar para domingo');
+                        return;
+                    }
+
+                    const nuevaFechaDDMMYYYY = formatearFechaAMostrar(nuevaFechaISO);
+                    if (!confirm('¿Confirmar reprogramación para el ' + nuevaFechaDDMMYYYY + '?')) return;
+                    $(this).prop('disabled', true).text('Guardando...');
+                    $.ajax({
+                        type: 'POST', url: AJAX_URL,
+                        data: { action: 'merc_reprogramar_envio', shipment_id: shipmentId, nueva_fecha: nuevaFechaDDMMYYYY, nonce: '<?php echo wp_create_nonce( 'merc_reprogramar' ); ?>' },
+                        success: function(response) {
+                            if (response.success) {
+                                cerrarModalReprogramacion();
+                                $(document).trigger('merc-fecha-reprogramada', [shipmentId]);
+                                const $notif = $('<div style="position: fixed; top: 20px; right: 20px; background: #4caf50; color: white; padding: 15px 25px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 999999; font-size: 14px;">✓ Fecha reprogramada exitosamente<br><small>Nueva fecha: ' + nuevaFechaDDMMYYYY + '</small></div>');
+                                $('body').append($notif);
+                                setTimeout(function() { $notif.fadeOut(300, function() { $(this).remove(); }); }, 3000);
+                                setTimeout(function() { window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime(); }, 2000);
+                            } else {
+                                alert('❌ Error: ' + (response.data || 'No se pudo reprogramar'));
+                                $modal.find('.merc-modal-reprogram-btn-confirmar').prop('disabled', false).text('✓ Confirmar');
+                            }
+                        },
+                        error: function() { alert('❌ Error de conexión'); $modal.find('.merc-modal-reprogram-btn-confirmar').prop('disabled', false).text('✓ Confirmar'); }
+                    });
+                });
+
+                $modal.find('.merc-modal-reprogram-btn-cancelar').on('click', function() { cerrarModalReprogramacion(); });
+                $(document).on('keyup.mercModalReprogram', function(e) { if (e.key === 'Escape') { cerrarModalReprogramacion(); } });
+            }).fail(function() {
+                alert('❌ No se pudieron obtener las restricciones de fecha. Intente nuevamente.');
             });
-            $modal.find('.merc-modal-reprogram-btn-cancelar').on('click', function() { $modal.remove(); });
-            $(document).on('keyup.mercModalReprogram', function(e) { if (e.key === 'Escape') { $modal.remove(); $(document).off('keyup.mercModalReprogram'); } });
         }
 
         function mostrarModalAnulacion(shipmentId, shipmentNumber) {

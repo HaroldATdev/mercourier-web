@@ -4280,11 +4280,17 @@ function merc_motorizado_entregas( $driver_id ) {
     $query = "
         SELECT p.ID, p.post_title,
                pm_estado_motorizado.meta_value as estado_motorizado,
+             pm_status.meta_value as estado_envio,
+             pm_tienda.meta_value as tienda_name,
+             pm_shipper_name.meta_value as shipper_name,
                pm_destino.meta_value as destino,
                pm_pickup_date.meta_value as envio_fecha
         FROM {$wpdb->posts} p
         LEFT JOIN {$wpdb->postmeta} pm_me ON p.ID = pm_me.post_id AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
         LEFT JOIN {$wpdb->postmeta} pm_estado_motorizado ON p.ID = pm_estado_motorizado.post_id AND pm_estado_motorizado.meta_key = 'wpcargo_estado_pago_motorizado'
+         LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
+         LEFT JOIN {$wpdb->postmeta} pm_tienda ON p.ID = pm_tienda.post_id AND pm_tienda.meta_key = 'wpcargo_tiendaname'
+         LEFT JOIN {$wpdb->postmeta} pm_shipper_name ON p.ID = pm_shipper_name.post_id AND pm_shipper_name.meta_key = 'wpcargo_shipper_name'
         LEFT JOIN {$wpdb->postmeta} pm_destino ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
         LEFT JOIN {$wpdb->postmeta} pm_pickup_date ON p.ID = pm_pickup_date.post_id AND pm_pickup_date.meta_key IN ('wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_fecha_envio')
         WHERE p.post_type = 'wpcargo_shipment'
@@ -4316,6 +4322,8 @@ function merc_motorizado_entregas( $driver_id ) {
             <tr>
                 <th>Pedido</th>
                 <th>Destino</th>
+                <th>Estado</th>
+                <th>Marca</th>
                 <th>Pago a Motorizado</th>
                 <th>Pago a MERC</th>
                 <th>Pago a MARCA</th>
@@ -4329,6 +4337,13 @@ function merc_motorizado_entregas( $driver_id ) {
                 $totales           = get_payment_totals_by_method( $shipment->ID );
                 // Mostrar POS: usar el monto que llega (sin distinción bruto/neto)
                 $pos_display = get_pos_net_for_shipment( $shipment->ID, $totales );
+                $tracking_number = $shipment->post_title;
+                $tracking_url    = 'https://mercourier.com/dashboard/?wpcfe=track&num=' . rawurlencode( $tracking_number );
+                $estado_envio    = ! empty( $shipment->estado_envio ) ? $shipment->estado_envio : 'SIN ESTADO';
+                $marca_nombre    = ! empty( $shipment->tienda_name ) ? $shipment->tienda_name : $shipment->shipper_name;
+                if ( empty( $marca_nombre ) ) {
+                    $marca_nombre = '-';
+                }
 
                 // Acumular totales
                 $total_efectivo_sum += $totales['efectivo'];
@@ -4338,8 +4353,10 @@ function merc_motorizado_entregas( $driver_id ) {
                 $total_general += $totales['total'];
                 ?>
                 <tr>
-                    <td><strong>#<?php echo esc_html( $shipment->post_title ); ?></strong></td>
+                    <td><strong><a href="<?php echo esc_url( $tracking_url ); ?>" target="_blank" rel="noopener noreferrer">#<?php echo esc_html( $tracking_number ); ?></a></strong></td>
                     <td><?php echo esc_html( $shipment->destino ); ?></td>
+                    <td><?php echo esc_html( $estado_envio ); ?></td>
+                    <td><?php echo esc_html( $marca_nombre ); ?></td>
                     <td>S/. <?php echo number_format( $totales['efectivo'], 2 ); ?></td>
                     <td>S/. <?php echo number_format( $totales['pago_merc'], 2 ); ?></td>
                     <td>S/. <?php echo number_format( $totales['pago_marca'], 2 ); ?></td>
@@ -4351,7 +4368,7 @@ function merc_motorizado_entregas( $driver_id ) {
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2" style="text-align: right;"><strong>TOTAL DEL DÍA:</strong></td>
+                <td colspan="4" style="text-align: right;"><strong>TOTAL DEL DÍA:</strong></td>
                 <td><strong>S/. <?php echo number_format( $total_efectivo_sum, 2 ); ?></strong></td>
                 <td><strong>S/. <?php echo number_format( $total_pago_merc_sum, 2 ); ?></strong></td>
                 <td><strong>S/. <?php echo number_format( $total_pago_marca_sum, 2 ); ?></strong></td>

@@ -402,7 +402,7 @@ class MERC_Shipment_Table {
 
 				$tbody.find('tr').each(function() {
 					const $row = $(this);
-					const tienda = $row.find('.merc-tienda-cell').data('tienda') || $row.data('tienda') || '';
+					const tienda = String($row.find('.merc-tienda-cell').data('tienda') || $row.data('tienda') || '');
 					
 					if (!tiendas[tienda]) {
 						tiendas[tienda] = [];
@@ -440,7 +440,7 @@ class MERC_Shipment_Table {
 					return;
 				}
 
-				const tiendaSlug = tienda.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
+				const tiendaSlug = String(tienda).replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
 				const rowsForTienda = tiendas[tienda];
 				
 				// Obtener el nombre del cliente de la primera fila
