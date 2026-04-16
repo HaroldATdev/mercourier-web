@@ -257,10 +257,14 @@ jQuery(document).ready(function ($) {
                     toast('⚠️ No se pudieron rellenar los campos', '#f39c12');
                 }
                 
-                // 🔄 ACTUALIZAR SELECTOR DE PRODUCTOS DESDE LA RESPUESTA
+                // 🔄 ACTUALIZAR SELECTOR DE PRODUCTOS (SOLO FULLFITMENT)
                 if (resp.data.productos && Array.isArray(resp.data.productos)) {
-                    console.log('[ClientAutofill] 🔄 Actualizando productos (' + resp.data.productos.length + ' encontrados)');
-                    actualizarSelectorProductos(resp.data.productos);
+                    if (esTipoFullfitmentActual()) {
+                        console.log('[ClientAutofill] 🔄 Actualizando productos (' + resp.data.productos.length + ' encontrados)');
+                        actualizarSelectorProductos(resp.data.productos);
+                    } else {
+                        console.log('[ClientAutofill] ℹ️ Tipo de envío actual no es fullfitment, se omite actualización de productos');
+                    }
                 } else {
                     console.warn('[ClientAutofill] ⚠️ Sin array de productos en respuesta');
                 }
@@ -296,11 +300,34 @@ jQuery(document).ready(function ($) {
     /* ══════════════════════════════════════════════════════════════
      * ACTUALIZAR SELECTOR DE PRODUCTOS CON ARRAY
      * ══════════════════════════════════════════════════════════════ */
+    function normalizarTipoEnvio(rawTipo) {
+        var raw = String(rawTipo || '').toLowerCase().trim();
+        if (raw === 'full_fitment' || raw === 'full-fitment' || raw === 'fullfitment') return 'fullfitment';
+        return raw;
+    }
+
+    function esTipoFullfitmentActual() {
+        var tipoEnvio =
+            $('#tipo-envio-actual').val() ||
+            $('input[name="tipo_envio"]').first().val() ||
+            $('#tipo_envio_hidden').val() ||
+            '';
+
+        var tipoNormalizado = normalizarTipoEnvio(tipoEnvio);
+        console.log('[ClientAutofill] 🔎 tipo_envio detectado:', tipoEnvio, '| normalizado:', tipoNormalizado);
+        return tipoNormalizado === 'fullfitment';
+    }
+
     function actualizarSelectorProductos(productosArray) {
         // productosArray = [ { id, titulo, stock }, ... ]
         console.log('[ClientAutofill] 🔄 actualizarSelectorProductos() llamado');
         console.log('[ClientAutofill]   Productos recibidos:', productosArray);
         console.log('[ClientAutofill]   Array length:', productosArray ? productosArray.length : 'null');
+
+        if (!esTipoFullfitmentActual()) {
+            console.log('[ClientAutofill] ℹ️ Se omite actualizar productos: tipo_envio no es fullfitment');
+            return;
+        }
 
         if (!productosArray || productosArray.length === 0) {
             console.warn('[ClientAutofill] ⚠️ Array de productos vacío o null');
