@@ -518,43 +518,26 @@ class MERC_Table_Ajax {
             wp_send_json_error( [ 'message' => 'No tienes permisos para esta acción' ] );
         }
 
-        $driver_id    = isset( $_POST['driver_id'] ) ? absint( $_POST['driver_id'] ) : 0;
-        $shipment_ids = isset( $_POST['shipment_ids'] ) ? array_map( 'intval', (array) $_POST['shipment_ids'] ) : [];
+        $driver_id = isset( $_POST['driver_id'] ) ? absint( $_POST['driver_id'] ) : 0;
 
-        if ( empty( $shipment_ids ) && $driver_id > 0 ) {
-            global $wpdb;
-
-            $shipment_ids = $wpdb->get_col(
-                $wpdb->prepare(
-                    "SELECT p.ID
-                    FROM {$wpdb->posts} p
-                    INNER JOIN {$wpdb->postmeta} pm_entrega
-                        ON pm_entrega.post_id = p.ID
-                    AND pm_entrega.meta_key = 'wpcargo_motorizo_entrega'
-                    WHERE p.post_type = 'wpcargo_shipment'
-                    AND p.post_status = 'publish'
-                    AND pm_entrega.meta_value = %s",
-                    (string) $driver_id
-                )
-            );
-
-            $shipment_ids = array_map( 'intval', (array) $shipment_ids );
+        if ( $driver_id <= 0 ) {
+            wp_send_json_error( [ 'message' => 'Motorizado inválido' ] );
         }
 
-        $shipment_ids = array_values( array_filter( $shipment_ids ) );
-
-        if ( empty( $shipment_ids ) ) {
-            wp_send_json_error( [ 'message' => 'No hay envíos para cerrar' ] );
+        $driver_user = get_user_by( 'id', $driver_id );
+        if ( ! $driver_user ) {
+            wp_send_json_error( [ 'message' => 'Motorizado no encontrado' ] );
         }
 
-        foreach ( $shipment_ids as $shipment_id ) {
-            update_post_meta( $shipment_id, 'merc_caja_cerrada', '1' );
-        }
+        $fecha_cierre = wp_date( 'Y-m-d' );
+        update_user_meta( $driver_id, 'merc_caja_cerrada', '1' );
+        update_user_meta( $driver_id, 'merc_caja_cerrada_fecha', $fecha_cierre );
 
         wp_send_json_success( [
-            'message'    => 'Caja cerrada correctamente',
-            'count'      => count( $shipment_ids ),
-            'driver_id'  => $driver_id,
+            'message'      => 'Caja cerrada correctamente',
+            'driver_id'    => $driver_id,
+            'caja_cerrada' => '1',
+            'fecha_cierre' => $fecha_cierre,
         ] );
     }
 
@@ -573,29 +556,25 @@ class MERC_Table_Ajax {
             wp_send_json_error( [ 'message' => 'No se recibió el motorizado' ] );
         }
 
-        global $wpdb;
+        $driver_id_int = absint( $driver_id );
+        if ( $driver_id_int <= 0 ) {
+            wp_send_json_error( [ 'message' => 'Motorizado inválido' ] );
+        }
 
-        $shipment_ids = $wpdb->get_col(
-            $wpdb->prepare(
-                "SELECT DISTINCT p.ID
-                FROM {$wpdb->posts} p
-                INNER JOIN {$wpdb->postmeta} pm_driver
-                    ON pm_driver.post_id = p.ID
-                AND pm_driver.meta_key = 'wpcargo_motorizo_entrega'
-                INNER JOIN {$wpdb->postmeta} pm_caja
-                    ON pm_caja.post_id = p.ID
-                AND pm_caja.meta_key = 'merc_caja_cerrada'
-                AND pm_caja.meta_value = '1'
-                WHERE p.post_type = 'wpcargo_shipment'
-                AND p.post_status IN ('publish','private')
-                AND pm_driver.meta_value = %s",
-                (string) $driver_id
-            )
-        );
+        $estado_caja   = (string) get_user_meta( $driver_id_int, 'merc_caja_cerrada', true );
+        $fecha_cierre  = (string) get_user_meta( $driver_id_int, 'merc_caja_cerrada_fecha', true );
+        $fecha_actual  = wp_date( 'Y-m-d' );
+        $caja_cerrada  = ( '1' === $estado_caja && $fecha_cierre === $fecha_actual ) ? '1' : '0';
+
+        if ( '1' === $estado_caja && '0' === $caja_cerrada ) {
+            update_user_meta( $driver_id_int, 'merc_caja_cerrada', '0' );
+        }
 
         wp_send_json_success( [
-            'driver_id'    => $driver_id,
-            'shipment_ids' => array_values( array_map( 'intval', (array) $shipment_ids ) ),
+            'driver_id'    => (string) $driver_id_int,
+            'caja_cerrada' => $caja_cerrada,
+            'fecha_cierre' => $fecha_cierre,
+            'fecha_actual' => $fecha_actual,
         ] );
     }
 }
