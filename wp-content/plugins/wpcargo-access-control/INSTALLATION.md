@@ -52,32 +52,12 @@ Si ve esta página, ¡el plugin está activo!
 
 ## ⚙️ Configuración Inicial
 
-### Opción A: Usar Configuración por Defecto
-- Ya incluye 7 usuarios con permisos asignados
-- Completamente funcional sin cambios adicionales
+Este plugin ya no administra matrices de permisos ni restricciones de rutas. Esa responsabilidad se movió a `wpcargo-roles`.
 
-### Opción B: Agregar Nuevos Usuarios
-En tu `functions.php` del theme:
+La configuración aquí se limita al desbloqueo manual desde:
 
-```php
-// Agregar esto al final de functions.php
-add_filter('wpcac_permissions_matrix', function($matrix) {
-    $matrix['nuevo@ejemplo.com'] = array(
-        '/dashboard/',
-        '/receiving/',
-    );
-    return $matrix;
-});
 ```
-
-### Opción C: Usar API del Plugin
-```php
-// Agregar permisos programáticamente
-wpcac_add_user_permissions('user@example.com', array(
-    '/dashboard/',
-    '/containers/',
-    '/panel-admin/',
-));
+WP-Admin > Herramientas > Skip Blocks Recojo
 ```
 
 ---
@@ -93,12 +73,7 @@ Click: 🔓 DESBLOQUEAR TODOS LOS CLIENTES
 
 Esto permite que todos los clientes creen envíos sin restricciones por hoy.
 
-### 2. Probar Restricciones
-Loguearse como usuario en la matriz y verificar que:
-- ✅ Puede acceder a rutas permitidas
-- ✅ Se redirecciona al home si no tiene permiso
-
-### 3. Revisar Logs
+### 2. Revisar Logs
 ```bash
 grep "wpcac" wp-content/merc_logs/merc-debug-*.log
 ```
@@ -109,8 +84,8 @@ grep "wpcac" wp-content/merc_logs/merc-debug-*.log
 
 ### Paso 1: Remover código del plugin de functions.php
 
-El siguiente código debe ser removido (líneas 5-442):
-- Matriz de permisos (`merc_get_permisos()`)
+El siguiente código debe ser removido si todavía vive en tu theme:
+- Matriz de permisos antigua
 - Filtros de acceso (`template_redirect`)
 - Filtros de sidebar
 - Page de desbloqueo (`merc_render_skip_blocks_page()`)
@@ -142,7 +117,7 @@ Buscar y remover estas líneas:
 
 Usar función de test:
 ```php
-if (function_exists('wpcac_get_user_permissions')) {
+if (function_exists('wpcac_get_bypass_status')) {
     echo "✅ Plugin está activo y funcional";
 } else {
     echo "❌ Plugin no está cargado";
@@ -157,7 +132,6 @@ if (function_exists('wpcac_get_user_permissions')) {
 - [ ] Plugin está activado (color verde)
 - [ ] Página "Skip Blocks Recojo" accesible en Herramientas
 - [ ] Log muestra "activated"
-- [ ] Usuarios pueden/no acceder según permisos
 - [ ] Bypass manual funciona
 - [ ] functions.php limpio de código de acceso
 
@@ -180,15 +154,10 @@ if (function_exists('wpcac_get_user_permissions')) {
   php -l wp-content/plugins/wpcargo-access-control/wpcargo-access-control.php
   ```
 
-### ❌ Usuarios no se redirecciónan
-- Verificar que están en la matriz de permisos
-- Verificar que email es exactamente como está guardado
-- Revisar logs para ver qué rutas se están pidiendo
-
-### ❌ Menú items no se ocultan
-- CSS se aplica en `wp_head`, puede haber conflictos
-- Abrir DevTools (F12) e inspeccionar `.list-group-item`
-- Verificar que selectores CSS coinciden con HTML
+### ❌ El bypass no cambia de estado
+- Verificar que el usuario tenga acceso a Herramientas
+- Revisar logs para confirmar el toggle
+- Verificar opciones `merc_skip_blocks_today` y `merc_skip_blocks_mode`
 
 ---
 
@@ -209,9 +178,8 @@ Si encuentra problemas:
 ## 🎉 ¡Completado!
 
 El plugin está instalado y funcional. Ahora puede:
-- ✅ Gestionar acceso por email
-- ✅ Filtrar menús dinámicamente
 - ✅ Desbloquear clientes manualmente
+- ✅ Mantener el bypass MON-SAT
 - ✅ Mantener functions.php limpio
 
 **Próximo paso:** Crear siguiente plugin `wpcargo-shipment-filters`

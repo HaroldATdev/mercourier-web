@@ -26,14 +26,10 @@ define('WPCAC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WPCAC_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WPCAC_VERSION', '1.0.0');
 
-// Load permissions functions immediately (needed for activation hook)
-require_once WPCAC_PLUGIN_DIR . 'includes/permissions.php';
-
 /**
  * Load plugin files
  */
 function wpcac_load_plugin() {
-    // Load includes (permissions already loaded above)
     require_once WPCAC_PLUGIN_DIR . 'includes/role-filters.php';
     require_once WPCAC_PLUGIN_DIR . 'includes/unlock-system.php';
     require_once WPCAC_PLUGIN_DIR . 'admin/unlock-page.php';
@@ -46,11 +42,6 @@ add_action('plugins_loaded', 'wpcac_load_plugin');
  * Activation hook
  */
 function wpcac_activate() {
-    // Create necessary options if they don't exist
-    if (!get_option('wpcac_permissions_matrix')) {
-        update_option('wpcac_permissions_matrix', wpcac_get_default_permissions());
-    }
-    
     // Flush rewrite rules
     flush_rewrite_rules();
     
@@ -75,7 +66,6 @@ register_deactivation_hook(__FILE__, 'wpcac_deactivate');
  */
 function wpcac_uninstall() {
     // Delete all plugin options
-    delete_option('wpcac_permissions_matrix');
     delete_option('merc_skip_blocks_today');
     delete_option('merc_skip_blocks_mode');
     

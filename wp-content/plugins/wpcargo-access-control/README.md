@@ -5,39 +5,23 @@
 
 ## 📋 Descripción
 
-Plugin de gestión centralizada de permisos y acceso para WPCargo. Permite restringir acceso a páginas específicas por email/rol, filtrar menús del sidebar y controlar desbloqueos manuales de clientes.
+Plugin auxiliar para WPCargo enfocado en el desbloqueo manual diario de clientes.
 
-Mueve toda la lógica de control de acceso desde `functions.php` a un plugin modular, independiente y reutilizable.
+La gestión de permisos, redirecciones y menús ahora se resuelve en el plugin `wpcargo-roles`.
 
 ---
 
 ## ✨ Características
 
-### 1. **Matriz de Permisos por Email**
-- Define qué páginas puede acceder cada usuario
-- Basado en email del usuario
-- Fácilmente configurable y extensible
-
-### 2. **Restricción de Acceso por Ruta**
-- Control en `template_redirect` - redirecciona usuarios sin permiso
-- Siempre permite: wp-admin, wp-json, assets estáticos
-- Administradores siempre tienen acceso
-
-### 3. **Filtrado de Menús Sidebar**
-- `wpcfe_after_sidebar_menu_items` - filtra items individuales
-- `wpcfe_after_sidebar_menus` - filtra grupos de menús
-- CSS adicional para ocultar items que no se pueden filtrar
-
-### 4. **Sistema de Desbloqueo Manual**
+### 1. **Sistema de Desbloqueo Manual**
 - Toggle diario para desbloquear todos los clientes
 - Control desde WP-Admin: **Herramientas > Skip Blocks Recojo**
 - Aplica `merc_desbloqueado_manualmente_fecha` a todos los clientes
 - Automático: el estado se resetea después de medianoche
 
-### 5. **Super Administas Especiales**
-- Email `mercourier2019@gmail.com` tiene permisos totales
-- Email `davidmorilloacuna@gmail.com` puede acceder al admin
-- El resto requiere acceso a `/wp-admin` bloqueado
+### 2. **Bypass MON-SAT**
+- El modo `mon-sat` mantiene el bypass activo de lunes a sábado
+- Los domingos se desactiva automáticamente sin intervención manual
 
 ---
 
@@ -63,53 +47,7 @@ Mueve toda la lógica de control de acceso desde `functions.php` a un plugin mod
 
 ## ⚙️ Configuración
 
-### Definir Permisos por Email
-
-**Opción 1: Via Base de Datos**
-```php
-// En functions.php de tu theme de child
-add_filter('wpcac_permissions_matrix', function($matrix) {
-    $matrix['nuevousuario@example.com'] = array(
-        '/dashboard/',
-        '/dashboard/?wpcfe=add',
-        '/receiving/',
-    );
-    return $matrix;
-});
-```
-
-**Opción 2: Via Función**
-```php
-// Agregar permisos
-wpcac_add_user_permissions('user@example.com', array(
-    '/dashboard/',
-    '/containers/',
-));
-
-// Remover permisos
-wpcac_remove_user_permissions('user@example.com');
-
-// Obtener permisos
-$paths = wpcac_get_user_permissions('user@example.com');
-```
-
-### Rutas Disponibles
-
-```php
-'/dashboard/'                           // Panel principal
-'/dashboard/?wpcfe=add'                 // Crear envío
-'/dashboard/?wpcfe=add&type=normal'     // Crear envío normal
-'/dashboard/?wpcfe=add&type=express'    // Crear envío express
-'/dashboard/?wpcfe=add&type=full_fitment' // Crear envío full fitment
-'/containers/'                          // Contenedores
-'/receiving/'                           // Recepción
-'/import-export/?type=import'           // Importación CSV
-'/almacen-de-productos/'                // Almacén de productos
-'/devoluciones/'                        // Devoluciones
-'/panel-admin/'                         // Panel de administrador
-'/wpcumanage-users/'                    // Gestión de usuarios
-'/wpcpod-report-order/'                 // Reporte de órdenes POD
-```
+No requiere matriz de permisos. Si necesitas control de acceso por rol, usa `wpcargo-roles`.
 
 ---
 
@@ -147,38 +85,6 @@ if (wpcac_is_bypass_enabled_today()) {
 
 ## 🔍 Funciones Públicas
 
-### Gestión de Permisos
-
-```php
-/**
- * Obtener permisos de usuario
- */
-wpcac_get_user_permissions($email);
-// Retorna: array de rutas permitidas
-
-/**
- * Verificar si usuario actual puede acceder a ruta
- */
-wpcac_current_user_can_access($path);
-// Retorna: bool
-
-/**
- * Obtener rutas permitidas para usuario actual
- */
-wpcac_get_current_user_allowed_paths();
-// Retorna: array de rutas
-
-/**
- * Agregar permisos
- */
-wpcac_add_user_permissions($email, $paths);
-
-/**
- * Remover permisos
- */
-wpcac_remove_user_permissions($email);
-```
-
 ### Desbloqueo Manual
 
 ```php
@@ -211,33 +117,9 @@ wpcac_get_bypass_status();
 
 ## 📚 Hooks Available
 
-### Filters
-
-```php
-/**
- * Modificar matriz de permisos
- */
-apply_filters('wpcac_permissions_matrix', $matrix);
-
-/**
- * Modificar rutas permitidas de usuario
- */
-apply_filters('wpcac_user_paths', $paths, $email);
-```
-
 ### Actions
 
 ```php
-/**
- * Cuando se actualizan permisos
- */
-do_action('wpcac_permissions_updated', $email, $paths);
-
-/**
- * Cuando se remueven permisos
- */
-do_action('wpcac_permissions_removed', $email);
-
 /**
  * Cuando cambia estado de desbloqueo
  */
@@ -249,7 +131,7 @@ do_action('wpcac_skip_status_changed', $enable, $today, $count);
 ## 🗑️ Desinstalación
 
 El plugin limpia automáticamente:
-- ✅ Opciones almacenadas (`wpcac_permissions_matrix`, `merc_skip_blocks_today`)
+- ✅ Opciones almacenadas (`merc_skip_blocks_today`, `merc_skip_blocks_mode`)
 - ✅ User meta de desbloqueo manual
 - ✅ Flush de rewrite rules
 
