@@ -101,25 +101,6 @@ function merc_disable_shipper_info_fields() {
 }
 */
 
-// ── Restringir acceso al admin de WordPress solo a un correo ──────────────
-add_action( 'init', function() {
-    // Solo aplicar en el área de administración
-    if ( ! is_admin() ) return;
-
-    // Permitir peticiones AJAX (para que el frontend siga funcionando)
-    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) return;
-
-    // Si no está logueado, WordPress lo redirige al login solo — no hacer nada
-    if ( ! is_user_logged_in() ) return;
-
-    $current_user = wp_get_current_user();
-    $correo_permitido = 'davidmorilloacuna@gmail.com';
-
-    if ( $current_user->user_email !== $correo_permitido ) {
-        wp_redirect( home_url( '/dashboard/' ) ); // redirige al frontend de WPCargo
-        exit;
-    }
-});
 
 // Disparar acción pública cuando se crea una penalidad (para que otros módulos la integren)
 do_action('merc_penalty_module_loaded');
