@@ -30,7 +30,8 @@ class WCROL_Rol_WPCargo {
             // Base
             'read'                     => true,
             'wpcargo_dashboard_access' => true,
-            'manage_options'           => true,
+           //   'manage_options'           => true,
+            'wcrol_manage_roles' => true,
 
             // Gestión de usuarios
             'list_users'    => true,
