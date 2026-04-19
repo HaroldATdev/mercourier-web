@@ -80,8 +80,8 @@ class LA_Popup_Frontend {
         $es_panel = $this->es_dashboard_wpcargo();
 
         if ( $es_panel ) {
-            // En el panel solo mostramos a clientes (no admins)
-            if ( current_user_can( 'manage_options' ) ) return [];
+            // En el panel solo debe verlo el cliente; ni administrador ni motorizado.
+            if ( ! $this->es_cliente_wpcargo() ) return [];
             return get_option( LA_OPTION_PANEL, $this->defaults() );
         }
 
@@ -110,6 +110,15 @@ class LA_Popup_Frontend {
         $page_url    = trailingslashit( get_permalink( $page_id ) );
 
         return $page_url && $current_url === $page_url;
+    }
+
+    private function es_cliente_wpcargo(): bool {
+        if ( function_exists( 'is_wpcfe_client' ) ) {
+            return is_wpcfe_client();
+        }
+
+        $roles = function_exists( 'wpcfe_current_user_role' ) ? (array) wpcfe_current_user_role() : (array) wp_get_current_user()->roles;
+        return in_array( 'wpcargo_client', $roles, true );
     }
 
     private function defaults(): array {
