@@ -75,6 +75,5 @@ function wcrol_es_wpcargo_admin( int $user_id = 0 ): bool {
 
 /** ¿Puede el usuario actual gestionar roles? (solo wp admins) */
 function wcrol_puede_gestionar(): bool {
-    // return current_user_can('manage_options');
-    return current_user_can('wcrol_manage_roles');
+    return current_user_can('manage_options');
 }
