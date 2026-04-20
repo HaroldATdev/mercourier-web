@@ -132,7 +132,7 @@ $rol_mixto_admin = in_array('administrator', $roles_actuales, true) && in_array(
         $u=$entry['user']; $sin=$entry['sin_restriccion']; $num=$entry['num_modulos']; $tipo=$entry['tipo_acceso'];
     ?>
         <tr>
-            <td><?php echo get_avatar($u->ID,28,'','',['style'=>'border-radius:50%;vertical-align:middle']); ?></td>
+            <td><?php echo get_avatar($u->ID,32,'','',['style'=>'border-radius:50%;vertical-align:middle']); ?></td>
             <td>
                 <strong><?php echo esc_html(wcrol_nombre_usuario($u)); ?></strong>
                 <?php if($u->ID===get_current_user_id()): ?><span style="background:#d63638;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px">Tú</span><?php endif; ?>
