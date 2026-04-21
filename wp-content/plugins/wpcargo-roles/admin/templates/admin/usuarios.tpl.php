@@ -8,7 +8,10 @@ $fuentes_color=['wpcargo_core'=>'#2271b1','plugin'=>'#00a32a','pagina'=>'#6c757d
 
 <?php if ( $edit_uid && $usuario ):
 $tipo_actual = WCROL_Rol_WPCargo::tipo_acceso($edit_uid);
+// permisos del dashboard
 $sin_restric = WCROL_Permisos::es_sin_restriccion($edit_uid);
+$sidebar_permisos = WCROL_Permisos::obtener_sidebar($edit_uid);
+$sidebar_total    = ($sidebar_permisos === null);
 $es_yo       = ($edit_uid === get_current_user_id());
 $roles_actuales = (array) ($usuario->roles ?? []);
 $rol_mixto_admin = in_array('administrator', $roles_actuales, true) && in_array('wpcargo_admin', $roles_actuales, true);
@@ -21,6 +24,7 @@ $rol_mixto_admin = in_array('administrator', $roles_actuales, true) && in_array(
     <?php if ($tipo_actual==='wpcargo_admin'): ?>
     <span style="background:#e8f4fd;color:#1a6891;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700"><span class="dashicons dashicons-shield" style="font-size:13px;width:13px;height:13px;vertical-align:middle"></span> WPCargo Admin</span>
     <?php else: ?>
+        
     <span style="background:#d7f7c2;color:#135d3e;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700"><span class="dashicons dashicons-wordpress" style="font-size:13px;width:13px;height:13px;vertical-align:middle"></span> WordPress Admin</span>
     <?php endif; ?>
 </h2>
@@ -68,6 +72,61 @@ $rol_mixto_admin = in_array('administrator', $roles_actuales, true) && in_array(
             <button type="submit" class="button button-primary">Guardar tipo de acceso</button>
         </form>
     <?php endif; ?>
+    </div>
+</div>
+
+<!-- Módulos del menú lateral -->
+<div class="postbox" style="max-width:860px;margin-top:16px">
+    <div class="postbox-header">
+        <h2 class="hndle">
+            Módulos del menú lateral
+            <?php
+            echo $sidebar_total
+                ? '<span style="font-weight:400;font-size:12px;color:#00a32a">— Todos visibles</span>'
+                : '<span style="font-weight:400;font-size:12px;color:#2271b1">— '.count($sidebar_permisos).' visible(s)</span>';
+            ?>
+        </h2>
+    </div>
+
+    <div class="inside">
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+            <?php wp_nonce_field('wcrol_sidebar_nonce'); ?>
+
+            <input type="hidden" name="action" value="wcrol_guardar_sidebar">
+            <input type="hidden" name="user_id" value="<?php echo intval($edit_uid); ?>">
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
+
+                <?php foreach($modulos as $mod):
+
+                    $ck = $sidebar_total || (
+                        is_array($sidebar_permisos) &&
+                        in_array($mod['slug'], $sidebar_permisos, true)
+                    );
+                ?>
+                    <label style="display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid <?php echo $ck ? '#c3d9f4' : '#ddd'; ?>;border-radius:4px;cursor:pointer;background:<?php echo $ck ? '#f0f6fc' : '#fff'; ?>">
+
+                        <input
+                            type="checkbox"
+                            name="sidebar_modulos[]"
+                            value="<?php echo esc_attr($mod['slug']); ?>"
+                            <?php checked($ck, true); ?>
+                            onchange="var l=this.closest('label');l.style.background=this.checked?'#f0f6fc':'#fff';l.style.borderColor=this.checked?'#c3d9f4':'#ddd'">
+
+                        <span style="font-size:13px">
+                            <strong><?php echo esc_html($mod['label']); ?></strong>
+                        </span>
+                    </label>
+
+                <?php endforeach; ?>
+            </div>
+
+            <div style="margin-top:16px;padding-top:12px;border-top:1px solid #ddd">
+                <button type="submit" class="button button-primary">
+                    Guardar menú lateral
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
