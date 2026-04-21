@@ -118,7 +118,7 @@ function merc_sync_service_cost_by_status( $post_id, $new_status ) {
 
     $status = mb_strtolower( trim( wp_strip_all_tags( (string) $new_status ) ) );
 
-    $special_statuses = array( 'REPROGRAMADO', 'ANULADO' );
+    $special_statuses = array( 'reprogramado', 'anulado' );
 
     // Este es el meta que usa el proyecto como "Servicio"
     $service_key = 'wpcargo_costo_envio';
