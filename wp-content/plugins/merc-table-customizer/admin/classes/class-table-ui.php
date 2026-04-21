@@ -1079,6 +1079,21 @@ class MERC_Table_UI {
                 return partes[2] + '/' + partes[1] + '/' + partes[0];
             }
 
+            function normalizarFechaISO(fechaValor) {
+                if (!fechaValor) return '';
+
+                const valor = String(fechaValor).trim();
+                if (!valor) return '';
+
+                const isoMatch = valor.match(/^(\d{4}-\d{2}-\d{2})/);
+                if (isoMatch) return isoMatch[1];
+
+                const dmYMatch = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                if (dmYMatch) return dmYMatch[3] + '-' + dmYMatch[2] + '-' + dmYMatch[1];
+
+                return '';
+            }
+
             function esDomingoISO(fechaISO) {
                 if (!fechaISO) return false;
                 const d = new Date(fechaISO + 'T00:00:00');
@@ -1099,6 +1114,7 @@ class MERC_Table_UI {
                 }
             }).done(function(resp) {
                 const minDate = (resp && resp.success && resp.data && resp.data.min_date_iso) ? resp.data.min_date_iso : '';
+                const minDateISO = normalizarFechaISO(minDate);
                 const minDateMostrar = (resp && resp.success && resp.data && resp.data.min_date) ? resp.data.min_date : formatearFechaAMostrar(minDate);
                 const postDateMostrar = (resp && resp.success && resp.data && resp.data.post_date) ? resp.data.post_date : 'N/D';
 
@@ -1113,7 +1129,7 @@ class MERC_Table_UI {
                             '<p style="font-size: 12px; color: #666; margin-top: 4px;">🚫 Los domingos están bloqueados</p>' +
                         '</div>' +
                         '<label class="merc-modal-reprogram-label">Seleccione la nueva fecha de envío:</label>' +
-                        '<input type="date" class="merc-modal-reprogram-input" id="merc-nueva-fecha" min="' + minDate + '" required>' +
+                        '<input type="date" class="merc-modal-reprogram-input" id="merc-nueva-fecha" min="' + minDateISO + '" required>' +
                         '<div class="merc-modal-reprogram-buttons">' +
                             '<button class="merc-modal-reprogram-btn merc-modal-reprogram-btn-confirmar">✓ Confirmar</button>' +
                             '<button class="merc-modal-reprogram-btn merc-modal-reprogram-btn-cancelar">✗ Cancelar</button>' +
@@ -1172,7 +1188,7 @@ class MERC_Table_UI {
 
                     mercReprogFlatpickr = window.flatpickr($inputFecha.get(0), {
                         dateFormat: 'Y-m-d',
-                        minDate: minDate || null,
+                        minDate: minDateISO || null,
                         allowInput: false,
                         disableMobile: true,
                         disable: [function(date) { return date.getDay() === 0; }],
@@ -1193,17 +1209,24 @@ class MERC_Table_UI {
                 });
 
                 $inputFecha.on('change input', function() {
-                    const valor = $(this).val();
-                    if (valor && esDomingoISO(valor)) {
+                    const valorISO = normalizarFechaISO($(this).val());
+                    if (valorISO && esDomingoISO(valorISO)) {
                         alert('No se puede reprogramar para domingo');
                         $(this).val('');
+                        return;
                     }
+                    if ($(this).val() && !valorISO) {
+                        alert('Formato de fecha invalido. Seleccione la fecha desde el calendario.');
+                        $(this).val('');
+                        return;
+                    }
+                    $(this).val(valorISO);
                 });
 
                 $modal.find('.merc-modal-reprogram-btn-confirmar').on('click', function() {
-                    const nuevaFechaISO = $inputFecha.val();
+                    const nuevaFechaISO = normalizarFechaISO($inputFecha.val());
                     if (!nuevaFechaISO) { alert('Por favor seleccione una fecha'); return; }
-                    if (minDate && nuevaFechaISO < minDate) {
+                    if (minDateISO && nuevaFechaISO < minDateISO) {
                         alert('La fecha debe ser desde ' + minDateMostrar + ' en adelante');
                         return;
                     }
