@@ -108,7 +108,53 @@ add_action('updated_post_meta', function($meta_id, $post_id, $meta_key, $meta_va
     // Detectar cambio a "NO RECIBIDO" y registrar cargo automáticamente
     error_log(sprintf('MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=%s', $post_id));
     merc_auto_registrar_cargo_no_recibido($post_id, $meta_value);
+    merc_sync_service_cost_by_status( $post_id, $meta_value );
 }, 10, 4);
+
+function merc_sync_service_cost_by_status( $post_id, $new_status ) {
+    if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) {
+        return;
+    }
+
+    $status = mb_strtolower( trim( wp_strip_all_tags( (string) $new_status ) ) );
+
+    $special_statuses = array( 'REPROGRAMADO', 'ANULADO' );
+
+    // Este es el meta que usa el proyecto como "Servicio"
+    $service_key = 'wpcargo_costo_envio';
+
+    // Backup del valor original
+    $original_key = '_merc_original_costo_envio';
+
+    // Flag para saber si lo dejamos en 0 por estado
+    $flag_key = '_merc_service_zeroed_by_status';
+
+    $current_service = get_post_meta( $post_id, $service_key, true );
+
+    if ( in_array( $status, $special_statuses, true ) ) {
+        // Guardar el valor original solo la primera vez
+        if ( get_post_meta( $post_id, $original_key, true ) === '' && $current_service !== '' ) {
+            update_post_meta( $post_id, $original_key, $current_service );
+        }
+
+        // Forzar servicio = 0
+        update_post_meta( $post_id, $service_key, '0.00' );
+        update_post_meta( $post_id, $flag_key, '1' );
+
+        return;
+    }
+
+    // Si ya no está en REPROGRAMADO / ANULADO, restaurar el valor original
+    if ( get_post_meta( $post_id, $flag_key, true ) === '1' ) {
+        $original_service = get_post_meta( $post_id, $original_key, true );
+
+        if ( $original_service !== '' ) {
+            update_post_meta( $post_id, $service_key, $original_service );
+        }
+
+        delete_post_meta( $post_id, $flag_key );
+    }
+}
 
 // AJAX: generar penalidades del día
 add_action('wp_ajax_merc_generate_penalties_today', function() {
