@@ -1,9 +1,11 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit;
+if (! defined('ABSPATH')) exit;
 
-class WCROL_Admin {
+class WCROL_Admin
+{
 
-    public function __construct() {
+    public function __construct()
+    {
 
         // Menús del plugin
         add_action('admin_menu',    [$this, 'registrar_menu']);
@@ -34,7 +36,8 @@ class WCROL_Admin {
         add_action('admin_post_wcrol_sincronizar', [$this, 'handle_sincronizar']);
     }
 
-    public function registrar_menu(): void {
+    public function registrar_menu(): void
+    {
 
         add_menu_page(
             'Roles WPCargo',
@@ -65,9 +68,10 @@ class WCROL_Admin {
         );
     }
 
-    public function pagina_usuarios(): void {
+    public function pagina_usuarios(): void
+    {
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die('Sin permisos.');
         }
 
@@ -89,9 +93,10 @@ class WCROL_Admin {
         );
     }
 
-    public function pagina_modulos(): void {
+    public function pagina_modulos(): void
+    {
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die('Sin permisos.');
         }
 
@@ -124,17 +129,18 @@ class WCROL_Admin {
     }
 
     // Guardar permisos de módulos del dashboard
-    public function handle_guardar_permisos(): void {
+    public function handle_guardar_permisos(): void
+    {
 
         check_admin_referer('wcrol_permisos_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
         $user_id = intval($_POST['user_id'] ?? 0);
 
-        if ( ! $user_id ) {
+        if (! $user_id) {
             wcrol_redirect('wcrol-usuarios', 'error_req');
         }
 
@@ -152,24 +158,33 @@ class WCROL_Admin {
 
     // NUEVO:
     // Guardar módulos visibles del menú lateral
-    public function handle_guardar_sidebar(): void {
+    public function handle_guardar_sidebar(): void
+    {
 
         check_admin_referer('wcrol_sidebar_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
         $user_id = intval($_POST['user_id'] ?? 0);
 
-        if ( ! $user_id ) {
+        if (! $user_id) {
             wcrol_redirect('wcrol-usuarios', 'error_req');
         }
 
-        WCROL_Permisos::guardar_sidebar(
-            $user_id,
-            array_map('sanitize_key', $_POST['sidebar_modulos'] ?? [])
+        $sidebar_modulos = array_map(
+            'sanitize_key',
+            $_POST['sidebar_modulos'] ?? []
         );
+
+        $modulos_totales = WCROL_Modulos::obtener_todos();
+
+        if (count($sidebar_modulos) >= count($modulos_totales)) {
+            WCROL_Permisos::quitar_sidebar($user_id);
+        } else {
+            WCROL_Permisos::guardar_sidebar($user_id, $sidebar_modulos);
+        }
 
         wcrol_redirect(
             'wcrol-usuarios',
@@ -179,11 +194,12 @@ class WCROL_Admin {
     }
 
     // Quitar restricciones de módulos del dashboard
-    public function handle_quitar_restricciones(): void {
+    public function handle_quitar_restricciones(): void
+    {
 
         check_admin_referer('wcrol_permisos_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
@@ -199,18 +215,19 @@ class WCROL_Admin {
     }
 
     // Cambiar tipo de acceso del usuario
-    public function handle_cambiar_tipo(): void {
+    public function handle_cambiar_tipo(): void
+    {
 
         check_admin_referer('wcrol_tipo_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
         $user_id = intval($_POST['user_id'] ?? 0);
         $tipo    = sanitize_key($_POST['tipo_acceso'] ?? '');
 
-        if ( ! $user_id || ! $tipo ) {
+        if (! $user_id || ! $tipo) {
             wcrol_redirect('wcrol-usuarios', 'error_req');
         }
 
@@ -224,11 +241,12 @@ class WCROL_Admin {
     }
 
     // Guardar módulo manualmente
-    public function handle_guardar_modulo(): void {
+    public function handle_guardar_modulo(): void
+    {
 
         check_admin_referer('wcrol_modulo_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
@@ -247,11 +265,12 @@ class WCROL_Admin {
     }
 
     // Eliminar módulo
-    public function handle_eliminar_modulo(): void {
+    public function handle_eliminar_modulo(): void
+    {
 
         check_admin_referer('wcrol_modulo_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
@@ -263,11 +282,12 @@ class WCROL_Admin {
     }
 
     // Sincronizar módulos automáticamente
-    public function handle_sincronizar(): void {
+    public function handle_sincronizar(): void
+    {
 
         check_admin_referer('wcrol_sync_nonce');
 
-        if ( ! current_user_can('manage_options') ) {
+        if (! current_user_can('manage_options')) {
             wp_die();
         }
 
@@ -281,25 +301,26 @@ class WCROL_Admin {
     }
 
     // Mostrar mensajes / notices del plugin
-    public function mostrar_notice(): void {
+    public function mostrar_notice(): void
+    {
 
         $key = sanitize_key($_GET['wcrol_msg'] ?? '');
 
-        if ( ! $key ) {
+        if (! $key) {
             return;
         }
 
         $nuevos = intval($_GET['nuevos'] ?? 0);
 
         $msgs = [
-            'guardado'     => ['success','Guardado correctamente.'],
-            'eliminado'    => ['success','Eliminado correctamente.'],
-            'sincronizado' => ['success',"Sincronizado. {$nuevos} módulo(s) nuevo(s) encontrado(s). <strong>Nota:</strong> Para capturar módulos de plugins, navega al dashboard de WPCargo primero y luego sincroniza."],
-            'error_req'    => ['error','Faltan campos obligatorios.'],
-            'error_propio' => ['error','No puedes cambiar tu propia cuenta a Administrador WPCargo.'],
+            'guardado'     => ['success', 'Guardado correctamente.'],
+            'eliminado'    => ['success', 'Eliminado correctamente.'],
+            'sincronizado' => ['success', "Sincronizado. {$nuevos} módulo(s) nuevo(s) encontrado(s). <strong>Nota:</strong> Para capturar módulos de plugins, navega al dashboard de WPCargo primero y luego sincroniza."],
+            'error_req'    => ['error', 'Faltan campos obligatorios.'],
+            'error_propio' => ['error', 'No puedes cambiar tu propia cuenta a Administrador WPCargo.'],
         ];
 
-        if ( isset($msgs[$key]) ) {
+        if (isset($msgs[$key])) {
             [$t, $m] = $msgs[$key];
             echo "<div class='notice notice-{$t} is-dismissible'><p>{$m}</p></div>";
         }
