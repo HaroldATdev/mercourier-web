@@ -22,6 +22,7 @@ class MERC_Shipment_Form_Fields {
 		// Scripts y estilos del formulario de paquetes
 		add_action( 'wp_footer', [ $this, 'package_defaults_script' ], 15 );
 		add_action( 'wp_head',   [ $this, 'package_form_styles' ] );
+		add_action( 'save_post_wpcargo_shipment', [ $this, 'sync_service_cost_by_status' ], 1000000, 1 );
 
 		// Guardar datos financieros al salvar el envío
 		add_action( 'wpcargo_after_save_shipment', [ $this, 'save_financial_data' ], 20, 1 );
@@ -1343,6 +1344,16 @@ class MERC_Shipment_Form_Fields {
 		}
 
 		error_log( "🔚 [FINAL_VERIFICATION] Envío #{$post_id} | Tipo: {$tipo} | Distrito: {$distrito} | Costo: {$costo}" );
+	}
+
+	public function sync_service_cost_by_status( int $post_id ): void {
+		if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) {
+			return;
+		}
+
+		if ( function_exists( 'merc_sync_service_cost_by_status' ) ) {
+			merc_sync_service_cost_by_status( $post_id );
+		}
 	}
 
 	/* ── Logging al editar un envío ───────────────────────────────────────── */
