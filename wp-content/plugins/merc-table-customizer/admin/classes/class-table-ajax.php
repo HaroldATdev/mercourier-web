@@ -74,6 +74,7 @@ class MERC_Table_Ajax {
         }
 
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
+        merc_sync_service_cost_by_status( $shipment_id );
 
         $historial = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
         if ( ! is_array( $historial ) ) {
@@ -295,6 +296,7 @@ class MERC_Table_Ajax {
         }
 
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
+        merc_sync_service_cost_by_status( $shipment_id );
 
         $historial = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
         if ( ! is_array( $historial ) ) $historial = [];
@@ -378,6 +380,7 @@ class MERC_Table_Ajax {
         }
 
         update_post_meta( $shipment_id, 'wpcargo_status', 'ANULADO' );
+        merc_sync_service_cost_by_status( $shipment_id );
 
         $historial = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
         if ( ! is_array( $historial ) ) $historial = [];

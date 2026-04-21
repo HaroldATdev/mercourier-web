@@ -107,52 +107,56 @@ add_action('updated_post_meta', function($meta_id, $post_id, $meta_key, $meta_va
     
     // Detectar cambio a "NO RECIBIDO" y registrar cargo automáticamente
     error_log(sprintf('MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=%s', $post_id));
+    merc_maybe_create_penalty_for_shipment($post_id);
     merc_auto_registrar_cargo_no_recibido($post_id, $meta_value);
-    merc_sync_service_cost_by_status( $post_id, $meta_value );
+    merc_sync_service_cost_by_status( $post_id );
 }, 10, 4);
 
-function merc_sync_service_cost_by_status( $post_id, $new_status ) {
-    if ( get_post_type( $post_id ) !== 'wpcargo_shipment' ) {
-        return;
-    }
+if ( ! function_exists( 'merc_get_adjusted_service_cost' ) ) {
+    function merc_get_adjusted_service_cost( $shipment_id ) {
+        $status = strtoupper( trim( (string) get_post_meta( $shipment_id, 'wpcargo_status', true ) ) );
 
-    $status = mb_strtolower( trim( wp_strip_all_tags( (string) $new_status ) ) );
-
-    $special_statuses = array( 'reprogramado', 'anulado' );
-
-    // Este es el meta que usa el proyecto como "Servicio"
-    $service_key = 'wpcargo_costo_envio';
-
-    // Backup del valor original
-    $original_key = '_merc_original_costo_envio';
-
-    // Flag para saber si lo dejamos en 0 por estado
-    $flag_key = '_merc_service_zeroed_by_status';
-
-    $current_service = get_post_meta( $post_id, $service_key, true );
-
-    if ( in_array( $status, $special_statuses, true ) ) {
-        // Guardar el valor original solo la primera vez
-        if ( get_post_meta( $post_id, $original_key, true ) === '' && $current_service !== '' ) {
-            update_post_meta( $post_id, $original_key, $current_service );
+        if ( stripos( $status, 'REPROGRAMADO' ) !== false || stripos( $status, 'ANULADO' ) !== false ) {
+            return 0.0;
         }
 
-        // Forzar servicio = 0
-        update_post_meta( $post_id, $service_key, '0.00' );
-        update_post_meta( $post_id, $flag_key, '1' );
-
-        return;
+        return floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
     }
+}
 
-    // Si ya no está en REPROGRAMADO / ANULADO, restaurar el valor original
-    if ( get_post_meta( $post_id, $flag_key, true ) === '1' ) {
-        $original_service = get_post_meta( $post_id, $original_key, true );
-
-        if ( $original_service !== '' ) {
-            update_post_meta( $post_id, $service_key, $original_service );
+if ( ! function_exists( 'merc_sync_service_cost_by_status' ) ) {
+    function merc_sync_service_cost_by_status( $shipment_id ) {
+        if ( get_post_type( $shipment_id ) !== 'wpcargo_shipment' ) {
+            return;
         }
 
-        delete_post_meta( $post_id, $flag_key );
+        $status = strtoupper( trim( (string) get_post_meta( $shipment_id, 'wpcargo_status', true ) ) );
+        $special = ( stripos( $status, 'REPROGRAMADO' ) !== false || stripos( $status, 'ANULADO' ) !== false );
+
+        $service_key  = 'wpcargo_costo_envio';
+        $backup_key   = '_merc_original_wpcargo_costo_envio';
+        $flag_key     = '_merc_service_zeroed_by_status';
+        $current_cost  = get_post_meta( $shipment_id, $service_key, true );
+
+        if ( $special ) {
+            if ( get_post_meta( $shipment_id, $backup_key, true ) === '' && $current_cost !== '' ) {
+                update_post_meta( $shipment_id, $backup_key, $current_cost );
+            }
+
+            update_post_meta( $shipment_id, $service_key, '0.00' );
+            update_post_meta( $shipment_id, $flag_key, '1' );
+            return;
+        }
+
+        if ( get_post_meta( $shipment_id, $flag_key, true ) === '1' ) {
+            $original_cost = get_post_meta( $shipment_id, $backup_key, true );
+
+            if ( $original_cost !== '' ) {
+                update_post_meta( $shipment_id, $service_key, $original_cost );
+            }
+
+            delete_post_meta( $shipment_id, $flag_key );
+        }
     }
 }
 

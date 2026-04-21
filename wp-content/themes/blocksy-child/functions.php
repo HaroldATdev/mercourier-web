@@ -863,7 +863,7 @@ function merc_cliente_pagar_a_merc_ajax() {
     foreach ( $shipments as $shipment_id ) {
         if ( $remaining <= 0 ) break;
         
-        $costo_envio = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
+        $costo_envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment_id ) : floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
         if ( $costo_envio <= 0 ) continue;
         
         // Marcar como cobrado y vincular a esta liquidación
@@ -3276,7 +3276,7 @@ function merc_save_pod_payment_methods($shipment_id, $form_data) {
             // 5) si aún no hay total, reconstruir desde producto + envío y persistir
             if ( $used_total_for_commission <= 0 ) {
                 $costo_producto = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_producto', true ) );
-                $costo_envio = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
+                $costo_envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment_id ) : floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
                 $reconstructed = $costo_producto + $costo_envio;
                 if ( $reconstructed > 0 ) {
                     $used_total_for_commission = $reconstructed;
@@ -3419,6 +3419,7 @@ function merc_save_pod_payment_methods($shipment_id, $form_data) {
 
                 if ( $has_signature || ( ! empty( $estado_form ) && strtoupper( trim( $estado_form ) ) === 'ENTREGADO' ) ) {
                     update_post_meta( $shipment_id, 'wpcargo_status', 'ENTREGADO' );
+                    merc_sync_service_cost_by_status( $shipment_id );
                     // Añadir entrada simple al historial para reflejar el cambio
                     $hist = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
                     if ( ! is_array( $hist ) ) $hist = array();
@@ -7458,6 +7459,7 @@ function merc_asignar_estado_segun_tipo_servicio_post($post_id, $post = null, $u
 		
         $estado_antes = get_post_meta($post_id, 'wpcargo_status', true);
         update_post_meta($post_id, 'wpcargo_status', 'RECEPCIONADO');
+        merc_sync_service_cost_by_status( $shipment_id );
         $estado_despues = get_post_meta($post_id, 'wpcargo_status', true);
         error_log("✅ ASIGNACIÓN ESTADO - AGENCIA/FULL detectado: '{$estado_antes}' → 'RECEPCIONADO' (verificado: '{$estado_despues}')");
     }
@@ -7472,12 +7474,14 @@ function merc_asignar_estado_segun_tipo_servicio_post($post_id, $post = null, $u
             error_log("   Primer estado de recojo: '{$estado_inicial}'");
             $estado_antes = get_post_meta($post_id, 'wpcargo_status', true);
             update_post_meta($post_id, 'wpcargo_status', $estado_inicial);
+            merc_sync_service_cost_by_status( $shipment_id );
             $estado_despues = get_post_meta($post_id, 'wpcargo_status', true);
             error_log("✅ ASIGNACIÓN ESTADO - EMPRENDEDOR detectado: '{$estado_antes}' → '{$estado_inicial}' (verificado: '{$estado_despues}')");
         } else {
             error_log("⚠️ No hay estados de recojo configurados - usando por defecto 'PENDIENTE'");
             $estado_antes = get_post_meta($post_id, 'wpcargo_status', true);
             update_post_meta($post_id, 'wpcargo_status', 'PENDIENTE');
+            merc_sync_service_cost_by_status( $shipment_id );
             $estado_despues = get_post_meta($post_id, 'wpcargo_status', true);
             error_log("   Cambio: '{$estado_antes}' → 'PENDIENTE' (verificado: '{$estado_despues}')");
         }
@@ -7566,6 +7570,7 @@ function merc_forzar_estado_por_tipo($post_id, $post = null, $update = false) {
     if (!empty($estado_correcto) && $estado_actual !== $estado_correcto) {
         error_log("🔧 FORZANDO estado - Envío #{$post_id}: de '{$estado_actual}' a '{$estado_correcto}' (tipo: {$tipo_envio})");
         update_post_meta($post_id, 'wpcargo_status', $estado_correcto);
+        merc_sync_service_cost_by_status( $shipment_id );
         
         // Verificar que se guardó
         $verificacion = get_post_meta($post_id, 'wpcargo_status', true);
@@ -7587,6 +7592,7 @@ function merc_verificar_estado_final($post_id, $estado_esperado) {
     if ($estado_actual !== $estado_esperado) {
         error_log("🔧 SHUTDOWN - Forzando estado final - Envío #{$post_id}: '{$estado_actual}' → '{$estado_esperado}'");
         update_post_meta($post_id, 'wpcargo_status', $estado_esperado);
+        merc_sync_service_cost_by_status( $shipment_id );
         
         // Verificación final
         $verificacion = get_post_meta($post_id, 'wpcargo_status', true);
@@ -8408,7 +8414,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
 
         foreach ( $shipments as $shipment ) {
             $producto   = floatval( $shipment->costo_producto );
-            $envio      = floatval( $shipment->costo_envio );
+            $envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment->ID ) : floatval( $shipment->costo_envio );
             $quien_paga = $shipment->quien_paga;
             $estado     = $shipment->estado_remitente ? $shipment->estado_remitente : 'pendiente';
 
@@ -8734,7 +8740,7 @@ function merc_get_date_query( $filtro_fecha ) {
 
 function merc_liquidar_cliente_transferir_a_marca( $shipment_id ) {
     $json = get_post_meta( $shipment_id, 'pod_payment_methods', true );
-    $costo_envio = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
+    $costo_envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment_id ) : floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
     
     if ( empty( $json ) || $costo_envio <= 0 ) {
         return;
@@ -9267,7 +9273,7 @@ function merc_liquidar_todo_ajax() {
             $pago_marca_total += floatval( $totales['pago_marca'] );
 
             // Servicio entendido como costo de envío pendiente
-            $costo_envio = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
+            $costo_envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment_id ) : floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
             // Si el servicio ya fue marcado como cobrado, no contarlo
             $servicio_cobrado = get_post_meta( $shipment_id, 'wpcargo_servicio_cobrado', true );
             if ( ! $servicio_cobrado ) {
@@ -10446,7 +10452,7 @@ function merc_sidebar_badges() {
 
         foreach ( $shipments as $shipment ) {
             $producto   = floatval( $shipment->costo_producto );
-            $envio      = floatval( $shipment->costo_envio );
+            $envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment->ID ) : floatval( $shipment->costo_envio );
             $quien_paga = $shipment->quien_paga;
 
             if ( $quien_paga === 'cliente_final' ) {
@@ -11254,6 +11260,7 @@ function assign_partial_shipments_to_driver() {
 
         // Opcional: estado del pedido
         update_post_meta($shipment_id, 'wpcargo_status', 'assigned_to_driver');
+        merc_sync_service_cost_by_status( $shipment_id );
     }
 
     wp_redirect(wp_get_referer());
@@ -12722,6 +12729,7 @@ function merc_asignar_estado_final_segun_tipo($post_id) {
         if ($estado_actual !== 'RECEPCIONADO') {
             error_log("   ✅ TIPO ESPECIAL detectado (" . $tipo_lower . ") - Asignando RECEPCIONADO");
             update_post_meta($post_id, 'wpcargo_status', 'RECEPCIONADO');
+            merc_sync_service_cost_by_status( $shipment_id );
             error_log("   ✔️ Estado guardado: RECEPCIONADO");
         } else {
             error_log("   ℹ️ Ya tiene RECEPCIONADO, no modificar");
@@ -12737,6 +12745,7 @@ function merc_asignar_estado_final_segun_tipo($post_id) {
             if (!empty($estados_recojo) && is_array($estados_recojo)) {
                 $estado_inicial = reset($estados_recojo);
                 update_post_meta($post_id, 'wpcargo_status', $estado_inicial);
+                merc_sync_service_cost_by_status( $shipment_id );
                 error_log("   ✔️ Estado asignado: " . $estado_inicial);
             }
         }
@@ -12935,6 +12944,7 @@ function merc_wpcr_bulk_update_ajax() {
         // Actualizar el estado
         if (!empty($new_status)) {
             update_post_meta($shipment_id, 'wpcargo_status', $new_status);
+            merc_sync_service_cost_by_status( $shipment_id );
             error_log("│  📌 Nuevo Estado Guardado: '" . $new_status . "'");
             $updated_count++;
         }
@@ -15887,6 +15897,7 @@ function merc_update_delivery_status_ajax() {
     // Actualizar el status principal
     update_post_meta($shipment_id, 'wpcargo_status_anterior', $old_status);
     update_post_meta($shipment_id, 'wpcargo_status', $new_status);
+    merc_sync_service_cost_by_status( $shipment_id );
     
     // Guardar firma si está presente
     if (!empty($signature_data)) {
