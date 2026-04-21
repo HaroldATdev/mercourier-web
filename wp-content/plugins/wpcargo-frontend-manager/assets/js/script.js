@@ -210,7 +210,7 @@ jQuery(document).ready(function($){
                     $('body .wpcfe-spinner').remove();
                     
                     if( response.success ){
-                        $('#user-avatar .photo-container').html('<img alt="" src="' + response.data.avatar_url + '" srcset="' + response.data.avatar_url + '" class="avatar avatar-128 photo photo-inner" height="128" width="128">');
+                        $('#user-avatar .photo-container').html('<img alt="" src="' + response.data.avatar_url + '" srcset="' + response.data.avatar_url + '" class="avatar avatar-32 photo photo-inner" height="32" width="32">');
                         $('#user-avatar, #upload-avatar-wrapper').toggle();
                         Swal.fire({
                             icon: 'success',
