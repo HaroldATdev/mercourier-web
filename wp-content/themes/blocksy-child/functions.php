@@ -5054,13 +5054,10 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     
     $extra_join = '';
     $extra_where = '';
-    // Para la vista ingresos_envios, forzar filtro por la meta wpcargo_pickup_date_picker (hoy)
+    // Para la vista ingresos_envios, usar la misma lógica que las tarjetas de clientes:
+    // remitente + no incluido en liquidación.
     if ( $tipo_vista === 'ingresos_envios' ) {
-        $hoy_ymd = date('Y-m-d');
-        // Anulamos el date_query genérico para evitar fallback a post_date
-        $date_query = '';
-        $extra_join = "\n        LEFT JOIN {$wpdb->postmeta} pm_pickup_filter ON p.ID = pm_pickup_filter.post_id AND pm_pickup_filter.meta_key = 'wpcargo_pickup_date_picker'\n        LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'";
-        $extra_where = "\n        AND (\n            pm_pickup_filter.meta_value = '{$hoy_ymd}'\n            OR pm_pickup_filter.meta_value LIKE '{$hoy_ymd}%'\n        )\n        AND (pm_status.meta_value IS NULL OR UPPER(pm_status.meta_value) != 'ANULADO')";
+        $extra_where = "\n        AND pm_quien_paga.meta_value = 'remitente'\n        AND (pm_included.meta_value IS NULL OR pm_included.meta_value = '')";
     }
     
     $shipments = $wpdb->get_results( "
@@ -5229,26 +5226,22 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
             continue;
         }
 
-        // Ingresos por envío: sumar SOLO SI EL ENVÍO YA FUE LIQUIDADO al cliente
-        // (verificar que NO esté pendiente de liquidación)
-        // IMPORTANTE: Solo se suman si la liquidación fue HOY (para la tarjeta diaria)
-        $es_liquidado = !empty( get_post_meta( $shipment->ID, 'wpcargo_included_in_liquidation', true ) );
-        error_log(sprintf('   ¿Liquidado? %s', $es_liquidado ? 'SÍ' : 'NO'));
-        if ( $es_liquidado ) {
-            // Obtener la fecha del post (fecha de liquidación aproximada)
-            $post_date = get_post($shipment->ID)->post_date;
-            $post_date_ymd = date('Y-m-d', strtotime($post_date));
-            $today_ymd = current_time('Y-m-d');
-            
-            // Solo sumar si la liquidación fue hoy
-            if ( $post_date_ymd === $today_ymd ) {
-                $ingresos_envios += $envio;
-                error_log(sprintf('   ✅ SUMADO A INGRESOS ENVÍOS (HOY): S/. %01.2f (Total: S/. %01.2f)', $envio, $ingresos_envios));
-            } else {
-                error_log(sprintf('   ❌ NO SUMADO a ingresos envíos (liquidado: %s, no hoy)', $post_date_ymd));
-            }
+        // Ingresos por envío: sumar el SERVICIO de los envíos del remitente
+        // sin depender del botón de liquidación.
+        // Replica la lógica de "Por Pagar (Envíos)" de las tarjetas de clientes.
+        if ( $quien_paga === 'remitente' && empty( $estado_remitente ) && $envio > 0 ) {
+            $ingresos_envios += $envio;
+            error_log(sprintf(
+                '   ✅ SUMADO A INGRESOS ENVÍOS: S/. %01.2f (Total: S/. %01.2f)',
+                $envio,
+                $ingresos_envios
+            ));
         } else {
-            error_log(sprintf('   ❌ NO SUMADO a ingresos envíos (aún no liquidado)'));
+            error_log(sprintf(
+                '   ❌ NO SUMADO a ingresos envíos (quien_paga=%s, estado_remitente=%s)',
+                $quien_paga ?: 'VACÍO',
+                $estado_remitente ?: 'VACÍO'
+            ));
         }
 
         // Mantener cálculo histórico: por cobrar de motorizados (para balance neto)
