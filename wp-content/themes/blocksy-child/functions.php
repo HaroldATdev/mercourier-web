@@ -8142,6 +8142,20 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         <h6 style="margin: 0;">📋 Todos los Envíos del Motorizado (Entregados y No Entregados):</h6>
                         <?php
                         $caja_cerrada = false;
+                        $estados_finales_cierre = array( 'NO RECIBIDO', 'REPROGRAMADO', 'REPROGRAMADOS', 'NO CONTESTA', 'ANULADO', 'ENTREGADO' );
+                        $total_estados_no_finales = 0;
+
+                        foreach ( $entregas_pendientes as $entrega_estado ) {
+                            $estado_envio_normalizado = strtoupper(
+                                remove_accents(
+                                    trim( (string) get_post_meta( $entrega_estado->ID, 'wpcargo_status', true ) )
+                                )
+                            );
+
+                            if ( ! in_array( $estado_envio_normalizado, $estados_finales_cierre, true ) ) {
+                                $total_estados_no_finales++;
+                            }
+                        }
                         $caja_cerrada_raw = (string) get_user_meta( $driver->driver_id, 'merc_caja_cerrada', true );
                         $caja_cerrada_fecha = (string) get_user_meta( $driver->driver_id, 'merc_caja_cerrada_fecha', true );
                         $fecha_actual = wp_date( 'Y-m-d' );
@@ -8153,7 +8167,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         }
                         ?>
 
-                        <?php if ( $efectivo_total > 0 ) : ?>
+                        <?php if ( $total_estados_no_finales === 0 ) : ?>
                             <?php if ( $caja_cerrada ) : ?>
                                 <button class="merc-btn-cierre-caja" disabled style="background:#27ae60;cursor:default;opacity:0.95;">
                                     ✅ Caja cerrada
