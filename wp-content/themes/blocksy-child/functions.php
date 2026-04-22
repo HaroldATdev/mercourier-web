@@ -16454,25 +16454,9 @@ function merc_parse_date_for_migration( $date_str ) {
 
 /* ═════════════════════════════════════════════════════════════════════════════════════════
    SISTEMA DE REPROGRAMACIÓN DE ENVÍOS
-   - Marca envíos como REPROGRAMADO cuando llegan a REPROGRAMADO
-   - Cambia automáticamente a RECEPCIONADO cuando llega la fecha reprogramada
-   - Pinta la fila de NARANJA visualmente
+   - El meta es_reprogramado=1 se activa INMEDIATAMENTE al confirmar la reprogramación
+   - Pinta la fila de NARANJA cuando es_reprogramado=1
    ═════════════════════════════════════════════════════════════════════════════════════════ */
-
-/**
- * Hook: Cuando un envío cambia a REPROGRAMADO, marcar meta es_reprogramado=1
- */
-add_action('update_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
-    if ( $meta_key !== 'wpcargo_status' ) {
-        return;
-    }
-    
-    // Si el nuevo estado es REPROGRAMADO, marcar es_reprogramado=1
-    if ( $meta_value === 'REPROGRAMADO' ) {
-        update_post_meta( $post_id, 'es_reprogramado', 1 );
-        error_log( "🔴 REPROGRAMADO: Shipment #{$post_id} marcado como es_reprogramado=1" );
-    }
-}, 10, 4);
 
 /**
  * Hook: Cuando se crea un envío, asegurar que es_reprogramado=0 por defecto
@@ -16482,83 +16466,5 @@ add_action('save_post_wpcargo_shipment', function( $post_id ) {
         add_post_meta( $post_id, 'es_reprogramado', 0, true );
     }
 }, 10, 1);
-
-/**
- * CRON: Verificar diariamente si hay envíos REPROGRAMADOS que deben cambiar a RECEPCIONADO
- * Se ejecuta cada día a las 00:00
- */
-add_action('wp_scheduled_event_check_reprogrammed_shipments', 'merc_check_reprogrammed_shipments');
-
-function merc_check_reprogrammed_shipments() {
-    error_log( "🔵 REPROGRAMADO_CRON: Iniciando búsqueda de envíos reprogramados..." );
-    
-    $hoy = date( 'Y-m-d' );
-    error_log( "🔵 REPROGRAMADO_CRON: Fecha actual: $hoy" );
-    
-    // Buscar envíos con es_reprogramado=1
-    $args = [
-        'post_type' => 'wpcargo_shipment',
-        'posts_per_page' => -1,
-        'meta_query' => [
-            [
-                'key' => 'es_reprogramado',
-                'value' => 1,
-                'compare' => '=',
-                'type' => 'NUMERIC'
-            ]
-        ]
-    ];
-    
-    $query = new WP_Query( $args );
-    $cambios = 0;
-    
-    if ( $query->have_posts() ) {
-        while ( $query->have_posts() ) {
-            $query->the_post();
-            $shipment_id = get_the_ID();
-            
-            // Obtener la fecha de reprogramación desde el historial
-            $historial = maybe_unserialize( get_post_meta( $shipment_id, 'wpcargo_shipments_update', true ) );
-            $fecha_reprogramada = null;
-            
-            if ( is_array( $historial ) && ! empty( $historial ) ) {
-                // El último registro en el historial debería tener la nueva fecha
-                $ultimo = end( $historial );
-                if ( isset( $ultimo['date'] ) ) {
-                    $fecha_reprogramada = $ultimo['date'];
-                }
-            }
-            
-            if ( $fecha_reprogramada ) {
-                // Normalizar fecha si es necesario (DD/MM/YYYY → YYYY-MM-DD)
-                if ( preg_match( '/^\d{2}\/\d{2}\/\d{4}$/', $fecha_reprogramada ) ) {
-                    $fecha_reprogramada = DateTime::createFromFormat( 'd/m/Y', $fecha_reprogramada )->format( 'Y-m-d' );
-                }
-                
-                error_log( "🟡 REPROGRAMADO_CRON: Shipment #{$shipment_id} - Fecha reprogramada: $fecha_reprogramada, Hoy: $hoy" );
-                
-                // Si hoy es la fecha reprogramada o pasó, cambiar a RECEPCIONADO
-                if ( $fecha_reprogramada <= $hoy ) {
-                    update_post_meta( $shipment_id, 'wpcargo_status', 'RECEPCIONADO' );
-                    update_post_meta( $shipment_id, 'es_reprogramado', 0 ); // Marcar como ya procesado
-                    $cambios++;
-                    
-                    error_log( "✅ REPROGRAMADO_CRON: Shipment #{$shipment_id} ACTUALIZADO a RECEPCIONADO" );
-                }
-            }
-        }
-    }
-    
-    wp_reset_postdata();
-    error_log( "🟠 REPROGRAMADO_CRON: Completado - $cambios envío(s) actualizado(s)" );
-}
-
-/**
- * Activar el CRON si no está activado
- */
-if ( ! wp_next_scheduled( 'wp_scheduled_event_check_reprogrammed_shipments' ) ) {
-    wp_schedule_event( time(), 'daily', 'wp_scheduled_event_check_reprogrammed_shipments' );
-    error_log( "🟢 CRON_SETUP: Activado evento diario 'wp_scheduled_event_check_reprogrammed_shipments'" );
-}
 
 // Movido a MERC_Shipment_Filters::render_filter_cliente() en merc-table-customizer plugin
