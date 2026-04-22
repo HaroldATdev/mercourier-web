@@ -296,7 +296,6 @@ class MERC_Table_Ajax {
         }
 
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
-        update_post_meta( $shipment_id, 'es_reprogramado', 1 );
         merc_sync_service_cost_by_status( $shipment_id );
 
         $historial = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
