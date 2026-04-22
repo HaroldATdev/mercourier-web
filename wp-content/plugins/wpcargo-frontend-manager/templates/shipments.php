@@ -84,8 +84,9 @@
 							while ( $wpc_shipments->have_posts() ) {
 								$wpc_shipments->the_post();
 								$status  		= get_post_meta( get_the_ID(), 'wpcargo_status', true );
+								$es_reprogramado = intval( get_post_meta( get_the_ID(), 'es_reprogramado', true ) );
 								?>
-								<tr id="shipment-<?php echo get_the_ID(); ?>" class="shipment-row <?php echo wpcfe_to_slug( $status ); ?>">
+								<tr id="shipment-<?php echo get_the_ID(); ?>" class="shipment-row <?php echo wpcfe_to_slug( $status ); ?>" <?php echo $es_reprogramado ? 'data-reprogramado="1"' : ''; ?>>
 									<td class="form-check">
 								  <input class="wpcfe-shipments form-check-input" id="shipment-checkbox-<?php echo get_the_ID(); ?>" type="checkbox" name="wpcfe-shipments[]" value="<?php echo get_the_ID(); ?>" data-number="<?php echo get_the_title(); ?>">
 								  <label class="form-check-label" for="shipment-checkbox-<?php echo get_the_ID(); ?>"></label>
