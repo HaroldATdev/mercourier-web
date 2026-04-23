@@ -87,6 +87,7 @@ class MERC_Shipment_Table {
 		$tipo_html             = $this->render_tipo( get_post_meta( $shipment_id, 'tipo_envio', true ) );
 		$cambio_html           = $this->render_cambio( get_post_meta( $shipment_id, 'cambio_producto', true ) );
 		$estado                = (string) get_post_meta( $shipment_id, 'wpcargo_status', true );
+		$es_reprogramado       = (int) get_post_meta( $shipment_id, 'es_reprogramado', true );
 		
 		// Cliente asignado al envío
 		$cliente_id = get_post_meta( $shipment_id, 'registered_shipper', true );
@@ -101,7 +102,7 @@ class MERC_Shipment_Table {
 		$this->render_tpl( 'table-row.tpl.php', compact(
 			'shipment_id', 'tienda', 'actions_html',
 			'distrito_recojo', 'distrito_destino', 'fecha',
-			'tipo_html', 'cambio_html', 'estado', 'motorizo_recojo_html', 'motorizo_recojo_name', 'motorizo_entrega_html',
+			'tipo_html', 'cambio_html', 'estado', 'es_reprogramado', 'motorizo_recojo_html', 'motorizo_recojo_name', 'motorizo_entrega_html',
 			'cliente_id'
 		) );
 	}

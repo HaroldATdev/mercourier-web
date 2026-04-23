@@ -49,7 +49,8 @@
 <?php $caja_cerrada = ( '1' === get_post_meta( $shipment_id, 'merc_caja_cerrada', true ) ) ? '1' : '0'; ?>
 
 <td class="shipment-status <?php echo esc_attr( sanitize_title( $estado ) ); ?>"
-    data-merc-caja-cerrada="<?php echo esc_attr( $caja_cerrada ); ?>">
+    data-merc-caja-cerrada="<?php echo esc_attr( $caja_cerrada ); ?>"
+    data-es-reprogramado="<?php echo esc_attr( $es_reprogramado ?? 0 ); ?>">
     <?php echo esc_html( $estado ); ?>
 </td>
 
