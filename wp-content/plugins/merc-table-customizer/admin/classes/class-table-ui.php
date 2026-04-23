@@ -160,6 +160,15 @@ class MERC_Table_UI {
     tr.merc-estado-reprogramado td { color: #bf360c !important; font-weight: 600 !important; }
     tr.merc-estado-reprogramado td:first-child::before { content: '📅 '; font-size: 16px; margin-right: 5px; }
 
+    /* Fila RECEPCIONADO que proviene de una reprogramación → fondo naranja */
+    tr.merc-estado-recepcionado-reprogramado {
+        background-color: #ff9800 !important;
+        border-left: 5px solid #e65100 !important;
+    }
+    tr.merc-estado-recepcionado-reprogramado:hover { background-color: #fb8c00 !important; }
+    tr.merc-estado-recepcionado-reprogramado td { color: #fff !important; font-weight: 700 !important; }
+    tr.merc-estado-recepcionado-reprogramado td:first-child::before { content: '📅 '; font-size: 16px; margin-right: 5px; }
+
     tr.merc-estado-no-contesta {
         background-color: #fff9c4 !important;
         border-left: 5px solid #fdd835 !important;
@@ -405,10 +414,18 @@ class MERC_Table_UI {
         function setRowStateClass($row, estado) {
             if (!$row || !$row.length) return;
             const text = (estado || '').toUpperCase();
-            $row.removeClass('merc-estado-reprogramado merc-estado-no-contesta merc-estado-anulado');
+            $row.removeClass('merc-estado-reprogramado merc-estado-no-contesta merc-estado-anulado merc-estado-recepcionado-reprogramado');
             if (text.includes('ANULADO') || text.includes('CANCEL')) { $row.addClass('merc-estado-anulado'); return; }
             if (text.includes('NO CONTESTA'))                         { $row.addClass('merc-estado-no-contesta'); return; }
             if (text.includes('REPROGRAMADO') || text.includes('RESCHEDULE')) { $row.addClass('merc-estado-reprogramado'); return; }
+            // RECEPCIONADO que proviene de reprogramación → naranja
+            if (text.includes('RECEPCIONADO') || text.includes('RECEIVED')) {
+                const esReprog = $row.find('td.shipment-status').data('es-reprogramado');
+                if (parseInt(esReprog) === 1) {
+                    $row.addClass('merc-estado-recepcionado-reprogramado');
+                }
+                return;
+            }
         }
 
         function resaltarFilasReprogramadas() {
@@ -417,7 +434,14 @@ class MERC_Table_UI {
                 let estadoActual  = $estadoCell.text().trim();
                 const $select     = $estadoCell.find('.merc-estado-select');
                 if ($select.length > 0) { estadoActual = $select.val() || $select.find('option:selected').text().trim(); }
-                setRowStateClass($estadoCell.closest('tr'), estadoActual);
+                const esReprog = parseInt($estadoCell.data('es-reprogramado')) === 1;
+                const $row = $estadoCell.closest('tr');
+                $row.removeClass('merc-estado-reprogramado merc-estado-no-contesta merc-estado-anulado merc-estado-recepcionado-reprogramado');
+                const upper = estadoActual.toUpperCase();
+                if (upper.includes('ANULADO') || upper.includes('CANCEL')) { $row.addClass('merc-estado-anulado'); }
+                else if (upper.includes('NO CONTESTA')) { $row.addClass('merc-estado-no-contesta'); }
+                else if (upper.includes('REPROGRAMADO') || upper.includes('RESCHEDULE')) { $row.addClass('merc-estado-reprogramado'); }
+                else if ((upper.includes('RECEPCIONADO') || upper.includes('RECEIVED')) && esReprog) { $row.addClass('merc-estado-recepcionado-reprogramado'); }
             });
         }
         setTimeout(resaltarFilasReprogramadas, 100);
