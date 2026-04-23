@@ -18,70 +18,6 @@ if (!file_exists($merc_log_dir)) {
 $today_log = $merc_log_dir . '/merc-debug-' . date('Y-m-d') . '.log';
 @ini_set('error_log', $today_log);
 
-/* ═════════════════════════════════════════════════════════════════════════════════════════
-   INICIALIZACIÓN: Crear campo es_reprogramado en todos los envíos
-   ═════════════════════════════════════════════════════════════════════════════════════════ */
-
-/**
- * Hook: Inicializar campo es_reprogramado en envíos existentes (una sola vez)
- */
-add_action('init', function() {
-    $option_name = 'merc_es_reprogramado_initialized';
-    
-    // Si ya se ejecutó, no volver a hacerlo
-    if ( get_option( $option_name ) === 'yes' ) {
-        return;
-    }
-    
-    error_log( "🔵 INIT: Inicializando campo es_reprogramado en todos los envíos..." );
-    
-    // Obtener todos los envíos existentes
-    $args = [
-        'post_type' => 'wpcargo_shipment',
-        'posts_per_page' => -1,
-        'post_status' => 'any'
-    ];
-    
-    $query = new WP_Query( $args );
-    $inicializados = 0;
-    
-    if ( $query->have_posts() ) {
-        while ( $query->have_posts() ) {
-            $query->the_post();
-            $shipment_id = get_the_ID();
-            
-            // Si el meta no existe, crear con valor 0
-            if ( ! get_post_meta( $shipment_id, 'es_reprogramado', false ) ) {
-                add_post_meta( $shipment_id, 'es_reprogramado', 0, true );
-                $inicializados++;
-            }
-        }
-    }
-    
-    wp_reset_postdata();
-    
-    // Marcar como inicializado
-    update_option( $option_name, 'yes' );
-    
-    error_log( "🟢 INIT: Completado - $inicializados envío(s) inicializado(s)" );
-}, 1 );
-
-/**
- * Hook: Cuando se crea un envío NUEVO, inicializar es_reprogramado=0
- */
-add_action('save_post_wpcargo_shipment', function( $post_id ) {
-    // Evitar bucles infinitos
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-        return;
-    }
-    
-    // Si el meta no existe, crear con valor 0
-    if ( ! get_post_meta( $post_id, 'es_reprogramado', false ) ) {
-        add_post_meta( $post_id, 'es_reprogramado', 0, true );
-        error_log( "🟢 SAVE_POST: Envío #{$post_id} - Meta es_reprogramado inicializado a 0" );
-    }
-}, 10, 1);
-
 // Incluir historial de motorizados
 require_once(__DIR__ . '/merc-motorizado-historial.php');
 
@@ -16518,24 +16454,17 @@ function merc_parse_date_for_migration( $date_str ) {
 
 /* ═════════════════════════════════════════════════════════════════════════════════════════
    SISTEMA DE REPROGRAMACIÓN DE ENVÍOS
-   - Marca envíos como REPROGRAMADO cuando llegan a REPROGRAMADO
-   - Cambia automáticamente a RECEPCIONADO cuando llega la fecha reprogramada
-   - Pinta la fila de NARANJA visualmente
+   - El meta es_reprogramado=1 se activa INMEDIATAMENTE al confirmar la reprogramación
+   - Pinta la fila de NARANJA cuando es_reprogramado=1
    ═════════════════════════════════════════════════════════════════════════════════════════ */
 
 /**
- * Hook: Cuando un envío cambia a REPROGRAMADO, marcar meta es_reprogramado=1
+ * Hook: Cuando se crea un envío, asegurar que es_reprogramado=0 por defecto
  */
-add_action('update_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
-    if ( $meta_key !== 'wpcargo_status' ) {
-        return;
+add_action('save_post_wpcargo_shipment', function( $post_id ) {
+    if ( ! get_post_meta( $post_id, 'es_reprogramado', false ) ) {
+        add_post_meta( $post_id, 'es_reprogramado', 0, true );
     }
-    
-    // Si el nuevo estado es REPROGRAMADO, marcar es_reprogramado=1
-    if ( $meta_value === 'REPROGRAMADO' ) {
-        update_post_meta( $post_id, 'es_reprogramado', 1 );
-        error_log( "🔴 REPROGRAMADO: Shipment #{$post_id} marcado como es_reprogramado=1" );
-    }
-}, 10, 4);
+}, 10, 1);
 
 // Movido a MERC_Shipment_Filters::render_filter_cliente() en merc-table-customizer plugin
