@@ -295,6 +295,7 @@ class MERC_Table_Ajax {
             $nuevo_estado = 'EN BASE MERCOURIER';
         }
 
+        // La reprogramación debe reflejarse al confirmar, sin esperar a ningún cron.
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
         update_post_meta( $shipment_id, 'es_reprogramado', 1 );
         merc_sync_service_cost_by_status( $shipment_id );
@@ -342,6 +343,8 @@ class MERC_Table_Ajax {
             'message'        => 'Fecha reprogramada exitosamente',
             'nueva_fecha'    => $nueva_fecha,
             'fecha_anterior' => $fecha_anterior,
+            'nuevo_estado'   => $nuevo_estado,
+            'es_reprogramado'=> 1,
         ] );
     }
 
