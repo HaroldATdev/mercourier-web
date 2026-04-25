@@ -372,6 +372,7 @@ class MERC_Table_UI {
         const estados         = <?php echo json_encode( $estados ); ?>;
         const AJAX_URL        = <?php echo json_encode( $admin_ajax_url ); ?>;
         const NONCE_ALMACEN   = <?php echo json_encode( $merc_almacen_nonce ); ?>;
+        const NONCE_ACTUALIZAR_ESTADO = <?php echo json_encode( wp_create_nonce( 'merc_actualizar_estado' ) ); ?>;
         const esCliente       = <?php echo $is_client ? 'true' : 'false'; ?>;
         const esMotorizado    = <?php echo $is_driver ? 'true' : 'false'; ?>;
         const clientesOptionsHtml = <?php echo json_encode( $clientes_options_html ); ?>;
@@ -455,7 +456,7 @@ class MERC_Table_UI {
             $('body').append($modal);
 
             // Obtener datos del shipment para el monto
-            $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId }, function(resp) {
+            $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
                 if (resp && resp.success && resp.data) {
                     const monto = parseFloat(resp.data.monto || resp.data.total || resp.data.wpcargo_total_cobrar || 0) || 0;
                     $('#nr-wpcargo_total_cobrar-admin').val(monto.toFixed(2));
@@ -845,7 +846,7 @@ class MERC_Table_UI {
                 else { $row.append($newCell); }
 
                 if (shipmentId) {
-                    $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId }, function(resp) {
+                    $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
                         if (!resp || !resp.success) { $newCell.text('❌').css('color', '#e74c3c'); return; }
                         const data         = resp.data || {};
                         const estado_actual = (data.estado_actual || '').toString().toUpperCase().trim();
@@ -1307,7 +1308,7 @@ class MERC_Table_UI {
                         const $tipoCell = $row.find('td[data-tipo-envio]');
                         const tipoEnvio = $tipoCell.length > 0 ? $tipoCell.attr('data-tipo-envio').toLowerCase() : '';
                         if (tipoEnvio.indexOf('full') !== -1 || tipoEnvio.indexOf('fit') !== -1) return;
-                        $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId }, function(resp) {
+                        $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
                             const data     = (resp && resp.success) ? (resp.data || {}) : {};
                             const clienteId = data.customer_id || '';
                             crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, clienteId, data);
