@@ -437,10 +437,11 @@ class MERC_Table_UI {
                             '<div id="nr-payment-methods-list-admin"></div>' +
                             '<button type="button" id="nr-add-method-admin" class="btn btn-primary" style="margin-top: 10px;">➕ Agregar método de pago</button>' +
                             '<div style="margin-top: 14px; font-size: 14px; color: #333;">' +
+                                '<strong>Total a recibir: S/. <span id="nr-total-amount-admin">0.00</span></strong><br>' +
                                 '<strong>Total ingresado: S/. <span id="nr-total-ingresado-admin">0.00</span></strong><br>' +
-                                '<span id="nr-missing-amount-admin" style="color: #d9534f; font-weight: 600;">Falta S/. <span id="nr-total-amount-admin">0.00</span></span>' +
+                                '<span id="nr-missing-amount-admin" style="color: #d9534f; font-weight: 600;">Falta S/. 0.00</span>' +
                             '</div>' +
-                            '<div id="nr-payment-note-admin" style="margin-top: 8px; font-size: 13px; color: #555;">El botón se mantendrá habilitado. El pago puede quedar incompleto.</div>' +
+                            '<div id="nr-payment-note-admin" style="margin-top: 8px; font-size: 13px; color: #555;">El botón se mantendrá habilitado. El pago puede quedar incompleto y el estado se actualizará igual.</div>' +
                         '</div>' +
                         '<input type="hidden" id="nr-pod_payment_methods-admin" value="[]">' +
                         '<input type="hidden" id="nr-wpcargo_total_cobrar-admin" value="0.00">' +
