@@ -411,6 +411,72 @@ class MERC_Table_UI {
             setTimeout(function() { $modal.find('#merc-observaciones-input').focus(); }, 100);
         }
 
+        function mostrarModalNoRecibido(shipmentId, numero, estadoAnterior, nuevoEstado, $selectElement) {
+            const $modal = $('<div class="merc-modal-overlay">' +
+                '<div class="merc-modal-content" style="max-width: 600px;">' +
+                    '<div class="merc-modal-title">❌ NO RECIBIDO - Intento fallido</div>' +
+                    '<div style="padding: 20px; border-bottom: 1px solid #e0e0e0;">' +
+                        '<p><strong>Pedido:</strong> ' + numero + '</p>' +
+                        '<p><strong>Estado actual:</strong> ' + estadoAnterior + '</p>' +
+                        '<p><strong>Nuevo estado:</strong> ' + nuevoEstado + '</p>' +
+                    '</div>' +
+                    '<div style="padding: 20px;">' +
+                        '<div style="margin-bottom: 15px;">' +
+                            '<label style="display: block; margin-bottom: 8px; font-weight: bold;">📝 Observaciones (opcional):</label>' +
+                            '<textarea id="nr-obs-admin" class="merc-observaciones-textarea" placeholder="Ingrese observaciones sobre el intento fallido..." style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; resize: vertical;"></textarea>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="merc-modal-buttons">' +
+                        '<button class="merc-modal-btn merc-modal-btn-confirmar">✓ Actualizar a NO RECIBIDO</button>' +
+                        '<button class="merc-modal-btn merc-modal-btn-cancelar">✗ Cancelar</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>');
+            $('body').append($modal);
+
+            $modal.find('.merc-modal-btn-confirmar').on('click', function() {
+                const observaciones = $modal.find('#nr-obs-admin').val().trim();
+                $modal.remove();
+                console.log('✅ Confirmado NO RECIBIDO - Actualizando estado del pedido #' + numero);
+                $selectElement.prop('disabled', true);
+                $.ajax({
+                    type: 'POST', url: AJAX_URL,
+                    data: {
+                        action: 'merc_actualizar_estado_rapido',
+                        shipment_id: shipmentId, nuevo_estado: nuevoEstado, observaciones: observaciones,
+                        nonce: '<?php echo wp_create_nonce( 'merc_actualizar_estado' ); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log('✅ Estado actualizado exitosamente');
+                            location.reload();
+                        } else {
+                            alert('❌ Error: ' + (response.data && response.data.message ? response.data.message : 'No se pudo actualizar el estado'));
+                            $selectElement.prop('disabled', false).val(estadoAnterior);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('❌ Error de conexión: ' + error);
+                        $selectElement.prop('disabled', false).val(estadoAnterior);
+                    }
+                });
+            });
+
+            $modal.find('.merc-modal-btn-cancelar').on('click', function() {
+                $modal.remove();
+                $selectElement.val(estadoAnterior);
+            });
+
+            $(document).on('keyup.mercModalNR', function(e) {
+                if (e.key === 'Escape') { 
+                    $modal.remove(); 
+                    $selectElement.val(estadoAnterior);
+                    $(document).off('keyup.mercModalNR'); 
+                }
+            });
+            setTimeout(function() { $modal.find('#nr-obs-admin').focus(); }, 100);
+        }
+
         function setRowStateClass($row, estado) {
             if (!$row || !$row.length) return;
             const text = (estado || '').toUpperCase();
@@ -797,6 +863,12 @@ class MERC_Table_UI {
                         const $modalInfo = $('<div class="merc-modal-overlay" style="z-index: 999998;"><div class="merc-modal-content"><div class="merc-modal-message" style="font-size: 16px; padding: 20px;">📝 Abriendo formulario de firma...</div></div></div>');
                         $('body').append($modalInfo);
                         setTimeout(function() { $modalInfo.remove(); $btnFirmar[0].click(); }, 1000);
+                        return;
+                    }
+
+                    if (nuevoEstado.toUpperCase().includes('NO RECIBIDO')) {
+                        console.log('🔀 Estado NO RECIBIDO seleccionado - Mostrando modal de NO RECIBIDO');
+                        mostrarModalNoRecibido(id, numero, estadoAnterior, nuevoEstado, $this);
                         return;
                     }
 
