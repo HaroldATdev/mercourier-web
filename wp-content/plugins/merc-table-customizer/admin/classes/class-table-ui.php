@@ -236,6 +236,77 @@ class MERC_Table_UI {
     .merc-modal-btn-confirmar:hover { background: #45a049; }
     .merc-modal-btn-cancelar { background: #f44336; color: white; }
     .merc-modal-btn-cancelar:hover { background: #da190b; }
+
+    .merc-modal-content .gallery-thumb {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        position: relative;
+        width: 146px;
+        min-width: 146px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 8px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .merc-modal-content .gallery-thumb .single-img {
+        width: 100%;
+        min-height: 100px;
+        max-height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #f7f7f7;
+    }
+    .merc-modal-content .gallery-thumb .single-img img {
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+    .merc-modal-content .gallery-thumb .delete-attachment {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 26px;
+        height: 26px;
+        line-height: 24px;
+        border-radius: 50%;
+        background: #ff4d4d;
+        color: #fff;
+        font-weight: 700;
+        text-align: center;
+        cursor: pointer;
+        z-index: 5;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.16);
+    }
+    .merc-modal-content .gallery-thumb .delete-attachment:hover {
+        background: #d32f2f;
+    }
+    .merc-modal-content #nr-pod-images-admin {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+        min-height: 100px;
+    }
+    .merc-modal-content .header-pod-result {
+        font-size: 14px;
+        color: #555;
+        margin: 0 0 10px 0;
+        width: 100%;
+        text-align: left;
+    }
+    .merc-modal-content .gallery-thumb .single-img img,
+    .merc-modal-content .gallery-thumb .single-img svg {
+        max-width: 100%;
+        max-height: 100%;
+    }
     </style>
     <script>
     jQuery(document).ready(function($) {
@@ -538,7 +609,7 @@ class MERC_Table_UI {
                             '<label><strong>Monto</strong></label>' +
                             '<input type="text" class="form-control nr-pay-amount-admin" placeholder="0.00" inputmode="decimal" style="width: 100%;">' +
                         '</div>' +
-                        '<div style="margin-bottom: 10px;">' +
+                        '<div class="nr-image-section-admin" style="margin-bottom: 10px;">' +
                             '<label><strong>Imagen del comprobante</strong></label>' +
                             '<input type="file" class="form-control nr-pay-image-admin" accept="image/*" style="width: 100%;">' +
                             '<div class="nr-image-preview-admin" style="margin-top: 8px;"></div>' +
@@ -681,6 +752,15 @@ class MERC_Table_UI {
                     $fila.find('.nr-select-method-admin').text(texto);
                     $fila.find('.nr-pay-method-admin').val(metodo);
                     $fila.find('.nr-method-options-admin').hide();
+                    const $imageSection = $fila.find('.nr-image-section-admin');
+                    if (metodo === 'efectivo') {
+                        $imageSection.hide();
+                        $fila.find('.nr-pay-image-admin').val('');
+                        $fila.find('.nr-image-preview-admin').html('');
+                        $fila.removeData('imageBase64').removeData('imageName');
+                    } else {
+                        $imageSection.show();
+                    }
                     updatePaymentSummary();
                 });
 
