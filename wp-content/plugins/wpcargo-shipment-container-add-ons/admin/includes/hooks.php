@@ -201,15 +201,19 @@ function wpcsc_container_list_data( $container_id ){
                 // Contar usuarios únicos de recojo y envíos de entrega sin motorizado (pendientes) para este contenedor (hoy)
                 $today = current_time('Y-m-d');
 
-                // Usuarios de recojo únicos
-                $recojo_posts = get_posts(array(
-                    'post_type' => 'wpcargo_shipment',
-                    'posts_per_page' => -1,
-                    'fields' => 'ids',
-                    'meta_key' => 'shipment_container_recojo',
-                    'meta_value' => $container_id,
-                    'post_status' => 'publish',
-                ));
+                global $wpdb;
+                
+                // Usuarios de recojo únicos (Optimizado)
+                $recojo_sql = $wpdb->prepare("
+                    SELECT pm.post_id FROM {$wpdb->postmeta} pm
+                    JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+                    WHERE pm.meta_key = 'shipment_container_recojo' 
+                      AND pm.meta_value = %d 
+                      AND p.post_status = 'publish' 
+                      AND p.post_type = 'wpcargo_shipment'
+                ", $container_id);
+                $recojo_posts = $wpdb->get_col($recojo_sql);
+                
                 $unique_recojo_users = array();
                 if (!empty($recojo_posts)) {
                     foreach ($recojo_posts as $sp_id) {
@@ -229,15 +233,17 @@ function wpcsc_container_list_data( $container_id ){
                 }
                 $recojo_users_count = count($unique_recojo_users);
 
-                // Envíos de entrega pendientes (sin motorizado asignado)
-                $entrega_posts = get_posts(array(
-                    'post_type' => 'wpcargo_shipment',
-                    'posts_per_page' => -1,
-                    'fields' => 'ids',
-                    'meta_key' => 'shipment_container_entrega',
-                    'meta_value' => $container_id,
-                    'post_status' => 'publish',
-                ));
+                // Envíos de entrega pendientes (sin motorizado asignado) (Optimizado)
+                $entrega_sql = $wpdb->prepare("
+                    SELECT pm.post_id FROM {$wpdb->postmeta} pm
+                    JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+                    WHERE pm.meta_key = 'shipment_container_entrega' 
+                      AND pm.meta_value = %d 
+                      AND p.post_status = 'publish' 
+                      AND p.post_type = 'wpcargo_shipment'
+                ", $container_id);
+                $entrega_posts = $wpdb->get_col($entrega_sql);
+                
                 $entrega_pending_count = 0;
                 if (!empty($entrega_posts)) {
                     foreach ($entrega_posts as $sp_id) {

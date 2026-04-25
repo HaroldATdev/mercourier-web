@@ -452,36 +452,85 @@ function wpc_shipment_container_get_assigned_shipment_count($postID)
 		return 0;
 	}
 	
+	$shipment_ids = array_keys($assigned_shipments_with_type);
+    
+    // EXTREME OPTIMIZATION: Cargar todos los metas necesarios de una sola vez
+    $in_clause = implode(',', array_map('intval', $shipment_ids));
+    $meta_keys = array(
+        'wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio', 'wpcargo_calendarenvio',
+        'wpcargo_motorizo_recojo', 'wpcargo_motorizo_entrega'
+    );
+    $meta_keys_sql = "'" . implode("','", $meta_keys) . "'";
+    
+    $query = "SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} 
+              WHERE post_id IN ($in_clause) AND meta_key IN ($meta_keys_sql)";
+    
+    $results = $wpdb->get_results($query, ARRAY_A);
+    
+    // Organizar en array en RAM
+    $shipments_meta = array();
+    foreach ($shipments_meta as $id) {
+        $shipments_meta[$id] = array();
+    }
+    foreach ($results as $row) {
+        $shipments_meta[$row['post_id']][$row['meta_key']] = $row['meta_value'];
+    }
+    
+    // Función auxiliar inline para procesar fecha desde el array en RAM en lugar de BD
+    $parse_date_ram = function($shipment_id) use ($shipments_meta) {
+        $meta_keys_date = array('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio','wpcargo_calendarenvio');
+        $meta_arr = isset($shipments_meta[$shipment_id]) ? $shipments_meta[$shipment_id] : array();
+        
+        foreach($meta_keys_date as $k){
+            if(empty($meta_arr[$k])) continue;
+            $v = trim($meta_arr[$k]);
+            $v_normalized = preg_replace_callback('/^(\d{1,2})([\/\-])(\d{1,2})([\/\-])(\d{2,4})(\s.*)?$/', function($m) {
+                return str_pad($m[1], 2, '0', STR_PAD_LEFT) . $m[2] . str_pad($m[3], 2, '0', STR_PAD_LEFT) . $m[4] . $m[5] . ($m[6] ?? '');
+            }, $v);
+            if ($v_normalized !== $v) { $v = $v_normalized; }
+            
+            $formats = array('d/m/Y','d/m/Y H:i:s','d/m/Y H:i','d-m-Y','d-m-Y H:i:s','Y-m-d','Y-m-d H:i:s','Y-m-d H:i');
+            foreach($formats as $f){
+                $dt = DateTime::createFromFormat($f, $v);
+                if($dt && $dt->format($f) === $v) {
+                    return $dt->format('Y-m-d');
+                }
+            }
+            $ts = strtotime($v);
+            if($ts !== false) return date('Y-m-d', $ts);
+        }
+        return false;
+    };
+
 	// Filtrar: solo envíos SIN motorizado asignado ESPECÍFICO para su tipo de contenedor
 	// Además: contar solo envíos cuya fecha de pickup sea hoy
 	$today = current_time('Y-m-d');
 	$pending_count = 0;
+    
 	foreach ($assigned_shipments_with_type as $shipment_id => $tipo_asignacion) {
 		// Skip shipments without a parsable pickup date or not scheduled for today
-		$date = _wpcu_shipment_pickup_date_ymd($shipment_id);
+		$date = $parse_date_ram($shipment_id);
 		if ($date === false || $date !== $today) {
 			continue;
 		}
-		$motorizado_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
-		$motorizado_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
+        
+        $meta_arr = isset($shipments_meta[$shipment_id]) ? $shipments_meta[$shipment_id] : array();
+		$motorizado_recojo = isset($meta_arr['wpcargo_motorizo_recojo']) ? $meta_arr['wpcargo_motorizo_recojo'] : '';
+		$motorizado_entrega = isset($meta_arr['wpcargo_motorizo_entrega']) ? $meta_arr['wpcargo_motorizo_entrega'] : '';
 		
 		$es_pendiente = false;
 		
 		// Verificar si es pendiente según el tipo de contenedor
 		switch ($tipo_asignacion) {
 			case 'recojo':
-				// En contenedor RECOJO: necesita motorizado_recojo
 				$es_pendiente = empty($motorizado_recojo) || $motorizado_recojo === '0';
 				break;
 			case 'entrega':
-				// En contenedor ENTREGA: necesita motorizado_entrega
 				$es_pendiente = empty($motorizado_entrega) || $motorizado_entrega === '0';
 				break;
 			case 'legacy':
 			default:
-				// Sistema antiguo: necesita cualquiera de los dos
-				$tiene_motorizado = (!empty($motorizado_recojo) && $motorizado_recojo !== '0') 
-					|| (!empty($motorizado_entrega) && $motorizado_entrega !== '0');
+				$tiene_motorizado = (!empty($motorizado_recojo) && $motorizado_recojo !== '0') || (!empty($motorizado_entrega) && $motorizado_entrega !== '0');
 				$es_pendiente = !$tiene_motorizado;
 				break;
 		}
@@ -491,7 +540,7 @@ function wpc_shipment_container_get_assigned_shipment_count($postID)
 		}
 	}
 	
-	error_log("📦 [PENDING_COUNT] Container #{$postID}: Total asignados=" . count($assigned_shipments_with_type) . " | Pendientes=" . $pending_count);
+	// error_log("📦 [PENDING_COUNT] Container #{$postID}: Total asignados=" . count($assigned_shipments_with_type) . " | Pendientes=" . $pending_count);
 	
 	return $pending_count;
 }
@@ -678,41 +727,60 @@ function wpc_shipment_container_get_unassigned_shipment()
 	$assigned_shipments = array_map(function ($value) {
 		return str_replace(array("'", '"'), ' ', $value);
 	}, $assigned_shipments);
-	$shipment_status = '';
-	if (!empty($assigned_shipments)) {
-		$shipment_status = implode("','", $assigned_shipments);
-	} else {
-		$shipment_status = 'Pending';
+	if (empty($assigned_shipments)) {
+		$assigned_shipments = array('Pending');
 	}
 	
-	// MEJORADO: Incluir envíos MERC EMPRENDEDOR (tipo='normal') que estén parcialmente asignados
-	// Es decir: que tengan contenedor_recojo pero sin motorizado_recojo, o contenedor_entrega sin motorizado_entrega
-	
-	$sql = "SELECT DISTINCT tbl1.ID FROM `$wpdb->posts` AS tbl1 
-	LEFT JOIN `$wpdb->postmeta` tbl2 ON tbl1.ID=tbl2.post_id AND tbl2.meta_key='shipment_container' 
-	LEFT JOIN `$wpdb->postmeta` tbl3 ON tbl1.ID=tbl3.post_id AND tbl3.meta_key='wpcargo_status'
-	LEFT JOIN `$wpdb->postmeta` tbl_recojo ON tbl1.ID=tbl_recojo.post_id AND tbl_recojo.meta_key='shipment_container_recojo'
-	LEFT JOIN `$wpdb->postmeta` tbl_entrega ON tbl1.ID=tbl_entrega.post_id AND tbl_entrega.meta_key='shipment_container_entrega'
-	LEFT JOIN `$wpdb->postmeta` tbl_motorizo_rec ON tbl1.ID=tbl_motorizo_rec.post_id AND tbl_motorizo_rec.meta_key='wpcargo_motorizo_recojo'
-	LEFT JOIN `$wpdb->postmeta` tbl_motorizo_ent ON tbl1.ID=tbl_motorizo_ent.post_id AND tbl_motorizo_ent.meta_key='wpcargo_motorizo_entrega'
-	WHERE tbl1.post_status='publish' AND tbl1.post_type='wpcargo_shipment' 
-	AND tbl3.meta_value IN ('" . $shipment_status . "')
-	AND (
-		-- Envíos SIN asignar en el sistema antiguo (sin shipment_container)
-		( tbl2.meta_key IS NULL OR tbl2.meta_value LIKE '' )
-		-- Envíos MERC EMPRENDEDOR parcialmente asignados
-		OR (
-			tbl_recojo.meta_value != '' AND (tbl_motorizo_rec.meta_value = '' OR tbl_motorizo_rec.meta_value IS NULL OR tbl_motorizo_rec.meta_value = '0')
-		)
-		OR (
-			tbl_entrega.meta_value != '' AND (tbl_motorizo_ent.meta_value = '' OR tbl_motorizo_ent.meta_value IS NULL OR tbl_motorizo_ent.meta_value = '0')
-		)
-	)
-	ORDER BY tbl1.post_title ASC";
-	
-	$sql = apply_filters('wpcsc_get_unassigned_shipment_sql', $sql);
-	$result = $wpdb->get_col($sql);
-	return $result;
+	// OPTIMIZACIÓN EXTREMA: Filtrar en memoria RAM
+    $status_in = "'" . implode("','", esc_sql($assigned_shipments)) . "'";
+    
+    // 1. Obtener solo IDs en estado permitido
+    $query_ids = "SELECT p.ID FROM {$wpdb->posts} p 
+                  JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
+                  WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' 
+                  AND pm.meta_key = 'wpcargo_status' AND pm.meta_value IN ($status_in)
+                  ORDER BY p.post_title ASC";
+    
+    $pending_ids = $wpdb->get_col($query_ids);
+    if (empty($pending_ids)) return array();
+    
+    // 2. Cargar metas necesarios en bloque
+    $ids_in = implode(',', array_map('intval', $pending_ids));
+    $meta_keys = array('shipment_container', 'shipment_container_recojo', 'shipment_container_entrega', 'wpcargo_motorizo_recojo', 'wpcargo_motorizo_entrega');
+    $keys_in = "'" . implode("','", $meta_keys) . "'";
+    
+    $meta_results = $wpdb->get_results("SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id IN ($ids_in) AND meta_key IN ($keys_in)", ARRAY_A);
+    
+    $meta_arr = array();
+    foreach ($meta_results as $row) {
+        $meta_arr[$row['post_id']][$row['meta_key']] = $row['meta_value'];
+    }
+    
+    // 3. Filtrar en RAM
+    $unassigned = array();
+    foreach ($pending_ids as $id) {
+        $m = isset($meta_arr[$id]) ? $meta_arr[$id] : array();
+        $sc = isset($m['shipment_container']) ? $m['shipment_container'] : '';
+        $rec = isset($m['shipment_container_recojo']) ? $m['shipment_container_recojo'] : '';
+        $ent = isset($m['shipment_container_entrega']) ? $m['shipment_container_entrega'] : '';
+        $m_rec = isset($m['wpcargo_motorizo_recojo']) ? $m['wpcargo_motorizo_recojo'] : '';
+        $m_ent = isset($m['wpcargo_motorizo_entrega']) ? $m['wpcargo_motorizo_entrega'] : '';
+        
+        $is_unassigned = false;
+        if (empty($sc)) {
+            $is_unassigned = true;
+        } elseif (!empty($rec) && (empty($m_rec) || $m_rec === '0')) {
+            $is_unassigned = true;
+        } elseif (!empty($ent) && (empty($m_ent) || $m_ent === '0')) {
+            $is_unassigned = true;
+        }
+        
+        if ($is_unassigned) {
+            $unassigned[] = $id;
+        }
+    }
+    
+    return $unassigned;
 }
 // Helper: obtener fecha de envío en formato Y-m-d desde varias metas comunes
 function _wpcu_shipment_pickup_date_ymd($shipment_id){
@@ -760,78 +828,21 @@ function _wpcu_shipment_pickup_date_ymd($shipment_id){
 }
 function wpc_shipment_container_get_all_unassigned_shipment()
 {
-	global $wpdb;
-	$assigned_shipments = get_option('container_assigned_shipments');
-	$shipment_status = '';
-	if (!empty($assigned_shipments)) {
-		$shipment_status = implode("','", $assigned_shipments);
-	} else {
-		$shipment_status = 'Pending';
-	}
-	
-	// MEJORADO: Incluir envíos parcialmente asignados
-	$sql = "SELECT COUNT(DISTINCT tbl1.ID) FROM `$wpdb->posts` tbl1 
-	LEFT JOIN `$wpdb->postmeta` tbl2 ON tbl1.ID=tbl2.post_id AND tbl2.meta_key='shipment_container' 
-	LEFT JOIN `$wpdb->postmeta` tbl3 ON tbl1.ID=tbl3.post_id AND tbl3.meta_key='wpcargo_status'
-	LEFT JOIN `$wpdb->postmeta` tbl_recojo ON tbl1.ID=tbl_recojo.post_id AND tbl_recojo.meta_key='shipment_container_recojo'
-	LEFT JOIN `$wpdb->postmeta` tbl_entrega ON tbl1.ID=tbl_entrega.post_id AND tbl_entrega.meta_key='shipment_container_entrega'
-	LEFT JOIN `$wpdb->postmeta` tbl_motorizo_rec ON tbl1.ID=tbl_motorizo_rec.post_id AND tbl_motorizo_rec.meta_key='wpcargo_motorizo_recojo'
-	LEFT JOIN `$wpdb->postmeta` tbl_motorizo_ent ON tbl1.ID=tbl_motorizo_ent.post_id AND tbl_motorizo_ent.meta_key='wpcargo_motorizo_entrega'
-	WHERE tbl1.post_status='publish' AND tbl1.post_type='wpcargo_shipment' 
-	AND tbl3.meta_value IN ('" . $shipment_status . "')
-	AND (
-		-- Envíos SIN asignar en el sistema antiguo (sin shipment_container)
-		( tbl2.meta_key IS NULL OR tbl2.meta_value LIKE '' )
-		-- Envíos MERC EMPRENDEDOR parcialmente asignados
-		OR (
-			tbl_recojo.meta_value != '' AND (tbl_motorizo_rec.meta_value = '' OR tbl_motorizo_rec.meta_value IS NULL OR tbl_motorizo_rec.meta_value = '0')
-		)
-		OR (
-			tbl_entrega.meta_value != '' AND (tbl_motorizo_ent.meta_value = '' OR tbl_motorizo_ent.meta_value IS NULL OR tbl_motorizo_ent.meta_value = '0')
-		)
-	)";
-	
-	$sql = apply_filters('wpcsc_get_all_unassigned_shipment_sql', $sql);
-	$result = $wpdb->get_var($sql);
-
-	return $result;
+	$unassigned = wpc_shipment_container_get_unassigned_shipment();
+	return count($unassigned);
 }
 function wpc_shipment_container_get_paged_shipment($offset, $items_per_page)
 {
-	global $wpdb;
-	$assigned_shipments = get_option('container_assigned_shipments');
-	$shipment_status = '';
-	if (!empty($assigned_shipments)) {
-		$shipment_status = implode("','", $assigned_shipments);
-	} else {
-		$shipment_status = 'Pending';
-	}
-	
-	// MEJORADO: Incluir envíos parcialmente asignados
-	$sql = "SELECT DISTINCT tbl1.ID FROM `$wpdb->posts` tbl1 
-	LEFT JOIN `$wpdb->postmeta` tbl2 ON tbl1.ID=tbl2.post_id AND tbl2.meta_key='shipment_container' 
-	LEFT JOIN `$wpdb->postmeta` tbl3 ON tbl1.ID=tbl3.post_id AND tbl3.meta_key='wpcargo_status'
-	LEFT JOIN `$wpdb->postmeta` tbl_recojo ON tbl1.ID=tbl_recojo.post_id AND tbl_recojo.meta_key='shipment_container_recojo'
-	LEFT JOIN `$wpdb->postmeta` tbl_entrega ON tbl1.ID=tbl_entrega.post_id AND tbl_entrega.meta_key='shipment_container_entrega'
-	LEFT JOIN `$wpdb->postmeta` tbl_motorizo_rec ON tbl1.ID=tbl_motorizo_rec.post_id AND tbl_motorizo_rec.meta_key='wpcargo_motorizo_recojo'
-	LEFT JOIN `$wpdb->postmeta` tbl_motorizo_ent ON tbl1.ID=tbl_motorizo_ent.post_id AND tbl_motorizo_ent.meta_key='wpcargo_motorizo_entrega'
-	WHERE tbl1.post_status='publish' AND tbl1.post_type='wpcargo_shipment' 
-	AND tbl3.meta_value IN ('" . $shipment_status . "')
-	AND (
-		-- Envíos SIN asignar en el sistema antiguo (sin shipment_container)
-		( tbl2.meta_key IS NULL OR tbl2.meta_value LIKE '' )
-		-- Envíos MERC EMPRENDEDOR parcialmente asignados
-		OR (
-			tbl_recojo.meta_value != '' AND (tbl_motorizo_rec.meta_value = '' OR tbl_motorizo_rec.meta_value IS NULL OR tbl_motorizo_rec.meta_value = '0')
-		)
-		OR (
-			tbl_entrega.meta_value != '' AND (tbl_motorizo_ent.meta_value = '' OR tbl_motorizo_ent.meta_value IS NULL OR tbl_motorizo_ent.meta_value = '0')
-		)
-	)
-	ORDER BY tbl1.ID DESC LIMIT " . $offset . ", " . $items_per_page;
-	
-	$sql = apply_filters('wpcsc_get_paged_shipment_sql', $sql);
-	$result = $wpdb->get_results($sql, OBJECT);
+	$unassigned = wpc_shipment_container_get_unassigned_shipment();
+    
+    // Sort descending by ID to match original behavior
+    rsort($unassigned);
+    
+    $paged = array_slice($unassigned, $offset, $items_per_page);
+    $result = array();
+    foreach ($paged as $id) {
+        $result[] = (object) array('ID' => $id);
+    }
 	return $result;
 }
 function wpc_shipment_container_get_user_fullname($userID)

@@ -96,17 +96,25 @@ add_action('update_post_meta', function($meta_id, $post_id, $meta_key, $meta_val
 
 // Detectar cambios de estado y crear penalidades/cargos
 add_action('updated_post_meta', function($meta_id, $post_id, $meta_key, $meta_value) {
-    error_log(sprintf('MERC_DEBUG_META_UPDATE - meta_id=%s post_id=%s meta_key=%s meta_value=%s', $meta_id, $post_id, $meta_key, is_scalar($meta_value) ? $meta_value : json_encode($meta_value)));
+    if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
+        error_log(sprintf('MERC_DEBUG_META_UPDATE - meta_id=%s post_id=%s meta_key=%s meta_value=%s', $meta_id, $post_id, $meta_key, is_scalar($meta_value) ? $meta_value : json_encode($meta_value)));
+    }
     if ( $meta_key !== 'wpcargo_status' ) {
-        error_log('MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)');
+        if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
+            error_log('MERC_DEBUG_META_UPDATE - Ignorado (no es wpcargo_status)');
+        }
         return;
     }
     // Intentar crear penalidad al actualizar el estado
-    error_log(sprintf('MERC_DEBUG_META_UPDATE - Llamando a merc_maybe_create_penalty_for_shipment para post_id=%s', $post_id));
+    if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
+        error_log(sprintf('MERC_DEBUG_META_UPDATE - Llamando a merc_maybe_create_penalty_for_shipment para post_id=%s', $post_id));
+    }
     merc_maybe_create_penalty_for_shipment($post_id);
     
     // Detectar cambio a "NO RECIBIDO" y registrar cargo automáticamente
-    error_log(sprintf('MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=%s', $post_id));
+    if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
+        error_log(sprintf('MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=%s', $post_id));
+    }
     merc_maybe_create_penalty_for_shipment($post_id);
     merc_auto_registrar_cargo_no_recibido($post_id, $meta_value);
     merc_sync_service_cost_by_status( $post_id );
@@ -116,11 +124,22 @@ if ( ! function_exists( 'merc_get_adjusted_service_cost' ) ) {
     function merc_get_adjusted_service_cost( $shipment_id ) {
         $status = strtoupper( trim( (string) get_post_meta( $shipment_id, 'wpcargo_status', true ) ) );
 
-        if ( stripos( $status, 'REPROGRAMADO' ) !== false || stripos( $status, 'ANULADO' ) !== false ) {
-            return 0.0;
-        }
+        $base_cost = floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
 
-        return floatval( get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ) );
+        if ( stripos( $status, 'REPROGRAMADO' ) !== false || stripos( $status, 'ANULADO' ) !== false ) {
+            $base_cost = 0.0;
+        }
+        
+        // Sumar cargos adicionales si existen
+        $cargos = get_post_meta( $shipment_id, 'merc_cargos_adicionales', true );
+        $adicional = 0.0;
+        if ( is_array( $cargos ) ) {
+            foreach ( $cargos as $cargo ) {
+                $adicional += floatval( $cargo['monto'] );
+            }
+        }
+        
+        return $base_cost + $adicional;
     }
 }
 
@@ -233,5 +252,6 @@ add_action('wp_ajax_merc_generate_penalties_today', function() {
     $msg = sprintf('Penalidades creadas: %d, omitidos: %d', $created, $skipped);
     wp_send_json_success(array('message'=>$msg,'details'=>$details));
 });
+
 
 
