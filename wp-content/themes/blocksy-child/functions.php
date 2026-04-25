@@ -15859,37 +15859,55 @@ function merc_update_delivery_status_ajax() {
         $signature_data = sanitize_text_field($_POST['signature']);
     }
 
-    // Si no viene directo, intentar extraer desde formData / form_data (serializado) enviado por el cliente
-    if (empty($signature_data)) {
-        $candidates = array('formData','form_data','formdata');
-        foreach ($candidates as $c) {
-            if (isset($_POST[$c])) {
-                $fd = $_POST[$c];
-                // puede ser array (serialized by jQuery) o JSON string
-                if (is_string($fd)) {
-                    $maybe = json_decode(wp_unslash($fd), true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($maybe)) {
-                        $fd = $maybe;
-                    }
+    // Intentar extraer también datos del formulario en caso de que lleguen
+    $form_data = array();
+    $candidates = array('formData', 'form_data', 'formdata');
+    foreach ($candidates as $c) {
+        if (isset($_POST[$c])) {
+            $fd = $_POST[$c];
+            if (is_string($fd)) {
+                $maybe = json_decode(wp_unslash($fd), true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($maybe)) {
+                    $fd = $maybe;
                 }
-                if (is_array($fd)) {
-                    foreach ($fd as $entry) {
-                        if (is_array($entry) && isset($entry['name']) && stripos($entry['name'],'signature') !== false && !empty($entry['value'])) {
-                            $signature_data = sanitize_text_field($entry['value']);
-                            error_log('✅ [UPDATE_STATUS] Firma encontrada dentro de ' . $c . ' para shipment ' . $shipment_id);
-                            break 2;
-                        }
+            }
+            if (is_array($fd)) {
+                $form_data = $fd;
+                foreach ($fd as $entry) {
+                    if (is_array($entry) && isset($entry['name']) && stripos($entry['name'], 'signature') !== false && !empty($entry['value'])) {
+                        $signature_data = sanitize_text_field($entry['value']);
+                        error_log('✅ [UPDATE_STATUS] Firma encontrada dentro de ' . $c . ' para shipment ' . $shipment_id);
+                        break 2;
                     }
                 }
             }
         }
-        // También revisar claves conocidas
-        if (empty($signature_data) && !empty($_POST['__pod_signature'])) {
-            $signature_data = sanitize_text_field($_POST['__pod_signature']);
+    }
+    // También revisar claves conocidas
+    if (empty($signature_data) && !empty($_POST['__pod_signature'])) {
+        $signature_data = sanitize_text_field($_POST['__pod_signature']);
+    }
+    if (empty($signature_data) && !empty($_POST['pod_signature'])) {
+        $signature_data = sanitize_text_field($_POST['pod_signature']);
+    }
+
+    $remarks = '';
+    if (!empty($form_data) && is_array($form_data)) {
+        foreach ($form_data as $entry) {
+            if (is_array($entry) && isset($entry['name']) && in_array($entry['name'], array('remarks', 'observations', 'observaciones'), true)) {
+                $remarks = sanitize_textarea_field($entry['value']);
+                break;
+            }
         }
-        if (empty($signature_data) && !empty($_POST['pod_signature'])) {
-            $signature_data = sanitize_text_field($_POST['pod_signature']);
-        }
+    }
+    if (empty($remarks) && !empty($_POST['remarks'])) {
+        $remarks = sanitize_textarea_field($_POST['remarks']);
+    }
+    if (empty($remarks) && !empty($_POST['observations'])) {
+        $remarks = sanitize_textarea_field($_POST['observations']);
+    }
+    if (empty($remarks) && !empty($_POST['observaciones'])) {
+        $remarks = sanitize_textarea_field($_POST['observaciones']);
     }
 
     if ('ENTREGADO' === strtoupper(trim($new_status)) && empty($signature_data)) {
@@ -15913,6 +15931,14 @@ function merc_update_delivery_status_ajax() {
         update_post_meta($shipment_id, 'wpcargo_signature_date', current_time('mysql'));
         update_post_meta($shipment_id, 'wpcargo_signature_user', wp_get_current_user()->user_login ?: 'Sistema');
     }
+
+    if (!empty($remarks)) {
+        update_post_meta($shipment_id, 'wpcargo_pod_remarks', $remarks);
+        error_log('📝 Guardando observaciones de NO RECIBIDO para shipment #' . $shipment_id);
+    }
+
+    // Guardar datos adicionales y métodos de pago a través del hook existente
+    do_action('wpcargo_extra_pod_saving', $shipment_id, $form_data);
     
     // Agregar al historial
     $updates = get_post_meta($shipment_id, 'wpcargo_shipments_update', true);
@@ -15930,6 +15956,9 @@ function merc_update_delivery_status_ajax() {
         'updated-name' => $user_name,
         'remarks' => 'Estado actualizado desde el planificador de rutas' . (!empty($signature_data) ? ' (con firma)' : '')
     ];
+    if (!empty($remarks)) {
+        $new_update['remarks'] .= ' - Observaciones: ' . wp_trim_words($remarks, 40, '...');
+    }
     
     // Si hay firma, agregar referencia a ella en el historial
     if (!empty($signature_data)) {
