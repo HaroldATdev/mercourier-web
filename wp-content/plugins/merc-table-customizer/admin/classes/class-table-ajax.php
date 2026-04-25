@@ -23,6 +23,7 @@ class MERC_Table_Ajax {
 
         // AJAX: solo usuarios logueados
         add_action( 'wp_ajax_merc_actualizar_estado_rapido',   [ $this, 'ajax_actualizar_estado' ] );
+        add_action( 'wp_ajax_merc_get_shipment_data',          [ $this, 'ajax_get_shipment_data' ] );
         add_action( 'wp_ajax_merc_notificar_reprogramacion',   [ $this, 'ajax_notificar_reprogramacion' ] );
         add_action( 'wp_ajax_merc_get_reprogram_constraints',   [ $this, 'ajax_get_reprogram_constraints' ] );
         add_action( 'wp_ajax_merc_reprogramar_envio',          [ $this, 'ajax_reprogramar_envio' ] );
@@ -76,6 +77,28 @@ class MERC_Table_Ajax {
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
         merc_sync_service_cost_by_status( $shipment_id );
 
+        // Procesar datos adicionales para NO RECIBIDO
+        $form_data = [];
+        if ( ! empty( $observaciones ) ) {
+            $form_data[] = [ 'name' => 'remarks', 'value' => $observaciones ];
+        }
+        if ( isset( $_POST['pod_payment_methods'] ) && ! empty( $_POST['pod_payment_methods'] ) ) {
+            $form_data[] = [ 'name' => 'pod_payment_methods', 'value' => sanitize_text_field( $_POST['pod_payment_methods'] ) ];
+        }
+        if ( isset( $_POST['wpcargo_total_cobrar'] ) && ! empty( $_POST['wpcargo_total_cobrar'] ) ) {
+            $form_data[] = [ 'name' => 'wpcargo_total_cobrar', 'value' => sanitize_text_field( $_POST['wpcargo_total_cobrar'] ) ];
+        }
+
+        // Guardar observaciones en meta si existen
+        if ( ! empty( $observaciones ) ) {
+            update_post_meta( $shipment_id, 'wpcargo_pod_remarks', $observaciones );
+        }
+
+        // Disparar hook para guardar métodos de pago si hay datos
+        if ( ! empty( $form_data ) ) {
+            do_action( 'wpcargo_extra_pod_saving', $shipment_id, $form_data );
+        }
+
         $historial = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
         if ( ! is_array( $historial ) ) {
             $historial = [];
@@ -96,6 +119,35 @@ class MERC_Table_Ajax {
             'message'      => 'Estado actualizado correctamente',
             'nuevo_estado' => $nuevo_estado,
             'observaciones' => $remarks_final,
+        ] );
+    }
+
+    /* ── AJAX: Obtener datos del shipment para modal NO RECIBIDO ────────── */
+
+    public function ajax_get_shipment_data(): void {
+        check_ajax_referer( 'merc_actualizar_estado', 'nonce' );
+
+        $shipment_id = isset( $_POST['shipment_id'] ) ? intval( $_POST['shipment_id'] ) : 0;
+
+        if ( empty( $shipment_id ) ) {
+            wp_send_json_error( 'ID de envío no proporcionado' );
+        }
+
+        $shipment = get_post( $shipment_id );
+        if ( ! $shipment || $shipment->post_type !== 'wpcargo_shipment' ) {
+            wp_send_json_error( 'Envío no encontrado' );
+        }
+
+        $monto = get_post_meta( $shipment_id, 'wpcargo_total_cobrar', true );
+        if ( empty( $monto ) ) {
+            $monto = get_post_meta( $shipment_id, 'total', true );
+        }
+        if ( empty( $monto ) ) {
+            $monto = 0;
+        }
+
+        wp_send_json_success( [
+            'monto' => floatval( $monto ),
         ] );
     }
 
