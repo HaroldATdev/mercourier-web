@@ -213,7 +213,7 @@ function wpcpod_direct_upload_image() {
 
 	// Validar nonce
 	$nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
-	if (!wp_verify_nonce($nonce, 'wpcpod_upload_image')) {
+	if ( ! wp_verify_nonce( $nonce, 'wpcpod_upload_image' ) && ! wp_verify_nonce( $nonce, 'wpcpod_nonce' ) ) {
 		wp_send_json(array(
 			'success' => false,
 			'message' => 'Error de seguridad: nonce inválido'
