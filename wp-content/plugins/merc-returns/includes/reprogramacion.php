@@ -11,6 +11,20 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+/**
+ * Hook: cuando se actualiza la fecha de envío y el estado es REPROGRAMADO,
+ * forzar el estado a RECEPCIONADO y marcar es_reprogramado=1.
+ */
+add_action('update_post_meta_wpcargo_pickup_date', function($meta_id, $object_id, $meta_key, $meta_value) {
+    $estado = get_post_meta($object_id, 'wpcargo_status', true);
+    if ($estado === 'REPROGRAMADO') {
+        error_log("🟢 REPROG-FIX: Envío $object_id reprogramado, forzando RECEPCIONADO y es_reprogramado=1");
+        update_post_meta($object_id, 'wpcargo_status', 'RECEPCIONADO');
+        update_post_meta($object_id, 'es_reprogramado', 1);
+    }
+}, 10, 4);
+
+// ...existing code...
 
 /**
  * Hook: cuando el estado cambia a REPROGRAMADO
