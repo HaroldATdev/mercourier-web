@@ -241,10 +241,11 @@ class MERC_Table_UI {
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: center;
         position: relative;
         width: 146px;
         min-width: 146px;
+        max-width: 146px;
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 8px;
@@ -253,8 +254,8 @@ class MERC_Table_UI {
     }
     .merc-modal-content .gallery-thumb .single-img {
         width: 100%;
-        min-height: 100px;
-        max-height: 140px;
+        height: 140px;
+        min-height: 140px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -263,10 +264,12 @@ class MERC_Table_UI {
         background: #f7f7f7;
     }
     .merc-modal-content .gallery-thumb .single-img img {
+        width: auto;
+        height: 100%;
         max-width: 100%;
         max-height: 100%;
         display: block;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 6px;
     }
     .merc-modal-content .gallery-thumb .delete-attachment {
@@ -294,6 +297,7 @@ class MERC_Table_UI {
         gap: 10px;
         margin-top: 10px;
         min-height: 100px;
+        align-items: flex-start;
     }
     .merc-modal-content .header-pod-result {
         font-size: 14px;
@@ -496,7 +500,7 @@ class MERC_Table_UI {
                         '<div style="margin-bottom: 20px; border: 1px solid #e2e2e2; border-radius: 8px; padding: 16px; background: #f7f7f7;">' +
                             '<h6 style="margin-top: 0; margin-bottom: 12px;">1. Fotos del intento (opcional)</h6>' +
                             '<button type="button" id="nr-pod-img-btn-admin" class="btn btn-success" style="margin-bottom: 10px;">➕ Añadir imagen</button>' +
-                            '<input type="file" id="nr-pod-file-input-admin" multiple accept="image/*" style="display: none;">' +
+                            '<input type="file" id="nr-pod-file-input-admin" accept="image/*" style="display: none;">' +
                             '<input type="file" id="nr-pod-camera-input-admin" accept="image/*" capture="camera" style="display: none;">' +
                             '<div id="nr-pod-images-admin" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>' +
                         '</div>' +
@@ -679,7 +683,10 @@ class MERC_Table_UI {
                     formData.append('action','wpcpod_direct_upload_image');
                     formData.append('shipmentID', shipmentId);
                     formData.append('nonce', '<?php echo wp_create_nonce( 'wpcpod_nonce' ); ?>');
+                    formData.append('replace_existing', '1');
                     const $button = $modal.find('#nr-pod-img-btn-admin');
+                    const $imagesContainer = $modal.find('#nr-pod-images-admin');
+                    $imagesContainer.html('');
                     const originalText = $button.text();
                     $button.prop('disabled', true).text('⏳ Subiendo...');
                     $.ajax({

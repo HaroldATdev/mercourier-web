@@ -277,9 +277,14 @@ function wpcpod_direct_upload_image() {
 	}
 
 	// Guardar en meta
-	$saved_images = get_post_meta($shipmentID, 'wpcargo-pod-image', true);
-	$explode_images = !empty($saved_images) ? explode(',', $saved_images) : array();
-	$set_attachments = array_unique(array_merge($uploaded_ids, array_filter($explode_images)));
+	$replace_existing = isset($_POST['replace_existing']) && in_array(strval($_POST['replace_existing']), array('1', 'true', 'yes'), true);
+	if ($replace_existing) {
+		$set_attachments = array_slice($uploaded_ids, 0, 1);
+	} else {
+		$saved_images = get_post_meta($shipmentID, 'wpcargo-pod-image', true);
+		$explode_images = !empty($saved_images) ? explode(',', $saved_images) : array();
+		$set_attachments = array_unique(array_merge($uploaded_ids, array_filter($explode_images)));
+	}
 	update_post_meta($shipmentID, 'wpcargo-pod-image', implode(',', $set_attachments));
 
 	error_log('WPCPod: Successfully saved ' . count($uploaded_ids) . ' images for shipment ' . $shipmentID);
