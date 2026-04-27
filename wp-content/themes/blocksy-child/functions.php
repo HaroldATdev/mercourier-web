@@ -9748,6 +9748,23 @@ function merc_get_shipment_data_ajax() {
     $motorizo_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
     $motorizo_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
 
+    // Obtener monto total de la orden - usando mismo orden de prioridad que para motorizado
+    $monto = 0;
+    $wpcargo_total = get_post_meta($shipment_id, 'wpcargo_total_cobrar', true);
+    if (!empty($wpcargo_total)) {
+        $monto = floatval($wpcargo_total);
+    } else {
+        $wpcargo_amount = get_post_meta($shipment_id, 'wpcargo_shipment_amount', true);
+        if (!empty($wpcargo_amount)) {
+            $monto = floatval($wpcargo_amount);
+        } else {
+            $total = get_post_meta($shipment_id, 'total', true);
+            if (!empty($total)) {
+                $monto = floatval($total);
+            }
+        }
+    }
+
     wp_send_json_success([
         'tipo_envio' => $tipo_envio,
         'estado_actual' => $estado_actual,
@@ -9757,6 +9774,7 @@ function merc_get_shipment_data_ajax() {
         'customer_name' => $customer_name,
         'motorizo_recojo' => $motorizo_recojo,
         'motorizo_entrega' => $motorizo_entrega,
+        'monto' => $monto,
     ]);
 }
 
@@ -15143,7 +15161,14 @@ function wpcpod_get_single_shipment_data_handler() {
     $shipper_phone = get_post_meta($post_id, 'wpcargo_shipper_phone', true);
     $shipper_name = get_post_meta($post_id, 'wpcargo_shipper_name', true);
     $tienda_name = get_post_meta($post_id, 'wpcargo_tiendaname', true);
-    $monto = floatval(get_post_meta($post_id, 'wpcargo_shipment_amount', true));
+    $monto = get_post_meta($post_id, 'wpcargo_total_cobrar', true);
+    if ($monto === '' || $monto === null) {
+        $monto = get_post_meta($post_id, 'wpcargo_shipment_amount', true);
+    }
+    if ($monto === '' || $monto === null) {
+        $monto = get_post_meta($post_id, 'total', true);
+    }
+    $monto = floatval($monto);
     $link_maps = get_post_meta($post_id, 'link_maps', true);
     
 	$current_user = wp_get_current_user();
