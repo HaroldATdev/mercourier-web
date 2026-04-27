@@ -227,7 +227,7 @@ class MERC_Table_UI {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.5); z-index: 99999; display: flex; align-items: center; justify-content: center;
     }
-    .merc-modal-content { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 500px; width: 90%; text-align: center; }
+    .merc-modal-content { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 800px; width: 90%; text-align: left; }
     .merc-modal-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #333; }
     .merc-modal-message { font-size: 16px; margin-bottom: 25px; color: #666; line-height: 1.5; }
     .merc-modal-buttons { display: flex; gap: 10px; justify-content: center; }
@@ -530,28 +530,28 @@ class MERC_Table_UI {
             '</div>');
             $('body').append($modal);
 
+            // Inicializar event handlers inmediatamente
+            bindNoRecibidoModalEventsAdmin($modal, shipmentId, 0);
+
             // Obtener datos del shipment para el monto
             $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
                 if (resp && resp.success && resp.data) {
                     const monto = parseFloat(resp.data.monto || resp.data.total || resp.data.wpcargo_total_cobrar || 0) || 0;
-                    $('#nr-wpcargo_total_cobrar-admin').val(monto.toFixed(2));
-                    $('#nr-total-amount-admin').text(monto.toFixed(2));
-                    $('#nr-missing-amount-admin').text('Falta S/. ' + monto.toFixed(2));
-                    bindNoRecibidoModalEventsAdmin(shipmentId, monto);
-                } else {
-                    bindNoRecibidoModalEventsAdmin(shipmentId, 0);
+                    $modal.find('#nr-wpcargo_total_cobrar-admin').val(monto.toFixed(2));
+                    $modal.find('#nr-total-amount-admin').text(monto.toFixed(2));
+                    $modal.find('#nr-missing-amount-admin').text('Falta S/. ' + monto.toFixed(2));
+                    // Re-inicializar con el monto correcto
+                    bindNoRecibidoModalEventsAdmin($modal, shipmentId, monto);
                 }
             }).fail(function() {
-                bindNoRecibidoModalEventsAdmin(shipmentId, 0);
+                console.warn('⚠️ Error al cargar datos del shipment #' + shipmentId);
             });
 
-            function bindNoRecibidoModalEventsAdmin(shipmentId, amountToReceive) {
-                const $modal = $('.merc-modal-overlay');
-                if (!$modal.length) return;
+            function bindNoRecibidoModalEventsAdmin($modalRef, shipmentId, amountToReceive) {
 
-                const $totalIngresado = $modal.find('#nr-total-ingresado-admin');
-                const $missingAmount = $modal.find('#nr-missing-amount-admin');
-                const $podPaymentMethods = $modal.find('#nr-pod_payment_methods-admin');
+                const $totalIngresado = $modalRef.find('#nr-total-ingresado-admin');
+                const $missingAmount = $modalRef.find('#nr-missing-amount-admin');
+                const $podPaymentMethods = $modalRef.find('#nr-pod_payment_methods-admin');
 
                 function formatAmount(value) {
                     return parseFloat(value || 0).toFixed(2);
@@ -559,7 +559,7 @@ class MERC_Table_UI {
 
                 function updatePaymentSummary() {
                     let total = 0;
-                    $modal.find('.nr-fila-metodo-admin').each(function() {
+                    $modalRef.find('.nr-fila-metodo-admin').each(function() {
                         const montoStr = $(this).find('.nr-pay-amount-admin').val().trim();
                         const monto = parseFloat(montoStr.replace(/[^0-9.]/g, '')) || 0;
                         total += monto;
@@ -576,7 +576,7 @@ class MERC_Table_UI {
 
                 function updatePaymentMethodsInput() {
                     const arr = [];
-                    $modal.find('.nr-fila-metodo-admin').each(function() {
+                    $modalRef.find('.nr-fila-metodo-admin').each(function() {
                         const $fila = $(this);
                         const metodo = $fila.find('.nr-pay-method-admin').val().trim();
                         const monto = parseFloat($fila.find('.nr-pay-amount-admin').val().trim().replace(/[^0-9.]/g, '')) || 0;
@@ -635,11 +635,11 @@ class MERC_Table_UI {
 
                 function addPaymentMethodRow() {
                     const $row = createMethodRow();
-                    $modal.find('#nr-payment-methods-list-admin').append($row);
+                    $modalRef.find('#nr-payment-methods-list-admin').append($row);
                     updatePaymentSummary();
                 }
 
-                $modal.find('#nr-pod-img-btn-admin').off('click').on('click', function(e) {
+                $modalRef.find('#nr-pod-img-btn-admin').off('click').on('click', function(e) {
                     e.preventDefault();
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
@@ -654,13 +654,13 @@ class MERC_Table_UI {
                             reverseButtons: false
                         }).then(function(result) {
                             if (result.isConfirmed) {
-                                $modal.find('#nr-pod-camera-input-admin').val('').click();
+                                $modalRef.find('#nr-pod-camera-input-admin').val('').click();
                             } else if (result.dismiss === Swal.DismissReason.cancel) {
-                                $modal.find('#nr-pod-file-input-admin').val('').click();
+                                $modalRef.find('#nr-pod-file-input-admin').val('').click();
                             }
                         });
                     } else {
-                        $modal.find('#nr-pod-file-input-admin').click();
+                        $modalRef.find('#nr-pod-file-input-admin').click();
                     }
                 });
 
@@ -684,8 +684,8 @@ class MERC_Table_UI {
                     formData.append('shipmentID', shipmentId);
                     formData.append('nonce', '<?php echo wp_create_nonce( 'wpcpod_nonce' ); ?>');
                     formData.append('replace_existing', '1');
-                    const $button = $modal.find('#nr-pod-img-btn-admin');
-                    const $imagesContainer = $modal.find('#nr-pod-images-admin');
+                    const $button = $modalRef.find('#nr-pod-img-btn-admin');
+                    const $imagesContainer = $modalRef.find('#nr-pod-images-admin');
                     $imagesContainer.html('');
                     const originalText = $button.text();
                     $button.prop('disabled', true).text('⏳ Subiendo...');
@@ -699,7 +699,7 @@ class MERC_Table_UI {
                         success:function(response){
                             $button.prop('disabled', false).text(originalText);
                             if (response.success) {
-                                $modal.find('#nr-pod-images-admin').html(response.html);
+                                $modalRef.find('#nr-pod-images-admin').html(response.html);
                             } else {
                                 alert('❌ Error al subir imágenes: ' + (response.message || 'Error desconocido'));
                             }
@@ -711,16 +711,16 @@ class MERC_Table_UI {
                     });
                 }
 
-                $modal.find('#nr-pod-file-input-admin').off('change').on('change', function() {
+                $modalRef.find('#nr-pod-file-input-admin').off('change').on('change', function() {
                     uploadNoRecibidoImages(this.files);
                     $(this).val('');
                 });
-                $modal.find('#nr-pod-camera-input-admin').off('change').on('change', function() {
+                $modalRef.find('#nr-pod-camera-input-admin').off('change').on('change', function() {
                     uploadNoRecibidoImages(this.files);
                     $(this).val('');
                 });
 
-                $modal.off('click', '.delete-attachment').on('click', '.delete-attachment', function(){
+                $modalRef.off('click', '.delete-attachment').on('click', '.delete-attachment', function(){
                     const $thumb = $(this).closest('.gallery-thumb');
                     const attchID = $thumb.data('id');
                     if (!attchID) return;
@@ -744,14 +744,14 @@ class MERC_Table_UI {
                     });
                 });
 
-                $modal.off('click', '.nr-select-method-admin').on('click', '.nr-select-method-admin', function(e){
+                $modalRef.off('click', '.nr-select-method-admin').on('click', '.nr-select-method-admin', function(e){
                     e.preventDefault();
                     const $button = $(this);
                     const $options = $button.siblings('.nr-method-options-admin');
                     $options.toggle();
                 });
 
-                $modal.off('click', '.nr-method-option-admin').on('click', '.nr-method-option-admin', function(){
+                $modalRef.off('click', '.nr-method-option-admin').on('click', '.nr-method-option-admin', function(){
                     const $option = $(this);
                     const metodo = $option.data('value');
                     const texto = $option.text();
@@ -771,16 +771,16 @@ class MERC_Table_UI {
                     updatePaymentSummary();
                 });
 
-                $modal.off('click', '.nr-remove-method-admin').on('click', '.nr-remove-method-admin', function(){
+                $modalRef.off('click', '.nr-remove-method-admin').on('click', '.nr-remove-method-admin', function(){
                     $(this).closest('.nr-fila-metodo-admin').remove();
                     updatePaymentSummary();
                 });
 
-                $modal.off('input', '.nr-pay-amount-admin').on('input', '.nr-pay-amount-admin', function(){
+                $modalRef.off('input', '.nr-pay-amount-admin').on('input', '.nr-pay-amount-admin', function(){
                     updatePaymentSummary();
                 });
 
-                $modal.off('change', '.nr-pay-image-admin').on('change', '.nr-pay-image-admin', function(){
+                $modalRef.off('change', '.nr-pay-image-admin').on('change', '.nr-pay-image-admin', function(){
                     const file = this.files[0];
                     const $fila = $(this).closest('.nr-fila-metodo-admin');
                     const $preview = $fila.find('.nr-image-preview-admin');
@@ -798,7 +798,7 @@ class MERC_Table_UI {
                     });
                 });
 
-                $modal.off('click', '.nr-remove-image-admin').on('click', '.nr-remove-image-admin', function(){
+                $modalRef.off('click', '.nr-remove-image-admin').on('click', '.nr-remove-image-admin', function(){
                     const $fila = $(this).closest('.nr-fila-metodo-admin');
                     $fila.find('.nr-pay-image-admin').val('');
                     $fila.removeData('imageBase64').removeData('imageName');
@@ -806,16 +806,16 @@ class MERC_Table_UI {
                     updatePaymentSummary();
                 });
 
-                $modal.find('#nr-add-method-admin').off('click').on('click', function() {
+                $modalRef.find('#nr-add-method-admin').off('click').on('click', function() {
                     addPaymentMethodRow();
                 });
 
-                $modal.find('.merc-modal-btn-confirmar').off('click').on('click', function() {
+                $modalRef.find('.merc-modal-btn-confirmar').off('click').on('click', function() {
                     updatePaymentSummary();
-                    const observaciones = $modal.find('#nr-obs-admin').val().trim();
+                    const observaciones = $modalRef.find('#nr-obs-admin').val().trim();
                     const podPaymentMethods = $podPaymentMethods.val();
-                    const wpcargoTotalCobrar = $('#nr-wpcargo_total_cobrar-admin').val();
-                    $modal.remove();
+                    const wpcargoTotalCobrar = $modalRef.find('#nr-wpcargo_total_cobrar-admin').val();
+                    $modalRef.remove();
                     console.log('✅ Confirmado NO RECIBIDO - Actualizando estado del pedido #' + numero);
                     $selectElement.prop('disabled', true);
                     $.ajax({
@@ -842,19 +842,19 @@ class MERC_Table_UI {
                     });
                 });
 
-                $modal.find('.merc-modal-btn-cancelar').on('click', function() {
-                    $modal.remove();
+                $modalRef.find('.merc-modal-btn-cancelar').on('click', function() {
+                    $modalRef.remove();
                     $selectElement.val(estadoAnterior);
                 });
 
                 $(document).on('keyup.mercModalNR', function(e) {
                     if (e.key === 'Escape') { 
-                        $modal.remove(); 
+                        $modalRef.remove(); 
                         $selectElement.val(estadoAnterior);
                         $(document).off('keyup.mercModalNR'); 
                     }
                 });
-                setTimeout(function() { $modal.find('#nr-obs-admin').focus(); }, 100);
+                setTimeout(function() { $modalRef.find('#nr-obs-admin').focus(); }, 100);
                 addPaymentMethodRow();
                 updatePaymentSummary();
             }
