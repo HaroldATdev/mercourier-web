@@ -808,7 +808,8 @@
             e.preventDefault();
             updatePaymentSummary();
             const formData = jQuery(this).serializeArray();
-            sendStatusUpdate(shipmentId, newStatus, nonce, formData);
+            const statusFromForm = $form.find('input[name="status"]').val();
+            sendStatusUpdate(shipmentId, statusFromForm, nonce, formData);
             $modal.modal('hide');
         });
 
