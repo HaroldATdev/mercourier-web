@@ -15857,6 +15857,37 @@ function merc_update_delivery_status_ajax() {
         update_post_meta($shipment_id, 'wpcargo_signature_user', wp_get_current_user()->user_login ?: 'Sistema');
     }
     
+    // ✅ Procesar datos de pago (pod_payment_methods, wpcargo_total_cobrar, observaciones)
+    $form_data = [];
+    $remarks = '';
+    
+    // Buscar observaciones/remarks de ambas fuentes (admin usa 'observaciones', route planner usa 'remarks')
+    if (isset($_POST['observaciones']) && !empty($_POST['observaciones'])) {
+        $remarks = sanitize_textarea_field($_POST['observaciones']);
+        $form_data[] = ['name' => 'remarks', 'value' => $remarks];
+    } elseif (isset($_POST['remarks']) && !empty($_POST['remarks'])) {
+        $remarks = sanitize_textarea_field($_POST['remarks']);
+        $form_data[] = ['name' => 'remarks', 'value' => $remarks];
+    }
+    
+    if (isset($_POST['pod_payment_methods']) && !empty($_POST['pod_payment_methods'])) {
+        $payment_methods = sanitize_text_field($_POST['pod_payment_methods']);
+        $form_data[] = ['name' => 'pod_payment_methods', 'value' => $payment_methods];
+        error_log('✅ [UPDATE_STATUS] Métodos de pago detectados para shipment #' . $shipment_id . ' (len=' . strlen($payment_methods) . ')');
+    }
+    
+    if (isset($_POST['wpcargo_total_cobrar']) && !empty($_POST['wpcargo_total_cobrar'])) {
+        $total_cobrar = sanitize_text_field($_POST['wpcargo_total_cobrar']);
+        $form_data[] = ['name' => 'wpcargo_total_cobrar', 'value' => $total_cobrar];
+        error_log('✅ [UPDATE_STATUS] Total a cobrar detectado para shipment #' . $shipment_id . ': ' . $total_cobrar);
+    }
+    
+    // Disparar hook para guardar datos de pago si hay datos adicionales
+    if (!empty($form_data)) {
+        error_log('✅ [UPDATE_STATUS] Disparando hook wpcargo_extra_pod_saving para shipment #' . $shipment_id . ' con ' . count($form_data) . ' datos');
+        do_action('wpcargo_extra_pod_saving', $shipment_id, $form_data);
+    }
+    
     // Agregar al historial
     $updates = get_post_meta($shipment_id, 'wpcargo_shipments_update', true);
     if (!is_array($updates)) {
@@ -15866,12 +15897,15 @@ function merc_update_delivery_status_ajax() {
     $current_user = wp_get_current_user();
     $user_name = $current_user->user_login ?: 'Sistema';
     
+    // Usar observaciones si existen, si no usar observación por defecto
+    $remarks_final = !empty($remarks) ? $remarks : 'Estado actualizado desde el planificador de rutas' . (!empty($signature_data) ? ' (con firma)' : '');
+    
     $new_update = [
         'status' => $new_status,
         'date' => current_time('Y-m-d'),
         'time' => current_time('H:i:s'),
         'updated-name' => $user_name,
-        'remarks' => 'Estado actualizado desde el planificador de rutas' . (!empty($signature_data) ? ' (con firma)' : '')
+        'remarks' => $remarks_final
     ];
     
     // Si hay firma, agregar referencia a ella en el historial
