@@ -459,6 +459,14 @@
                 <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="noRecibidoModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                         <div class="modal-content">
+                    <style>
+                        #${modalId} #nr-pod-images { display:flex; flex-wrap:wrap; gap:10px; min-height:100px; align-items:flex-start; }
+                        #${modalId} .gallery-thumb { position:relative; width:146px; min-width:146px; height:146px; border:1px solid #ddd; border-radius:10px; padding:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:center; }
+                        #${modalId} .gallery-thumb .single-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:8px; }
+                        #${modalId} .gallery-thumb .single-img img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+                        #${modalId} .gallery-thumb .delete-attachment { position:absolute; top:6px; right:6px; width:28px; height:28px; line-height:26px; border-radius:50%; background:#ff4d4d; color:#fff; font-weight:700; text-align:center; cursor:pointer; z-index:5; box-shadow:0 2px 6px rgba(0,0,0,0.16); }
+                        #${modalId} .gallery-thumb .delete-attachment:hover { background:#d32f2f; }
+                    </style>
                             <div class="modal-header">
                                 <h5 class="modal-title" id="noRecibidoModalLabel">NO RECIBIDO - Intento fallido</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
@@ -479,9 +487,9 @@
                                     <div style="border:1px solid #e2e2e2; border-radius:8px; padding:16px; margin-bottom:20px; background:#f7f7f7;">
                                         <h6 style="margin-top:0; margin-bottom:12px;">1. Fotos del intento (opcional)</h6>
                                         <button type="button" id="nr-pod-img-btn" class="btn btn-success" style="margin-bottom:10px;">➕ Añadir imagen</button>
-                                        <input type="file" id="nr-pod-file-input" multiple accept="image/*" style="display:none;">
+                                        <input type="file" id="nr-pod-file-input" accept="image/*" style="display:none;">
                                         <input type="file" id="nr-pod-camera-input" accept="image/*" capture="camera" style="display:none;">
-                                        <div id="nr-pod-images" style="display:flex; flex-wrap:wrap; gap:10px;"> </div>
+                                        <div id="nr-pod-images" style="display:flex; flex-wrap:wrap; gap:10px; min-height:100px; align-items:flex-start;"></div>
                                     </div>
                                     <div style="border:1px solid #e2e2e2; border-radius:8px; padding:16px; margin-bottom:20px; background:#f7f7f7;">
                                         <h6 style="margin-top:0; margin-bottom:12px;">2. Observaciones</h6>
@@ -598,7 +606,7 @@
                         <label><strong>Monto</strong></label>
                         <input type="text" class="form-control nr-pay-amount" placeholder="0.00" inputmode="decimal" style="width:100%;">
                     </div>
-                    <div style="margin-bottom:10px;">
+                    <div class="nr-image-section" style="margin-bottom:10px;">
                         <label><strong>Imagen del comprobante</strong></label>
                         <input type="file" class="form-control nr-pay-image" accept="image/*" style="width:100%;">
                         <div class="nr-image-preview" style="margin-top:8px;"></div>
@@ -671,6 +679,7 @@
             formData.append('action','wpcpod_direct_upload_image');
             formData.append('shipmentID', shipmentId);
             formData.append('nonce', nonce);
+            formData.append('replace_existing', '1');
             const $button = $modal.find('#nr-pod-img-btn');
             const originalText = $button.text();
             $button.prop('disabled', true).text('⏳ Subiendo...');
@@ -741,9 +750,18 @@
             const metodo = $option.data('value');
             const texto = $option.text();
             const $fila = $option.closest('.nr-fila-metodo');
+            const $imageSection = $fila.find('.nr-image-section');
             $fila.find('.nr-select-method').text(texto);
             $fila.find('.nr-pay-method').val(metodo);
             $fila.find('.nr-method-options').hide();
+            if (metodo === 'efectivo') {
+                $imageSection.hide();
+                $fila.find('.nr-pay-image').val('');
+                $fila.find('.nr-image-preview').html('');
+                $fila.removeData('imageBase64').removeData('imageName');
+            } else {
+                $imageSection.show();
+            }
             updatePaymentSummary();
         });
 
