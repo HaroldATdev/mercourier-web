@@ -15225,7 +15225,14 @@ function wpcpod_get_single_shipment_data_handler() {
     $shipper_phone = get_post_meta($post_id, 'wpcargo_shipper_phone', true);
     $shipper_name = get_post_meta($post_id, 'wpcargo_shipper_name', true);
     $tienda_name = get_post_meta($post_id, 'wpcargo_tiendaname', true);
-    $monto = floatval(get_post_meta($post_id, 'wpcargo_shipment_amount', true));
+    $monto = get_post_meta($post_id, 'wpcargo_total_cobrar', true);
+    if ($monto === '' || $monto === null) {
+        $monto = get_post_meta($post_id, 'wpcargo_shipment_amount', true);
+    }
+    if ($monto === '' || $monto === null) {
+        $monto = get_post_meta($post_id, 'total', true);
+    }
+    $monto = floatval($monto);
     $link_maps = get_post_meta($post_id, 'link_maps', true);
     
 	$current_user = wp_get_current_user();
