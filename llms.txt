@@ -14,6 +14,7 @@
 
 ## Pages
 
+- [Config. Bloqueos](https://mercourier.com/config-bloqueos/)
 - [Roles & Accesos](https://mercourier.com/roles-accesos/)
 - [Envíos Masivos](https://mercourier.com/envios-masivos/)
 - [Anuncios](https://mercourier.com/anuncios/)

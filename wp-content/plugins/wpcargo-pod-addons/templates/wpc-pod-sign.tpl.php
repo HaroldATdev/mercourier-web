@@ -11,6 +11,51 @@
 	<input type="hidden" id="__pod_id" name="__pod_id" value="<?php echo $get_sid;?>">
 	<input type="hidden" id="__pod_signature" name="__pod_signature" value="<?php echo $pod_signature; ?>">
 	<input type="hidden" id="wpcpod_nonce" name="wpcpod_nonce" value="<?php echo wp_create_nonce('wpcpod_upload_image'); ?>">	
+    <style>
+        #wpcargo-pod-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        #wpcargo-pod-images .gallery-thumb {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f9f9f9;
+        }
+        #wpcargo-pod-images .gallery-thumb .single-img {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #wpcargo-pod-images .gallery-thumb img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        #wpcargo-pod-images .gallery-thumb .delete-attachment {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
 	<div id="pod-pop-up">
 		<?php do_action( 'wpcpod_before_popup_header' ); ?>
 		<?php	
@@ -100,11 +145,27 @@
 
 				<?php if ( $es_no_cobrar ) : ?>
 					<?php /* NO COBRAR: solo hidden inputs para que el servidor no falle, se oculta toda la sección de pago */ ?>
+                    <div class="col-md-12 mb-4">
+                        <div class="alert alert-info" style="background-color: #d9edf7; color: #31708f; padding: 15px; border-radius: 4px; border: 1px solid #bce8f1;">
+                            <strong>ℹ️ ESTE PEDIDO TIENE CERO COSTO, CIÉRRALO DIRECTAMENTE PARA QUE PASE AL ESTADO SELECCIONADO.</strong>
+                        </div>
+                    </div>
 					<input type="hidden" name="wpcargo_total_cobrar" id="hidden-wpcargo-total" value="0">
 					<input type="hidden" id="hidden-customer-payment" value="0">
 					<input type="hidden" name="pod_payment_methods" id="pod_payment_methods" value="[]">
 
 				<?php else : ?>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label><strong>📦 Costo Producto</strong></label>
+                        <input type="text" class="form-control" value="S/. <?php echo number_format( (float) get_post_meta( $shipment_id, 'wpcargo_costo_producto', true ), 2 ); ?>" readonly>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label><strong>🚚 Costo Envío</strong></label>
+                        <input type="text" class="form-control" value="S/. <?php echo number_format( (float) get_post_meta( $shipment_id, 'wpcargo_costo_envio', true ), 2 ); ?>" readonly>
+                    </div>
+                </div>
 
                 <div class="col-md-12 mb-4">
                     <label><strong>💰 Total a recibir</strong></label>
@@ -697,3 +758,4 @@ jQuery(document).ready(function ($) {
         }
     });
 </script>
+

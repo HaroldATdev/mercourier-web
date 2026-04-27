@@ -154,6 +154,9 @@ class MERC_Shipment_Table {
 	/* ── Enqueue CSS/JS para accordion de tiendas ───────────────────── */
 
 	public function enqueue_table_scripts(): void {
+		if ( isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'envios-masivos') !== false ) {
+			return;
+		}
 		// Inyectar CSS y JS inline
 		?>
 		<style>
@@ -725,6 +728,7 @@ class MERC_Shipment_Table {
 if ( class_exists( 'MERC_Shipment_Table' ) ) {
 	new MERC_Shipment_Table();
 }
+
 
 
 

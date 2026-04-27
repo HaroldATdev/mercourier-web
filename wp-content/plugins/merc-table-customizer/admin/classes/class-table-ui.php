@@ -73,6 +73,10 @@ class MERC_Table_UI {
     /* ── Encolar JS de reordenamiento de columnas ────────────────────── */
 
     public function enqueue_scripts(): void {
+        // No inyectar nada en la página de Envíos Masivos
+        if ( isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'envios-masivos') !== false ) {
+            return;
+        }
         wp_enqueue_script(
             'merc-table-ui',
             MERC_TABLE_URL . 'admin/js/merc-table-ui.js',
@@ -85,6 +89,10 @@ class MERC_Table_UI {
     /* ── wp_footer: CSS + JS inline para la tabla de envíos ─────────── */
 
     public function render_footer_scripts(): void {
+        // No inyectar nada en la página de Envíos Masivos
+        if ( isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'envios-masivos') !== false ) {
+            return;
+        }
         global $wpcargo;
         $estados = $wpcargo->status;
 
@@ -236,81 +244,6 @@ class MERC_Table_UI {
     .merc-modal-btn-confirmar:hover { background: #45a049; }
     .merc-modal-btn-cancelar { background: #f44336; color: white; }
     .merc-modal-btn-cancelar:hover { background: #da190b; }
-
-    .merc-modal-content .gallery-thumb {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        width: 146px;
-        min-width: 146px;
-        max-width: 146px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 8px;
-        background: #fff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .merc-modal-content .gallery-thumb .single-img {
-        width: 100%;
-        height: 140px;
-        min-height: 140px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: 8px;
-        background: #f7f7f7;
-    }
-    .merc-modal-content .gallery-thumb .single-img img {
-        width: auto;
-        height: 100%;
-        max-width: 100%;
-        max-height: 100%;
-        display: block;
-        object-fit: contain;
-        border-radius: 6px;
-    }
-    .merc-modal-content .gallery-thumb .delete-attachment {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        width: 26px;
-        height: 26px;
-        line-height: 24px;
-        border-radius: 50%;
-        background: #ff4d4d;
-        color: #fff;
-        font-weight: 700;
-        text-align: center;
-        cursor: pointer;
-        z-index: 5;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.16);
-    }
-    .merc-modal-content .gallery-thumb .delete-attachment:hover {
-        background: #d32f2f;
-    }
-    .merc-modal-content #nr-pod-images-admin {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 10px;
-        min-height: 100px;
-        align-items: flex-start;
-    }
-    .merc-modal-content .header-pod-result {
-        font-size: 14px;
-        color: #555;
-        margin: 0 0 10px 0;
-        width: 100%;
-        text-align: left;
-    }
-    .merc-modal-content .gallery-thumb .single-img img,
-    .merc-modal-content .gallery-thumb .single-img svg {
-        max-width: 100%;
-        max-height: 100%;
-    }
     </style>
     <script>
     jQuery(document).ready(function($) {
@@ -447,7 +380,6 @@ class MERC_Table_UI {
         const estados         = <?php echo json_encode( $estados ); ?>;
         const AJAX_URL        = <?php echo json_encode( $admin_ajax_url ); ?>;
         const NONCE_ALMACEN   = <?php echo json_encode( $merc_almacen_nonce ); ?>;
-        const NONCE_ACTUALIZAR_ESTADO = <?php echo json_encode( wp_create_nonce( 'merc_actualizar_estado' ) ); ?>;
         const esCliente       = <?php echo $is_client ? 'true' : 'false'; ?>;
         const esMotorizado    = <?php echo $is_driver ? 'true' : 'false'; ?>;
         const clientesOptionsHtml = <?php echo json_encode( $clientes_options_html ); ?>;
@@ -485,379 +417,6 @@ class MERC_Table_UI {
                 if (e.key === 'Escape') { $modal.remove(); if (onCancelar) onCancelar(); $(document).off('keyup.mercModal'); }
             });
             setTimeout(function() { $modal.find('#merc-observaciones-input').focus(); }, 100);
-        }
-
-        function mostrarModalNoRecibido(shipmentId, numero, estadoAnterior, nuevoEstado, $selectElement) {
-            const $modal = $('<div class="merc-modal-overlay">' +
-                '<div class="merc-modal-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">' +
-                    '<div class="merc-modal-title">❌ NO RECIBIDO - Intento fallido</div>' +
-                    '<div style="padding: 20px; border-bottom: 1px solid #e0e0e0;">' +
-                        '<p><strong>Pedido:</strong> ' + numero + '</p>' +
-                        '<p><strong>Estado actual:</strong> ' + estadoAnterior + '</p>' +
-                        '<p><strong>Nuevo estado:</strong> ' + nuevoEstado + '</p>' +
-                    '</div>' +
-                    '<div style="padding: 20px;">' +
-                        '<div style="margin-bottom: 20px; border: 1px solid #e2e2e2; border-radius: 8px; padding: 16px; background: #f7f7f7;">' +
-                            '<h6 style="margin-top: 0; margin-bottom: 12px;">1. Fotos del intento (opcional)</h6>' +
-                            '<button type="button" id="nr-pod-img-btn-admin" class="btn btn-success" style="margin-bottom: 10px;">➕ Añadir imagen</button>' +
-                            '<input type="file" id="nr-pod-file-input-admin" accept="image/*" style="display: none;">' +
-                            '<input type="file" id="nr-pod-camera-input-admin" accept="image/*" capture="camera" style="display: none;">' +
-                            '<div id="nr-pod-images-admin" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>' +
-                        '</div>' +
-                        '<div style="margin-bottom: 20px; border: 1px solid #e2e2e2; border-radius: 8px; padding: 16px; background: #f7f7f7;">' +
-                            '<h6 style="margin-top: 0; margin-bottom: 12px;">2. Observaciones</h6>' +
-                            '<textarea id="nr-obs-admin" class="merc-observaciones-textarea" placeholder="Ingrese observaciones adicionales sobre este intento..." style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; resize: vertical;"></textarea>' +
-                        '</div>' +
-                        '<div style="margin-bottom: 20px; border: 1px solid #e2e2e2; border-radius: 8px; padding: 16px; background: #f7f7f7;">' +
-                            '<h6 style="margin-top: 0; margin-bottom: 12px;">3. Métodos de pago (opcional)</h6>' +
-                            '<div id="nr-payment-methods-list-admin"></div>' +
-                            '<button type="button" id="nr-add-method-admin" class="btn btn-primary" style="margin-top: 10px;">➕ Agregar método de pago</button>' +
-                            '<div style="margin-top: 14px; font-size: 14px; color: #333;">' +
-                                '<strong>Total a recibir: S/. <span id="nr-total-amount-admin">0.00</span></strong><br>' +
-                                '<strong>Total ingresado: S/. <span id="nr-total-ingresado-admin">0.00</span></strong><br>' +
-                                '<span id="nr-missing-amount-admin" style="color: #d9534f; font-weight: 600;">Falta S/. 0.00</span>' +
-                            '</div>' +
-                            '<div id="nr-payment-note-admin" style="margin-top: 8px; font-size: 13px; color: #555;">El botón se mantendrá habilitado. El pago puede quedar incompleto y el estado se actualizará igual.</div>' +
-                        '</div>' +
-                        '<input type="hidden" id="nr-pod_payment_methods-admin" value="[]">' +
-                        '<input type="hidden" id="nr-wpcargo_total_cobrar-admin" value="0.00">' +
-                    '</div>' +
-                    '<div class="merc-modal-buttons">' +
-                        '<button class="merc-modal-btn merc-modal-btn-confirmar">✓ Actualizar y cambiar estado</button>' +
-                        '<button class="merc-modal-btn merc-modal-btn-cancelar">✗ Cancelar</button>' +
-                    '</div>' +
-                '</div>' +
-            '</div>');
-            $('body').append($modal);
-
-            // Obtener datos del shipment para el monto
-            $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
-                if (resp && resp.success && resp.data) {
-                    const monto = parseFloat(resp.data.monto || resp.data.total || resp.data.wpcargo_total_cobrar || 0) || 0;
-                    $('#nr-wpcargo_total_cobrar-admin').val(monto.toFixed(2));
-                    $('#nr-total-amount-admin').text(monto.toFixed(2));
-                    $('#nr-missing-amount-admin').text('Falta S/. ' + monto.toFixed(2));
-                    bindNoRecibidoModalEventsAdmin(shipmentId, monto);
-                } else {
-                    bindNoRecibidoModalEventsAdmin(shipmentId, 0);
-                }
-            }).fail(function() {
-                bindNoRecibidoModalEventsAdmin(shipmentId, 0);
-            });
-
-            function bindNoRecibidoModalEventsAdmin(shipmentId, amountToReceive) {
-                const $modal = $('.merc-modal-overlay');
-                if (!$modal.length) return;
-
-                const $totalIngresado = $modal.find('#nr-total-ingresado-admin');
-                const $missingAmount = $modal.find('#nr-missing-amount-admin');
-                const $podPaymentMethods = $modal.find('#nr-pod_payment_methods-admin');
-
-                function formatAmount(value) {
-                    return parseFloat(value || 0).toFixed(2);
-                }
-
-                function updatePaymentSummary() {
-                    let total = 0;
-                    $modal.find('.nr-fila-metodo-admin').each(function() {
-                        const montoStr = $(this).find('.nr-pay-amount-admin').val().trim();
-                        const monto = parseFloat(montoStr.replace(/[^0-9.]/g, '')) || 0;
-                        total += monto;
-                    });
-                    $totalIngresado.text(formatAmount(total));
-                    const faltante = parseFloat(amountToReceive) - total;
-                    if (faltante <= 0) {
-                        $missingAmount.text(`No falta monto (${formatAmount(Math.abs(faltante))} de más)`).css('color', '#28a745');
-                    } else {
-                        $missingAmount.text(`Falta S/. ${formatAmount(faltante)}`).css('color', '#d9534f');
-                    }
-                    updatePaymentMethodsInput();
-                }
-
-                function updatePaymentMethodsInput() {
-                    const arr = [];
-                    $modal.find('.nr-fila-metodo-admin').each(function() {
-                        const $fila = $(this);
-                        const metodo = $fila.find('.nr-pay-method-admin').val().trim();
-                        const monto = parseFloat($fila.find('.nr-pay-amount-admin').val().trim().replace(/[^0-9.]/g, '')) || 0;
-                        const imagen = $fila.data('imageBase64') || '';
-                        const imagen_nombre = $fila.data('imageName') || '';
-                        if (!metodo) return;
-                        const item = { metodo: metodo, monto: monto };
-                        if (imagen) {
-                            item.imagen = imagen;
-                            item.imagen_nombre = imagen_nombre;
-                        }
-                        arr.push(item);
-                    });
-                    $podPaymentMethods.val(JSON.stringify(arr));
-                }
-
-                function createMethodRow() {
-                    const row = $('<div class="nr-fila-metodo-admin" style="border: 1px solid #ccc; padding: 12px; margin-bottom: 10px; border-radius: 5px; position: relative;">' +
-                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
-                            '<strong style="font-size: 14px;">Método de pago</strong>' +
-                            '<button type="button" class="btn btn-sm btn-danger nr-remove-method-admin" style="padding: 4px 8px;">Eliminar</button>' +
-                        '</div>' +
-                        '<div style="margin-bottom: 10px; position: relative;">' +
-                            '<button type="button" class="btn btn-light nr-select-method-admin" style="width: 100%; text-align: left;">Seleccionar método</button>' +
-                            '<div class="nr-method-options-admin" style="display: none; position: absolute; top: 44px; left: 0; width: 100%; background: #fff; border: 1px solid #ddd; border-radius: 4px; z-index: 2500;">' +
-                                '<div class="nr-method-option-admin" data-value="efectivo" style="padding: 10px; cursor: pointer;">Pago a motorizado</div>' +
-                                '<div class="nr-method-option-admin" data-value="pago_marca" style="padding: 10px; cursor: pointer;">Pago a Marca</div>' +
-                                '<div class="nr-method-option-admin" data-value="pago_merc" style="padding: 10px; cursor: pointer;">Pago a MERC</div>' +
-                                '<div class="nr-method-option-admin" data-value="pos" style="padding: 10px; cursor: pointer;">POS</div>' +
-                            '</div>' +
-                        '</div>' +
-                        '<input type="hidden" class="nr-pay-method-admin" value="">' +
-                        '<div style="margin-bottom: 10px;">' +
-                            '<label><strong>Monto</strong></label>' +
-                            '<input type="text" class="form-control nr-pay-amount-admin" placeholder="0.00" inputmode="decimal" style="width: 100%;">' +
-                        '</div>' +
-                        '<div class="nr-image-section-admin" style="margin-bottom: 10px;">' +
-                            '<label><strong>Imagen del comprobante</strong></label>' +
-                            '<input type="file" class="form-control nr-pay-image-admin" accept="image/*" style="width: 100%;">' +
-                            '<div class="nr-image-preview-admin" style="margin-top: 8px;"></div>' +
-                        '</div>' +
-                    '</div>');
-                    return row;
-                }
-
-                function readFileAsDataURL(file) {
-                    return new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            resolve(event.target.result);
-                        };
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    });
-                }
-
-                function addPaymentMethodRow() {
-                    const $row = createMethodRow();
-                    $modal.find('#nr-payment-methods-list-admin').append($row);
-                    updatePaymentSummary();
-                }
-
-                $modal.find('#nr-pod-img-btn-admin').off('click').on('click', function(e) {
-                    e.preventDefault();
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Agregar imagen',
-                            text: '¿Cómo deseas agregar la imagen?',
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonText: '📷 Tomar foto',
-                            cancelButtonText: '🖼️ Subir imagen',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonColor: '#28a745',
-                            reverseButtons: false
-                        }).then(function(result) {
-                            if (result.isConfirmed) {
-                                $modal.find('#nr-pod-camera-input-admin').val('').click();
-                            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                                $modal.find('#nr-pod-file-input-admin').val('').click();
-                            }
-                        });
-                    } else {
-                        $modal.find('#nr-pod-file-input-admin').click();
-                    }
-                });
-
-                function uploadNoRecibidoImages(files) {
-                    if (!files || !files.length) return;
-                    const formData = new FormData();
-                    let valid = 0;
-                    const validTypes = ['image/png','image/jpeg','image/jpg','image/gif','image/svg+xml'];
-                    for (let i=0;i<files.length;i++) {
-                        const file = files[i];
-                        if (validTypes.includes(file.type)) {
-                            formData.append('files[]', file);
-                            valid++;
-                        }
-                    }
-                    if (valid === 0) {
-                        alert('❌ Selecciona imágenes válidas');
-                        return;
-                    }
-                    formData.append('action','wpcpod_direct_upload_image');
-                    formData.append('shipmentID', shipmentId);
-                    formData.append('nonce', '<?php echo wp_create_nonce( 'wpcpod_nonce' ); ?>');
-                    formData.append('replace_existing', '1');
-                    const $button = $modal.find('#nr-pod-img-btn-admin');
-                    const $imagesContainer = $modal.find('#nr-pod-images-admin');
-                    $imagesContainer.html('');
-                    const originalText = $button.text();
-                    $button.prop('disabled', true).text('⏳ Subiendo...');
-                    $.ajax({
-                        type:'POST',
-                        url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                        data: formData,
-                        processData:false,
-                        contentType:false,
-                        timeout: 120000,
-                        success:function(response){
-                            $button.prop('disabled', false).text(originalText);
-                            if (response.success) {
-                                $modal.find('#nr-pod-images-admin').html(response.html);
-                            } else {
-                                alert('❌ Error al subir imágenes: ' + (response.message || 'Error desconocido'));
-                            }
-                        },
-                        error:function(xhr,status,error){
-                            $button.prop('disabled', false).text(originalText);
-                            alert('❌ Error de conexión: ' + error);
-                        }
-                    });
-                }
-
-                $modal.find('#nr-pod-file-input-admin').off('change').on('change', function() {
-                    uploadNoRecibidoImages(this.files);
-                    $(this).val('');
-                });
-                $modal.find('#nr-pod-camera-input-admin').off('change').on('change', function() {
-                    uploadNoRecibidoImages(this.files);
-                    $(this).val('');
-                });
-
-                $modal.off('click', '.delete-attachment').on('click', '.delete-attachment', function(){
-                    const $thumb = $(this).closest('.gallery-thumb');
-                    const attchID = $thumb.data('id');
-                    if (!attchID) return;
-                    $thumb.addClass('d-none');
-                    $.ajax({
-                        type:'POST',
-                        url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                        data:{ action:'wpcpod_delete_image', shipmentID: shipmentId, attchID: attchID },
-                        success:function(response){
-                            if (response.status) {
-                                $thumb.remove();
-                            } else {
-                                $thumb.removeClass('d-none');
-                                alert('❌ No se pudo eliminar la imagen: ' + (response.message || 'Error desconocido'));
-                            }
-                        },
-                        error:function(){
-                            $thumb.removeClass('d-none');
-                            alert('❌ No se pudo eliminar la imagen. Intenta de nuevo.');
-                        }
-                    });
-                });
-
-                $modal.off('click', '.nr-select-method-admin').on('click', '.nr-select-method-admin', function(e){
-                    e.preventDefault();
-                    const $button = $(this);
-                    const $options = $button.siblings('.nr-method-options-admin');
-                    $options.toggle();
-                });
-
-                $modal.off('click', '.nr-method-option-admin').on('click', '.nr-method-option-admin', function(){
-                    const $option = $(this);
-                    const metodo = $option.data('value');
-                    const texto = $option.text();
-                    const $fila = $option.closest('.nr-fila-metodo-admin');
-                    $fila.find('.nr-select-method-admin').text(texto);
-                    $fila.find('.nr-pay-method-admin').val(metodo);
-                    $fila.find('.nr-method-options-admin').hide();
-                    const $imageSection = $fila.find('.nr-image-section-admin');
-                    if (metodo === 'efectivo') {
-                        $imageSection.hide();
-                        $fila.find('.nr-pay-image-admin').val('');
-                        $fila.find('.nr-image-preview-admin').html('');
-                        $fila.removeData('imageBase64').removeData('imageName');
-                    } else {
-                        $imageSection.show();
-                    }
-                    updatePaymentSummary();
-                });
-
-                $modal.off('click', '.nr-remove-method-admin').on('click', '.nr-remove-method-admin', function(){
-                    $(this).closest('.nr-fila-metodo-admin').remove();
-                    updatePaymentSummary();
-                });
-
-                $modal.off('input', '.nr-pay-amount-admin').on('input', '.nr-pay-amount-admin', function(){
-                    updatePaymentSummary();
-                });
-
-                $modal.off('change', '.nr-pay-image-admin').on('change', '.nr-pay-image-admin', function(){
-                    const file = this.files[0];
-                    const $fila = $(this).closest('.nr-fila-metodo-admin');
-                    const $preview = $fila.find('.nr-image-preview-admin');
-                    if (!file) {
-                        $fila.removeData('imageBase64').removeData('imageName');
-                        $preview.html('');
-                        updatePaymentSummary();
-                        return;
-                    }
-                    readFileAsDataURL(file).then(function(base64){
-                        $fila.data('imageBase64', base64);
-                        $fila.data('imageName', file.name || 'comprobante.jpg');
-                        $preview.html('<img src="' + base64 + '" style="max-width:140px; max-height:140px; border-radius:6px; border:1px solid #ccc; margin-top:6px;"><button type="button" class="btn btn-sm btn-danger nr-remove-image-admin" style="display:block; margin-top:8px;">Eliminar</button>');
-                        updatePaymentSummary();
-                    });
-                });
-
-                $modal.off('click', '.nr-remove-image-admin').on('click', '.nr-remove-image-admin', function(){
-                    const $fila = $(this).closest('.nr-fila-metodo-admin');
-                    $fila.find('.nr-pay-image-admin').val('');
-                    $fila.removeData('imageBase64').removeData('imageName');
-                    $fila.find('.nr-image-preview-admin').html('');
-                    updatePaymentSummary();
-                });
-
-                $modal.find('#nr-add-method-admin').off('click').on('click', function() {
-                    addPaymentMethodRow();
-                });
-
-                $modal.find('.merc-modal-btn-confirmar').off('click').on('click', function() {
-                    updatePaymentSummary();
-                    const observaciones = $modal.find('#nr-obs-admin').val().trim();
-                    const podPaymentMethods = $podPaymentMethods.val();
-                    const wpcargoTotalCobrar = $('#nr-wpcargo_total_cobrar-admin').val();
-                    $modal.remove();
-                    console.log('✅ Confirmado NO RECIBIDO - Actualizando estado del pedido #' + numero);
-                    $selectElement.prop('disabled', true);
-                    $.ajax({
-                        type: 'POST', url: AJAX_URL,
-                        data: {
-                            action: 'merc_actualizar_estado_rapido',
-                            shipment_id: shipmentId, nuevo_estado: nuevoEstado, observaciones: observaciones,
-                            pod_payment_methods: podPaymentMethods, wpcargo_total_cobrar: wpcargoTotalCobrar,
-                            nonce: '<?php echo wp_create_nonce( 'merc_actualizar_estado' ); ?>'
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                console.log('✅ Estado actualizado exitosamente');
-                                location.reload();
-                            } else {
-                                alert('❌ Error: ' + (response.data && response.data.message ? response.data.message : 'No se pudo actualizar el estado'));
-                                $selectElement.prop('disabled', false).val(estadoAnterior);
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            alert('❌ Error de conexión: ' + error);
-                            $selectElement.prop('disabled', false).val(estadoAnterior);
-                        }
-                    });
-                });
-
-                $modal.find('.merc-modal-btn-cancelar').on('click', function() {
-                    $modal.remove();
-                    $selectElement.val(estadoAnterior);
-                });
-
-                $(document).on('keyup.mercModalNR', function(e) {
-                    if (e.key === 'Escape') { 
-                        $modal.remove(); 
-                        $selectElement.val(estadoAnterior);
-                        $(document).off('keyup.mercModalNR'); 
-                    }
-                });
-                setTimeout(function() { $modal.find('#nr-obs-admin').focus(); }, 100);
-                addPaymentMethodRow();
-                updatePaymentSummary();
-            }
         }
 
         function setRowStateClass($row, estado) {
@@ -933,7 +492,7 @@ class MERC_Table_UI {
                 else { $row.append($newCell); }
 
                 if (shipmentId) {
-                    $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
+                    $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId }, function(resp) {
                         if (!resp || !resp.success) { $newCell.text('❌').css('color', '#e74c3c'); return; }
                         const data         = resp.data || {};
                         const estado_actual = (data.estado_actual || '').toString().toUpperCase().trim();
@@ -1249,12 +808,6 @@ class MERC_Table_UI {
                         return;
                     }
 
-                    if (nuevoEstado.toUpperCase().includes('NO RECIBIDO')) {
-                        console.log('🔀 Estado NO RECIBIDO seleccionado - Mostrando modal de NO RECIBIDO');
-                        mostrarModalNoRecibido(id, numero, estadoAnterior, nuevoEstado, $this);
-                        return;
-                    }
-
                     const esReprogramado = nuevoEstado.toUpperCase().includes('REPROGRAMADO') || nuevoEstado.toUpperCase().includes('RESCHEDULE');
 
                     mostrarModalConfirmacion(
@@ -1395,7 +948,7 @@ class MERC_Table_UI {
                         const $tipoCell = $row.find('td[data-tipo-envio]');
                         const tipoEnvio = $tipoCell.length > 0 ? $tipoCell.attr('data-tipo-envio').toLowerCase() : '';
                         if (tipoEnvio.indexOf('full') !== -1 || tipoEnvio.indexOf('fit') !== -1) return;
-                        $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
+                        $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId }, function(resp) {
                             const data     = (resp && resp.success) ? (resp.data || {}) : {};
                             const clienteId = data.customer_id || '';
                             crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, clienteId, data);
