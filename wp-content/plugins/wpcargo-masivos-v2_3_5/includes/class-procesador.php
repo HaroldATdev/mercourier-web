@@ -138,52 +138,76 @@ class WCMAS_Procesador {
         update_post_meta($post_id, 'wpcargo_shipments_update', $historial_inicial);
 
         // ── Calcular y guardar campos financieros derivados ─────────────────
-        // Confirmado en BD (Query G): campos reales que usa WPCargo
-        $modo_pago      = strtoupper(trim($meta['payment_wpcargo_mode_field'] ?? ''));
-        $costo_producto = floatval($meta['wpcargo_costo_producto'] ?? 0);
-        $costo_servicio = floatval($meta['wpcargo_costo_envio']    ?? 0);
-        $es_no_cobrar   = ( $modo_pago === 'NO COBRAR' );
+        $modo_pago       = strtoupper(trim($meta['payment_wpcargo_mode_field'] ?? ''));
+        $costo_producto  = floatval($meta['wpcargo_costo_producto'] ?? 0);
+        $costo_reducido  = floatval($meta['wpcargo_costo_envio']    ?? 0); // Lo que indicó el usuario (puede estar reducido)
+        $es_no_cobrar    = ($modo_pago === 'NO COBRAR');
 
-        // monto: lo envía la grilla (0.00 si NO COBRAR, total si otro modo)
-        $monto_grilla = floatval($meta['monto'] ?? 0);
+        // Obtener la tarifa oficial según distrito y tipo
+        $tipo_envio_val  = strtolower(trim($meta['tipo_envio'] ?? 'normal'));
+        $distrito_dest   = $meta['wpcargo_distrito_destino'] ?? '';
+        $tarifas         = wcmas_get_tarifas();
+        $tarifa_oficial  = floatval($tarifas[$distrito_dest][$tipo_envio_val] ?? $tarifas[$distrito_dest]['normal'] ?? 0);
 
-        // Si NO COBRAR: destinatario no paga nada, remitente paga el servicio
-        // Si otro modo: destinatario paga el monto total (costo_producto + costo_servicio)
-        if ( $es_no_cobrar ) {
-            $monto_final   = 0.00;
-            $total_cobrar  = $costo_servicio; // se le cobra al remitente en finanzas
-            $quien_paga    = 'remitente';
+        // Cap server-side: el costo reducido no puede superar la tarifa oficial (si la hay)
+        if ($tarifa_oficial > 0 && $costo_reducido > $tarifa_oficial) {
+            $costo_reducido = $tarifa_oficial;
+        }
+
+        // Si no hay tarifa oficial configurada, la oficial pasa a ser lo que ingresaron
+        if ($tarifa_oficial == 0) {
+            $tarifa_oficial = $costo_reducido;
+        }
+
+        $diferencia_remitente = max(0.0, $tarifa_oficial - $costo_reducido);
+
+        // Si NO COBRAR: destinatario no paga nada, remitente paga el servicio completo oficial
+        // Si otro modo: destinatario paga producto + envío neto (reducido), remitente asume la diferencia
+        if ($es_no_cobrar) {
+            $monto_final     = 0.00;
+            $cargo_remitente = $tarifa_oficial;
+            $total_cobrar    = $tarifa_oficial; // Para finanzas internas
+            $quien_paga      = 'remitente';
         } else {
-            $monto_final   = $monto_grilla > 0 ? $monto_grilla : ($costo_producto + $costo_servicio);
-            $total_cobrar  = $monto_final;
-            $quien_paga    = 'destinatario';
+            // monto: lo envía la grilla (0.00 si NO COBRAR, total si otro modo). 
+            // Si viene de la grilla lo usamos, sino calculamos.
+            $monto_grilla    = floatval($meta['monto'] ?? 0);
+            $monto_final     = $monto_grilla > 0 ? $monto_grilla : ($costo_producto + $costo_reducido);
+            $cargo_remitente = $diferencia_remitente;
+            $total_cobrar    = $monto_final;
+            $quien_paga      = 'destinatario';
         }
 
         // Actualizar el meta 'monto' con el valor final calculado
-        update_post_meta($post_id, 'monto',                   number_format($monto_final,     2, '.', ''));
-        update_post_meta($post_id, 'wpcargo_total_cobrar',    number_format($total_cobrar,    2, '.', ''));
-        update_post_meta($post_id, 'wpcargo_costo_producto',  number_format($costo_producto,  2, '.', ''));
-        update_post_meta($post_id, 'wpcargo_costo_envio',     number_format($costo_servicio,  2, '.', ''));
+        update_post_meta($post_id, 'monto',                   number_format($monto_final,      2, '.', ''));
+        update_post_meta($post_id, 'wpcargo_costo_envio',     number_format($tarifa_oficial,   2, '.', '')); // Oficial
+        update_post_meta($post_id, 'wpcargo_costo_envio_neto',number_format($costo_reducido,   2, '.', '')); // Lo que paga destinatario
+        update_post_meta($post_id, 'wpcargo_total_cobrar',    number_format($total_cobrar,     2, '.', ''));
+        update_post_meta($post_id, 'wpcargo_costo_producto',  number_format($costo_producto,   2, '.', ''));
         update_post_meta($post_id, 'wpcargo_quien_paga',      $quien_paga);
-        update_post_meta($post_id, 'wpcargo_cargo_remitente', '0');
+        update_post_meta($post_id, 'wpcargo_cargo_remitente', number_format($cargo_remitente,  2, '.', ''));
         update_post_meta($post_id, 'wpcargo_cobrado_por_motorizado', '0');
         update_post_meta($post_id, 'wpcargo_estado_pago_motorizado', 'pendiente');
         update_post_meta($post_id, 'wpcargo_cliente_pago_a',  'pendiente');
 
         // ── PUNTO 5: Asignar contenedores ───────────────────────────────────────
-        // Lógica confirmada del análisis de hooks.php del plugin de contenedores:
-        //   shipment_container_recojo  → contenedor activo para el distrito de recojo
-        //   shipment_container_entrega → contenedor activo para el distrito de destino
-        // Se usa la misma función que usa el formulario de WPCargo
+        // Lógica según tipo de servicio:
+        //   EMPRENDEDOR (normal)  → shipment_container_recojo  (recojo en domicilio del remitente)
+        //                         + shipment_container_entrega (entrega en domicilio del destinatario)
+        //   AGENCIA (express)     → SOLO shipment_container_entrega
+        //                           El remitente lleva el paquete a la agencia → no hay recojo motorizado
         $distrito_recojo  = get_post_meta($post_id, 'wpcargo_distrito_recojo',  true);
         $distrito_destino = get_post_meta($post_id, 'wpcargo_distrito_destino', true);
 
-        if ( $distrito_recojo ) {
+        // Solo EMPRENDEDOR (normal) tiene recojo domiciliario
+        if ( $tipo_envio_val === 'normal' && $distrito_recojo ) {
             $cont_recojo = wcmas_buscar_contenedor_activo($distrito_recojo, 'recojo');
             if ( $cont_recojo ) {
                 update_post_meta($post_id, 'shipment_container_recojo', $cont_recojo);
             }
         }
+
+        // Todos los tipos tienen entrega
         if ( $distrito_destino ) {
             $cont_entrega = wcmas_buscar_contenedor_activo($distrito_destino, 'entrega');
             if ( $cont_entrega ) {
@@ -287,3 +311,4 @@ class WCMAS_Procesador {
         }
     }
 }
+

@@ -247,7 +247,8 @@
                             <i class="fa fa-chevron-up"></i>
                         </button>
                     </div>
-                    <table id="shipment-list-recojo" class="table table-hover table-sm shipment-collapse-table" data-type="recojo" style="border-radius: 0; border-top: none; margin-bottom: 15px;">
+                    <div class="merc-table-scroll-wrapper">
+                    <table id="shipment-list-recojo" class="table table-hover table-sm shipment-collapse-table" data-type="recojo" style="border-radius: 0; border-top: none; margin-bottom: 0;">
                         <thead>
                             <tr>
                                 <th style="white-space: nowrap;width: 1%;">
@@ -390,6 +391,7 @@
                             <?php endif; ?>
                         </tbody>
                     </table>
+                    </div><!-- /.merc-table-scroll-wrapper -->
                 </div>
                 
                 <!-- TABLA 2: ENVÍOS PARA ENTREGAR -->
@@ -402,7 +404,8 @@
                             <i class="fa fa-chevron-up"></i>
                         </button>
                     </div>
-                    <table id="shipment-list-entrega" class="table table-hover table-sm shipment-collapse-table" data-type="entrega" style="border-radius: 0; border-top: none; margin-bottom: 15px;">
+                    <div class="merc-table-scroll-wrapper">
+                    <table id="shipment-list-entrega" class="table table-hover table-sm shipment-collapse-table" data-type="entrega" style="border-radius: 0; border-top: none; margin-bottom: 0;">
                         <thead>
                             <tr>
                                 <th style="white-space: nowrap;width: 1%;">
@@ -519,6 +522,7 @@
                             <?php endif; ?>
                         </tbody>
                     </table>
+                    </div><!-- /.merc-table-scroll-wrapper -->
                 </div>
                 
             </div>
@@ -548,6 +552,34 @@
     #shipment-list-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
     #shipment-list-wrapper::-webkit-scrollbar-thumb { background: #999; border-radius: 10px; }
     #shipment-list-wrapper::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* ── Scrollbar vertical por tabla ── */
+    .merc-table-scroll-wrapper {
+        max-height: 420px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        margin-bottom: 15px;
+    }
+    .merc-table-scroll-wrapper::-webkit-scrollbar { width: 7px; }
+    .merc-table-scroll-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    .merc-table-scroll-wrapper::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
+    .merc-table-scroll-wrapper::-webkit-scrollbar-thumb:hover { background: #6c757d; }
+
+    /* Thead fijo dentro del wrapper con scroll */
+    .merc-table-scroll-wrapper thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #f8f9fa;
+        box-shadow: 0 1px 0 #dee2e6;
+    }
+
+    /* Ocultar el wrapper cuando la tabla está colapsada */
+    .merc-table-scroll-wrapper:has(.shipment-collapse-table.collapsed) {
+        display: none;
+    }
     
     .shipment-table-container { transition: all 0.3s ease; }
     .shipment-table-header { transition: all 0.3s ease; }
@@ -555,11 +587,11 @@
     
     .shipment-collapse-table {
         transition: opacity 0.3s ease;
-        max-height: 2000px;
         opacity: 1;
         visibility: visible;
         display: table;
-        margin-bottom: 15px;
+        margin-bottom: 0;
+        width: 100%;
     }
     .shipment-collapse-table.collapsed {
         opacity: 0;

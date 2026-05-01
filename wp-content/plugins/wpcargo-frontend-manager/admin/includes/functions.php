@@ -1006,6 +1006,64 @@ function wpcfe_get_report_count( $date, $status ){
     $prepared_sql   = apply_filters( 'wpcfe_get_report_count_sql', $prepared_sql, $status, $date );
     return $wpdb->get_var( $prepared_sql );
 }
+/**
+ * --- OPTIMIZACIÓN MERC ---
+ * Obtiene los conteos de reportes de forma masiva en una sola query.
+ */
+function wpcfe_get_bulk_report_counts( $date_start, $date_end, $statuses ) {
+    global $wpdb;
+    if (empty($statuses)) return array();
+
+    $user_roles = wpcfe_current_user_role();
+    $is_admin = wpcfe_is_super_admin();
+    
+    $parameter = array( $date_start . ' 00:00:00', $date_end . ' 23:59:59' );
+    
+    $sql = "SELECT DATE(tblpost.post_date) as report_date, tblstatus.meta_value as status, COUNT(*) as count 
+            FROM {$wpdb->posts} AS tblpost 
+            INNER JOIN {$wpdb->postmeta} AS tblstatus ON tblpost.ID = tblstatus.post_id";
+    
+    if ( !$is_admin ) {
+        $sql .= " LEFT JOIN {$wpdb->postmeta} AS tbluser ON tblpost.ID = tbluser.post_id";
+    }
+    
+    $sql .= " WHERE tblpost.post_status = 'publish' AND tblpost.post_type = 'wpcargo_shipment' 
+              AND tblpost.post_date BETWEEN %s AND %s 
+              AND tblstatus.meta_key = 'wpcargo_status'";
+    
+    // Filtro por estados
+    $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+    $sql .= " AND tblstatus.meta_value IN ($status_placeholders)";
+    foreach($statuses as $st) $parameter[] = $st;
+
+    if ( !$is_admin ) {
+        $meta_key = 'registered_shipper';
+        if( in_array( 'wpcargo_branch_manager', $user_roles ) ){
+            $meta_key = 'wpcargo_branch_manager';
+        }elseif( in_array( 'cargo_agent', $user_roles ) ){
+            $meta_key = 'agent_fields';
+        }elseif( in_array( 'wpcargo_driver', $user_roles ) ){
+            $meta_key = 'wpcargo_driver';
+        }elseif( in_array( 'wpcargo_employee', $user_roles ) ){
+            $meta_key = 'wpcargo_employee';
+        }
+        $sql .= " AND tbluser.meta_key = %s AND tbluser.meta_value = %d";
+        $parameter[] = $meta_key;
+        $parameter[] = get_current_user_id();
+    }
+    
+    $sql .= " GROUP BY report_date, status";
+    
+    $results = $wpdb->get_results($wpdb->prepare($sql, $parameter), ARRAY_A);
+    
+    $map = array();
+    if ($results) {
+        foreach ($results as $row) {
+            $map[$row['report_date']][$row['status']] = (int)$row['count'];
+        }
+    }
+    return $map;
+}
 function wpcfe_get_all_shipment_count( $date_start, $date_end ){
     global $wpdb;
     $user_roles = wpcfe_current_user_role();

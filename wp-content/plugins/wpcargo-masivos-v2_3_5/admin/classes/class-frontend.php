@@ -33,6 +33,33 @@ class WCMAS_Frontend {
             wp_enqueue_script('wcmas-select2',
                 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
                 ['jquery'], '4.1.0', true);
+                
+            wp_add_inline_script('wcmas-select2', "
+                jQuery(function($) {
+                    if (typeof $.fn.select2 === 'undefined' || !document.getElementById('wcmas-shipper-select')) return;
+                    $('#wcmas-shipper-select').select2({
+                        placeholder: 'Buscar cliente...',
+                        allowClear: true,
+                        minimumInputLength: 1,
+                        width: '320px',
+                        ajax: {
+                            url: WCMAS.ajax_url,
+                            type: 'POST',
+                            dataType: 'json',
+                            delay: 300,
+                            data: function(params) {
+                                return { action: 'wcmas_buscar_clientes', nonce: WCMAS.nonce, q: params.term };
+                            },
+                            processResults: function(data) {
+                                return { results: (data.results || []).map(function(c) {
+                                    return { id: c.id, text: c.text };
+                                })};
+                            },
+                            cache: true
+                        }
+                    });
+                });
+            ");
         }
         // Flatpickr — datepicker para columnas tipo 'date' (todos los usuarios)
         wp_enqueue_style('wcmas-flatpickr',
@@ -62,4 +89,5 @@ class WCMAS_Frontend {
 }
 
 new WCMAS_Frontend();
+
 

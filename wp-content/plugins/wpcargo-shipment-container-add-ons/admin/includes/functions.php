@@ -469,7 +469,7 @@ function wpc_shipment_container_get_assigned_shipment_count($postID)
     
     // Organizar en array en RAM
     $shipments_meta = array();
-    foreach ($shipments_meta as $id) {
+    foreach ($shipment_ids as $id) {
         $shipments_meta[$id] = array();
     }
     foreach ($results as $row) {

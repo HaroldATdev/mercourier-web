@@ -17,10 +17,11 @@ if( !empty( $status_report  ) ){
         ${wpcfe_to_slug($s_variable)} = array();
     }
 }
+$bulk_data = wpcfe_get_bulk_report_counts( $date_start, $date_end, $status_report );
 foreach ( $dates as $date ) {    
     if( !empty( $status_report  ) ){
         foreach ($status_report as $s_variable) {
-            $report_count = wpcfe_get_report_count( $date, $s_variable );
+            $report_count = isset($bulk_data[$date][$s_variable]) ? $bulk_data[$date][$s_variable] : 0;
             ${wpcfe_to_slug($s_variable)}[] = $report_count;
         }
     }

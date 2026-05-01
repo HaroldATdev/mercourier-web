@@ -17,31 +17,9 @@ var WCMAS = {
     es_admin     : <?php echo $es_admin ? 'true' : 'false'; ?>,
     current_uid  : <?php echo intval($current_user_id); ?>,
     current_label: '<?php echo esc_js($current_user_label); ?>',
-    distritos_tarifa: <?php echo wp_json_encode(array_combine(
-        WCMAS_Columnas::get_distritos(),
-        array_map([WCMAS_Columnas::class, 'get_tarifa_distrito'], WCMAS_Columnas::get_distritos())
-    )); ?>,
+    distritos_tarifa: <?php echo wp_json_encode(wcmas_get_tarifas()); ?>,
     bloqueos: { normal: null, express: null }
 };
-
-// Cargar bloqueos del servidor al iniciar
-(function() {
-    var tipos = ['normal', 'express'];
-    tipos.forEach(function(tipo) {
-        jQuery.post(WCMAS.ajax_url, {
-            action: 'merc_bloqueo_info',
-            tipo: tipo,
-            nonce: WCMAS.nonce
-        }, function(res) {
-            if (res && res.success && res.data) {
-                WCMAS.bloqueos[tipo] = res.data;
-            }
-        }).fail(function() {
-            // En caso de error, usar valores por defecto sin bloqueos
-            WCMAS.bloqueos[tipo] = { bloquear_hoy: false, fechas_bloqueadas: [], domingos_desbloqueados: [] };
-        });
-    });
-})();
 </script>
 
 <!-- ═══ ESTILOS ════════════════════════════════════════════════════ -->
@@ -68,8 +46,8 @@ var WCMAS = {
     font-size:13px;font-family:inherit;box-sizing:border-box;background:#fff !important;color:#1d2327 !important;
 }
 .wcmas-inp[readonly] { color:#555;cursor:default;background:#f5f5f5; }
-.wcmas-inp.ok,.wcmas-sel.ok  { background-color:#f0fff4!important;border-bottom:2px solid #28a745; }
-.wcmas-inp.err,.wcmas-sel.err{ background-color:#fff5f5!important;border-bottom:2px solid #dc3545; }
+#wcmas-grid .wcmas-inp.ok, #wcmas-grid .wcmas-sel.ok, .wcmas-inp.ok, .wcmas-sel.ok { background-color:#f0fff4 !important; border:2px solid #28a745 !important; }
+#wcmas-grid .wcmas-inp.err, #wcmas-grid .wcmas-sel.err, .wcmas-inp.err, .wcmas-sel.err { background-color:#fff5f5 !important; border:2px solid #dc3545 !important; }
 
 /* celda deshabilitada (condicional) */
 .wcmas-col-disabled { opacity:.25;pointer-events:none;transition:opacity .15s; }
@@ -116,6 +94,20 @@ var WCMAS = {
     <strong>Copiar y pegar desde Excel:</strong> Selecciona tu rango (sin encabezados), copia con <kbd>Ctrl+C</kbd>, haz clic en una celda y pega con <kbd>Ctrl+V</kbd>.
     <button type="button" onclick="this.closest('.alert').style.display='none'" class="close ml-2" style="font-size:14px">&times;</button>
 </div>
+
+<?php if ($es_admin): ?>
+<div id="wcmas-remitente-global" class="alert" style="background:#f1f7fd; border:1px solid #cce3f6; color:#0c5460; font-size:13px; padding:10px 15px; margin-bottom:12px; display:flex; align-items:center;">
+    <i class="fa fa-user-circle mr-2" style="font-size:16px;"></i>
+    <strong class="mr-3">Asignar todos los envíos a:</strong>
+    <select id="wcmas-shipper-select" style="width:300px;">
+        <option value="">Seleccionar cliente...</option>
+        <?php foreach (($usuarios ?? []) as $u): ?>
+            <option value="<?php echo esc_attr($u['id']); ?>"><?php echo esc_html($u['label']); ?></option>
+        <?php endforeach; ?>
+    </select>
+    <small class="ml-3 text-muted">Nombre de tienda y datos de recojo se tomarán del perfil de este cliente.</small>
+</div>
+<?php endif; ?>
 
 <!-- ═══ GRILLA ════════════════════════════════════════════════════════ -->
 <div id="wcmas-grid-wrap" style="overflow-x:auto;margin-bottom:8px;border:1px solid #dee2e6;border-radius:4px">
@@ -237,16 +229,48 @@ var numFilas = WCMAS.filas_init;
 var ANCHO    = { sm:'90px', md:'155px', lg:'220px' };
 
 /* ── IDs especiales ─────────────────────────────────────────────── */
-var ID_TIPO_PROGRAMADO = 'tipo_programado';
 var ID_DISTRITO        = 'distrito_envio';
-var ID_COBRAR          = 'listo_cobrar_producto';
-var ID_MONTO_PRODUCTO  = 'listo_monto_producto';
-var ID_MONTO_TOTAL     = 'listo_monto_total';
-var ID_MONTO_ENVIO     = 'monto_envio';
+var ID_COBRAR          = 'cambio_producto';
+var ID_MONTO_PRODUCTO  = 'costo_producto';
+var ID_MONTO_TOTAL     = 'monto';
+var ID_MONTO_ENVIO     = 'costo_envio';
 var ID_SHIPPER         = 'registered_shipper';
 var ID_MODO_PAGO       = 'modo_de_pago';
 var ID_DRIVER          = 'wpcargo_driver';
 var ID_CONTAINER       = 'shipment_container';
+var ID_TIPO_ENVIO      = 'tipo_envio';
+
+/* ── Funciones Utilitarias ──────────────────────────────────────── */
+function yyyymmddToDdmmyyyy(ds) {
+    if (!ds) return '';
+    var parts = ds.split('-');
+    if (parts.length !== 3) return ds;
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function cargarBloqueosPara(tipo, callback) {
+    if (WCMAS.bloqueos[tipo]) {
+        callback(WCMAS.bloqueos[tipo]);
+        return;
+    }
+    fetch(WCMAS.ajax_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: 'merc_bloqueo_info', tipo: tipo })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(resp) {
+        if (resp && resp.success && resp.data) {
+            WCMAS.bloqueos[tipo] = resp.data;
+            callback(resp.data);
+        } else {
+            callback({ bloquear_hoy: false, fechas_bloqueadas: [], domingos_desbloqueados: [] });
+        }
+    })
+    .catch(function() {
+        callback({ bloquear_hoy: false, fechas_bloqueadas: [], domingos_desbloqueados: [] });
+    });
+}
 
 /* ── Calcular próxima fecha disponible ──────────────────────────── */
 function calcularProximaFechaGrilla(bData) {
@@ -316,6 +340,28 @@ function buildThead() {
 /* ── Crear input/select ─────────────────────────────────────────── */
 function crearInput(col) {
     var el;
+
+    /* MONTO TOTAL → editable (usuario ingresa el total) */
+    if (col.id === ID_MONTO_TOTAL) {
+        el = document.createElement('input');
+        el.type='text'; el.className='wcmas-inp';
+        el.placeholder = col.placeholder || '0.00';
+        el.autocomplete='off'; el.spellcheck=false;
+        el.setAttribute('data-col', col.id);
+        return el;
+    }
+
+    /* COSTO PRODUCTO → siempre readonly, calculado como monto - costo_envio */
+    if (col.id === ID_MONTO_PRODUCTO) {
+        el = document.createElement('input');
+        el.type='text'; el.className='wcmas-inp'; el.readOnly=true;
+        el.placeholder='0.00';
+        el.title='Calculado automáticamente: Monto total − Costo de envío';
+        el.style.cssText='background:#f5f5f5;color:#1a6e3c;font-weight:700';
+        el.setAttribute('data-col', col.id);
+        return el;
+    }
+
     function syncSelectEmptyState(sel) {
         if (!sel) return;
         if ((sel.value || '').trim() === '') sel.classList.add('wcmas-empty');
@@ -331,41 +377,14 @@ function crearInput(col) {
         el.appendChild(o0);
         (Array.isArray(col.opciones) ? col.opciones : []).forEach(function(op) {
             var o = document.createElement('option');
-            o.value = op; o.textContent = op;
+            var v = (typeof op === 'object') ? op.value : op;
+            var l = (typeof op === 'object') ? op.label : op;
+            o.value = v; o.textContent = l;
             el.appendChild(o);
         });
         if (col.default_val) el.value = col.default_val;
         syncSelectEmptyState(el);
         el.addEventListener('change', function(){ syncSelectEmptyState(el); });
-
-    /* SHIPPER */
-    } else if (col.tipo === 'shipper') {
-        if (WCMAS.es_admin) {
-            el = document.createElement('select');
-            el.className = 'wcmas-sel';
-            var usuarios = <?php echo wp_json_encode(array_values($usuarios ?? [])); ?>;
-            var oa = document.createElement('option');
-            oa.value=''; oa.textContent='Seleccionar usuario...'; el.appendChild(oa);
-            usuarios.forEach(function(u) {
-                var o = document.createElement('option');
-                o.value = u.id; o.textContent = u.label; el.appendChild(o);
-            });
-            syncSelectEmptyState(el);
-            el.addEventListener('change', function(){ syncSelectEmptyState(el); });
-        } else {
-            /* Cliente: muestra nombre visualmente, envía su ID */
-            el = document.createElement('input');
-            el.type = 'text'; el.className = 'wcmas-inp'; el.readOnly = true;
-            el.value = WCMAS.current_uid;
-            el.setAttribute('data-display', WCMAS.current_label);
-            el.style.display = 'none';
-            var wrap = document.createElement('div');
-            wrap.style.cssText = 'padding:4px 6px;font-size:13px;color:#555;background:#f5f5f5;height:100%;display:flex;align-items:center';
-            wrap.textContent = WCMAS.current_label;
-            el.setAttribute('data-col', col.id);
-            wrap.appendChild(el);
-            return wrap;
-        }
 
     /* NUMBER READONLY (calculado) */
     } else if (col.tipo === 'number_readonly') {
@@ -373,6 +392,15 @@ function crearInput(col) {
         el.type = 'text'; el.className = 'wcmas-inp'; el.readOnly = true;
         el.placeholder = col.placeholder || '0.00';
         el.style.cssText = 'background:#f5f5f5;color:#1a6e3c;font-weight:700';
+
+    /* DATE (Calculado por tipo_envio) */
+    } else if (col.tipo === 'date') {
+        el = document.createElement('input');
+        el.type = 'text'; el.className = 'wcmas-inp';
+        el.placeholder = 'Seleccione tipo envío...';
+        el.readOnly = true;
+        el.style.cssText = 'background:#f5f5f5;color:#333;font-weight:600;cursor:default;';
+        el.autocomplete = 'off'; el.spellcheck = false;
 
     /* TEXT / NUMBER / PHONE / EMAIL */
     } else {
@@ -408,19 +436,17 @@ function crearFila(n) {
         var inputEl = (inp.tagName === 'DIV') ? inp.querySelector('[data-col]') : inp;
 
         /* ── Listeners ── */
-        if (col.id === ID_TIPO_PROGRAMADO) {
-            inputEl.addEventListener('change', function() { onTipoProgramadoChange(tr); actualizarStats(); });
-        }
+
         if (col.id === ID_DISTRITO) {
             inputEl.addEventListener('change', function() { onDistritoChange(tr); actualizarStats(); });
         }
         if (col.id === ID_COBRAR) {
-            inputEl.addEventListener('change', function() { onCobrarChange(tr); actualizarStats(); });
+            inputEl.addEventListener('change', function() { onCambioProductoChange(tr); actualizarStats(); });
         }
         if (col.id === ID_MODO_PAGO) {
             inputEl.addEventListener('change', function() { recalcularTotal(tr); actualizarStats(); });
         }
-        if (col.id === ID_MONTO_ENVIO || col.id === ID_MONTO_PRODUCTO) {
+        if (col.id === ID_MONTO_TOTAL || col.id === ID_MONTO_ENVIO) {
             inputEl.addEventListener('input', function() { recalcularTotal(tr); });
         }
         if (col.id === 'tipo_envio') {
@@ -451,7 +477,7 @@ function crearFila(n) {
     tr.appendChild(tdSt);
 
     /* Estado inicial */
-    setTimeout(function(){ onTipoProgramadoChange(tr); onCobrarChange(tr); }, 0);
+    setTimeout(function(){ onCambioProductoChange(tr); }, 0);
     return tr;
 }
 
@@ -469,54 +495,6 @@ function setColDisabled(tr, colId, disabled) {
     }
 }
 
-/* ── Lógica tipo_programado ─────────────────────────────────────── */
-function onTipoEnvioChange(tr) {
-    var selTipo = getInputEl(tr, 'tipo_envio');
-    var val = selTipo ? (selTipo.value || '').toLowerCase().trim() : '';
-    var dateEl = getInputEl(tr, 'calendarenvio') || getInputEl(tr, 'wpcargo_pickup_date_picker') || getInputEl(tr, 'fecha_envio');
-    if (dateEl) {
-        if (val === '') {
-            dateEl.readOnly = true;
-            dateEl.value = '';
-            dateEl.style.backgroundColor = '#f5f5f5';
-            dateEl.title = 'Seleccione primero el Tipo de Envío';
-            dateEl.classList.remove('ok', 'err');
-        } else {
-            dateEl.readOnly = false;
-            dateEl.style.backgroundColor = '';
-            dateEl.title = '';
-
-            // --- AUTOCOMPLETAR FECHA ---
-            // Masivos usa su propio flujo de procesamiento: la fecha de inicio
-            // es SIEMPRE hoy (bloquear_hoy no aplica a masivos, solo al formulario
-            // de envío individual). Sí respetamos fechas_bloqueadas y domingos.
-            var tipo = (selTipo.value || '').toLowerCase().trim();
-            var bDataRaw = WCMAS.bloqueos[tipo] || WCMAS.bloqueos.normal || {};
-            var bData = {
-                bloquear_hoy: false,  // Masivos siempre puede usar hoy
-                fechas_bloqueadas: bDataRaw.fechas_bloqueadas || [],
-                domingos_desbloqueados: bDataRaw.domingos_desbloqueados || []
-            };
-            if (!dateEl.value) {
-                dateEl.value = calcularProximaFechaGrilla(bData);
-            }
-            // ---------------------------
-
-            validarFechaFila(tr, dateEl, {label: 'Fecha de Envío', obligatorio: true});
-        }
-    }
-}
-
-
-function validarFechaFila(tr, inp, col) {
-    // Sin bloqueos para masivos
-    if (inp) {
-        inp.classList.remove('err');
-        inp.classList.add('ok');
-        inp.title = '';
-    }
-    return '';
-}
 
 /**
  * Calcula la próxima fecha disponible para la grilla
@@ -552,31 +530,32 @@ function calcularProximaFechaGrilla(bData) {
     return '';
 }
 
-function onTipoProgramadoChange(tr) {
-    var sel = getInputEl(tr, ID_TIPO_PROGRAMADO);
-    var val = sel ? (sel.value || '').toLowerCase().trim() : '';
 
-    var esDomicilio   = (val === 'domicilio');
-    var esMercadoFlex = (val === 'mercado flex');
 
-    /* dirección: Domicilio y Mercado Flex */
-    setColDisabled(tr, 'dest_direccion', !(esDomicilio || esMercadoFlex));
-
-    /* distrito: Domicilio y Mercado Flex */
-    setColDisabled(tr, 'distrito_envio', !(esDomicilio || esMercadoFlex));
-
-    /* teléfono: solo Domicilio */
-    setColDisabled(tr, 'dest_telefono', !esDomicilio);
-
-    /* Si no aplica, limpiar el monto de envío */
-    if (!(esDomicilio || esMercadoFlex)) {
-        var montoInp = getInputEl(tr, ID_MONTO_ENVIO);
-        if (montoInp && !montoInp.readOnly) { montoInp.value=''; montoInp.className='wcmas-inp'; }
+/* ── Al elegir tipo de envío: calcular fecha y tarifa ───────────── */
+function onTipoEnvioChange(tr) {
+    var selTipo = getInputEl(tr, ID_TIPO_ENVIO);
+    var val = selTipo ? (selTipo.value || '').toLowerCase().trim() : '';
+    var dateEl = getInputEl(tr, 'calendarenvio') || getInputEl(tr, 'wpcargo_pickup_date_picker') || getInputEl(tr, 'fecha_envio');
+    
+    if (dateEl) {
+        if (val === '') {
+            dateEl.value = '';
+            dateEl.title = 'Seleccione primero el Tipo de Envío';
+            dateEl.classList.remove('ok', 'err');
+        } else {
+            dateEl.title = 'Calculando fecha...';
+            cargarBloqueosPara(val, function(bData) {
+                var dYYYYMMDD = calcularProximaFechaGrilla(bData);
+                dateEl.value = yyyymmddToDdmmyyyy(dYYYYMMDD);
+                dateEl.title = '';
+                validarInput(dateEl, {id: dateEl.dataset.col, label: 'Fecha de Envío', tipo: 'date', obligatorio: true});
+                actualizarStats();
+            });
+        }
     }
-
-    autoAsignarPorDistrito(tr);
-    recalcularTotal(tr);
-    actualizarEstFila(tr);
+    // Al cambiar tipo de envío, el costo también cambia
+    onDistritoChange(tr);
 }
 
 /* ── Al elegir distrito: auto-rellena monto envío ───────────────── */
@@ -584,244 +563,62 @@ function onDistritoChange(tr) {
     var distrEl = getInputEl(tr, ID_DISTRITO);
     if (!distrEl) return;
 
-    autoAsignarPorDistrito(tr);
     if (!distrEl.value) { recalcularTotal(tr); return; }
 
-    var distrito = distrEl.value.trim().toUpperCase();
-    var tarifa   = WCMAS.distritos_tarifa[distrito];
-    if (tarifa === undefined || tarifa === null) { recalcularTotal(tr); return; }
+    var distrito  = distrEl.value.trim();
+    var tipoEl    = getInputEl(tr, ID_TIPO_ENVIO);
+    var tipoEnvio = tipoEl ? (tipoEl.value || '').trim() : 'normal';
+
+    var tarifaObj = WCMAS.distritos_tarifa[distrito] || {};
+    var costo     = tarifaObj[tipoEnvio] !== undefined ? tarifaObj[tipoEnvio]
+                  : tarifaObj['normal']  !== undefined ? tarifaObj['normal']
+                  : 0;
+                  
+    // Guardar tarifa oficial para validación y UI
+    tr.dataset.tarifaOficial = parseFloat(costo).toFixed(2);
 
     var montoInp = getInputEl(tr, ID_MONTO_ENVIO);
     if (montoInp && !montoInp.readOnly) {
-        montoInp.value = parseFloat(tarifa).toFixed(2);
+        montoInp.value = parseFloat(costo).toFixed(2);
+        // Hint visual inicial
+        var hintObj = tr.querySelector('.wcmas-diff-hint');
+        if (hintObj) hintObj.style.display = 'none';
+        
         montoInp.classList.remove('err');
-        montoInp.classList.add('ok');
+        if (costo > 0) montoInp.classList.add('ok');
     }
 
     recalcularTotal(tr);
 }
 
-function tieneColumna(colId) {
-    return cols.some(function(c){ return c.id === colId; });
-}
 
-function limpiarAsignacionFila(tr) {
-    tr.dataset.autoContainer = '';
-    tr.dataset.autoDriver = '';
 
-    var contEl = getInputEl(tr, ID_CONTAINER);
-    var drvEl  = getInputEl(tr, ID_DRIVER);
-
-    if (contEl && !contEl.readOnly) {
-        contEl.value = '';
-        if (contEl.tagName === 'SELECT') {
-            contEl.classList.remove('ok');
-            contEl.classList.add('wcmas-empty');
-        }
-    }
-    if (drvEl && !drvEl.readOnly) {
-        drvEl.value = '';
-        if (drvEl.tagName === 'SELECT') {
-            drvEl.classList.remove('ok');
-            drvEl.classList.add('wcmas-empty');
-        }
-    }
-}
-
-function esTipoAsignable(tr) {
-    var tipoEl = getInputEl(tr, ID_TIPO_PROGRAMADO);
-    var tipo   = tipoEl ? (tipoEl.value || '').toLowerCase().trim() : '';
-    return tipo === 'domicilio' || tipo === 'mercado flex';
-}
-
-function valorDistrito(tr) {
-    var distEl = getInputEl(tr, ID_DISTRITO);
-    return distEl ? (distEl.value || '').trim() : '';
-}
-
-function normalizarTexto(v) {
-    return String(v || '')
-        .replace(/\s*[\u2013\-].*$/, '')
-        .trim()
-        .toUpperCase();
-}
-
-function setSelectValueConEstado(el, value) {
-    if (!el || el.readOnly) return false;
-    var valor = String(value || '');
-    if (el.tagName === 'SELECT') {
-        var existe = Array.from(el.options || []).some(function(opt){ return String(opt.value) === valor; });
-        if (existe) {
-            el.value = valor;
-            el.classList.remove('wcmas-empty', 'err');
-            if (valor !== '') el.classList.add('ok');
-            return true;
-        }
-        return false;
-    }
-    el.value = valor;
-    return true;
-}
-
-function crearUrlEncoded(data) {
-    var body = new URLSearchParams();
-    Object.keys(data).forEach(function(k){ body.append(k, data[k]); });
-    return body;
-}
-
-function fetchAjaxAction(action) {
-    return fetch(WCMAS.ajax_url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-        body: crearUrlEncoded({ action: action })
-    })
-    .then(function(r){ return r.json(); })
-    .catch(function(){ return { success:false, data:{} }; });
-}
-
-function construirConductorMapDesdeFila(tr, contNames) {
-    var map = {};
-    var drvEl = getInputEl(tr, ID_DRIVER);
-    if (!drvEl || drvEl.tagName !== 'SELECT') return map;
-
-    var drvOpts = Array.from(drvEl.options || []);
-    Object.keys(contNames || {}).forEach(function(cid) {
-        var contName = normalizarTexto(contNames[cid]);
-        if (!contName) return;
-        for (var i = 0; i < drvOpts.length; i++) {
-            var opt = drvOpts[i];
-            if (!opt || !opt.value) continue;
-            if (normalizarTexto(opt.textContent || opt.text || '') === contName) {
-                map[String(cid)] = String(opt.value);
-                break;
-            }
-        }
-    });
-    return map;
-}
-
-function _aplicarAsignacion(tr, distrito, rutas, condMap) {
-    var containerId = (rutas && rutas[distrito] && rutas[distrito][0] != null)
-        ? String(rutas[distrito][0])
-        : '';
-
-    if (!containerId) {
-        limpiarAsignacionFila(tr);
-        return;
-    }
-
-    tr.dataset.autoContainer = containerId;
-    tr.dataset.autoDriver = '';
-
-    var contEl = getInputEl(tr, ID_CONTAINER);
-    var drvEl  = getInputEl(tr, ID_DRIVER);
-
-    if (contEl && !setSelectValueConEstado(contEl, containerId)) {
-        limpiarAsignacionFila(tr);
-        return;
-    }
-
-    var driverId = (condMap && condMap[containerId]) ? String(condMap[containerId]) : '';
-
-    if (!driverId && contEl && drvEl && contEl.tagName === 'SELECT' && drvEl.tagName === 'SELECT') {
-        var contOpt = Array.from(contEl.options || []).find(function(opt){ return String(opt.value) === String(containerId); }) || null;
-        var contNombre = normalizarTexto(contOpt ? (contOpt.textContent || contOpt.text || '') : '');
-        if (contNombre) {
-            Array.from(drvEl.options || []).some(function(opt) {
-                if (!opt || !opt.value) return false;
-                if (normalizarTexto(opt.textContent || opt.text || '') === contNombre) {
-                    driverId = String(opt.value);
-                    return true;
-                }
-                return false;
-            });
-        }
-    }
-
-    if (driverId) {
-        tr.dataset.autoDriver = String(driverId);
-        if (drvEl) setSelectValueConEstado(drvEl, driverId);
-    } else if (drvEl) {
-        drvEl.value = '';
-        if (drvEl.tagName === 'SELECT') {
-            drvEl.classList.remove('ok');
-            drvEl.classList.add('wcmas-empty');
-        }
-    }
-}
-
-function autoAsignarPorDistrito(tr) {
-    var distrito = valorDistrito(tr);
-    if (!esTipoAsignable(tr) || !distrito) {
-        limpiarAsignacionFila(tr);
-        return;
-    }
-
-    var rutas = window.listoRutasConfig || {};
-    var condMap = window.listoConductorMap || {};
-
-    if (Object.keys(rutas).length) {
-        _aplicarAsignacion(tr, distrito, rutas, condMap);
-        return;
-    }
-
-    Promise.all([
-        fetchAjaxAction('listo_get_all_rutas'),
-        fetchAjaxAction('listo_get_containers')
-    ]).then(function(results){
-        var r1 = results[0] || {};
-        var r2 = results[1] || {};
-
-        window.listoRutasConfig = r1.success ? (r1.data || {}) : {};
-
-        var contNames = r2.success ? (r2.data || {}) : {};
-        var map = construirConductorMapDesdeFila(tr, contNames);
-        window.listoConductorMap = map;
-
-        _aplicarAsignacion(tr, distrito, window.listoRutasConfig, window.listoConductorMap);
-    }).catch(function(){
-        /* Sin rutas disponibles no se autoasigna; no bloquea el flujo principal. */
-    });
-}
-
-/* ── Lógica cobrar producto ─────────────────────────────────────── */
-function onCobrarChange(tr) {
-    var sel    = getInputEl(tr, ID_COBRAR);
-    var cobrar = sel ? (sel.value || '').toLowerCase() : 'no';
-    var td     = tr.querySelector('[data-td="'+ID_MONTO_PRODUCTO+'"]');
-    if (td) {
-        if (cobrar === 'si') {
-            td.classList.remove('wcmas-solo-cobrar','hidden-col');
-        } else {
-            td.classList.add('wcmas-solo-cobrar','hidden-col');
-            var inp = getInputEl(tr, ID_MONTO_PRODUCTO);
-            if (inp) { inp.value=''; inp.className='wcmas-inp'; }
-        }
-    }
+/* ── Lógica ¿Es Cambio? ─────────────────────────────────────── */
+function onCambioProductoChange(tr) {
+    // La columna es solo informativa, recalculamos por si aca.
     recalcularTotal(tr);
+    actualizarStats();
 }
 
-/* ── Recalcular monto total ─────────────────────────────────────── */
+/* ── Recalcular (inverso): monto editable → costo_producto calculado */
 function recalcularTotal(tr) {
-    var totalEl = getInputEl(tr, ID_MONTO_TOTAL);
-    if (!totalEl) return;
+    var modoEl  = getInputEl(tr, ID_MODO_PAGO);
+    var modo    = modoEl ? (modoEl.value || '').trim().toUpperCase() : '';
+    var totalEl = getInputEl(tr, ID_MONTO_TOTAL);   // EDITABLE
+    var prodEl  = getInputEl(tr, ID_MONTO_PRODUCTO); // READONLY
+    var envioEl = getInputEl(tr, ID_MONTO_ENVIO);
 
-    /* Si modo_de_pago = "NO COBRAR" → total siempre 0 */
-    var modoEl = getInputEl(tr, ID_MODO_PAGO);
-    var modo   = modoEl ? (modoEl.value || '').trim().toUpperCase() : '';
     if (modo === 'NO COBRAR') {
-        totalEl.value = '0.00';
+        if (totalEl) totalEl.value = '0.00';
+        if (prodEl)  prodEl.value  = '0.00';
         return;
     }
-
-    var cobrarEl = getInputEl(tr, ID_COBRAR);
-    var cobrar   = cobrarEl ? (cobrarEl.value||'').toLowerCase() : 'no';
-    var envioEl  = getInputEl(tr, ID_MONTO_ENVIO);
-    var prodEl   = getInputEl(tr, ID_MONTO_PRODUCTO);
-    var envio    = parseFloat((envioEl ? envioEl.value : '0').replace(',','.')) || 0;
-    var prod     = (cobrar === 'si') ? (parseFloat((prodEl ? prodEl.value : '0').replace(',','.')) || 0) : 0;
-    totalEl.value = (envio + prod).toFixed(2);
+    
+    var envio = parseFloat(envioEl && envioEl.value ? envioEl.value.replace(',','.') : '0') || 0;
+    var total = parseFloat(totalEl && totalEl.value ? totalEl.value.replace(',','.') : '0') || 0;
+    
+    /* costo_producto = monto_total − costo_envio */
+    if (prodEl) prodEl.value = Math.max(0, total - envio).toFixed(2);
 }
 
 /* ── Obtener input de columna en fila ───────────────────────────── */
@@ -852,8 +649,7 @@ function rellenarDatos(datos) {
             }
         });
         onTipoEnvioChange(tr);
-        onTipoProgramadoChange(tr);
-        onCobrarChange(tr);
+        onCambioProductoChange(tr);
         recalcularTotal(tr);
         actualizarEstFila(tr);
     });
@@ -883,8 +679,6 @@ function manejarPaste(e, trOrigen, colInicio) {
             if (inp && !inp.readOnly) { inp.value = val.trim(); validarInput(inp, cols[ci2]); }
         });
         onTipoEnvioChange(trActual);
-        onTipoProgramadoChange(trActual);
-        onCobrarChange(trActual);
         recalcularTotal(trActual);
         actualizarEstFila(trActual);
     });
@@ -927,21 +721,13 @@ function validarInput(inp, col) {
     var tr = inp.closest('tr');
     var obligatorio = col.obligatorio;
 
-    if (tr) {
-        var tipoProg      = (getInputEl(tr, ID_TIPO_PROGRAMADO)||{value:''}).value.toLowerCase().trim();
-        var esDomicilio   = (tipoProg === 'domicilio');
-        var esMercadoFlex = (tipoProg === 'mercado flex');
-
-        /* Dirección y distrito: obligatorios en Domicilio y Mercado Flex */
-        if (col.id === 'dest_direccion' || col.id === 'distrito_envio') {
-            obligatorio = esDomicilio || esMercadoFlex;
-        }
-        /* Teléfono: obligatorio solo en Domicilio */
-        if (col.id === 'dest_telefono') obligatorio = esDomicilio;
-        /* Monto producto: obligatorio solo si cobrar = si */
+    /* ── Lógica de campos obligatorios ── */
+    var obligatorio = col.obligatorio;
+    if (val === '') {
+        // Excepción: costo_producto depende de modo_de_pago
         if (col.id === ID_MONTO_PRODUCTO) {
-            var cobrar = (getInputEl(tr, ID_COBRAR)||{value:'no'}).value.toLowerCase();
-            obligatorio = (cobrar === 'si');
+            var modo = (getInputEl(tr, ID_MODO_PAGO)||{value:''}).value.toUpperCase().trim();
+            obligatorio = (modo !== 'NO COBRAR' && modo !== '');
         }
     }
 
@@ -976,7 +762,8 @@ function validarInput(inp, col) {
 function filaVacia(tr) {
     return cols.every(function(col){
         // Campos no editables/sistema no cuentan como contenido real de la fila.
-        if (col.tipo === 'number_readonly' || col.tipo === 'shipper') return true;
+        // Ojo: fecha_envio es date (readonly) pero no es contenido real digitado.
+        if (col.tipo === 'number_readonly' || col.tipo === 'shipper' || col.tipo === 'date') return true;
 
         var i = getInputEl(tr, col.id);
         if (!i) return true;
@@ -996,12 +783,28 @@ function filaVacia(tr) {
 function validarFila(tr) {
     var errs = [];
     cols.forEach(function(col){
+        // number_readonly y shipper no se validan aquí.
         if (col.tipo === 'number_readonly' || col.tipo === 'shipper') return;
-        /* saltar celdas deshabilitadas */
+        
         var td = tr.querySelector('[data-td="'+col.id+'"]');
         if (td && td.classList.contains('wcmas-col-disabled')) return;
         var inp = getInputEl(tr, col.id);
         if (!inp) return;
+        
+        // date (fecha_envio) ES readonly, pero SÍ debe validarse (es obligatorio).
+        if (col.tipo === 'date') {
+            if (col.obligatorio && !(inp.value || '').trim()) {
+                inp.classList.add('err');
+                inp.title = col.label + ' es obligatorio.';
+                errs.push({col: col.id, msg: col.label + ' es obligatorio.'});
+            } else if ((inp.value || '').trim()) {
+                inp.classList.remove('err');
+                inp.classList.add('ok');
+                inp.title = '';
+            }
+            return;
+        }
+        
         var e = validarInput(inp, col);
         if (e) errs.push({col:col.id, msg:e});
     });
@@ -1063,7 +866,11 @@ function recolectarFilas(soloValidas) {
         if (contVal !== '') fila[ID_CONTAINER] = contVal;
         if (drvVal !== '')  fila[ID_DRIVER] = drvVal;
 
-        if (!WCMAS.es_admin) fila[ID_SHIPPER] = String(WCMAS.current_uid);
+        var shipperGlobal = WCMAS.es_admin
+            ? (document.getElementById('wcmas-shipper-select') || {value:''}).value
+            : String(WCMAS.current_uid);
+        if (shipperGlobal) fila[ID_SHIPPER] = shipperGlobal;
+
         res.push(fila);
     });
     return res;
@@ -1173,6 +980,7 @@ function enviarFilas() {
         WCMAS.columnas.forEach(function(c){ fd.append('filas['+i+']['+c.id+']', fila[c.id]||''); });
         fd.append('filas['+i+']['+ID_CONTAINER+']', fila[ID_CONTAINER] || '');
         fd.append('filas['+i+']['+ID_DRIVER+']', fila[ID_DRIVER] || '');
+        if (fila[ID_SHIPPER]) fd.append('asignar_a', fila[ID_SHIPPER]);
     });
 
     fetch(WCMAS.ajax_url,{method:'POST',body:fd,credentials:'same-origin'})
@@ -1280,6 +1088,6 @@ document.getElementById('wcmas-btn-nueva').addEventListener('click', function(){
     cargarBloqueo('express').then(function(d){ WCMAS.bloqueos.express = d; });
 })();
 
+
 })();
 </script>
-

@@ -48,6 +48,33 @@ class WCMAS_Admin {
         wp_enqueue_script('wcmas-select2',
             'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
             ['jquery'], '4.1.0', true);
+            
+        wp_add_inline_script('wcmas-select2', "
+            jQuery(function($) {
+                if (typeof $.fn.select2 === 'undefined' || !document.getElementById('wcmas-shipper-select')) return;
+                $('#wcmas-shipper-select').select2({
+                    placeholder: 'Buscar cliente...',
+                    allowClear: true,
+                    minimumInputLength: 1,
+                    width: '320px',
+                    ajax: {
+                        url: WCMAS.ajax_url,
+                        type: 'POST',
+                        dataType: 'json',
+                        delay: 300,
+                        data: function(params) {
+                            return { action: 'wcmas_buscar_clientes', nonce: WCMAS.nonce, q: params.term };
+                        },
+                        processResults: function(data) {
+                            return { results: (data.results || []).map(function(c) {
+                                return { id: c.id, text: c.text };
+                            })};
+                        },
+                        cache: true
+                    }
+                });
+            });
+        ");
 
         // Flatpickr — datepicker liviano para columnas tipo 'date'
         wp_enqueue_style('wcmas-flatpickr',
@@ -118,7 +145,7 @@ class WCMAS_Admin {
         // Tarifas y distritos para el panel de configuración
         $tarifas          = wcmas_get_tarifas();
         $distritos        = WCMAS_Columnas::get_opciones_wpcf('wpcargo_distrito_destino');
-        $tipos_servicio   = ['EMPRENDEDOR' => 'normal', 'AGENCIA' => 'express', 'FULLFITMENT' => 'full_fitment'];
+        $tipos_servicio   = ['EMPRENDEDOR' => 'normal', 'AGENCIA' => 'express'];
         wcmas_tpl('admin/config.tpl.php', compact(
             'tracking_prefix','filas_default','wpcargo_tracking',
             'tarifas','distritos','tipos_servicio'
@@ -325,7 +352,8 @@ class WCMAS_Admin {
         $distritos = WCMAS_Columnas::get_opciones_wpcf('wpcargo_distrito_destino');
         $tarifas   = get_option('wcmas_tarifas', []);
         if ( ! is_array($tarifas) ) $tarifas = [];
-        wcmas_tpl('admin/tarifas.tpl.php', compact('distritos', 'tarifas'));
+        $tipos_servicio = ['EMPRENDEDOR' => 'normal', 'AGENCIA' => 'express'];
+        wcmas_tpl('admin/tarifas.tpl.php', compact('distritos', 'tarifas', 'tipos_servicio'));
     }
 
     public function pagina_contenedores(): void {
@@ -382,3 +410,4 @@ class WCMAS_Admin {
 }
 
 new WCMAS_Admin();
+

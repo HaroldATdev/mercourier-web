@@ -427,249 +427,249 @@ function wcmas_save_tarifas( array $tarifas ): void {
  * Fuente: tarifas reales confirmadas por el administrador.
  *
  * Formato: [ distrito => [ tipo_servicio => costo ] ]
- * Tipos: normal (EMPRENDEDOR), express (AGENCIA), full_fitment (FULLFITMENT)
+ * Tipos: normal (EMPRENDEDOR), express (AGENCIA)
  */
 function wcmas_get_tarifas_default(): array {
     return [
         'Ate - Salamanca - Vitarte' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Barranco' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Bellavista' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Breña' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Callao' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Carabayllo' => [
             'normal' => 13.00,
             'express' => 11.00,
-            'full_fitment' => 10.00,
+
         ],
         'Carmen de la Legua' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Centro de Lima' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Chorrillos' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Comas' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'El Agustino' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Huachipa (Zoológico de Huachipa)' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Huaycan' => [
             'normal' => 14.00,
             'express' => 12.00,
-            'full_fitment' => 10.00,
+
         ],
         'Gloria Grande' => [
             'normal' => 14.00,
             'express' => 12.00,
-            'full_fitment' => 10.00,
+
         ],
         'Pariachi' => [
             'normal' => 14.00,
             'express' => 12.00,
-            'full_fitment' => 10.00,
+
         ],
         'Independencia' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Jesús María' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'La Molina' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'La Perla' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'La Punta - Callao' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'La Victoria' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Lima Cercado' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Lince' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Los Olivos' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Magdalena' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Molina Alta - Musa - Portada del Sol - Planicie' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Musa' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Portada del Sol' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Planicie' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Miraflores' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Pueblo Libre' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Puente Piedra' => [
             'normal' => 13.00,
             'express' => 11.00,
-            'full_fitment' => 10.00,
+
         ],
         'Rímac' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Borja' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Isidro' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Juan de Lurigancho' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Juan de Miraflores' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Luis' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Martin de Porres' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'San Miguel' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Santa Anita' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Santa Clara' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Santiago de Surco' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Sarita Colonia (Comisaría Sarita Colonia)' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Surquillo' => [
             'normal' => 10.00,
             'express' => 8.00,
-            'full_fitment' => 10.00,
+
         ],
         'Ventanilla' => [
             'normal' => 13.00,
             'express' => 11.00,
-            'full_fitment' => 10.00,
+
         ],
         'Villa El Salvador' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
         'Villa María del Triunfo' => [
             'normal' => 12.00,
             'express' => 10.00,
-            'full_fitment' => 10.00,
+
         ],
     ];
 }
@@ -790,3 +790,4 @@ function wcmas_instalar_mapa_contenedores(): void {
     }
 }
  
+
