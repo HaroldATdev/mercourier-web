@@ -851,29 +851,57 @@ function wp_ajax_wpcsc_load_assigned_shipments_cb()
 {
 	global $wpcargo;
 	$container_id 			= ($_POST['containerID'] ?? false) ?: false;
-	$assigned_shipments = wpc_shipment_container_get_assigned_shipment($container_id);
+	$shipments_with_type = wpc_shipment_container_get_assigned_shipment_with_type($container_id);
+	$assigned_shipments = $shipments_with_type ? array_keys($shipments_with_type) : [];
+	
 	ob_start();
 	if ($assigned_shipments && is_array($assigned_shipments)) {
 		foreach ($assigned_shipments as $shipment_id) {
-			// FILTRO: Solo mostrar envíos SIN motorizado asignado
 			$motorizado_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
 			$motorizado_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
 			
-			// Si tiene motorizado asignado, saltar
-			$tiene_motorizado = (!empty($motorizado_recojo) && $motorizado_recojo !== '0') 
-				|| (!empty($motorizado_entrega) && $motorizado_entrega !== '0');
+			$tipo_asignacion = isset($shipments_with_type[$shipment_id]) ? $shipments_with_type[$shipment_id] : 'legacy';
 			
-			if ($tiene_motorizado) {
-				error_log("⏭️  [MODAL SKIP] Envío #{$shipment_id}: Ya tiene motorizado asignado");
-				continue;
+			$badge = '';
+			$is_assigned = false;
+			
+			if ($tipo_asignacion === 'recojo') {
+				if (!empty($motorizado_recojo) && $motorizado_recojo !== '0') {
+					$driver = get_userdata((int)$motorizado_recojo);
+					$driver_name = $driver ? $driver->display_name : 'Motorizado';
+					$badge = '<span class="badge badge-success d-block mt-1">✅ Asignado: ' . esc_html($driver_name) . '</span>';
+					$is_assigned = true;
+				} else {
+					$badge = '<span class="badge badge-warning d-block mt-1">🟡 Pendiente Recojo</span>';
+				}
+			} elseif ($tipo_asignacion === 'entrega') {
+				if (!empty($motorizado_entrega) && $motorizado_entrega !== '0') {
+					$driver = get_userdata((int)$motorizado_entrega);
+					$driver_name = $driver ? $driver->display_name : 'Motorizado';
+					$badge = '<span class="badge badge-success d-block mt-1">✅ Asignado: ' . esc_html($driver_name) . '</span>';
+					$is_assigned = true;
+				} else {
+					$badge = '<span class="badge badge-success bg-success d-block mt-1" style="background-color: #28a745 !important; color: white;">🟢 Pendiente Entrega</span>';
+				}
+			} else {
+				// Legacy
+				if ((!empty($motorizado_recojo) && $motorizado_recojo !== '0') || (!empty($motorizado_entrega) && $motorizado_entrega !== '0')) {
+					$badge = '<span class="badge badge-success d-block mt-1">✅ Asignado</span>';
+					$is_assigned = true;
+				} else {
+					$badge = '<span class="badge badge-secondary d-block mt-1">Pendiente</span>';
+				}
 			}
 			
 			$title 	 	= get_the_title($shipment_id);
 			$barcode 	= $wpcargo->barcode($shipment_id, true);
 			$url 			= get_the_permalink(wpcfe_admin_page()) . '/?wpcfe=track&num=' . urlencode(get_the_title($shipment_id));
+			
+			$opacity = $is_assigned ? 'opacity: 0.6;' : '';
 	?>
-			<div class="col-md-6 p-2 border text-center">
+			<div class="col-md-6 p-2 border text-center" style="<?php echo $opacity; ?>">
 				<a href="<?php echo $url; ?>" target="_blank"><?php echo $barcode . $title; ?></a>
+				<?php echo $badge; ?>
 			</div>
 <?php
 		}
@@ -1005,6 +1033,7 @@ function wpcsc_assign_partial_shipments_callback() {
         wp_send_json_error(array('message' => 'No se pudo procesar ningún pedido. Errores: ' . implode(', ', $errors)));
     }
 }
+
 
 
 

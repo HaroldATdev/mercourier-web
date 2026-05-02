@@ -547,46 +547,12 @@ function wpc_shipment_container_get_assigned_shipment_count($postID)
 
 function wpc_shipment_container_get_assigned_shipment($postID)
 {
-	global $wpdb;
-	
-	// Buscar envíos por el meta antiguo 'shipment_container'
-	$sql = "SELECT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
-	$sql .= "RIGHT JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
-	$sql .= "WHERE tbl1.post_status LIKE 'publish' AND tbl1.post_type LIKE 'wpcargo_shipment' ";
-	$sql .= " AND tbl2.meta_key LIKE 'shipment_container' ";
-	$sql .= " AND tbl2.meta_value = %s ";
-	$assigned_shipments_old = $wpdb->get_col($wpdb->prepare($sql, $postID));
-	
-	// Buscar envíos por el meta nuevo 'shipment_container_recojo' (MERC EMPRENDEDOR)
-	// FILTRO: Los envíos tipo 'normal' SOLO aparecen en recojo cuando están en PENDIENTE, RECOGIDO o NO RECOGIDO
-	$sql_recojo = "SELECT DISTINCT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
-	$sql_recojo .= "RIGHT JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
-	$sql_recojo .= "LEFT JOIN {$wpdb->prefix}postmeta as tbl3 ON tbl1.ID = tbl3.post_id AND tbl3.meta_key = 'wpcargo_status' ";
-	$sql_recojo .= "LEFT JOIN {$wpdb->prefix}postmeta as tbl4 ON tbl1.ID = tbl4.post_id AND tbl4.meta_key = 'tipo_envio' ";
-	$sql_recojo .= "WHERE tbl1.post_status LIKE 'publish' AND tbl1.post_type LIKE 'wpcargo_shipment' ";
-	$sql_recojo .= " AND tbl2.meta_key LIKE 'shipment_container_recojo' ";
-	$sql_recojo .= " AND tbl2.meta_value = %s ";
-	// Lógica: Los envíos tipo 'normal' SOLO aparecen cuando están en PENDIENTE, RECOGIDO o NO RECOGIDO
-	$sql_recojo .= " AND (tbl4.meta_value != 'normal' OR tbl3.meta_value IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO')) ";
-	$assigned_shipments_recojo = $wpdb->get_col($wpdb->prepare($sql_recojo, $postID));
-	
-	// Buscar envíos por el meta nuevo 'shipment_container_entrega' (MERC EMPRENDEDOR)
-	$sql_entrega = "SELECT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
-	$sql_entrega .= "RIGHT JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
-	$sql_entrega .= "WHERE tbl1.post_status LIKE 'publish' AND tbl1.post_type LIKE 'wpcargo_shipment' ";
-	$sql_entrega .= " AND tbl2.meta_key LIKE 'shipment_container_entrega' ";
-	$sql_entrega .= " AND tbl2.meta_value = %s ";
-	$assigned_shipments_entrega = $wpdb->get_col($wpdb->prepare($sql_entrega, $postID));
-	
-	// Combinar todos los resultados y remover duplicados
-	$assigned_shipments = array_unique(array_merge(
-		(array)$assigned_shipments_old,
-		(array)$assigned_shipments_recojo,
-		(array)$assigned_shipments_entrega
-	));
+	$assigned_shipments_with_type = wpc_shipment_container_get_assigned_shipment_with_type($postID);
+	$assigned_shipments = $assigned_shipments_with_type ? array_keys($assigned_shipments_with_type) : array();
 	
 	$sorted_shipment 		= array();
-	$sorted_shipments 		= !empty(trim(wpc_shipment_container_sorted_shipment($postID))) ? explode(",", wpc_shipment_container_sorted_shipment($postID)) : array();
+	$sorted_meta            = wpc_shipment_container_sorted_shipment($postID);
+	$sorted_shipments 		= !empty(trim((string)$sorted_meta)) ? explode(",", trim((string)$sorted_meta)) : array();
 
 	if (!empty($assigned_shipments)) {
 		foreach ($sorted_shipments as $shipment) {
@@ -610,9 +576,9 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	
 	// Buscar envíos por el meta antiguo 'shipment_container'
 	$sql = "SELECT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
-	$sql .= "RIGHT JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
-	$sql .= "WHERE tbl1.post_status LIKE 'publish' AND tbl1.post_type LIKE 'wpcargo_shipment' ";
-	$sql .= " AND tbl2.meta_key LIKE 'shipment_container' ";
+	$sql .= "INNER JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
+	$sql .= "WHERE tbl1.post_status = 'publish' AND tbl1.post_type = 'wpcargo_shipment' ";
+	$sql .= " AND tbl2.meta_key = 'shipment_container' ";
 	$sql .= " AND tbl2.meta_value = %s ";
 	$assigned_shipments_old = $wpdb->get_col($wpdb->prepare($sql, $postID));
 	
@@ -623,11 +589,11 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	// Buscar envíos por el meta nuevo 'shipment_container_recojo'
 	// FILTRO: Los envíos tipo 'normal' SOLO aparecen en recojo cuando están en PENDIENTE, RECOGIDO o NO RECOGIDO
 	$sql_recojo = "SELECT DISTINCT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
-	$sql_recojo .= "RIGHT JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
+	$sql_recojo .= "INNER JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
 	$sql_recojo .= "LEFT JOIN {$wpdb->prefix}postmeta as tbl3 ON tbl1.ID = tbl3.post_id AND tbl3.meta_key = 'wpcargo_status' ";
 	$sql_recojo .= "LEFT JOIN {$wpdb->prefix}postmeta as tbl4 ON tbl1.ID = tbl4.post_id AND tbl4.meta_key = 'tipo_envio' ";
-	$sql_recojo .= "WHERE tbl1.post_status LIKE 'publish' AND tbl1.post_type LIKE 'wpcargo_shipment' ";
-	$sql_recojo .= " AND tbl2.meta_key LIKE 'shipment_container_recojo' ";
+	$sql_recojo .= "WHERE tbl1.post_status = 'publish' AND tbl1.post_type = 'wpcargo_shipment' ";
+	$sql_recojo .= " AND tbl2.meta_key = 'shipment_container_recojo' ";
 	$sql_recojo .= " AND tbl2.meta_value = %s ";
 	// Lógica: Los envíos tipo 'normal' SOLO aparecen en recojo cuando están en PENDIENTE, RECOGIDO o NO RECOGIDO
 	$sql_recojo .= " AND (tbl4.meta_value != 'normal' OR tbl3.meta_value IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO')) ";
@@ -639,9 +605,9 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	
 	// Buscar envíos por el meta nuevo 'shipment_container_entrega'
 	$sql_entrega = "SELECT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
-	$sql_entrega .= "RIGHT JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
-	$sql_entrega .= "WHERE tbl1.post_status LIKE 'publish' AND tbl1.post_type LIKE 'wpcargo_shipment' ";
-	$sql_entrega .= " AND tbl2.meta_key LIKE 'shipment_container_entrega' ";
+	$sql_entrega .= "INNER JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
+	$sql_entrega .= "WHERE tbl1.post_status = 'publish' AND tbl1.post_type = 'wpcargo_shipment' ";
+	$sql_entrega .= " AND tbl2.meta_key = 'shipment_container_entrega' ";
 	$sql_entrega .= " AND tbl2.meta_value = %s ";
 	$assigned_shipments_entrega = $wpdb->get_col($wpdb->prepare($sql_entrega, $postID));
 	
@@ -1214,13 +1180,49 @@ function wpcsc_is_user_container($container_id)
 	//#Get current user ID and roles
 	$current_user = wp_get_current_user()->ID;
 	$user_roles = wpcfe_current_user_role();
+	
+	// BATCH LOAD OPTIMIZATION
+	static $container_meta_cache = null;
+	if ($container_meta_cache === null) {
+		global $wpdb, $wpc_container;
+		$container_meta_cache = array();
+		
+		// Recolectar todos los IDs de los contenedores en la página actual (si estamos en el loop)
+		$ids_to_fetch = array();
+		if (isset($wpc_container) && is_object($wpc_container) && isset($wpc_container->posts) && is_array($wpc_container->posts)) {
+			foreach ($wpc_container->posts as $p) {
+				$ids_to_fetch[] = $p->ID;
+			}
+		}
+		// Asegurar que el ID actual también esté
+		if (!in_array($container_id, $ids_to_fetch)) {
+			$ids_to_fetch[] = $container_id;
+		}
+		
+		if (!empty($ids_to_fetch)) {
+			$in_clause = implode(',', array_map('intval', $ids_to_fetch));
+			$meta_keys = array('registered_shipper', 'agent_fields', 'wpcargo_employee', 'wpcargo_driver', 'shipment_branch', 'wpcargo_branch_manager');
+			$meta_keys_sql = "'" . implode("','", $meta_keys) . "'";
+			
+			$query = "SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id IN ($in_clause) AND meta_key IN ($meta_keys_sql)";
+			$results = $wpdb->get_results($query, ARRAY_A);
+			
+			foreach ($results as $row) {
+				$container_meta_cache[$row['post_id']][$row['meta_key']] = $row['meta_value'];
+			}
+		}
+	}
+	
+	// Recuperar de caché o consultar fallback (no debería hacer fallback si la query arriba funcionó)
+	$meta = isset($container_meta_cache[$container_id]) ? $container_meta_cache[$container_id] : array();
+	
 	//#get all assigned users
-	$client 	= get_post_meta($container_id, 'registered_shipper', true);
-	$agent 		= get_post_meta($container_id, 'agent_fields', true);
-	$employee 	= get_post_meta($container_id, 'wpcargo_employee', true);
-	$driver 	= get_post_meta($container_id, 'wpcargo_driver', true);
-	$branch     = get_post_meta($container_id, 'shipment_branch', true);
-	$branch_mng	= get_post_meta($container_id, 'wpcargo_branch_manager', true);
+	$client 	= isset($meta['registered_shipper']) ? $meta['registered_shipper'] : get_post_meta($container_id, 'registered_shipper', true);
+	$agent 		= isset($meta['agent_fields']) ? $meta['agent_fields'] : get_post_meta($container_id, 'agent_fields', true);
+	$employee 	= isset($meta['wpcargo_employee']) ? $meta['wpcargo_employee'] : get_post_meta($container_id, 'wpcargo_employee', true);
+	$driver 	= isset($meta['wpcargo_driver']) ? $meta['wpcargo_driver'] : get_post_meta($container_id, 'wpcargo_driver', true);
+	$branch     = isset($meta['shipment_branch']) ? $meta['shipment_branch'] : get_post_meta($container_id, 'shipment_branch', true);
+	$branch_mng	= isset($meta['wpcargo_branch_manager']) ? $meta['wpcargo_branch_manager'] : get_post_meta($container_id, 'wpcargo_branch_manager', true);
 
 	$result = false;
 	if (wpcfe_is_super_admin()) {

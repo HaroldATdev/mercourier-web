@@ -203,7 +203,6 @@ function wpcsc_container_list_data( $container_id ){
 
                 global $wpdb;
                 
-                // Usuarios de recojo únicos (Optimizado)
                 $recojo_sql = $wpdb->prepare("
                     SELECT pm.post_id FROM {$wpdb->postmeta} pm
                     JOIN {$wpdb->posts} p ON p.ID = pm.post_id
@@ -214,26 +213,6 @@ function wpcsc_container_list_data( $container_id ){
                 ", $container_id);
                 $recojo_posts = $wpdb->get_col($recojo_sql);
                 
-                $unique_recojo_users = array();
-                if (!empty($recojo_posts)) {
-                    foreach ($recojo_posts as $sp_id) {
-                        if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) !== $today ) {
-                            continue;
-                        }
-                        // Ignorar envíos donde ya hay un motorizado asignado para recojo
-                        $mot_recojo = get_post_meta($sp_id, 'wpcargo_motorizo_recojo', true);
-                        if ( !empty($mot_recojo) && $mot_recojo !== '0' ) {
-                            continue;
-                        }
-                        $client_id = get_post_meta($sp_id, 'registered_shipper', true);
-                        if (!empty($client_id)) {
-                            $unique_recojo_users[$client_id] = true;
-                        }
-                    }
-                }
-                $recojo_users_count = count($unique_recojo_users);
-
-                // Envíos de entrega pendientes (sin motorizado asignado) (Optimizado)
                 $entrega_sql = $wpdb->prepare("
                     SELECT pm.post_id FROM {$wpdb->postmeta} pm
                     JOIN {$wpdb->posts} p ON p.ID = pm.post_id
@@ -243,14 +222,77 @@ function wpcsc_container_list_data( $container_id ){
                       AND p.post_type = 'wpcargo_shipment'
                 ", $container_id);
                 $entrega_posts = $wpdb->get_col($entrega_sql);
-                
+
+                // EXTREME OPTIMIZATION: Load all required meta in a single query
+                $all_posts = array_unique(array_merge((array)$recojo_posts, (array)$entrega_posts));
+                $meta_arr = array();
+                if (!empty($all_posts)) {
+                    $in_clause = implode(',', array_map('intval', $all_posts));
+                    $meta_keys = array(
+                        'wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio', 'wpcargo_calendarenvio',
+                        'wpcargo_motorizo_recojo', 'wpcargo_motorizo_entrega', 'registered_shipper'
+                    );
+                    $meta_keys_sql = "'" . implode("','", $meta_keys) . "'";
+                    
+                    $meta_results = $wpdb->get_results("SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id IN ($in_clause) AND meta_key IN ($meta_keys_sql)", ARRAY_A);
+                    
+                    foreach ($meta_results as $row) {
+                        $meta_arr[$row['post_id']][$row['meta_key']] = $row['meta_value'];
+                    }
+                }
+
+                $parse_date_ram = function($shipment_id) use ($meta_arr) {
+                    $meta_keys_date = array('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio','wpcargo_calendarenvio');
+                    $m = isset($meta_arr[$shipment_id]) ? $meta_arr[$shipment_id] : array();
+                    
+                    foreach($meta_keys_date as $k){
+                        if(empty($m[$k])) continue;
+                        $v = trim($m[$k]);
+                        $v_normalized = preg_replace_callback('/^(\d{1,2})([\/\-])(\d{1,2})([\/\-])(\d{2,4})(\s.*)?$/', function($match) {
+                            return str_pad($match[1], 2, '0', STR_PAD_LEFT) . $match[2] . str_pad($match[3], 2, '0', STR_PAD_LEFT) . $match[4] . $match[5] . ($match[6] ?? '');
+                        }, $v);
+                        if ($v_normalized !== $v) { $v = $v_normalized; }
+                        
+                        $formats = array('d/m/Y','d/m/Y H:i:s','d/m/Y H:i','d-m-Y','d-m-Y H:i:s','Y-m-d','Y-m-d H:i:s','Y-m-d H:i');
+                        foreach($formats as $f){
+                            $dt = DateTime::createFromFormat($f, $v);
+                            if($dt && $dt->format($f) === $v) {
+                                return $dt->format('Y-m-d');
+                            }
+                        }
+                        $ts = strtotime($v);
+                        if($ts !== false) return date('Y-m-d', $ts);
+                    }
+                    return false;
+                };
+
+                $unique_recojo_users = array();
+                if (!empty($recojo_posts)) {
+                    foreach ($recojo_posts as $sp_id) {
+                        $date = $parse_date_ram($sp_id);
+                        if ($date === false || $date !== $today) {
+                            continue;
+                        }
+                        $mot_recojo = isset($meta_arr[$sp_id]['wpcargo_motorizo_recojo']) ? $meta_arr[$sp_id]['wpcargo_motorizo_recojo'] : '';
+                        if ( !empty($mot_recojo) && $mot_recojo !== '0' ) {
+                            continue;
+                        }
+                        $client_id = isset($meta_arr[$sp_id]['registered_shipper']) ? $meta_arr[$sp_id]['registered_shipper'] : '';
+                        if (!empty($client_id)) {
+                            $unique_recojo_users[$client_id] = true;
+                        }
+                    }
+                }
+                $recojo_users_count = count($unique_recojo_users);
+
                 $entrega_pending_count = 0;
                 if (!empty($entrega_posts)) {
                     foreach ($entrega_posts as $sp_id) {
-                        if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) !== $today ) {
+                        $date = $parse_date_ram($sp_id);
+                        if ($date === false || $date !== $today) {
                             continue;
                         }
-                        $mot_entrega = get_post_meta($sp_id, 'wpcargo_motorizo_entrega', true);
+                        $mot_entrega = isset($meta_arr[$sp_id]['wpcargo_motorizo_entrega']) ? $meta_arr[$sp_id]['wpcargo_motorizo_entrega'] : '';
                         if ( empty($mot_entrega) || $mot_entrega === '0' ) {
                             $entrega_pending_count++;
                         }
@@ -482,7 +524,7 @@ function wpcsc_container_details( $shipment_id ){
 						<div class="form-group">
 							<label><?php _e( 'Contenedor de RECOJO', 'wpcargo-shipment-container' ); ?></label>                   
                             <select name="shipment_container_recojo" class="mdb-select mt-0 form-control browser-default" id="shipment_container_recojo" >
-                                <option value=""><?php esc_html_e('-- Seleccionar Contenedor --','wpcargo-shipment-container'); ?></option>
+                                <option value=""><?php echo empty($container_recojo) ? esc_html__('⚠️ Sin asignar — selecciona manualmente', 'wpcargo-shipment-container') : esc_html__('-- Seleccionar Contenedor --', 'wpcargo-shipment-container'); ?></option>
                                 <?php if( $containers ): ?>
                                     <?php foreach( $containers as $container ): ?>
                                         <option value="<?php echo $container->ID; ?>" <?php selected($container_recojo, $container->ID); ?>><?php echo $container->post_title; ?></option>
@@ -494,7 +536,7 @@ function wpcsc_container_details( $shipment_id ){
 						<div class="form-group">
 							<label><?php _e( 'Contenedor de ENTREGA', 'wpcargo-shipment-container' ); ?></label>                   
                             <select name="shipment_container_entrega" class="mdb-select mt-0 form-control browser-default" id="shipment_container_entrega" >
-                                <option value=""><?php esc_html_e('-- Seleccionar Contenedor --','wpcargo-shipment-container'); ?></option>
+                                <option value=""><?php echo empty($container_entrega) ? esc_html__('⚠️ Sin asignar — selecciona manualmente', 'wpcargo-shipment-container') : esc_html__('-- Seleccionar Contenedor --', 'wpcargo-shipment-container'); ?></option>
                                 <?php if( $containers ): ?>
                                     <?php foreach( $containers as $container ): ?>
                                         <option value="<?php echo $container->ID; ?>" <?php selected($container_entrega, $container->ID); ?>><?php echo $container->post_title; ?></option>
@@ -507,7 +549,7 @@ function wpcsc_container_details( $shipment_id ){
 						<div class="form-group">
 							<label><?php _e( 'Contenedor de ENTREGA', 'wpcargo-shipment-container' ); ?></label>                   
                             <select name="shipment_container_entrega" class="mdb-select mt-0 form-control browser-default" id="shipment_container_entrega" >
-                                <option value=""><?php esc_html_e('-- Seleccionar Contenedor --','wpcargo-shipment-container'); ?></option>
+                                <option value=""><?php echo empty($container_entrega) ? esc_html__('⚠️ Sin asignar — selecciona manualmente', 'wpcargo-shipment-container') : esc_html__('-- Seleccionar Contenedor --', 'wpcargo-shipment-container'); ?></option>
                                 <?php if( $containers ): ?>
                                     <?php foreach( $containers as $container ): ?>
                                         <option value="<?php echo $container->ID; ?>" <?php selected($container_entrega, $container->ID); ?>><?php echo $container->post_title; ?></option>
@@ -544,25 +586,82 @@ function wpcsc_after_container_publish_assigment_callback( $container_id, $post 
         update_post_meta( $container_id, 'wpcargo_driver', sanitize_text_field( $post['wpcargo_driver'] ) );
     }
 }
+/**
+ * Auto-asigna contenedores leyendo el mapa global de wp_options.
+ * Se ejecuta al guardar un envío.
+ */
+function wpcsc_auto_asignar_contenedores( $post_id ) {
+    $mapa = get_option('wcmas_mapa_contenedores', []);
+    if ( ! is_array($mapa) || empty($mapa) ) {
+        return; // No hay mapa configurado, no se puede auto-asignar
+    }
+
+    $tipo_envio = strtolower( trim( (string) get_post_meta($post_id, 'tipo_envio', true) ) );
+    $distrito_recojo  = get_post_meta($post_id, 'wpcargo_distrito_recojo',  true);
+    $distrito_destino = get_post_meta($post_id, 'wpcargo_distrito_destino', true);
+
+    // Helper para buscar en el mapa
+    $buscar_en_mapa = function( $distrito ) use ( $mapa ) {
+        $distrito = trim($distrito);
+        if ( ! $distrito ) return 0;
+        
+        // Búsqueda exacta
+        if ( isset($mapa[$distrito]) && $mapa[$distrito] ) {
+            return (int) $mapa[$distrito];
+        }
+        
+        // Búsqueda parcial case-insensitive
+        $d_lower = mb_strtolower($distrito, 'UTF-8');
+        foreach ( $mapa as $key => $id ) {
+            if ( ! $id ) continue;
+            $k_lower = mb_strtolower((string)$key, 'UTF-8');
+            if ( str_contains($k_lower, $d_lower) || str_contains($d_lower, $k_lower) ) {
+                return (int) $id;
+            }
+        }
+        return 0;
+    };
+
+    // EMPRENDEDOR (normal) -> Asigna recojo y entrega
+    if ( $tipo_envio === 'normal' ) {
+        if ( $distrito_recojo ) {
+            $cont_recojo = $buscar_en_mapa($distrito_recojo);
+            if ( $cont_recojo > 0 ) {
+                update_post_meta( $post_id, 'shipment_container_recojo', $cont_recojo );
+            }
+        }
+    }
+
+    // TODOS LOS TIPOS -> Asignan entrega
+    if ( $distrito_destino ) {
+        $cont_entrega = $buscar_en_mapa($distrito_destino);
+        if ( $cont_entrega > 0 ) {
+            update_post_meta( $post_id, 'shipment_container_entrega', $cont_entrega );
+        }
+    }
+}
+
 function save_shipment_container_frontend_callback( $post_id, $post ){
     if( !can_access_containers() ) {
         return;
     }
     
-    // Obtener tipo_envio: primero del POST (actual), luego del meta (fallback)
-    // Nota: El meta se llama 'tipo_envio' NO 'wpcargo_tipo_envio'
+    // 1. AUTO-ASIGNACIÓN: Intentar resolver automáticamente según el mapa
+    wpcsc_auto_asignar_contenedores( $post_id );
+    
+    // 2. OVERRIDE MANUAL: Si el formulario viene con una selección explícita (dropdown), sobrescribe la auto-asignación
     $tipo_envio = isset( $post['tipo_envio'] ) ? sanitize_text_field( $post['tipo_envio'] ) : get_post_meta( $post_id, 'tipo_envio', true );
     $es_merc_emprendedor = strtolower( $tipo_envio ) === 'normal';
     
     error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: tipo_envio = {$tipo_envio} | es_merc = " . ($es_merc_emprendedor ? 'YES' : 'NO'));
     
     if( $es_merc_emprendedor ) {
-        // MERC EMPRENDEDOR: Guardar AMBOS contenedores
+        // MERC EMPRENDEDOR: Override manual de AMBOS contenedores
         if( isset($post['shipment_container_recojo']) ) {
             $container_recojo = sanitize_text_field( $post['shipment_container_recojo'] );
             if( !empty($container_recojo) ) {
                 update_post_meta( $post_id, 'shipment_container_recojo', (int)$container_recojo );
-                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_recojo #{$container_recojo} guardado desde frontend");
+                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_recojo #{$container_recojo} sobrescrito manualmente");
             }
         }
         
@@ -570,16 +669,16 @@ function save_shipment_container_frontend_callback( $post_id, $post ){
             $container_entrega = sanitize_text_field( $post['shipment_container_entrega'] );
             if( !empty($container_entrega) ) {
                 update_post_meta( $post_id, 'shipment_container_entrega', (int)$container_entrega );
-                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_entrega #{$container_entrega} guardado desde frontend");
+                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_entrega #{$container_entrega} sobrescrito manualmente");
             }
         }
     } else {
-        // EXPRESS, FULL_FITMENT: Guardar SOLO en shipment_container_entrega (no usar shipment_container)
+        // EXPRESS, FULL_FITMENT: Override manual SOLO de shipment_container_entrega
         if( isset($post['shipment_container_entrega']) ) {
             $container_entrega = sanitize_text_field( $post['shipment_container_entrega'] );
             if( !empty($container_entrega) ) {
                 update_post_meta( $post_id, 'shipment_container_entrega', (int)$container_entrega );
-                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_entrega #{$container_entrega} guardado desde frontend (EXPRESS/FULL_FITMENT)");
+                error_log("✅ [FRONTEND SAVE] Envío #{$post_id}: shipment_container_entrega #{$container_entrega} sobrescrito manualmente (EXPRESS/FULL_FITMENT)");
             }
         }
     }
@@ -1141,4 +1240,5 @@ function modified_fied_keys( $structured_meta_keys ){
 
     return $structured_meta_keys;
 }
+
 

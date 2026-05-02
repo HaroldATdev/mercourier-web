@@ -3,43 +3,6 @@ if (!defined('ABSPATH')) exit;
 
 // Hooks y acciones para finanzas
 
-/**
- * Al marcar un pedido como "No recibido", crear cargo automático
- */
-add_action('updated_post_meta', function($meta_id, $post_id, $meta_key, $meta_value) {
-    if ($meta_key !== 'wpcargo_status') return;
-    if ($meta_value !== 'No recibido') return;
-
-    $post = get_post($post_id);
-    if (!$post || $post->post_type !== 'wpcargo_shipment') return;
-
-    // Obtener customer ID
-    $customer_id = get_post_meta($post_id, 'wpcargo_customer', true);
-    if (!$customer_id) return;
-
-    // Verificar si ya existe cargo
-    $existing = get_post_meta($post_id, 'wpcargo_cargo_no_recibido_liquidacion_id', true);
-    if ($existing) return;
-
-    // Crear cargo
-    merc_crear_cargo_no_recibido($post_id, $customer_id, 5.00);
-}, 10, 4);
-
-// Hook de activación para registrar post types
-add_action('merc_finance_activate', function() {
-    merc_finance_register_post_types();
-    flush_rewrite_rules();
-});
-
-// Mostrar penalidades en perfil del usuario
-add_action('show_user_profile', 'merc_user_profile_penalties_section');
-add_action('edit_user_profile', 'merc_user_profile_penalties_section');
-
-// AJAX handler para crear orden de pago
-add_action('wp_ajax_merc_create_penalty_order', 'merc_ajax_create_penalty_order');
-
-// Marcar penalidad como pagada cuando se completa pago en WooCommerce
-add_action('woocommerce_payment_complete', 'merc_woocommerce_order_paid_mark_penalty');
 
 // Interceptar cambios de estado antes de actualizar
 add_action('update_post_meta', function($meta_id, $post_id, $meta_key, $meta_value) {
@@ -94,7 +57,7 @@ add_action('update_post_meta', function($meta_id, $post_id, $meta_key, $meta_val
     }
 }, 10, 4);
 
-// Detectar cambios de estado y crear penalidades/cargos
+// Detectar cambios de estado para sincronizar costo de envío
 add_action('updated_post_meta', function($meta_id, $post_id, $meta_key, $meta_value) {
     if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
         error_log(sprintf('MERC_DEBUG_META_UPDATE - meta_id=%s post_id=%s meta_key=%s meta_value=%s', $meta_id, $post_id, $meta_key, is_scalar($meta_value) ? $meta_value : json_encode($meta_value)));
@@ -105,18 +68,7 @@ add_action('updated_post_meta', function($meta_id, $post_id, $meta_key, $meta_va
         }
         return;
     }
-    // Intentar crear penalidad al actualizar el estado
-    if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
-        error_log(sprintf('MERC_DEBUG_META_UPDATE - Llamando a merc_maybe_create_penalty_for_shipment para post_id=%s', $post_id));
-    }
-    merc_maybe_create_penalty_for_shipment($post_id);
-    
-    // Detectar cambio a "NO RECIBIDO" y registrar cargo automáticamente
-    if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
-        error_log(sprintf('MERC_DEBUG_META_UPDATE - Verificando si es NO RECIBIDO para post_id=%s', $post_id));
-    }
-    merc_maybe_create_penalty_for_shipment($post_id);
-    merc_auto_registrar_cargo_no_recibido($post_id, $meta_value);
+
     merc_sync_service_cost_by_status( $post_id );
 }, 10, 4);
 
@@ -135,7 +87,10 @@ if ( ! function_exists( 'merc_get_adjusted_service_cost' ) ) {
         $adicional = 0.0;
         if ( is_array( $cargos ) ) {
             foreach ( $cargos as $cargo ) {
-                $adicional += floatval( $cargo['monto'] );
+                $estado = isset($cargo['estado']) ? strtolower($cargo['estado']) : 'activo';
+                if ( $estado !== 'anulado' ) {
+                    $adicional += floatval( $cargo['monto'] );
+                }
             }
         }
         
@@ -174,84 +129,7 @@ if ( ! function_exists( 'merc_sync_service_cost_by_status' ) ) {
                 update_post_meta( $shipment_id, $service_key, $original_cost );
             }
 
-            delete_post_meta( $shipment_id, $flag_key );
         }
     }
 }
-
-// AJAX: generar penalidades del día
-add_action('wp_ajax_merc_generate_penalties_today', function() {
-    if ( ! isset($_POST['nonce']) || ! wp_verify_nonce( $_POST['nonce'], 'merc_generate_penalties' ) ) {
-        wp_send_json_error(array('message'=>'Nonce inválido'));
-    }
-    if ( ! current_user_can('administrator') ) {
-        wp_send_json_error(array('message'=>'Sin permisos'));
-    }
-
-    $today = current_time('Y-m-d');
-    error_log(sprintf('MERC_DEBUG_GENERATOR - start today=%s', $today));
-    
-    $args = array(
-        'post_type' => 'wpcargo_shipment',
-        'posts_per_page' => -1,
-        'meta_query' => array(
-            array('key'=>'wpcargo_pickup_date_picker','value'=>$today),
-        ),
-        'fields' => 'ids',
-    );
-    $q = new WP_Query($args);
-    if ( empty($q->posts) ) {
-        error_log('MERC_DEBUG_GENERATOR - no shipments for today');
-        wp_send_json_success(array('message'=>'No hay envíos para la fecha de hoy.'));
-    }
-
-    error_log(sprintf('MERC_DEBUG_GENERATOR - total_shipments_found=%d', count($q->posts)));
-
-    // Agrupar por cliente
-    $clients = array();
-    foreach ( $q->posts as $sid ) {
-        $cid = get_post_meta($sid,'wpcargo_customer_id', true);
-        if ( empty($cid) ) continue;
-        if ( ! isset($clients[$cid]) ) $clients[$cid] = array();
-        $clients[$cid][] = $sid;
-    }
-
-    $created = 0; $skipped = 0; $details = array();
-    foreach ( $clients as $cid => $sids ) {
-        error_log(sprintf('MERC_DEBUG_GENERATOR - processing client=%s shipments=%d', $cid, count($sids)));
-        $all_no = true;
-        foreach ( $sids as $sid ) {
-            $st = get_post_meta($sid,'wpcargo_status', true);
-            error_log(sprintf('MERC_DEBUG_GENERATOR - shipment=%s status=%s', $sid, is_scalar($st)?$st:json_encode($st)));
-            if ( function_exists('merc_status_is_no_recogido') ) {
-                if ( ! merc_status_is_no_recogido($st) ) { $all_no = false; break; }
-            } else {
-                if ( stripos($st,'no recogido') === false && stripos($st,'no_recogido')===false ) { $all_no = false; break; }
-            }
-        }
-        if ( ! $all_no ) { error_log(sprintf('MERC_DEBUG_GENERATOR - client %s skipped (not all NO RECOGIDO)', $cid)); $skipped++; continue; }
-
-        // verificar duplicado
-        $existing = new WP_Query(array('post_type'=>'merc_penalty','posts_per_page'=>1,'meta_query'=>array(array('key'=>'user_id','value'=>$cid),array('key'=>'date','value'=>$today))));
-        if ( $existing->have_posts() ) { $details[] = "user {$cid}: exists"; continue; }
-
-        $title = sprintf('Penalidad %s %s', $cid, $today);
-        $penalty_id = wp_insert_post(array(
-            'post_type'=>'merc_penalty','post_title'=>$title,'post_status'=>'publish','post_content'=>'Penalidad automática por envíos no recogidos.'
-        ));
-        if ( $penalty_id && ! is_wp_error($penalty_id) ) {
-            update_post_meta($penalty_id,'amount',5.00);
-            update_post_meta($penalty_id,'user_id',$cid);
-            update_post_meta($penalty_id,'shipment_ids',$sids);
-            update_post_meta($penalty_id,'date',$today);
-            update_post_meta($penalty_id,'status','unpaid');
-            $created++; $details[] = "user {$cid}: created {$penalty_id}";
-        }
-    }
-
-    $msg = sprintf('Penalidades creadas: %d, omitidos: %d', $created, $skipped);
-    wp_send_json_success(array('message'=>$msg,'details'=>$details));
-});
-
-
 

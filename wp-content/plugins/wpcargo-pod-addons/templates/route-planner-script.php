@@ -947,10 +947,8 @@
                     });
                 }
 
-                // URL de tracking: mismo formato confirmado del dashboard
                 const trackingUrl = `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${delivery.number}`;
 
-                // Nombre del destinatario con fallback al número
                 const receiverDisplay = delivery.receiver_name
                     ? delivery.receiver_name
                     : `Pedido ${delivery.number}`;
@@ -963,10 +961,17 @@
                             
                             <!-- Nombre del destinatario + badge número de seguimiento -->
                             <div style="display: flex; flex-direction: column; gap: 5px;">
-                                <span style="font-weight: bold; font-size: 17px; color: #007bff;">
-                                    ${index + 1}. ${receiverDisplay}
-                                </span>
-                                <!-- NUEVO: Badge clickeable con número de seguimiento -->
+
+                                <!-- NOMBRE: link directo a WhatsApp sin mensaje (se actualiza el href vía JS) -->
+                                <a id="receiver-wa-${delivery.id}"
+                                   href="#"
+                                   target="_blank"
+                                   title="Abrir WhatsApp del destinatario"
+                                   style="font-weight: bold; font-size: 17px; color: #25D366; text-decoration: none;">
+                                    💬 ${index + 1}. ${receiverDisplay}
+                                </a>
+
+                                <!-- Badge clickeable con número de seguimiento -->
                                 <a href="${trackingUrl}"
                                    target="_blank"
                                    title="Ver hoja de tracking en WPCargo"
@@ -1007,6 +1012,28 @@
         
         listHTML += '</div>';
         summaryPanel.innerHTML = listHTML;
+
+        // ── Resolver hrefs de WhatsApp de forma asíncrona tras renderizar ──
+        setTimeout(() => {
+            deliveries.forEach(async (delivery) => {
+                try {
+                    const data = await getShipmentData(delivery.id);
+                    const phone = formatPhoneNumber(data.receiver_phone);
+                    const el = document.getElementById(`receiver-wa-${delivery.id}`);
+                    if (el && phone) {
+                        el.href = `https://wa.me/${phone}`;
+                    } else if (el) {
+                        // Sin teléfono: desactivar el link visualmente
+                        el.style.color = '#007bff';
+                        el.style.cursor = 'default';
+                        el.removeAttribute('href');
+                        el.title = 'Sin teléfono disponible';
+                    }
+                } catch (e) {
+                    // silencioso
+                }
+            });
+        }, 0);
         
         $('#wpcpod-route-planner #wpcpod-route-loader').remove();
     }

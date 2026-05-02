@@ -1019,22 +1019,16 @@ function wpcfe_get_bulk_report_counts( $date_start, $date_end, $statuses ) {
     
     $parameter = array( $date_start . ' 00:00:00', $date_end . ' 23:59:59' );
     
-    $sql = "SELECT DATE(tblpost.post_date) as report_date, tblstatus.meta_value as status, COUNT(*) as count 
+    $sql = "SELECT DATE(tblpost.post_date) as report_date, tblstatus.meta_value as status, COUNT(tblpost.ID) as count 
             FROM {$wpdb->posts} AS tblpost 
-            INNER JOIN {$wpdb->postmeta} AS tblstatus ON tblpost.ID = tblstatus.post_id";
+            STRAIGHT_JOIN {$wpdb->postmeta} AS tblstatus ON tblpost.ID = tblstatus.post_id AND tblstatus.meta_key = 'wpcargo_status'";
     
     if ( !$is_admin ) {
-        $sql .= " LEFT JOIN {$wpdb->postmeta} AS tbluser ON tblpost.ID = tbluser.post_id";
+        $sql .= " INNER JOIN {$wpdb->postmeta} AS tbluser ON tblpost.ID = tbluser.post_id";
     }
     
     $sql .= " WHERE tblpost.post_status = 'publish' AND tblpost.post_type = 'wpcargo_shipment' 
-              AND tblpost.post_date BETWEEN %s AND %s 
-              AND tblstatus.meta_key = 'wpcargo_status'";
-    
-    // Filtro por estados
-    $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
-    $sql .= " AND tblstatus.meta_value IN ($status_placeholders)";
-    foreach($statuses as $st) $parameter[] = $st;
+              AND tblpost.post_date >= %s AND tblpost.post_date <= %s";
 
     if ( !$is_admin ) {
         $meta_key = 'registered_shipper';
@@ -1335,11 +1329,11 @@ function wpcfe_get_user_unseen_shipments(){
         $sql .= " LEFT JOIN `{$wpdb->postmeta}` AS tbl3 ON tbl1.ID = tbl3.post_id";
     }
 
-    $sql .= " WHERE tbl1.post_type LIKE 'wpcargo_shipment' AND tbl1.post_status LIKE 'publish'";
+    $sql .= " WHERE tbl1.post_type = 'wpcargo_shipment' AND tbl1.post_status = 'publish'";
     $sql .= " AND tbl2.post_id IS NULL";
     
     if( !$is_admin ){
-        $sql .= " AND tbl3.meta_key LIKE %s AND tbl3.meta_value = %d";
+        $sql .= " AND tbl3.meta_key = %s AND tbl3.meta_value = %d";
         $sql .= " LIMIT 10";
         $sql = $wpdb->prepare( $sql, $seen_metakey, $user_metakey, $current_user->ID );
     }else{

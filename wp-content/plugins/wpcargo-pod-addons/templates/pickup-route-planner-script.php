@@ -74,7 +74,6 @@
     const TRACKING_PAGE_SLUG = 'dashboard'; // Slug del dashboard de WPCargo
 
     function openTrackingSheet(shipmentNumber, postId) {
-        // URL correcta confirmada: /dashboard/?wpcfe=track&num=NUMERO
         const trackingUrl = `<?php echo home_url('/'); ?>${TRACKING_PAGE_SLUG}/?wpcfe=track&num=${shipmentNumber}`;
 
         if (shipmentNumber && shipmentNumber !== 'N/A') {
@@ -246,15 +245,11 @@
         console.log('Available Statuses:', availableStatuses);
         console.log('======================');
         
-        // Definir transiciones de estados según el estado actual
         const estadosMotorizadoInicial = ['RECOGIDO', 'NO RECOGIDO'];
         const estadosMotorizadoDespuesBase = ['EN RUTA', 'NO CONTESTA', 'NO RECIBIDO', 'ENTREGADO', 'REPROGRAMADO', 'ANULADO'];
         const estadosAvanzados = ['EN BASE MERCOURIER', 'RECEPCIONADO', 'LISTO PARA SALIR', 'NO CONTESTA', 'EN RUTA', 'NO RECIBIDO', 'ENTREGADO', 'REPROGRAMADO', 'ANULADO'];
-        
-        // Estados de fase inicial (incluir PENDIENTE)
         const estadosInicial = ['PENDIENTE', 'RECOGIDO', 'NO RECOGIDO'];
         
-        // Función para obtener estados permitidos según el estado actual
         function getPermittedStatuses(currentStatus, allStatuses) {
             console.log('🔍 getPermittedStatuses - currentStatus:', currentStatus, 'allStatuses:', allStatuses);
             
@@ -265,7 +260,6 @@
             const currentStatusUpper = (currentStatus || '').toUpperCase();
             let permitidos = [];
             
-            // Detectar si el estado actual es avanzado
             const esEstadoAvanzado = estadosAvanzados.some(function(estado) {
                 return currentStatusUpper.includes(estado);
             });
@@ -274,7 +268,6 @@
             console.log('   ¿Es avanzado?:', esEstadoAvanzado);
             
             if (esEstadoAvanzado) {
-                // Si es avanzado, mostrar estados posteriores
                 permitidos = allStatuses.filter(function(status) {
                     const statusUpper = status.toUpperCase();
                     return estadosMotorizadoDespuesBase.some(function(permitido) {
@@ -283,7 +276,6 @@
                 });
                 console.log('   Filtrando como avanzado - permitidos:', permitidos);
             } else {
-                // Si no es avanzado (es inicial), mostrar estados iniciales
                 permitidos = allStatuses.filter(function(status) {
                     const statusUpper = status.toUpperCase();
                     return estadosMotorizadoInicial.some(function(permitido) {
@@ -293,7 +285,6 @@
                 console.log('   Filtrando como inicial - permitidos:', permitidos);
             }
             
-            // Filtrar "LISTO PARA SALIR" si existe
             permitidos = permitidos.filter(function(opt) {
                 return opt.toUpperCase().trim() !== 'LISTO PARA SALIR';
             });
@@ -310,30 +301,27 @@
             shipments.forEach((shipment, index) => {
                 const shipmentDate = shipment['pickup_date'] || '';
 
-                    // Normalizar fechas: aceptar 'd/m/Y' y 'Y-m-d'
-                    function normalizeToDMY(dateStr) {
-                        if (!dateStr) return '';
-                        // si ya está en formato d/m/Y
-                        if (dateStr.indexOf('/') !== -1) return dateStr;
-                        // si está en formato Y-m-d o Y-m-d H:i:s
-                        if (dateStr.indexOf('-') !== -1) {
-                            const parts = dateStr.split(' ');
-                            const datePart = parts[0];
-                            const p = datePart.split('-');
-                            if (p.length >= 3) {
-                                return `${p[2]}/${p[1]}/${p[0]}`;
-                            }
+                function normalizeToDMY(dateStr) {
+                    if (!dateStr) return '';
+                    if (dateStr.indexOf('/') !== -1) return dateStr;
+                    if (dateStr.indexOf('-') !== -1) {
+                        const parts = dateStr.split(' ');
+                        const datePart = parts[0];
+                        const p = datePart.split('-');
+                        if (p.length >= 3) {
+                            return `${p[2]}/${p[1]}/${p[0]}`;
                         }
-                        return dateStr;
                     }
+                    return dateStr;
+                }
 
-                    const shipmentDateNorm = normalizeToDMY(shipmentDate);
+                const shipmentDateNorm = normalizeToDMY(shipmentDate);
 
-                    if (shipmentDateNorm && shipmentDateNorm !== today) {
-                        return;
-                    }
+                if (shipmentDateNorm && shipmentDateNorm !== today) {
+                    return;
+                }
                 
-                const shipperId = shipment['registered_shipper'] || 'sin_usuario';
+                const shipperId   = shipment['registered_shipper'] || 'sin_usuario';
                 const shipperName = shipment['shipper_name'] || 'Cliente desconocido';
                 
                 console.log(`🔍 Shipment ${index}:`, {
@@ -345,12 +333,11 @@
                     shipperName_computed: shipperName
                 });
                 
-                let address = shipment['address'] || 'Dirección no disponible';
+                let address          = shipment['address'] || 'Dirección no disponible';
                 let linkMapsRemitente = shipment['link_maps_remitente'] || '';
-                let lat = shipment['lat'] || null;
-                let lng = shipment['lng'] || null;
+                let lat              = shipment['lat'] || null;
+                let lng              = shipment['lng'] || null;
                 
-                // Extraer coordenadas del link si es necesario
                 if ((!lat || !lng) && linkMapsRemitente) {
                     const coords = extractCoordinatesFromUrl(linkMapsRemitente);
                     if (coords) {
@@ -364,39 +351,41 @@
                     distance = calculateDistance(origin.lat, origin.lng, lat, lng);
                 }
                 
+                // ── CAMBIO: guardar teléfono del shipper desde wpcargo_shipper_phone ──
                 if (!groupedByUser[shipperId]) {
                     groupedByUser[shipperId] = {
-                        name: shipperName,
+                        name:  shipperName,
+                        phone: formatPhoneNumber(shipment['wpcargo_shipper_phone'] || ''),
                         pickups: []
                     };
                 }
                 
                 groupedByUser[shipperId].pickups.push({
-                    id: shipment['id'] || null,
-                    number: shipment['number'] || 'N/A',
-                    address: address,
-                    link_maps: linkMapsRemitente,
-                    info: shipment['info'] || {},
-                    lat: lat,
-                    lng: lng,
-                    distance: distance,
+                    id:          shipment['id'] || null,
+                    number:      shipment['number'] || 'N/A',
+                    address:     address,
+                    link_maps:   linkMapsRemitente,
+                    info:        shipment['info'] || {},
+                    lat:         lat,
+                    lng:         lng,
+                    distance:    distance,
                     pickup_date: shipmentDate,
-                    status: shipment['status'] || 'N/A'
+                    status:      shipment['status'] || 'N/A'
                 });
                 
                 pickups.push({
-                    id: shipment['id'] || null,
-                    number: shipment['number'] || 'N/A',
-                    address: address,
-                    link_maps: linkMapsRemitente,
-                    info: shipment['info'] || {},
-                    lat: lat,
-                    lng: lng,
-                    distance: distance,
-                    pickup_date: shipmentDate,
-                    status: shipment['status'] || 'N/A',
+                    id:                shipment['id'] || null,
+                    number:            shipment['number'] || 'N/A',
+                    address:           address,
+                    link_maps:         linkMapsRemitente,
+                    info:              shipment['info'] || {},
+                    lat:               lat,
+                    lng:               lng,
+                    distance:          distance,
+                    pickup_date:       shipmentDate,
+                    status:            shipment['status'] || 'N/A',
                     registered_shipper: shipperId,
-                    shipper_name: shipperName
+                    shipper_name:      shipperName
                 });
             });
         }
@@ -409,36 +398,27 @@
         if (pickups.length === 0) {
             listHTML += '<div class="alert alert-warning" style="padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; text-align: center;">⚠️ No se encontraron recojos PENDIENTES para hoy</div>';
         } else {
-            // Mostrar por grupos de usuario
             Object.keys(groupedByUser).forEach((shipperId) => {
-                const userGroup = groupedByUser[shipperId];
-                const shipperName = userGroup.name;
-                const pickupCount = userGroup.pickups.length;
-                
-                // ═══════════════════════════════════════════════════════════
-                // MODIFICADO: El nombre de la tienda ahora es un enlace
-                // que abre la hoja de tracking del primer recojo del grupo.
-                // Si hay múltiples recojos, cada uno tiene su propio link.
-                // Usamos el primer pickup del grupo para el link del encabezado.
-                // ═══════════════════════════════════════════════════════════
-                const firstPickup = userGroup.pickups[0];
-                const firstNumber = firstPickup ? firstPickup.number : null;
+                const userGroup    = groupedByUser[shipperId];
+                const shipperName  = userGroup.name;
+                const pickupCount  = userGroup.pickups.length;
+                const firstPickup  = userGroup.pickups[0];
+                const firstNumber  = firstPickup ? firstPickup.number : null;
 
-                // Nombre clickeable → abre tracking del primer envío del grupo
                 const shipperNameDisplay = shipperName.length > 30
                     ? shipperName.substring(0, 30) + '<br>' + shipperName.substring(30)
                     : shipperName;
 
-                const shipperTrackUrl = firstNumber && firstNumber !== 'N/A'
-                    ? `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${firstNumber}`
-                    : null;
+                // ── CAMBIO: enlace al WhatsApp de la tienda (sin mensaje) ──
+                const shipperPhone   = userGroup.phone || '';
+                const whatsappUrl    = shipperPhone ? `https://wa.me/${shipperPhone}` : null;
 
-                const shipperNameLink = shipperTrackUrl
-                    ? `<a href="${shipperTrackUrl}"
+                const shipperNameLink = whatsappUrl
+                    ? `<a href="${whatsappUrl}"
                           target="_blank"
-                          title="Ver hoja de tracking en WPCargo"
-                          style="color: #74b9ff; text-decoration: underline; cursor: pointer;">
-                          <i class="fa fa-user-circle" style="margin-right: 8px;"></i>${shipperNameDisplay}
+                          title="Contactar por WhatsApp"
+                          style="color: #25D366; text-decoration: underline; cursor: pointer;">
+                          <i class="fa fa-whatsapp" style="margin-right: 8px;"></i>${shipperNameDisplay}
                        </a>`
                     : `<span><i class="fa fa-user-circle" style="margin-right: 8px;"></i>${shipperNameDisplay}</span>`;
                 
@@ -465,77 +445,65 @@
                         <div id="user-${shipperId}" style="display: none; padding: 15px;">
                 `;
                 
-                // ── BARRA DE ACCIÓN MASIVA ──────────────────────────────────────
-listHTML += `
-    <div id="bulk-bar-${shipperId}" 
-         style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-                background: #eaf0fb; border: 1px solid #aac4ee; border-radius: 6px;
-                padding: 10px 12px; margin-bottom: 14px;">
+                // ── BARRA DE ACCIÓN MASIVA ──
+                listHTML += `
+                    <div id="bulk-bar-${shipperId}" 
+                         style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+                                background: #eaf0fb; border: 1px solid #aac4ee; border-radius: 6px;
+                                padding: 10px 12px; margin-bottom: 14px;">
 
-        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #2c3e50; font-weight: 600; white-space: nowrap;">
-            <input type="checkbox"
-                   id="select-all-${shipperId}"
-                   onchange="toggleSelectAll('${shipperId}', this.checked)"
-                   style="width: 16px; height: 16px; accent-color: #2c3e50;">
-            Seleccionar todos
-        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #2c3e50; font-weight: 600; white-space: nowrap;">
+                            <input type="checkbox"
+                                   id="select-all-${shipperId}"
+                                   onchange="toggleSelectAll('${shipperId}', this.checked)"
+                                   style="width: 16px; height: 16px; accent-color: #2c3e50;">
+                            Seleccionar todos
+                        </label>
 
-        <select id="bulk-status-${shipperId}"
-                style="padding: 6px 10px; border: 1px solid #aac4ee; border-radius: 4px;
-                       font-size: 13px; background: #fff; color: #333; flex: 1; min-width: 140px;">
-            <option value="">-- Estado masivo --</option>
-            ${['RECOGIDO', 'NO RECOGIDO', 'PENDIENTE'].map(s => `<option value="${s}">${s}</option>`).join('')}
-        </select>
+                        <select id="bulk-status-${shipperId}"
+                                style="padding: 6px 10px; border: 1px solid #aac4ee; border-radius: 4px;
+                                       font-size: 13px; background: #fff; color: #333; flex: 1; min-width: 140px;">
+                            <option value="">-- Estado masivo --</option>
+                            ${['RECOGIDO', 'NO RECOGIDO', 'PENDIENTE'].map(s => `<option value="${s}">${s}</option>`).join('')}
+                        </select>
 
-        <button onclick="applyBulkStatus('${shipperId}')"
-                type="button"
-                style="background: #2c3e50; color: white; border: none; border-radius: 4px;
-                       padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
-                       white-space: nowrap;">
-            ⚡ Aplicar a seleccionados
-        </button>
+                        <button onclick="applyBulkStatus('${shipperId}')"
+                                type="button"
+                                style="background: #2c3e50; color: white; border: none; border-radius: 4px;
+                                       padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+                                       white-space: nowrap;">
+                            ⚡ Aplicar a seleccionados
+                        </button>
 
-        <span id="bulk-count-${shipperId}" 
-              style="font-size: 12px; color: #555; white-space: nowrap;">
-            0 seleccionado(s)
-        </span>
-    </div>
-`;
-// ── FIN BARRA MASIVA ────────────────────────────────────────────
+                        <span id="bulk-count-${shipperId}" 
+                              style="font-size: 12px; color: #555; white-space: nowrap;">
+                            0 seleccionado(s)
+                        </span>
+                    </div>
+                `;
                 
                 userGroup.pickups.forEach((pickup, idx) => {
-                    // Obtener los estados permitidos según el estado actual del pickup
                     const permittedStatuses = getPermittedStatuses(pickup.status, availableStatuses);
                     
                     console.log(`📦 Pickup ${pickup.number}: status='${pickup.status}' -> permitidos:`, permittedStatuses);
                     
-                    // Generar opciones del select: incluir SIEMPRE el estado actual + los permitidos
                     let statusOptions = '';
-                    
-                    // Agregar el estado actual como opción (puede no estar en permitidos)
                     statusOptions += `<option value="${pickup.status}" selected>${pickup.status}</option>`;
                     
-                    // Agregar los estados permitidos (si no son el estado actual)
                     if (permittedStatuses && permittedStatuses.length > 0) {
                         permittedStatuses.forEach(status => {
-                            // No duplicar el estado actual
                             if (status !== pickup.status) {
                                 statusOptions += `<option value="${status}">${status}</option>`;
                             }
                         });
                     }
                     
-                    // ═══════════════════════════════════════════════════════════
-                    // MODIFICADO: Header del recojo con número de seguimiento
-                    // como badge clickeable que abre la hoja de tracking
-                    // ═══════════════════════════════════════════════════════════
                     const trackingUrl = `<?php echo home_url('/'); ?>dashboard/?wpcfe=track&num=${pickup.number}`;
 
                     listHTML += `
                         <div id="card-${pickup.id}" style="border: 1px solid #bdc3c7; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #f8f9fa; transition: border 0.2s, background 0.2s;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; gap: 8px;">
 
-                            <!-- Checkbox grande y clickeable sin scroll -->
                             <label onclick="event.preventDefault(); const cb = this.querySelector('input'); cb.checked = !cb.checked; updateBulkCount('${shipperId}'); highlightCard(cb);"
                                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; 
                                           padding: 6px 10px; background: #f0f4ff; border: 2px solid #aac4ee;
@@ -613,10 +581,8 @@ listHTML += `
     
     // Función para actualizar estado de un pickup individual
     async function updatePickupStatus(shipmentId, newStatus) {
-        // Obtener el nonce del atributo data
         const nonce = document.getElementById('wpcpod-route-planner').getAttribute('data-nonce');
         
-        // Mostrar confirmación con SweetAlert
         Swal.fire({
             title: '⚠️ Confirmar cambio de estado',
             text: `¿Deseas cambiar el estado a "${newStatus}"?`,
@@ -672,123 +638,121 @@ listHTML += `
         });
     }
     
-// ── Resaltar visualmente la card cuando se selecciona ──
-function highlightCard(checkbox) {
-    const cardId = checkbox.getAttribute('data-card-id');
-    const card = document.getElementById(cardId);
-    if (!card) return;
+    // Resaltar visualmente la card cuando se selecciona
+    function highlightCard(checkbox) {
+        const cardId = checkbox.getAttribute('data-card-id');
+        const card   = document.getElementById(cardId);
+        if (!card) return;
 
-    if (checkbox.checked) {
-        card.style.border = '2px solid #3498db';
-        card.style.background = '#eaf4fd';
-    } else {
-        card.style.border = '1px solid #bdc3c7';
-        card.style.background = '#f8f9fa';
-    }
-}
-
-// ── Seleccionar / deseleccionar todos los checkboxes de un grupo ──
-function toggleSelectAll(shipperId, checked) {
-    document.querySelectorAll(`.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]`)
-        .forEach(cb => {
-            cb.checked = checked;
-            highlightCard(cb);
-        });
-    updateBulkCount(shipperId);
-}
-
-// ── Contar cuántos están seleccionados y actualizar el label ──
-function updateBulkCount(shipperId) {
-    const total = document.querySelectorAll(
-        `.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]:checked`
-    ).length;
-    const countEl = document.getElementById(`bulk-count-${shipperId}`);
-    if (countEl) countEl.textContent = `${total} seleccionado(s)`;
-
-    const allCbs = document.querySelectorAll(`.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]`);
-    const selectAllCb = document.getElementById(`select-all-${shipperId}`);
-    if (selectAllCb) selectAllCb.checked = (total === allCbs.length && allCbs.length > 0);
-}
-
-// ── Aplicar estado masivo a los pedidos seleccionados ──
-async function applyBulkStatus(shipperId) {
-    const checkboxes = document.querySelectorAll(
-        `.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]:checked`
-    );
-    const newStatus = document.getElementById(`bulk-status-${shipperId}`)?.value;
-
-    if (checkboxes.length === 0) {
-        Swal.fire({ title: '⚠️ Sin selección', text: 'Marca al menos un pedido.', icon: 'warning', confirmButtonColor: '#3498db' });
-        return;
-    }
-    if (!newStatus) {
-        Swal.fire({ title: '⚠️ Sin estado', text: 'Selecciona un estado para aplicar.', icon: 'warning', confirmButtonColor: '#3498db' });
-        return;
+        if (checkbox.checked) {
+            card.style.border     = '2px solid #3498db';
+            card.style.background = '#eaf4fd';
+        } else {
+            card.style.border     = '1px solid #bdc3c7';
+            card.style.background = '#f8f9fa';
+        }
     }
 
-    const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-shipment-id'));
-
-    const confirmResult = await Swal.fire({
-        title: '⚠️ Confirmar cambio masivo',
-        html: `¿Cambiar <strong>${ids.length} pedido(s)</strong> a "<strong>${newStatus}</strong>"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#2c3e50',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, aplicar',
-        cancelButtonText: 'Cancelar'
-    });
-
-    if (!confirmResult.isConfirmed) return;
-
-    const nonce = document.getElementById('wpcpod-route-planner').getAttribute('data-nonce');
-
-    Swal.fire({
-        title: '⏳ Actualizando...',
-        text: `Procesando ${ids.length} pedido(s)`,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => Swal.showLoading()
-    });
-
-    try {
-        const response = await jQuery.ajax({
-            type: 'POST',
-            url: "<?php echo admin_url('admin-ajax.php'); ?>",
-            data: {
-                action: 'wpcpod_bulk_update_pickup_status',
-                shipment_ids: ids,
-                new_status: newStatus,
-                nonce: nonce
-            }
-        });
-
-        if (response.success) {
-            Swal.fire({
-                title: '✅ Listo',
-                text: response.data.message,
-                icon: 'success',
-                confirmButtonColor: '#2c3e50',
-                timer: 2500
-            });
-            // Desmarcar checkboxes, quitar resaltado y resetear contador
-            checkboxes.forEach(cb => {
-                cb.checked = false;
+    // Seleccionar / deseleccionar todos los checkboxes de un grupo
+    function toggleSelectAll(shipperId, checked) {
+        document.querySelectorAll(`.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]`)
+            .forEach(cb => {
+                cb.checked = checked;
                 highlightCard(cb);
             });
-            const selectAllCb = document.getElementById(`select-all-${shipperId}`);
-            if (selectAllCb) selectAllCb.checked = false;
-            updateBulkCount(shipperId);
-        } else {
-            Swal.fire({ title: '❌ Error', text: response.data.message, icon: 'error', confirmButtonColor: '#e74c3c' });
-        }
-    } catch (error) {
-        Swal.fire({ title: '❌ Error de conexión', text: 'No se pudo completar el cambio masivo.', icon: 'error', confirmButtonColor: '#e74c3c' });
+        updateBulkCount(shipperId);
     }
-}
+
+    // Contar cuántos están seleccionados y actualizar el label
+    function updateBulkCount(shipperId) {
+        const total = document.querySelectorAll(
+            `.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]:checked`
+        ).length;
+        const countEl = document.getElementById(`bulk-count-${shipperId}`);
+        if (countEl) countEl.textContent = `${total} seleccionado(s)`;
+
+        const allCbs      = document.querySelectorAll(`.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]`);
+        const selectAllCb = document.getElementById(`select-all-${shipperId}`);
+        if (selectAllCb) selectAllCb.checked = (total === allCbs.length && allCbs.length > 0);
+    }
+
+    // Aplicar estado masivo a los pedidos seleccionados
+    async function applyBulkStatus(shipperId) {
+        const checkboxes = document.querySelectorAll(
+            `.pickup-bulk-checkbox[data-shipper-id="${shipperId}"]:checked`
+        );
+        const newStatus = document.getElementById(`bulk-status-${shipperId}`)?.value;
+
+        if (checkboxes.length === 0) {
+            Swal.fire({ title: '⚠️ Sin selección', text: 'Marca al menos un pedido.', icon: 'warning', confirmButtonColor: '#3498db' });
+            return;
+        }
+        if (!newStatus) {
+            Swal.fire({ title: '⚠️ Sin estado', text: 'Selecciona un estado para aplicar.', icon: 'warning', confirmButtonColor: '#3498db' });
+            return;
+        }
+
+        const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-shipment-id'));
+
+        const confirmResult = await Swal.fire({
+            title: '⚠️ Confirmar cambio masivo',
+            html: `¿Cambiar <strong>${ids.length} pedido(s)</strong> a "<strong>${newStatus}</strong>"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#2c3e50',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, aplicar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        const nonce = document.getElementById('wpcpod-route-planner').getAttribute('data-nonce');
+
+        Swal.fire({
+            title: '⏳ Actualizando...',
+            text: `Procesando ${ids.length} pedido(s)`,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const response = await jQuery.ajax({
+                type: 'POST',
+                url: "<?php echo admin_url('admin-ajax.php'); ?>",
+                data: {
+                    action: 'wpcpod_bulk_update_pickup_status',
+                    shipment_ids: ids,
+                    new_status: newStatus,
+                    nonce: nonce
+                }
+            });
+
+            if (response.success) {
+                Swal.fire({
+                    title: '✅ Listo',
+                    text: response.data.message,
+                    icon: 'success',
+                    confirmButtonColor: '#2c3e50',
+                    timer: 2500
+                });
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                    highlightCard(cb);
+                });
+                const selectAllCb = document.getElementById(`select-all-${shipperId}`);
+                if (selectAllCb) selectAllCb.checked = false;
+                updateBulkCount(shipperId);
+            } else {
+                Swal.fire({ title: '❌ Error', text: response.data.message, icon: 'error', confirmButtonColor: '#e74c3c' });
+            }
+        } catch (error) {
+            Swal.fire({ title: '❌ Error de conexión', text: 'No se pudo completar el cambio masivo.', icon: 'error', confirmButtonColor: '#e74c3c' });
+        }
+    }
     
     jQuery(document).ready(function() {
         initPODRouteMap();
     });
 </script>
-
