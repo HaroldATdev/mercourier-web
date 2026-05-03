@@ -137,6 +137,57 @@ class WCROL_Rol_WPCargo {
 
         // Integración con plugin Escáner: permitir estos roles en su validación.
         add_filter('dhv_scanner_roles', [__CLASS__, 'agregar_roles_en_escaner'], 10, 1);
+
+        // Inyección masiva del rol en hooks internos de WPCargo Frontend Manager
+        $wpcfe_roles_hooks = [
+            'wpcfe_super_admin_roles',
+            'wpcfe_add_shipment_role',
+            'wpcfe_assign_driver_roles',
+            'wpcfe_assign_manager',
+            'wpcfe_assign_agent',
+            'wpcfe_assign_client',
+            'wpcfe_can_edit_fields_roles',
+            'option_wpcfe_update_shipment_role',
+            'option_wpcfe_delete_shipment_role',
+            'can_export_wpcpod_report',
+            'wpcpod_can_delete_signature_roles',
+
+            // User Management (Usuarios)
+            'can_wpcumanage_access_roles',
+            'can_wpcumanage_add_roles',
+            'can_wpcumanage_delete_roles',
+            'wpcum_can_edit_uname',
+            'wpcum_can_edit_email',
+
+            // Contenedores
+            'wpcc_can_access_containers',
+            'wpcc_can_update_container',
+            'option_delete_container_role',
+            'option_wpcc_ie_container_role',
+
+            // Escáner
+            'wpcr_receiver_roles'
+        ];
+        
+        foreach ($wpcfe_roles_hooks as $hook) {
+            add_filter($hook, [__CLASS__, 'inyectar_rol_wpcargo_admin'], 10, 1);
+        }
+    }
+
+    /**
+     * Inyecta globalmente el rol wpcargo_admin en cualquier array de permisos interno de WPCargo.
+     */
+    public static function inyectar_rol_wpcargo_admin( $roles ) {
+        // Si el valor viene vacío (típico de options no guardadas), forzamos los valores predeterminados
+        if ( ! is_array($roles) || empty($roles) ) {
+            $roles = ['administrator', 'wpcargo_employee', 'cargo_agent', 'wpcargo_client', 'wpcargo_branch_manager'];
+        }
+
+        if ( ! in_array(self::SLUG, $roles, true) ) {
+            $roles[] = self::SLUG;
+        }
+
+        return $roles;
     }
 
     /**
@@ -361,6 +412,9 @@ class WCROL_Rol_WPCargo {
 
         // Evitar lecturas de rol en cache obsoleta.
         clean_user_cache($user_id);
+        
+        // Refresco defensivo del objeto usuario para asegurar persistencia
+        $user = get_userdata($user_id);
 
         return true;
     }
@@ -416,3 +470,4 @@ class WCROL_Rol_WPCargo {
 }
 
 WCROL_Rol_WPCargo::init();
+

@@ -16,9 +16,7 @@ class WCROL_Admin
         // Guardar permisos de módulos del dashboard
         add_action('admin_post_wcrol_guardar_permisos', [$this, 'handle_guardar_permisos']);
 
-        // NUEVO:
-        // Guardar permisos del menú lateral
-        add_action('admin_post_wcrol_guardar_sidebar', [$this, 'handle_guardar_sidebar']);
+        // Eliminado: lógica antigua de sidebar separado
 
         // Quitar restricciones (acceso total)
         add_action('admin_post_wcrol_quitar_restricciones', [$this, 'handle_quitar_restricciones']);
@@ -156,42 +154,7 @@ class WCROL_Admin
         );
     }
 
-    // NUEVO:
-    // Guardar módulos visibles del menú lateral
-    public function handle_guardar_sidebar(): void
-    {
 
-        check_admin_referer('wcrol_sidebar_nonce');
-
-        if (! current_user_can('manage_options')) {
-            wp_die();
-        }
-
-        $user_id = intval($_POST['user_id'] ?? 0);
-
-        if (! $user_id) {
-            wcrol_redirect('wcrol-usuarios', 'error_req');
-        }
-
-        $sidebar_modulos = array_map(
-            'sanitize_key',
-            $_POST['sidebar_modulos'] ?? []
-        );
-
-        $modulos_totales = WCROL_Modulos::obtener_todos();
-
-        if (count($sidebar_modulos) >= count($modulos_totales)) {
-            WCROL_Permisos::quitar_sidebar($user_id);
-        } else {
-            WCROL_Permisos::guardar_sidebar($user_id, $sidebar_modulos);
-        }
-
-        wcrol_redirect(
-            'wcrol-usuarios',
-            'guardado',
-            ['usuario' => $user_id]
-        );
-    }
 
     // Quitar restricciones de módulos del dashboard
     public function handle_quitar_restricciones(): void
@@ -328,3 +291,4 @@ class WCROL_Admin
 }
 
 new WCROL_Admin();
+

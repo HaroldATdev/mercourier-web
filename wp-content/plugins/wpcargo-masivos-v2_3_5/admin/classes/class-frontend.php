@@ -5,20 +5,21 @@ class WCMAS_Frontend {
 
     public function __construct() {
         add_shortcode('wcmas-masivos',          [$this, 'render_shortcode']);
-        add_filter('wpcfe_after_sidebar_menus', [$this, 'sidebar_item'], 29, 1);
+        add_action('wpcfe_after_create_shipment', [$this, 'sidebar_item_html']);
     }
 
-    /** Añadir item al sidebar del dashboard de WPCargo */
-    public function sidebar_item( array $menu ): array {
+    /** Añadir item al sidebar del dashboard de WPCargo justo debajo de Crear Servicio */
+    public function sidebar_item_html(): void {
         // Visible para cualquier usuario que pueda crear envíos
-        if ( ! wcmas_puede_crear() ) return $menu;
-        $menu['wcmas-masivos'] = [
-            'page-id'   => wcmas_get_frontend_page_id(),
-            'label'     => 'Envíos Masivos',
-            'permalink' => wcmas_frontend_url(),
-            'icon'      => 'fa-table',
-        ];
-        return $menu;
+        if ( ! wcmas_puede_crear() ) return;
+        
+        $page_id = wcmas_get_frontend_page_id();
+        $active_class = ( !isset($_GET['wpcfe']) && get_the_ID() == $page_id ) ? 'active' : '';
+        ?>
+        <a href="<?php echo esc_url(wcmas_frontend_url()); ?>" class="list-group-item waves-effect wcmas-masivos <?php echo $active_class; ?>"> 
+            <i class="fa fa-table mr-3"></i>Crear envíos masivos
+        </a>
+        <?php
     }
 
     public function render_shortcode(): string {
@@ -89,5 +90,6 @@ class WCMAS_Frontend {
 }
 
 new WCMAS_Frontend();
+
 
 

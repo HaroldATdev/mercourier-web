@@ -4,16 +4,150 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Catálogo de módulos.
  *
- * ESTRATEGIA:
- * - Guarda módulos provenientes de páginas dashboard.php
- * - Guarda módulos provenientes de plugins / sidebar capturado
- * - Evita duplicados por page_id, sidebar_key y label normalizado
- * - Permite filtrar correctamente módulos aunque usen page-id o sidebar_key
+ * ESTRATEGIA ACTUALIZADA:
+ * - Catálogo base de 16 módulos estáticos siempre presentes.
+ * - Sincronización permite agregar nuevos pero nunca borra los base.
  */
 class WCROL_Modulos {
 
     const OPTION_KEY  = 'wcrol_modulos_catalogo';
     const CAPTURE_KEY = 'wcrol_sidebar_capturado';
+
+    /**
+     * Módulos base garantizados (Los 16 del menú lateral).
+     */
+    public static function get_modulos_base(): array {
+        return [
+            'core_escritorio' => [
+                'slug'        => 'core_escritorio',
+                'label'       => 'Escritorio',
+                'icon'        => 'fa-cubes',
+                'fuente'      => 'wpcargo_core',
+                'page_id'     => 0,
+                'sidebar_key' => 'core_escritorio',
+            ],
+            'core_crear' => [
+                'slug'        => 'core_crear',
+                'label'       => 'Crear servicio',
+                'icon'        => 'fa-plus',
+                'fuente'      => 'wpcargo_core',
+                'page_id'     => 0,
+                'sidebar_key' => 'core_crear',
+            ],
+            'history' => [
+                'slug'        => 'history',
+                'label'       => 'Historial de Envíos',
+                'icon'        => 'fa-history',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'history',
+            ],
+            'receiving-menu' => [
+                'slug'        => 'receiving-menu',
+                'label'       => 'Escáner',
+                'icon'        => 'fa-barcode',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'receiving-menu',
+            ],
+            'merc-almacen-productos' => [
+                'slug'        => 'merc-almacen-productos',
+                'label'       => 'Almacén de Productos',
+                'icon'        => 'fa-building',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'merc-almacen-productos',
+            ],
+            'merc-panel-admin' => [
+                'slug'        => 'merc-panel-admin',
+                'label'       => 'Finanzas Admin',
+                'icon'        => 'fa-money',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'merc-panel-admin',
+            ],
+            'merc_devoluciones' => [
+                'slug'        => 'merc_devoluciones',
+                'label'       => 'Devoluciones',
+                'icon'        => 'fa-undo',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'merc_devoluciones',
+            ],
+            'wpcsc-menu' => [
+                'slug'        => 'wpcsc-menu',
+                'label'       => 'Contenedores',
+                'icon'        => 'fa-truck',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'wpcsc-menu',
+            ],
+            'wpcpod-route' => [
+                'slug'        => 'wpcpod-route',
+                'label'       => 'Entrega de mercadería',
+                'icon'        => 'fa-check-square-o',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'wpcpod-route',
+            ],
+            'wpcpod-pickup-route' => [
+                'slug'        => 'wpcpod-pickup-route',
+                'label'       => 'Recojo de mercadería',
+                'icon'        => 'fa-address-book',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'wpcpod-pickup-route',
+            ],
+            'wpcpod-menu' => [
+                'slug'        => 'wpcpod-menu',
+                'label'       => 'Informe del conductor',
+                'icon'        => 'fa-file-text-o',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'wpcpod-menu',
+            ],
+            'wcrol-roles' => [
+                'slug'        => 'wcrol-roles',
+                'label'       => 'Roles & Accesos',
+                'icon'        => 'fa-shield',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'wcrol-roles',
+            ],
+            'wcmas-masivos' => [
+                'slug'        => 'wcmas-masivos',
+                'label'       => 'Envíos Masivos',
+                'icon'        => 'fa-upload',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'wcmas-masivos',
+            ],
+            'la-anuncios' => [
+                'slug'        => 'la-anuncios',
+                'label'       => 'Anuncios',
+                'icon'        => 'fa-bullhorn',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'la-anuncios',
+            ],
+            'merc-bloqueos' => [
+                'slug'        => 'merc-bloqueos',
+                'label'       => 'Horarios y Bloqueos',
+                'icon'        => 'fa-calendar-times-o',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'merc-bloqueos',
+            ],
+            'user-menu' => [
+                'slug'        => 'user-menu',
+                'label'       => 'Usuarios',
+                'icon'        => 'fa-users',
+                'fuente'      => 'plugin',
+                'page_id'     => 0,
+                'sidebar_key' => 'user-menu',
+            ],
+        ];
+    }
 
     /**
      * Registrar catálogo vacío solo si aún no existe.
@@ -23,15 +157,27 @@ class WCROL_Modulos {
             return;
         }
 
-        update_option(self::OPTION_KEY, [], false);
+        update_option(self::OPTION_KEY, self::get_modulos_base(), false);
     }
 
     /**
-     * Obtener todos los módulos guardados.
+     * Obtener todos los módulos guardados + los base siempre.
      */
     public static function obtener_todos(): array {
         $guardados = get_option(self::OPTION_KEY, []);
-        return is_array($guardados) ? $guardados : [];
+        $guardados = is_array($guardados) ? $guardados : [];
+        
+        // Filtrar toda la basura de sincronizaciones antiguas (solo conservar manuales limpios)
+        $manuales = [];
+        foreach ($guardados as $k => $v) {
+            if ( is_array($v) && isset($v['slug']) && ($v['fuente'] ?? '') === 'manual' ) {
+                $manuales[$k] = $v;
+            }
+        }
+        
+        // Siempre garantizar los 16 base por si acaso fueron borrados accidentalmente
+        $base = self::get_modulos_base();
+        return array_merge($base, $manuales);
     }
 
     /**
@@ -43,36 +189,15 @@ class WCROL_Modulos {
 
     /**
      * Normaliza labels para detectar duplicados visuales.
-     *
-     * Ejemplo:
-     * - "<i>📦</i> Almacén de Productos"
-     * - "Almacen de Productos"
-     * - "almacén de productos"
-     *
-     * Todos terminan siendo:
-     * "almacen de productos"
      */
     private static function normalizar_label( string $label ): string {
-
-        // Eliminar HTML
         $label = wp_strip_all_tags($label);
-
-        // Eliminar spans o badges extra
         $label = preg_replace('/<span.*?<\/span>/i', '', $label);
-
-        // Eliminar emojis y caracteres raros
         $label = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $label);
-
-        // Eliminar acentos
         $label = remove_accents($label);
-
-        // Minúsculas
         $label = strtolower(trim($label));
-
-        // Unificar espacios
         $label = preg_replace('/\s+/', ' ', $label);
 
-        // Normalizaciones manuales para casos conocidos
         $map = [
             'almacen de productos'   => 'almacen de productos',
             'recojo de mercaderia'   => 'recojo de mercaderia',
@@ -82,6 +207,8 @@ class WCROL_Modulos {
             'informe del conductor'  => 'informe del conductor',
             'roles accesos'          => 'roles accesos',
             'roles y accesos'        => 'roles accesos',
+            'escaner'                => 'escaner',
+            'receiving'              => 'escaner',
         ];
 
         return $map[$label] ?? $label;
@@ -89,58 +216,34 @@ class WCROL_Modulos {
 
     /**
      * Captura el sidebar real del dashboard WPCargo.
-     *
-     * Se usa para detectar módulos de plugins que no tienen página dashboard.php.
      */
     public static function capturar_sidebar_real( array $menu ): array {
-
         if ( ! empty($menu) ) {
-
             $previo = get_transient(self::CAPTURE_KEY);
             $previo = is_array($previo) ? $previo : [];
-
-            // Fusionar menús para conservar todos los capturados
             $fusion = array_merge($previo, $menu);
-
             set_transient(self::CAPTURE_KEY, $fusion, DAY_IN_SECONDS);
         }
-
         return $menu;
     }
 
     /**
      * Sincroniza módulos automáticamente.
-     *
-     * Fuentes:
-     * - Páginas con template dashboard.php
-     * - Sidebar capturado de plugins
-     *
-     * Evita duplicados por:
-     * - page_id
-     * - sidebar_key
-     * - label normalizado
      */
     public static function sincronizar(): int {
 
         $catalogo = self::obtener_todos();
         $nuevos   = 0;
-
-        /**
-         * Índice de labels ya existentes para evitar duplicados visuales.
-         */
         $labels_existentes = [];
 
         foreach ( $catalogo as $mod ) {
             $label_existente = self::normalizar_label($mod['label'] ?? '');
-
             if ( $label_existente ) {
                 $labels_existentes[$label_existente] = true;
             }
         }
 
-        /**
-         * 1. Sincronizar páginas WordPress con template dashboard.php
-         */
+        // 1. Sincronizar páginas WordPress con template dashboard.php
         $pages = get_posts([
             'post_type'      => 'page',
             'post_status'    => 'publish',
@@ -152,38 +255,25 @@ class WCROL_Modulos {
         ]);
 
         foreach ( $pages as $page ) {
-
-            // Buscar si ya existe por page_id
             $ya_existe = false;
 
             foreach ( $catalogo as $mod ) {
-                if (
-                    isset($mod['page_id']) &&
-                    (int)$mod['page_id'] === $page->ID
-                ) {
+                if ( isset($mod['page_id']) && (int)$mod['page_id'] === $page->ID ) {
                     $ya_existe = true;
                     break;
                 }
             }
 
-            if ( $ya_existe ) {
-                continue;
-            }
+            if ( $ya_existe ) continue;
 
-            // Evitar duplicados por label
             $label_normalizado = self::normalizar_label($page->post_title);
 
-            if ( isset($labels_existentes[$label_normalizado]) ) {
-                continue;
-            }
+            if ( isset($labels_existentes[$label_normalizado]) ) continue;
 
-            // Generar slug único
             $slug_mod = 'page_' . $page->ID;
 
-            // Obtener icono desde meta
             $icon_raw = get_post_meta($page->ID, 'wpcfe_menu_icon', true) ?: '';
             preg_match('/fa-[\w-]+/', $icon_raw, $m);
-
             $icon = $m[0] ?? 'fa-circle-o';
 
             $catalogo[$slug_mod] = [
@@ -199,89 +289,59 @@ class WCROL_Modulos {
             $nuevos++;
         }
 
-        /**
-         * 2. Sincronizar ítems capturados desde el sidebar real
-         */
+        // 2. Sincronizar ítems capturados desde el sidebar real
         $capturado = get_transient(self::CAPTURE_KEY);
 
-        // Fallback: intentar capturar en runtime
         if ( ! is_array($capturado) || empty($capturado) ) {
-
             $capturado = [];
-
             if ( function_exists('wpcfe_after_sidebar_menu_items') ) {
                 $items = wpcfe_after_sidebar_menu_items();
-
-                if ( is_array($items) && ! empty($items) ) {
-                    $capturado = array_merge($capturado, $items);
-                }
+                if ( is_array($items) && ! empty($items) ) $capturado = array_merge($capturado, $items);
             }
-
             if ( function_exists('wpcfe_after_sidebar_menus') ) {
                 $menus = wpcfe_after_sidebar_menus();
-
-                if ( is_array($menus) && ! empty($menus) ) {
-                    $capturado = array_merge($capturado, $menus);
-                }
+                if ( is_array($menus) && ! empty($menus) ) $capturado = array_merge($capturado, $menus);
             }
-
+            
+            // Captura de custom actions (ej. merc-bloqueos)
+            ob_start();
+            do_action('wpcfe_after_sidebar_custom_menu');
+            $custom_html = ob_get_clean();
+            
             if ( ! empty($capturado) ) {
                 set_transient(self::CAPTURE_KEY, $capturado, DAY_IN_SECONDS);
             }
         }
 
         if ( is_array($capturado) ) {
-
             foreach ( $capturado as $sidebar_key => $item ) {
-
                 $page_id = (int)($item['page-id'] ?? 0);
-
-                // Buscar si ya existe por sidebar_key o page_id
                 $ya_existe = false;
 
                 foreach ( $catalogo as $mod ) {
-
-                    $match_key = (
-                        isset($mod['sidebar_key']) &&
-                        $mod['sidebar_key'] === $sidebar_key
-                    );
-
-                    $match_pid = (
-                        $page_id &&
-                        isset($mod['page_id']) &&
-                        (int)$mod['page_id'] === $page_id
-                    );
-
+                    $match_key = (isset($mod['sidebar_key']) && $mod['sidebar_key'] === $sidebar_key);
+                    $match_pid = ($page_id && isset($mod['page_id']) && (int)$mod['page_id'] === $page_id);
                     if ( $match_key || $match_pid ) {
                         $ya_existe = true;
                         break;
                     }
                 }
 
-                if ( $ya_existe ) {
-                    continue;
-                }
+                if ( $ya_existe ) continue;
 
-                // Si existe page_id y ya existe page_xxx, actualizar sidebar_key
                 if ( $page_id ) {
-
                     $slug_mod = 'page_' . $page_id;
-
                     if ( isset($catalogo[$slug_mod]) ) {
                         $catalogo[$slug_mod]['sidebar_key'] = $sidebar_key;
                         continue;
                     }
                 }
 
-                // Limpiar label para detectar duplicados
                 $label_sidebar = $item['label'] ?? $sidebar_key;
                 $label_limpio  = trim(wp_strip_all_tags($label_sidebar));
                 $label_normalizado = self::normalizar_label($label_sidebar);
 
-                // Evitar duplicados por label
-                if ( isset($labels_existentes[$label_normalizado]) ) {
-                    continue;
-                }
+                if ( isset($labels_existentes[$label_normalizado]) ) continue;
 
                 $slug_mod = sanitize_key($sidebar_key) ?: 'item_' . md5($sidebar_key);
 
@@ -311,16 +371,13 @@ class WCROL_Modulos {
      * Guardar o editar un módulo manualmente.
      */
     public static function guardar( array $datos, string $slug_original = '' ): true|\WP_Error {
-
         $slug = $datos['slug'] ?? '';
-
         if ( ! $slug || ! ($datos['label'] ?? '') ) {
             return new \WP_Error('req', 'Campos obligatorios.');
         }
 
         $catalogo = self::obtener_todos();
 
-        // Si cambió el slug, eliminar el anterior
         if ( $slug_original && $slug_original !== $slug ) {
             unset($catalogo[$slug_original]);
         }
@@ -335,7 +392,6 @@ class WCROL_Modulos {
         ]);
 
         update_option(self::OPTION_KEY, $catalogo, false);
-
         return true;
     }
 
@@ -343,11 +399,13 @@ class WCROL_Modulos {
      * Eliminar módulo.
      */
     public static function eliminar( string $slug ): void {
-
         $catalogo = self::obtener_todos();
+        
+        // No permitir eliminar los base
+        $base = self::get_modulos_base();
+        if ( isset($base[$slug]) ) return;
 
         unset($catalogo[$slug]);
-
         update_option(self::OPTION_KEY, $catalogo, false);
     }
 }

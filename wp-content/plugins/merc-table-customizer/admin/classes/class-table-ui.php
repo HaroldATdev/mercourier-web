@@ -863,21 +863,26 @@ class MERC_Table_UI {
         function setRowStateClass($row, estado) {
             if (!$row || !$row.length) return;
             const text = (estado || '').toUpperCase();
+            // Estados finales en los que se quita el naranja de reprogramado
+            const ESTADOS_FINALES = ['ENTREGADO', 'ANULADO', 'NO RECIBIDO', 'REPROGRAMADO', 'ELIMINADO'];
             $row.removeClass('merc-estado-reprogramado merc-estado-no-contesta merc-estado-anulado merc-estado-recepcionado-reprogramado');
             if (text.includes('ANULADO') || text.includes('CANCEL')) { $row.addClass('merc-estado-anulado'); return; }
             if (text.includes('NO CONTESTA'))                         { $row.addClass('merc-estado-no-contesta'); return; }
             if (text.includes('REPROGRAMADO') || text.includes('RESCHEDULE')) { $row.addClass('merc-estado-reprogramado'); return; }
-            // RECEPCIONADO que proviene de reprogramación → naranja
-            if (text.includes('RECEPCIONADO') || text.includes('RECEIVED')) {
-                const esReprog = $row.find('td.shipment-status').data('es-reprogramado');
-                if (parseInt(esReprog) === 1) {
+            // Si el envío es reprogramado y el nuevo estado NO es final → mantener naranja
+            const esReprog = parseInt($row.find('td.shipment-status').data('es-reprogramado')) === 1;
+            if (esReprog) {
+                const esFinal = ESTADOS_FINALES.some(function(e) { return text.includes(e); });
+                if (!esFinal) {
                     $row.addClass('merc-estado-recepcionado-reprogramado');
                 }
-                return;
             }
         }
 
         function resaltarFilasReprogramadas() {
+            // Estados finales en los que se quita el naranja de reprogramado
+            const ESTADOS_FINALES = ['ENTREGADO', 'ANULADO', 'NO RECIBIDO', 'REPROGRAMADO', 'ELIMINADO'];
+
             $('td.shipment-status').each(function() {
                 const $estadoCell = $(this);
                 let estadoActual  = $estadoCell.text().trim();
@@ -890,7 +895,14 @@ class MERC_Table_UI {
                 if (upper.includes('ANULADO') || upper.includes('CANCEL')) { $row.addClass('merc-estado-anulado'); }
                 else if (upper.includes('NO CONTESTA')) { $row.addClass('merc-estado-no-contesta'); }
                 else if (upper.includes('REPROGRAMADO') || upper.includes('RESCHEDULE')) { $row.addClass('merc-estado-reprogramado'); }
-                else if ((upper.includes('RECEPCIONADO') || upper.includes('RECEIVED')) && esReprog) { $row.addClass('merc-estado-recepcionado-reprogramado'); }
+                else if (esReprog) {
+                    // Si el envío está marcado como reprogramado y NO está en estado final
+                    // ni en estado "REPROGRAMADO" textual → pintar naranja en todos los estados intermedios
+                    const esFinal = ESTADOS_FINALES.some(function(e) { return upper.includes(e); });
+                    if (!esFinal) {
+                        $row.addClass('merc-estado-recepcionado-reprogramado');
+                    }
+                }
             });
         }
         setTimeout(resaltarFilasReprogramadas, 100);
@@ -1596,13 +1608,15 @@ class MERC_Table_UI {
                 const minDateISO = normalizarFechaISO(minDate);
                 const minDateMostrar = (resp && resp.success && resp.data && resp.data.min_date) ? resp.data.min_date : formatearFechaAMostrar(minDate);
                 const postDateMostrar = (resp && resp.success && resp.data && resp.data.post_date) ? resp.data.post_date : 'N/D';
+                // Mostrar fecha de envío asignada (pickup date) si está disponible
+                const envioDateMostrar = (resp && resp.success && resp.data && resp.data.envio_date) ? resp.data.envio_date : postDateMostrar;
 
                 const $modal = $('<div class="merc-modal-reprogram">' +
                     '<div class="merc-modal-reprogram-content">' +
                         '<div class="merc-modal-reprogram-title">📅 Reprogramar Envío</div>' +
                         '<div class="merc-modal-reprogram-info">' +
                             '<p><strong>📦 Número de envío:</strong> ' + shipmentNumber + '</p>' +
-                            '<p><strong>📆 Fecha actual:</strong> ' + fechaActualMostrar + '</p>' +
+                            '<p><strong>📆 Fecha de envío asignada:</strong> ' + envioDateMostrar + '</p>' +
                             '<p><strong>🧾 Fecha del pedido:</strong> ' + postDateMostrar + '</p>' +
                             '<p style="font-size: 12px; color: #666; margin-top: 8px;">📌 Fecha mínima disponible: ' + minDateMostrar + '</p>' +
                             '<p style="font-size: 12px; color: #666; margin-top: 4px;">🚫 Los domingos están bloqueados</p>' +

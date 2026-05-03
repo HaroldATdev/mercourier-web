@@ -1,6 +1,6 @@
 <?php
 /**
- * Blocksy Child Theme Functions prueba
+ * Blocksy Child Theme Functions prueba 2
  *
  * Plugin: wpcargo-access-control
  * ✅ Access control, permissions, and admin page functionality have been moved to:
@@ -863,7 +863,7 @@ function merc_cliente_pagar_a_merc_ajax() {
     $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
     if ( $user_id <= 0 ) wp_send_json_error(array('message'=>'Usuario inválido'));
     $current = wp_get_current_user();
-    if ( $current->ID !== $user_id && ! current_user_can('administrator') ) {
+    if ( $current->ID !== $user_id && ! current_user_can('manage_options') ) {
         wp_send_json_error(array('message'=>'Sin permisos'));
     }
 
@@ -965,7 +965,7 @@ function merc_cliente_pagar_voucher_ajax() {
     $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
     if ( $user_id <= 0 ) wp_send_json_error(array('message'=>'Usuario inválido'));
     $current = wp_get_current_user();
-    if ( $current->ID !== $user_id && ! current_user_can('administrator') ) {
+    if ( $current->ID !== $user_id && ! current_user_can('manage_options') ) {
         wp_send_json_error(array('message'=>'Sin permisos'));
     }
 
@@ -1299,7 +1299,7 @@ function merc_migrate_liquidation_meta_ajax() {
     if ( ! isset($_POST['nonce']) || ! wp_verify_nonce( $_POST['nonce'], 'merc_migrate' ) ) {
         wp_send_json_error( array( 'message' => 'Nonce inválido' ) );
     }
-    if ( ! current_user_can( 'administrator' ) ) {
+    if ( ! current_user_can('manage_options') ) {
         wp_send_json_error( array( 'message' => 'No tienes permisos para ejecutar la migración' ) );
     }
 
@@ -1480,7 +1480,7 @@ add_action('template_redirect', function () {
         $current_user = wp_get_current_user();
         
         // Verificar si NO es admin ni empleado (es decir, es cliente)
-        $is_admin_or_employee = current_user_can('administrator') || 
+        $is_admin_or_employee = current_user_can('manage_options') || 
                                 in_array('wpcargo_employee', $current_user->roles);
         
         if (!$is_admin_or_employee) {
@@ -1500,7 +1500,7 @@ add_action('wp_footer', function () {
     $user_roles = is_object($current_user) && isset($current_user->roles) && is_array($current_user->roles) ? $current_user->roles : array();
 
     // Verificar si NO es admin ni empleado
-    $is_admin_or_employee = current_user_can('administrator') || in_array('wpcargo_employee', $user_roles);
+    $is_admin_or_employee = current_user_can('manage_options') || in_array('wpcargo_employee', $user_roles);
     
     if (!$is_admin_or_employee) : ?>
         <script>
@@ -1567,7 +1567,7 @@ add_action( 'plugins_loaded', 'wpcargo_manipulate_shipment_column_table_callback
 
 // RENOMBRANDO CREATE SHIPMENT A "CREAR SERVICIO"
 function custom_rename_create_shipment_callback( $text ) {
-    return 'Crear servicio';
+    return 'Crear servicio por unidad';
 }
 add_filter( 'wpcfe_create_shipment', 'custom_rename_create_shipment_callback' );
 /*
@@ -1786,7 +1786,7 @@ function custom_block_calendar_script() {
     return; // 🛑 DESACTIVADO PARA EL NUEVO PLUGIN V2
     if (isset($_GET['wpcfe']) && $_GET['wpcfe'] == 'add') { 
         // Verificar si el usuario actual es administrador
-        $is_admin = current_user_can('administrator');
+        $is_admin = current_user_can('manage_options');
         
         // Verificar si el usuario es cliente
         $current_user = wp_get_current_user();
@@ -3945,14 +3945,18 @@ function merc_motorizado_entregas( $driver_id ) {
 
 add_shortcode( 'merc_panel_admin', 'merc_panel_admin_shortcode' );
 function merc_panel_admin_shortcode() {
-    if ( ! current_user_can( 'administrator' ) ) {
+    if ( ! current_user_can( 'manage_options' ) ) {
         return '<div class="alert alert-danger">⛔ Acceso denegado. Solo para administradores.</div>';
     }
     
     // Usar fechas personalizadas (por defecto: hoy)
     $today = current_time('Y-m-d');
-    $fecha_inicio      = isset( $_GET['fecha_inicio'] ) ? sanitize_text_field( $_GET['fecha_inicio'] ) : $today;
-    $fecha_fin         = isset( $_GET['fecha_fin'] ) ? sanitize_text_field( $_GET['fecha_fin'] ) : $today;
+    $fecha_caja        = isset( $_GET['fecha_caja'] ) ? sanitize_text_field( $_GET['fecha_caja'] ) : $today;
+    
+    // Map to legacy variables to avoid breaking function signatures
+    $fecha_inicio      = $fecha_caja;
+    $fecha_fin         = $fecha_caja;
+    
     $filtro_estado     = isset( $_GET['filtro_estado'] ) ? sanitize_text_field( $_GET['filtro_estado'] ) : '';
     $filtro_motorizado = isset( $_GET['filtro_motorizado'] ) ? intval( $_GET['filtro_motorizado'] ) : 0;
     $filtro_cliente    = isset( $_GET['filtro_cliente'] ) ? intval( $_GET['filtro_cliente'] ) : 0;
@@ -4042,7 +4046,7 @@ function merc_panel_admin_shortcode() {
             <div class="tab-pane fade" id="liquidaciones" role="tabpanel">
                 <div class="card">
                     <div class="card-body">
-                        <?php if ( current_user_can('administrator') ) { merc_admin_liquidaciones( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_cliente ); } else { echo do_shortcode('[merc_liquidations_history]'); } ?>
+                        <?php if ( current_user_can('manage_options') ) { merc_admin_liquidaciones( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_cliente ); } else { echo do_shortcode('[merc_liquidations_history]'); } ?>
                     </div>
                 </div>
             </div>
@@ -4292,7 +4296,8 @@ function merc_panel_admin_shortcode() {
                         fd.append('user_id', userId);
                         fd.append('tipo', tipo);
                         
-                        var fechaCaja = $('#merc-fecha-caja-input-' + userId).val();
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var fechaCaja = urlParams.get('fecha_caja');
                         if (!fechaCaja && typeof getTodayIso === 'function') {
                             fechaCaja = getTodayIso();
                         }
@@ -4363,6 +4368,103 @@ function merc_panel_admin_shortcode() {
                         btn.prop('disabled', false).html((tipo === 'motorizado' ? '💵 ' : '💰 ') + textoTodo + ' (S/. ' + monto + ')');
                     }
                 });
+            });
+        });
+
+        $(document).on('click', '.merc-btn-aprobar-pago', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var userId = btn.data('user-id');
+            var fecha = btn.data('fecha');
+            Swal.fire({
+                title: '¿Aprobar pago?',
+                text: "Esto liquidará los envíos de este cliente para esta fecha de caja.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#27ae60',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, aprobar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.prop('disabled', true).text('Aprobando...');
+                    $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        action: 'merc_admin_aprobar_pago',
+                        user_id: userId,
+                        fecha_caja: fecha,
+                        nonce: '<?php echo wp_create_nonce('merc_admin_pago'); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', response.data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', response.data.message || 'Error', 'error');
+                            btn.prop('disabled', false).text('✅ Aprobar Pago');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.merc-btn-rechazar-pago', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var userId = btn.data('user-id');
+            Swal.fire({
+                title: '¿Rechazar pago?',
+                text: "El cliente deberá subir una nueva constancia.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, rechazar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.prop('disabled', true).text('Rechazando...');
+                    $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        action: 'merc_admin_rechazar_pago',
+                        user_id: userId,
+                        nonce: '<?php echo wp_create_nonce('merc_admin_pago'); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', response.data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', response.data.message || 'Error', 'error');
+                            btn.prop('disabled', false).text('❌ Rechazar');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.merc-btn-cancelar-pago', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var userId = btn.data('user-id');
+            var liqId = btn.data('liq-id');
+            Swal.fire({
+                title: '¿Cancelar liquidación?',
+                text: "Se eliminará el pago y los envíos volverán a estar pendientes de liquidar.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.prop('disabled', true).text('Cancelando...');
+                    $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        action: 'merc_admin_cancelar_pago_cliente',
+                        user_id: userId,
+                        liq_id: liqId,
+                        nonce: '<?php echo wp_create_nonce('merc_admin_pago'); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', response.data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', response.data.message || 'Error', 'error');
+                            btn.prop('disabled', false).text('↩️ Cancelar Pago');
+                        }
+                    });
+                }
             });
         });
 
@@ -4658,30 +4760,16 @@ function merc_panel_admin_shortcode() {
 function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado ) {
     global $wpdb;
 
-    // DEBUG: Ver qué fechas llegan a la función
-    
-    // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
+    // Construir filtro de fecha exacta por fecha_caja
     $date_query = '';
-    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
-        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
-        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+    if ( ! empty( $fecha_inicio ) ) {
+        $fecha_caja_ymd = date('Y-m-d', strtotime($fecha_inicio));
         $date_query = "AND EXISTS(
             SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
             WHERE pm_pickup.post_id = p.ID 
             AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
-            AND (
-                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
-                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
-            )
+            AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('{$fecha_caja_ymd}', '%Y-%m-%d')
         )";
-    }
-    
-    $extra_join = '';
-    $extra_where = '';
-    // Para la vista ingresos_envios, usar la misma lógica que las tarjetas de clientes:
-    // remitente + no incluido en liquidación.
-    if ( $tipo_vista === 'ingresos_envios' ) {
-        $extra_where = "\n        AND pm_quien_paga.meta_value = 'remitente'\n        AND (pm_included.meta_value IS NULL OR pm_included.meta_value = '')";
     }
     
     $shipments = $wpdb->get_results( "
@@ -4713,8 +4801,8 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
     error_log(sprintf('MERC_ADMIN_RESUMEN - date_query="%s"', $date_query));
     if ( ! is_array( $shipments ) || empty( $shipments ) ) {
         error_log('MERC_ADMIN_RESUMEN - NO SHIPMENTS returned for date_query, attempting fallback by pickup meta');
-        // Fallback: buscar envíos cuya meta de pickup (varias claves y formatos) coincida con hoy
-        $today_ymd = current_time('Y-m-d');
+        // Fallback: buscar envíos cuya meta de pickup (varias claves y formatos) coincida con la fecha solicitada
+        $today_ymd = ! empty( $fecha_inicio ) ? date('Y-m-d', strtotime($fecha_inicio)) : current_time('Y-m-d');
         $meta_keys = array('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio');
         $meta_keys_list = "'" . implode("','", $meta_keys) . "'";
         $like_ymd = $wpdb->esc_like( $today_ymd );
@@ -4735,49 +4823,8 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
 
         $shipments = $wpdb->get_results( $sql );
         if ( ! is_array( $shipments ) || empty( $shipments ) ) {
-            error_log('MERC_ADMIN_RESUMEN - fallback also returned NO shipments; attempting fallback by post_date range');
-            // Listar últimas 20 entradas de envíos y sus metas relacionadas a pickup para identificar formatos
-            $recent = $wpdb->get_results("SELECT p.ID, p.post_date FROM {$wpdb->posts} p WHERE p.post_type = 'wpcargo_shipment' ORDER BY p.post_date DESC LIMIT 20");
-            if ( is_array($recent) && ! empty($recent) ) {
-                foreach ( $recent as $r ) {
-                    $meta_vals = array();
-                    foreach ( $meta_keys as $mk ) {
-                        $meta_vals[ $mk ] = get_post_meta( $r->ID, $mk, true );
-                    }
-                    // También incluir posibles metas alternativas
-                    $meta_vals['post_date'] = $r->post_date;
-                    error_log(sprintf('MERC_ADMIN_RESUMEN_SAMPLE - id=%d post_date=%s metas=%s', $r->ID, $r->post_date, json_encode($meta_vals)));
-                }
-            } else {
-                error_log('MERC_ADMIN_RESUMEN_SAMPLE - no recent shipments found to sample');
-            }
-
-            // Intentar buscar por post_date entre las fechas (siempre que $fecha_inicio/$fecha_fin existan)
-            $start_date = ! empty( $fecha_inicio ) ? $fecha_inicio : current_time('Y-m-d');
-            $end_date   = ! empty( $fecha_fin ) ? $fecha_fin : current_time('Y-m-d');
-            $start_dt = $start_date . ' 00:00:00';
-            $end_dt   = $end_date . ' 23:59:59';
-
-            $sql_post_date = $wpdb->prepare(
-                "SELECT p.ID, pm_envio.meta_value as costo_envio, pm_producto.meta_value as costo_producto, pm_estado_motorizado.meta_value as estado_motorizado, pm_included.meta_value as estado_remitente, pm_quien_paga.meta_value as quien_paga, pm_cliente_pago_a.meta_value as cliente_pago_a, pm_shipper.meta_value as shipper_id, pm_status.meta_value as wpcargo_status
-                FROM {$wpdb->posts} p
-                LEFT JOIN {$wpdb->postmeta} pm_envio ON p.ID = pm_envio.post_id AND pm_envio.meta_key = 'wpcargo_costo_envio'
-                LEFT JOIN {$wpdb->postmeta} pm_producto ON p.ID = pm_producto.post_id AND pm_producto.meta_key = 'wpcargo_costo_producto'
-                LEFT JOIN {$wpdb->postmeta} pm_estado_motorizado ON p.ID = pm_estado_motorizado.post_id AND pm_estado_motorizado.meta_key = 'wpcargo_estado_pago_motorizado'
-                LEFT JOIN {$wpdb->postmeta} pm_included ON p.ID = pm_included.post_id AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
-                LEFT JOIN {$wpdb->postmeta} pm_quien_paga ON p.ID = pm_quien_paga.post_id AND pm_quien_paga.meta_key = 'wpcargo_quien_paga'
-                LEFT JOIN {$wpdb->postmeta} pm_cliente_pago_a ON p.ID = pm_cliente_pago_a.post_id AND pm_cliente_pago_a.meta_key = 'wpcargo_cliente_pago_a'
-                LEFT JOIN {$wpdb->postmeta} pm_shipper ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper'
-                LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
-                WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' AND p.post_date BETWEEN %s AND %s",
-                $start_dt, $end_dt
-            );
-            error_log('MERC_ADMIN_RESUMEN - trying post_date fallback with start=' . $start_dt . ' end=' . $end_dt);
-            $shipments = $wpdb->get_results( $sql_post_date );
-            if ( ! is_array( $shipments ) || empty( $shipments ) ) {
-                echo '<div class="alert alert-info">No hay envíos para el rango de fechas seleccionado.</div>';
-                return;
-            }
+            echo '<div class="alert alert-info">No hay envíos para la fecha seleccionada.</div>';
+            return;
         }
         error_log(sprintf('MERC_ADMIN_RESUMEN - fallback shipments_count=%d', count($shipments)));
     }
@@ -4805,11 +4852,12 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
         // Obtener costo efectivo usando la nueva función
         $costo_efectivo = function_exists('merc_get_adjusted_service_cost') ? merc_get_adjusted_service_cost($shipment->ID) : floatval($shipment->costo_envio);
 
-        // INGRESOS POR ENVÍOS (excluyendo ANULADO y REPROGRAMADO)
+        // 1. INGRESOS POR ENVÍOS (excluyendo ANULADO y REPROGRAMADO)
         if ( stripos( $estado, 'ANULADO' ) === false && stripos( $estado, 'REPROGRAMADO' ) === false ) {
             $ingresos_envios += $costo_efectivo;
         }
 
+        // 2. TOTAL GENERAL Y RECAUDOS
         if ( $estado === 'ENTREGADO' ) {
             // Obtener totales del POD
             $totales = get_payment_totals_by_method( $shipment->ID );
@@ -4821,7 +4869,7 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
             $recaudado_marca  += floatval( $totales['pago_marca'] );
             $pos_recaudado    += $pos_display;
 
-            // Total General: Efectivo + MERC + POS (No incluye marca)
+            // Total General: Aporta solo lo que MERC recaudó
             $total_general += floatval( $totales['efectivo'] ) + floatval( $totales['pago_merc'] ) + $pos_display;
 
             // Acumular saldos pendientes por marca para "Por Pagar Remitentes"
@@ -4836,6 +4884,15 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
                 $client_balances[ $shipper_id ]['recaudado_pend'] += $recaudado_envio;
                 $client_balances[ $shipper_id ]['costo_pend'] += $costo_efectivo;
             }
+        } elseif ( $estado === 'NO RECIBIDO' || $estado === 'ANULADO' || $estado === 'REPROGRAMADO' ) {
+            // No hay cobranza física, no suma al Total General
+            $total_general += 0.0;
+        } else {
+            // PENDIENTES (Asignado, En Camino, etc)
+            // Aporta el valor inicial completo de la contraentrega
+            $quien_paga = !empty($shipment->quien_paga) ? $shipment->quien_paga : 'cliente_final';
+            $monto_esperado = ($quien_paga === 'remitente') ? floatval($shipment->costo_producto) : (floatval($shipment->costo_producto) + $costo_efectivo);
+            $total_general += $monto_esperado;
         }
     }
 
@@ -4872,7 +4929,7 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
 			<div class="merc-stat-box" style="background: #2ecc71;">
 				<p>Total General</p>
 				<h2>S/. <?php echo number_format( $balance_neto, 2 ); ?></h2>
-				<small style="opacity: 0.8;">Balance General</small>
+				<small style="opacity: 0.8;">Saldo Pendiente por Recaudar</small>
 			</div>
 		</div>
 
@@ -4945,19 +5002,15 @@ function merc_admin_resumen_general( $fecha_inicio, $fecha_fin, $filtro_estado )
 function merc_admin_vista_detalle($tipo_vista, $fecha_inicio, $fecha_fin, $filtro_estado) {
     global $wpdb;
     
-    // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
+    // Construir filtro de fecha exacta por fecha_caja
     $date_query = '';
-    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
-        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
-        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+    if ( ! empty( $fecha_inicio ) ) {
+        $fecha_caja_ymd = date('Y-m-d', strtotime($fecha_inicio));
         $date_query = "AND EXISTS(
             SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
             WHERE pm_pickup.post_id = p.ID 
             AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
-            AND (
-                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
-                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
-            )
+            AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('{$fecha_caja_ymd}', '%Y-%m-%d')
         )";
     }
     
@@ -5236,7 +5289,7 @@ function merc_admin_vista_detalle($tipo_vista, $fecha_inicio, $fecha_fin, $filtr
                             $recaudado_merc_tmp = get_recaudado_merc($shipment->ID);
                             if ( $recaudado_merc_tmp > 0 ) {
                                 $mostrar = true;
-                                if ( function_exists('current_user_can') && current_user_can('administrator') ) {
+                                if ( function_exists('current_user_can') && current_user_can('manage_options') ) {
                                     error_log(sprintf('MERC_DEBUG_POS_FALLBACK - shipment=%d pos_display=%01.2f recaudado_merc=%01.2f pod_meta=%s',
                                         $shipment->ID,
                                         $pos_display,
@@ -5383,12 +5436,8 @@ function merc_admin_filtros( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_
     ?>
     <form method="GET" action="<?php echo esc_url($current_url); ?>" class="merc-filter-form">
         <div class="form-group">
-            <label>Fecha Inicio</label>
-            <input type="date" name="fecha_inicio" class="form-control" value="<?php echo esc_attr($fecha_inicio); ?>" />
-        </div>
-        <div class="form-group">
-            <label>Fecha Fin</label>
-            <input type="date" name="fecha_fin" class="form-control" value="<?php echo esc_attr($fecha_fin); ?>" />
+            <label>Fecha de Caja</label>
+            <input type="date" name="fecha_caja" class="form-control" value="<?php echo esc_attr($fecha_inicio); ?>" />
         </div>
         <div class="form-group">
             <label>Estado</label>
@@ -7176,7 +7225,7 @@ function merc_add_financial_menu_items($menu_items) {
     }
     
     
-    if (current_user_can('administrator')) {
+    if (current_user_can('manage_options')) {
         $page = get_page_by_path('panel-admin');
         $url = $page ? get_permalink($page->ID) : home_url('/panel-admin/');
         
@@ -7673,7 +7722,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                     </div>
                     <?php
                     $current_user = wp_get_current_user();
-                    $is_admin = current_user_can('administrator');
+                    $is_admin = current_user_can('manage_options');
                     $is_client = in_array('wpcargo_client', (array) $current_user->roles);
                     $show_comprobante = ! $is_admin;
                     ?>
@@ -7808,17 +7857,19 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
     
     // Construir filtro de fecha usando SOLO wpcargo_pickup_date_picker (sin OR con post_date)
     $date_query = '';
-    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
-        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
-        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+    if ( ! empty( $fecha_inicio ) ) {
+        $fecha_caja_ymd = date('Y-m-d', strtotime($fecha_inicio));
         $date_query = "AND EXISTS(
             SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
             WHERE pm_pickup.post_id = p.ID 
             AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
-            AND (
-                STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
-                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
-            )
+            AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('{$fecha_caja_ymd}', '%Y-%m-%d')
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM {$wpdb->postmeta} pm_excl 
+            WHERE pm_excl.post_id = p.ID 
+            AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
+            AND pm_excl.meta_value = '{$fecha_caja_ymd}'
         )";
     }
     
@@ -7930,7 +7981,8 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
 
             // Comprobar si está liquidado
             $included = get_post_meta( $shipment->ID, 'wpcargo_included_in_liquidation', true );
-            $is_included = ! empty( $included );
+            $liq_fecha = get_post_meta( $shipment->ID, 'merc_remitente_liquidado_fecha', true );
+            $is_included = !empty($included) || ( !empty($liq_fecha) && $liq_fecha === date('Y-m-d', strtotime($fecha_inicio)) );
             if ( ! $is_included ) {
                 $all_liquidated = false;
             }
@@ -7961,14 +8013,36 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
             );
         }
         
+        // all_liquidated es true solo si hay envíos Y todos están marcados
         if ( empty($todos_envios) ) $all_liquidated = false;
 
         $balance_total = $recaudado_merc_tot - $costos_servicio_tot;
-        $balance_neto = $recaudado_merc_pend - $costos_servicio_pend;
+        $balance_neto  = $recaudado_merc_pend - $costos_servicio_pend;
+        
+        // Calcular si el día está cerrado (todos los envíos en estado final)
+        $dia_cerrado = ! empty($todos_envios)
+            ? merc_dia_cerrado_para_cliente( $client->client_id, $fecha_inicio )
+            : false;
+            
+        // Revisar si existe liquidación real guardada para HOY
+        $has_liquidation_history = false;
+        $history = get_user_meta( $client->client_id, 'merc_liquidations', true );
+        if ( is_array( $history ) ) {
+            foreach ( $history as $entry ) {
+                if ( !empty($entry['fecha_caja']) && date('Y-m-d', strtotime($entry['fecha_caja'])) === date('Y-m-d', strtotime($fecha_inicio)) ) {
+                    $has_liquidation_history = true;
+                    break;
+                }
+            }
+        }
 
-        // Filtrar según la pestaña activa basado en el BALANCE TOTAL HISTÓRICO de este filtro de fechas
+        $all_liquidated_real = ($all_liquidated && $has_liquidation_history);
+        $caja_en_cero  = ( ! empty($todos_envios) && !$has_liquidation_history && $dia_cerrado && abs($balance_neto) < 0.01 );
+
+        // Filtrar según la pestaña activa basado en el BALANCE TOTAL HISTÓRICO
         if ( $modo === 'deudoras' && $balance_total >= 0 ) continue;
-        if ( $modo === 'merc_debe' && $balance_total <= 0 ) continue;
+        // merc_debe: balance positivo O caja en cero (para mostrar "Caja Cuadrada en 0")
+        if ( $modo === 'merc_debe' && $balance_total < 0 ) continue;
         
         $shown_clients++;
 
@@ -8000,7 +8074,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
         $has_pending_voucher = false;
         if ( is_array( $history ) ) {
             foreach ( $history as $entry ) {
-                if ( empty( $entry['verified'] ) ) {
+                if ( empty( $entry['verified'] ) && !empty($entry['fecha_caja']) && date('Y-m-d', strtotime($entry['fecha_caja'])) === date('Y-m-d', strtotime($fecha_inicio)) ) {
                     $has_pending_voucher = true;
                     if ( !empty($entry['attachment_id']) ) {
                         $pending_verification_url = wp_get_attachment_url( $entry['attachment_id'] );
@@ -8010,7 +8084,21 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
             }
         }
 
-        if ( $all_liquidated ) {
+        // También revisar si hay un pago proactivo en revisión específico para HOY
+        $pago_en_revision = get_user_meta( $client->client_id, 'merc_pago_en_revision', true );
+        $has_revision_today = ( ! empty($pago_en_revision) && isset($pago_en_revision['fecha_caja']) && $pago_en_revision['fecha_caja'] === $fecha_inicio );
+        
+        if ( $has_revision_today ) {
+            $has_pending_voucher = true;
+            $att_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
+            if ( $att_id ) {
+                $pending_verification_url = wp_get_attachment_url( $att_id );
+            }
+        }
+
+        if ( isset($caja_en_cero) && $caja_en_cero ) {
+            $badge_html = '<span class="badge" style="margin-left:auto; font-size:14px; padding:6px 10px; background-color:#17a2b8; color:#fff;">🎯 Caja Cuadrada en 0</span>';
+        } elseif ( $all_liquidated_real ) {
             $badge_html = '<span class="badge badge-success" style="margin-left:auto; font-size:14px; padding:6px 10px;">✅ Pago conforme</span>';
         } else {
             if ( $has_pending_voucher ) {
@@ -8065,35 +8153,91 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
             <?php if ( ! empty( $todos_envios ) ) : ?>
                 <div class="mt-3">
                     <h6 style="margin: 0; margin-bottom: 15px;">📦 Todos los Envíos:</h6>
-                    <?php if ( $balance_neto > 0 && !$all_liquidated ) : // Mostrar solo cuando MERC debe PAGAR al cliente y no está liquidado ?>
-                        <?php if ( false ) : // El badge ya se muestra en el header ?>
-                            <div style="margin-bottom: 15px;">
-                                <span class="badge badge-success" style="font-size: 14px; padding: 10px;">✅ Cliente Pagado</span>
+                    <?php 
+                    $pago_en_revision = get_user_meta( $client->client_id, 'merc_pago_en_revision', true );
+                    $has_revision_today = ( ! empty($pago_en_revision) && isset($pago_en_revision['fecha_caja']) && $pago_en_revision['fecha_caja'] === $fecha_inicio );
+
+                    if ( $all_liquidated_real ) :
+                        // 1. LIQUIDADO: Mostrar voucher de éxito
+                        $voucher_url = '';
+                        $liq_id_to_cancel = '';
+                        $client_history = get_user_meta( $client->client_id, 'merc_liquidations', true );
+                        if ( is_array( $client_history ) ) {
+                            foreach ( $client_history as $entry ) {
+                                if ( !empty($entry['fecha_caja'])
+                                    && date('Y-m-d', strtotime($entry['fecha_caja'])) === date('Y-m-d', strtotime($fecha_inicio))
+                                    && !empty($entry['attachment_id']) ) {
+                                    $liq_id_to_cancel = $entry['id'];
+                                    $voucher_url = wp_get_attachment_url( intval($entry['attachment_id']) );
+                                    break;
+                                }
+                            }
+                        }
+                        $msg = ($modo === 'deudoras') ? 'Pago del cliente aprobado' : 'Pago al cliente liquidado';
+                    ?>
+                        <div style="background:#d4edda; padding:15px; border-radius:6px; margin-bottom:15px; border-left:4px solid #28a745;">
+                            <strong style="color:#27ae60;">✅ <?php echo $msg; ?></strong>
+                            <?php if ($voucher_url) : ?>
+                                <div style="margin: 10px 0;">
+                                    <img src="<?php echo esc_url($voucher_url); ?>" style="max-width:200px; max-height:200px; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="window.open(this.src)" title="Comprobante liquidado" />
+                                </div>
+                            <?php endif; ?>
+                            <?php if ( $modo === 'merc_debe' ) : ?>
+                                <div style="margin-top:10px;">
+                                    <button class="btn btn-warning btn-sm merc-btn-cancelar-pago" data-user-id="<?php echo esc_attr( $client->client_id ); ?>" data-liq-id="<?php echo esc_attr($liq_id_to_cancel); ?>">↩️ Cancelar Pago</button>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                    <?php elseif ( isset($caja_en_cero) && $caja_en_cero ) : ?>
+                        <!-- 2. CAJA CUADRADA -->
+                        <div style="background:#d1ecf1; padding:15px; border-radius:6px; margin-bottom:15px; border-left:4px solid #17a2b8;">
+                            <strong style="color:#0c5460;">🎯 Caja Cuadrada en 0 — No hay deuda pendiente para este cliente en esta fecha.</strong>
+                        </div>
+
+                    <?php elseif ( $has_revision_today ) : 
+                        // 3. PAGO EN REVISIÓN (RELOJ DE ARENA)
+                        $attachment_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
+                        $img_url = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
+                    ?>
+                        <div style="background:#fff3cd; padding:15px; border-radius:6px; margin-bottom:15px; border-left:4px solid #f39c12;">
+                            <strong style="color:#e67e22;">⚠️ Cliente envió constancia de pago por S/. <?php echo number_format($pago_en_revision['monto'], 2); ?></strong>
+                            <?php if ($img_url) : ?>
+                                <div style="margin: 10px 0;">
+                                    <img src="<?php echo esc_url($img_url); ?>" style="max-width:200px; max-height:200px; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="window.open(this.src)" />
+                                </div>
+                            <?php endif; ?>
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button class="btn btn-success btn-sm merc-btn-aprobar-pago" data-user-id="<?php echo esc_attr( $client->client_id ); ?>" data-fecha="<?php echo esc_attr( $fecha_inicio ); ?>">✅ Aprobar Pago</button>
+                                <button class="btn btn-danger btn-sm merc-btn-rechazar-pago" data-user-id="<?php echo esc_attr( $client->client_id ); ?>">❌ Rechazar</button>
                             </div>
-                        <?php else : ?>
-                            <div style="margin-bottom:12px;">
-                                <label style="font-size:0.85em;color:#7f8c8d;">📅 Fecha de caja a liquidar:</label>
-                                <input type="date" 
-                                       class="merc-fecha-caja-input form-control form-control-sm" 
-                                       id="merc-fecha-caja-input-<?php echo esc_attr( $client->client_id ); ?>"
-                                       value="<?php echo current_time('Y-m-d'); ?>"
-                                       max="<?php echo current_time('Y-m-d'); ?>"
-                                       style="width:180px;display:inline-block;margin-left:8px;">
+                        </div>
+
+                    <?php else : 
+                        // 4. POR LIQUIDAR
+                        if ( ! $dia_cerrado ) : 
+                    ?>
+                            <div style="background:#fff3cd; padding:15px; border-radius:6px; margin-bottom:15px; border-left:4px solid #f39c12;">
+                                <strong style="color:#e67e22;">📦 Día en curso:</strong> No se puede procesar pagos hasta que todos sus envíos estén en un estado final.
                             </div>
+                        <?php elseif ( $balance_neto < 0 ) : ?>
+                            <div style="background:#f8d7da; padding:15px; border-radius:6px; margin-bottom:15px; border-left:4px solid #dc3545;">
+                                <strong style="color:#721c24;">❌ Cliente debe depositar:</strong> El cliente debe abonar S/. <?php echo number_format(abs($balance_neto), 2); ?> para cuadrar esta caja.
+                            </div>
+                        <?php elseif ( $balance_neto > 0 ) : ?>
                             <button class="merc-btn-liquidar-todo" 
                                     data-user-id="<?php echo esc_attr( $client->client_id ); ?>" 
                                     data-tipo="remitente"
                                     data-monto="<?php echo number_format( $total_por_liquidar, 2 ); ?>"
                                     style="background: #27ae60; margin-bottom: 15px;">
-                                💰
-                                <?php echo esc_html( $btn_text ); ?>
+                                💰 <?php echo esc_html( $btn_text ); ?>
                             </button>
                         <?php endif; ?>
                     <?php endif; ?>
                     
                     <?php
                     $current_user = wp_get_current_user();
-                    $is_admin = current_user_can('administrator');
+                    $is_admin = current_user_can('manage_options');
                     $is_client = in_array('wpcargo_client', (array) $current_user->roles);
                     $show_comprobante = ! $is_admin;
                     ?>
@@ -8518,11 +8662,12 @@ function merc_liquidar_cliente_transferir_a_marca( $shipment_id ) {
 
 // PANEL ADMIN: HISTORIAL GLOBAL DE LIQUIDACIONES (ADMIN)
 function merc_admin_liquidaciones( $fecha_inicio = '', $fecha_fin = '', $filtro_estado = '', $filtro_cliente = 0 ) {
-    // Filtrar por cliente específico si se seleccionó
+    // Solo buscar usuarios con rol de cliente (no admins) para evitar duplicados
     $user_args = array(
-        'meta_key' => 'merc_liquidations',
+        'meta_key'     => 'merc_liquidations',
         'meta_compare' => 'EXISTS',
-        'number' => 0,
+        'role__in'     => array( 'wpcargo_client', 'customer', 'subscriber' ),
+        'number'       => 0,
     );
     
     if ( $filtro_cliente > 0 ) {
@@ -8665,7 +8810,7 @@ function merc_admin_liquidaciones( $fecha_inicio = '', $fecha_fin = '', $filtro_
         }
 
         if ( ! $verified ) {
-            if ( current_user_can('administrator') ) {
+            if ( current_user_can('manage_options') ) {
                 $verify_nonce = wp_create_nonce('merc_verify');
                 echo ' <button class="merc-liquidations-verify" data-user-id="' . esc_attr( $entry['user_id'] ) . '" data-liq-id="' . esc_attr( $id ) . '" data-nonce="' . esc_attr( $verify_nonce ) . '" onclick="(function(btn){ if(!confirm(\'Verificar y aceptar este pago?\')) return; btn.disabled=true; var fd=new FormData(); fd.append(\'action\',\'merc_verify_liquidation\' ); fd.append(\'user_id\', btn.getAttribute(\'data-user-id\')); fd.append(\'liq_id\', btn.getAttribute(\'data-liq-id\')); fd.append(\'nonce\', btn.getAttribute(\'data-nonce\')); fetch(\'' . admin_url('admin-ajax.php') . '\', { method: \'' . 'POST' . '\', body: fd }).then(r=>r.json()).then(function(res){ if(res && res.success){ alert(res.data.message||\'Verificado\'); location.reload(); } else { alert((res && res.data && res.data.message) ? res.data.message : JSON.stringify(res)); btn.disabled=false; } }).catch(function(){ alert(\'Error\'); btn.disabled=false; }); })(this);">Verificar</button>';
             } else {
@@ -8843,7 +8988,7 @@ function merc_liquidar_pago_ajax() {
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_liquidar_pago' ) ) {
         wp_send_json_error( array( 'message' => 'Seguridad: nonce inválido' ) );
     }
-    if ( ! current_user_can( 'administrator' ) ) {
+    if ( ! current_user_can('manage_options') ) {
         wp_send_json_error( array( 'message' => 'No tienes permisos para esta acción' ) );
     }
 
@@ -8882,7 +9027,7 @@ function merc_liquidar_todo_ajax() {
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_liquidar_todo' ) ) {
         wp_send_json_error( array( 'message' => 'Seguridad: nonce inválido' ) );
     }
-    if ( ! current_user_can( 'administrator' ) ) {
+    if ( ! current_user_can('manage_options') ) {
         wp_send_json_error( array( 'message' => 'No tienes permisos para esta acción' ) );
     }
 
@@ -8965,6 +9110,11 @@ function merc_liquidar_todo_ajax() {
             AND pm_sender.meta_value = %s
             AND (pm_included.meta_value IS NULL)
             AND (pm_remitente_liq.meta_value IS NULL)
+            AND NOT EXISTS (
+                SELECT 1 FROM {$wpdb->postmeta} pm_excl WHERE pm_excl.post_id = p.ID 
+                AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
+                AND pm_excl.meta_value = '" . sanitize_text_field($fecha_caja) . "'
+            )
         ", $user_id ) );
         // Filtrar sólo envíos del día de caja (evitar incluir reprogramados/pasados)
         if ( is_array( $shipments ) ) {
@@ -9052,7 +9202,7 @@ function merc_liquidar_todo_ajax() {
         $liquidation = array(
             'id' => uniqid('liq_'),
             'date' => current_time( 'mysql' ),
-            'fecha_caja' => $fecha_caja,
+            'fecha_caja' => date('Y-m-d', strtotime($fecha_caja)),
             'recaudado_merc' => $recaudado_merc,
             'pago_marca' => $pago_marca_total,
             'servicios' => $servicios_total,
@@ -9116,84 +9266,71 @@ function merc_liquidar_todo_ajax() {
             $liquidation['covered_by_recaudado'] = $to_cover;
         }
 
-        // Marcar envíos como procesados por la liquidación masiva sin alterar
-        // los campos que usan las tarjetas del panel.
+        // Marcar envíos como procesados por la liquidación masiva
+        $liq_id = $liquidation['id'];
         foreach ( $shipments as $shipment_id ) {
-            update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            $estado_upper = strtoupper(trim(get_post_meta($shipment_id, 'wpcargo_status', true)));
+            if ( $estado_upper === 'ENTREGADO' || $estado_upper === 'NO RECIBIDO' || $estado_upper === 'NO RECOGIDO' ) {
+                update_post_meta( $shipment_id, 'wpcargo_included_in_liquidation', $liq_id );
+                update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            } elseif ( $estado_upper === 'ANULADO' ) {
+                update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            } elseif ( $estado_upper === 'REPROGRAMADO' ) {
+                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja );
+            } else {
+                update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            }
         }
 
-        // Determinar actor e historial donde guardar la liquidación.
+        // Determinar actor
         $actor = get_current_user_id();
-        $history_owner = ( $actor !== $user_id && current_user_can( 'administrator' ) ) ? $actor : $user_id;
+        $is_admin_acting = ( $actor !== $user_id && current_user_can('manage_options') );
 
-        // Si queda diferencia, es deuda de la MARCA (no tocar pago_marca)
+        // Si queda diferencia, es deuda de la MARCA
         if ( $remaining_service > 0 ) {
-            $liquidation['action'] = 'marca_debe';
-            $liquidation['amount'] = $remaining_service;
-            // Si el admin está ejecutando la operación para el remitente, registrar la liquidación
-            // bajo el admin y marcarla como verificada por el admin.
-            if ( $history_owner !== $user_id ) {
-                $liquidation['created_by'] = $actor;
-                $liquidation['verified'] = true;
+            $liquidation['action']      = 'marca_debe';
+            $liquidation['amount']      = $remaining_service;
+            $liquidation['performed_by'] = $actor;
+            if ( $is_admin_acting ) {
+                $liquidation['verified']    = true;
                 $liquidation['verified_by'] = $actor;
-                $liquidation['performed_for'] = $user_id;
             }
-            $history = get_user_meta( $history_owner, 'merc_liquidations', true );
+            // Guardar SOLO en el cliente
+            $history = get_user_meta( $user_id, 'merc_liquidations', true );
             if ( ! is_array( $history ) ) $history = array();
             $history[] = $liquidation;
-            update_user_meta( $history_owner, 'merc_liquidations', $history );
+            update_user_meta( $user_id, 'merc_liquidations', $history );
 
             wp_send_json_success( array( 'message' => 'Liquidación completada: la MARCA debe S/. ' . number_format( $remaining_service, 2 ) . ' (registrado)' ) );
         }
 
         // Si no queda diferencia, todo el servicio quedó cubierto por lo recaudado
-        $liquidation['action'] = 'servicio_cubierto';
-        $liquidation['amount'] = $service_needed;
-
-        // Calcular monto final según la fórmula solicitada por el flujo admin:
-        // monto_final = (efectivo + pago_merc + pos) - servicios
-        // Nota: NO restar 'pago_marca' aquí — fue erroneamente restado antes.
         $monto_final = round( ( $efectivo_total + $pago_merc_total + $pos_total ) - $servicios_total, 2 );
-        if ( function_exists('current_user_can') && current_user_can('administrator') ) {
-            if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
-                error_log(sprintf('MERC_DEBUG_PAGAR_A_CLIENTE - shipment_calc efectivo=%01.2f pago_merc=%01.2f pos=%01.2f pago_marca=%01.2f servicios=%01.2f monto_final=%01.2f',
-                    $efectivo_total,
-                    $pago_merc_total,
-                    $pos_total,
-                    $pago_marca_total,
-                    $servicios_total,
-                    $monto_final
-                ));
-            }
-        }
-        // Si el actor es un admin distinto al remitente, registrar como "Pagar a cliente"
-        if ( $history_owner !== $user_id ) {
-            $liquidation['created_by'] = $actor;
-            $liquidation['verified'] = true;
-            $liquidation['verified_by'] = $actor;
-            $liquidation['performed_for'] = $user_id;
-            $liquidation['action'] = 'pagar_a_cliente';
-            $liquidation['amount'] = $monto_final;
-            $liquidation['result'] = $monto_final;
+        if ( defined('MERC_DEBUG') && MERC_DEBUG ) {
+            error_log(sprintf('MERC_DEBUG_PAGAR_A_CLIENTE - efectivo=%01.2f pago_merc=%01.2f pos=%01.2f pago_marca=%01.2f servicios=%01.2f monto_final=%01.2f',
+                $efectivo_total, $pago_merc_total, $pos_total, $pago_marca_total, $servicios_total, $monto_final
+            ));
         }
 
-        $history = get_user_meta( $history_owner, 'merc_liquidations', true );
+        $liquidation['action']       = 'pagar_a_cliente';
+        $liquidation['amount']       = $monto_final;
+        $liquidation['result']       = $monto_final;
+        $liquidation['performed_by'] = $actor;
+        if ( $is_admin_acting ) {
+            $liquidation['verified']    = true;
+            $liquidation['verified_by'] = $actor;
+        }
+
+        // Guardar SOLO en el cliente para evitar duplicados en el historial global
+        $history = get_user_meta( $user_id, 'merc_liquidations', true );
         if ( ! is_array( $history ) ) $history = array();
         $history[] = $liquidation;
-        update_user_meta( $history_owner, 'merc_liquidations', $history );
-
-        // NUEVO: Si es "pagar_a_cliente", también guardar en la meta del cliente para que lo vea
-        if ( $history_owner !== $user_id && isset( $liquidation['action'] ) && $liquidation['action'] === 'pagar_a_cliente' ) {
-            $client_history = get_user_meta( $user_id, 'merc_liquidations', true );
-            if ( ! is_array( $client_history ) ) $client_history = array();
-            // Agregar el mismo registro a la historia del cliente (sin changiar performed_for)
-            $client_history[] = $liquidation;
-            update_user_meta( $user_id, 'merc_liquidations', $client_history );
-        }
+        update_user_meta( $user_id, 'merc_liquidations', $history );
 
         wp_send_json_success( array( 'message' => 'Liquidación completada: el servicio fue cubierto. S/. ' . number_format( $service_needed, 2 ) ) );
 
         // fin remitente
+
     }
 }
 
@@ -9216,7 +9353,7 @@ function merc_get_voucher_ajax() {
     
     // Verificar que el usuario tenga permiso
     $current_user = wp_get_current_user();
-    if (!current_user_can('administrator') && !in_array('wpcargo_driver', $current_user->roles)) {
+    if (!current_user_can('manage_options') && !in_array('wpcargo_driver', $current_user->roles)) {
         wp_send_json_error('Sin permisos para ver vouchers');
     }
     
@@ -10251,16 +10388,15 @@ function merc_sidebar_badges() {
 add_shortcode( 'merc_panel_cliente', 'merc_panel_cliente_shortcode' );
 function merc_panel_cliente_shortcode() {
     $current_user = wp_get_current_user();
-    if ( ! in_array( 'wpcargo_client', $current_user->roles, true ) && ! current_user_can( 'administrator' ) ) {
+    if ( ! in_array( 'wpcargo_client', $current_user->roles, true ) && ! current_user_can('manage_options') ) {
         return '<div class="alert alert-danger">⛔ Acceso denegado. Solo para clientes.</div>';
     }
 
     ob_start();
     
-    // Obtener filtros de fecha (por defecto el día de hoy)
+    // Obtener filtro de fecha (por defecto el día de hoy)
     $hoy = current_time('Y-m-d');
-    $fecha_inicio = isset($_GET['fecha_inicio']) && !empty($_GET['fecha_inicio']) ? sanitize_text_field($_GET['fecha_inicio']) : $hoy;
-    $fecha_fin = isset($_GET['fecha_fin']) && !empty($_GET['fecha_fin']) ? sanitize_text_field($_GET['fecha_fin']) : $hoy;
+    $fecha_caja = isset($_GET['fecha_caja']) && !empty($_GET['fecha_caja']) ? sanitize_text_field($_GET['fecha_caja']) : $hoy;
     
     // Verificar si hay envíos pendientes de hoy (bloqueo activo)
     $tiene_bloqueo = merc_cliente_tiene_envios_pendientes_hoy($current_user->ID);
@@ -10302,7 +10438,7 @@ function merc_panel_cliente_shortcode() {
         <div class="card mb-4">
             <div class="card-header"><h5 class="mb-0">💳 Historial de liquidaciones</h5></div>
             <div class="card-body">
-                <?php echo do_shortcode('[merc_finanzas_cliente fecha_inicio="' . esc_attr($fecha_inicio) . '" fecha_fin="' . esc_attr($fecha_fin) . '"]'); ?>
+                <?php echo do_shortcode('[merc_finanzas_cliente fecha_inicio="' . esc_attr($fecha_caja) . '" fecha_fin="' . esc_attr($fecha_caja) . '"]'); ?>
             </div>
         </div>
         <!-- Penalidades: ahora renderizadas por el plugin merc-finance -->
@@ -10312,7 +10448,7 @@ function merc_panel_cliente_shortcode() {
                 <h5 class="mb-0">📊 Mis Envíos</h5>
             </div>
             <div class="card-body">
-                <?php merc_cliente_envios( $current_user->ID, $fecha_inicio, $fecha_fin ); ?>
+                <?php merc_cliente_envios( $current_user->ID, $fecha_caja ); ?>
             </div>
         </div>
     </div>
@@ -10334,39 +10470,78 @@ function merc_panel_cliente_shortcode() {
     return ob_get_clean();
 }
 
+/**
+ * Verifica si todos los envíos de un cliente para una fecha de caja específica
+ * se encuentran en un estado final (ENTREGADO, REPROGRAMADO, ANULADO, NO RECIBIDO, NO RECOGIDO).
+ */
+function merc_dia_cerrado_para_cliente( $client_id, $fecha_caja ) {
+    global $wpdb;
+    
+    if ( empty($fecha_caja) || empty($client_id) ) return true;
+    
+    $query = $wpdb->prepare("
+        SELECT pm_status.meta_value as estado
+        FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN {$wpdb->postmeta} pm_pickup 
+            ON p.ID = pm_pickup.post_id 
+            AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+        LEFT JOIN {$wpdb->postmeta} pm_status 
+            ON p.ID = pm_status.post_id 
+            AND pm_status.meta_key = 'wpcargo_status'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = %s
+        AND STR_TO_DATE(pm_pickup.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')
+    ", $client_id, $fecha_caja);
+    
+    $estados = $wpdb->get_col($query);
+    
+    if ( empty($estados) ) {
+        return true;
+    }
+    
+    $estados_finales = array('ENTREGADO', 'REPROGRAMADO', 'ANULADO', 'NO RECIBIDO', 'NO RECOGIDO');
+    
+    foreach ( $estados as $estado ) {
+        $estado_upper = strtoupper(trim($estado));
+        if ( ! in_array($estado_upper, $estados_finales, true) ) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 function merc_cliente_balance( $client_id ) {
     global $wpdb;
 
     // Obtener fechas del filtro GET (por defecto el día de hoy)
     $hoy = current_time('Y-m-d');
-    $fecha_inicio = isset($_GET['fecha_inicio']) && !empty($_GET['fecha_inicio']) ? sanitize_text_field($_GET['fecha_inicio']) : $hoy;
-    $fecha_fin = isset($_GET['fecha_fin']) && !empty($_GET['fecha_fin']) ? sanitize_text_field($_GET['fecha_fin']) : $hoy;
+    $fecha_caja = isset($_GET['fecha_caja']) && !empty($_GET['fecha_caja']) ? sanitize_text_field($_GET['fecha_caja']) : $hoy;
     
-    // DEBUG: Log fechas recibidas
+    // DEBUG: Log fecha recibida
     error_log('=== MERC_CLIENTE_BALANCE DEBUG ===');
     error_log('Cliente ID: ' . $client_id);
-    error_log('Fecha inicio (GET): ' . ($fecha_inicio ?: 'VACÍA'));
-    error_log('Fecha fin (GET): ' . ($fecha_fin ?: 'VACÍA'));
+    error_log('Fecha caja (GET): ' . ($fecha_caja ?: 'VACÍA'));
     
     // Mostrar formulario de filtro
     ?>
     <div style="background:#f9f9f9;padding:15px;margin-bottom:20px;border-radius:6px;border:1px solid #ddd;">
-        <h4 style="margin-top:0;margin-bottom:12px;">📅 Filtrar por fecha de envío</h4>
+        <h4 style="margin-top:0;margin-bottom:12px;">📅 Filtrar por fecha de caja</h4>
         <form method="get" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
             <div>
-                <label for="fecha_inicio" style="display:block;margin-bottom:5px;font-weight:500;font-size:13px;">Fecha inicio:</label>
-                <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?php echo esc_attr($fecha_inicio); ?>" style="padding:8px;border:1px solid #ccc;border-radius:4px;">
-            </div>
-            <div>
-                <label for="fecha_fin" style="display:block;margin-bottom:5px;font-weight:500;font-size:13px;">Fecha fin:</label>
-                <input type="date" id="fecha_fin" name="fecha_fin" value="<?php echo esc_attr($fecha_fin); ?>" style="padding:8px;border:1px solid #ccc;border-radius:4px;">
+                <label for="fecha_caja" style="display:block;margin-bottom:5px;font-weight:500;font-size:13px;">Fecha:</label>
+                <input type="date" id="fecha_caja" name="fecha_caja" value="<?php echo esc_attr($fecha_caja); ?>" style="padding:8px;border:1px solid #ccc;border-radius:4px;">
             </div>
             <button type="submit" style="padding:8px 16px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:500;">
                 🔍 Filtrar
             </button>
-            <?php if ($fecha_inicio || $fecha_fin): ?>
-                <a href="<?php echo remove_query_arg(array('fecha_inicio', 'fecha_fin')); ?>" style="padding:8px 16px;background:#bdc3c7;color:#fff;border:none;border-radius:4px;cursor:pointer;text-decoration:none;font-weight:500;display:inline-block;">
-                    ✕ Limpiar
+            <?php if ($fecha_caja && $fecha_caja !== $hoy): ?>
+                <a href="<?php echo remove_query_arg('fecha_caja'); ?>" style="padding:8px 16px;background:#bdc3c7;color:#fff;border:none;border-radius:4px;cursor:pointer;text-decoration:none;font-weight:500;display:inline-block;">
+                    ✕ Hoy
                 </a>
             <?php endif; ?>
         </form>
@@ -10410,19 +10585,21 @@ function merc_cliente_balance( $client_id ) {
         AND pm_shipper.meta_value = %s
     ";
     
-    // Agregar filtro de fecha INICIO (desde esa fecha hasta hoy)
+    // Agregar filtro de fecha de caja
     // Las fechas están en formato DD/MM/YYYY, así que convertimos con STR_TO_DATE
     // Las fechas ya están validadas con regex, así que las insertamos directamente
     // IMPORTANTE: Escapar % con %% para que prepare() no las interprete como placeholders
-    if ($fecha_inicio && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio)) {
-        $query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('" . sanitize_text_field($fecha_inicio) . "', '%%Y-%%m-%%d')";
-        error_log('✓ Filtro INICIO aplicado: >= ' . $fecha_inicio . ' (convertido de DD/MM/YYYY)');
-    }
-    
-    // Agregar filtro de fecha FIN (desde el inicio hasta esa fecha)
-    if ($fecha_fin && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin)) {
-        $query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('" . sanitize_text_field($fecha_fin) . "', '%%Y-%%m-%%d')";
-        error_log('✓ Filtro FIN aplicado: <= ' . $fecha_fin . ' (convertido de DD/MM/YYYY)');
+    if ($fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja)) {
+        $query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
+        
+        // Bloque 5: Excluir envíos que ya fueron liquidados a costo 0 (REPROGRAMADOS) en una liquidación previa
+        $query .= " AND NOT EXISTS (
+            SELECT 1 FROM {$wpdb->postmeta} pm_excl WHERE pm_excl.post_id = p.ID 
+            AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
+            AND pm_excl.meta_value = '" . sanitize_text_field($fecha_caja) . "'
+        )";
+        
+        error_log('✓ Filtro FECHA CAJA aplicado: = ' . $fecha_caja . ' (convertido de DD/MM/YYYY)');
     }
     
     // Ejecutar query con argumentos seguros
@@ -10544,15 +10721,47 @@ function merc_cliente_balance( $client_id ) {
 
 			<?php if ( $balance_neto < 0 ) : ?>
                 <div style="margin-top:15px;background:#fff;padding:12px;border:1px solid #e74c3c;border-radius:6px;border-left:4px solid #e74c3c;">
-                    <div style="font-weight:bold;color:#e74c3c;margin-bottom:8px;">⚠️ Tienes un saldo pendiente a favor de MERC por los servicios prestados.</div>
-                    <form id="merc-pago-proactivo-form" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                        <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf" style="font-size:13px;max-width:200px;">
-                        <button type="button" onclick="mercPagarDeudaProactiva(this)" 
-                                data-amount="<?php echo abs($balance_neto); ?>"
-                                style="background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">
-                            Subir Constancia de S/. <?php echo number_format( abs($balance_neto), 2 ); ?>
-                        </button>
-                    </form>
+                    <?php
+                    $dia_cerrado = merc_dia_cerrado_para_cliente( $client_id, $fecha_caja );
+                    $pago_rechazado = get_user_meta( $client_id, 'merc_pago_rechazado', true );
+                    $pago_en_revision = get_user_meta( $client_id, 'merc_pago_en_revision', true );
+                    
+                    if ( ! empty( $pago_rechazado ) ) :
+                        // Limpiar el meta para que el aviso se muestre solo una vez
+                        delete_user_meta( $client_id, 'merc_pago_rechazado' );
+                    ?>
+                        <div style="font-weight:bold;color:#e74c3c;margin-bottom:8px;">⚠️ Tu constancia fue rechazada. Por favor sube una nueva.</div>
+                        <form id="merc-pago-proactivo-form" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf" style="font-size:13px;max-width:200px;">
+                            <button type="button" onclick="mercPagarDeudaProactiva(this)" 
+                                    data-amount="<?php echo abs($balance_neto); ?>"
+                                    style="background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">
+                                Subir Constancia de S/. <?php echo number_format( abs($balance_neto), 2 ); ?>
+                            </button>
+                        </form>
+                    <?php elseif ( ! empty( $pago_en_revision ) ) : 
+                        $attachment_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
+                        $img_url = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
+                    ?>
+                        <div style="font-weight:bold;color:#f39c12;margin-bottom:8px;">⏳ Constancia enviada — MERC está revisando tu pago.</div>
+                        <?php if ($img_url) : ?>
+                            <a href="<?php echo esc_url($img_url); ?>" target="_blank" style="display:inline-block; margin-top:5px; padding: 5px 10px; background: #f39c12; color: #fff; border-radius: 4px; text-decoration: none; font-size: 12px;">📄 Ver Constancia</a>
+                        <?php endif; ?>
+                    <?php elseif ( ! $dia_cerrado ) : ?>
+                        <div style="font-weight:bold;color:#f39c12;margin-bottom:8px;">📦 Aún tienes envíos en proceso hoy.</div>
+                        <p style="margin:0;font-size:13px;color:#555;">Podrás liquidar cuando todos estén en estado final (ej. Entregado, Reprogramado, Anulado).</p>
+                    <?php else : ?>
+                        <div style="font-weight:bold;color:#e74c3c;margin-bottom:8px;">⚠️ Tienes un saldo pendiente a favor de MERC por los servicios prestados.</div>
+                        <form id="merc-pago-proactivo-form" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf" style="font-size:13px;max-width:200px;">
+                            <button type="button" onclick="mercPagarDeudaProactiva(this)" 
+                                    data-amount="<?php echo abs($balance_neto); ?>"
+                                    data-fecha="<?php echo esc_attr($fecha_caja); ?>"
+                                    style="background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">
+                                Subir Constancia de S/. <?php echo number_format( abs($balance_neto), 2 ); ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
                 </div>
 			<?php endif; ?>
 		</div>
@@ -10573,6 +10782,7 @@ function merc_cliente_balance( $client_id ) {
         }
 
         var amount = btn.getAttribute('data-amount');
+        var fecha_caja = btn.getAttribute('data-fecha');
         if (!confirm('¿Seguro que deseas reportar el pago por S/. ' + amount + '?')) return;
 
         var oldText = btn.textContent;
@@ -10582,6 +10792,7 @@ function merc_cliente_balance( $client_id ) {
         var fd = new FormData();
         fd.append('action', 'merc_cliente_crear_y_pagar_deuda');
         fd.append('amount', amount);
+        if (fecha_caja) fd.append('fecha_caja', fecha_caja);
         fd.append('nonce', '<?php echo wp_create_nonce("merc_cliente_pagar"); ?>');
         fd.append('voucher', fileInput.files[0]);
 
@@ -10611,7 +10822,7 @@ function merc_cliente_balance( $client_id ) {
     <?php
 }
 
-function merc_cliente_envios( $client_id, $fecha_inicio = '', $fecha_fin = '' ) {
+function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
     global $wpdb;
 
     $shipments_query = "
@@ -10637,14 +10848,16 @@ function merc_cliente_envios( $client_id, $fecha_inicio = '', $fecha_fin = '' ) 
         AND pm_shipper.meta_value = %s
     ";
     
-    // Aplicar filtro de fecha INICIO
-    if ( $fecha_inicio && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio) ) {
-        $shipments_query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('" . sanitize_text_field($fecha_inicio) . "', '%%Y-%%m-%%d')";
-    }
-    
-    // Aplicar filtro de fecha FIN
-    if ( $fecha_fin && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin) ) {
-        $shipments_query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('" . sanitize_text_field($fecha_fin) . "', '%%Y-%%m-%%d')";
+    // Aplicar filtro de fecha de caja
+    if ( $fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja) ) {
+        $shipments_query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
+        
+        // Bloque 5: Excluir envíos que ya fueron liquidados a costo 0 (REPROGRAMADOS) en una liquidación previa
+        $shipments_query .= " AND NOT EXISTS (
+            SELECT 1 FROM {$wpdb->postmeta} pm_excl WHERE pm_excl.post_id = p.ID 
+            AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
+            AND pm_excl.meta_value = '" . sanitize_text_field($fecha_caja) . "'
+        )";
     }
     
     $shipments_query .= " ORDER BY p.post_date DESC LIMIT 50";
@@ -14423,7 +14636,7 @@ function merc_liquidations_history_shortcode( $atts ) {
 
     // Permisos: solo admin o el propio remitente pueden ver su historial
     $current = wp_get_current_user();
-    if ( ! current_user_can( 'administrator' ) && intval( $current->ID ) !== $user_id ) {
+    if ( ! current_user_can('manage_options') && intval( $current->ID ) !== $user_id ) {
         return '<p>No tienes permisos para ver este historial.</p>';
     }
 
@@ -16130,16 +16343,185 @@ add_action('save_post_wpcargo_shipment', function( $post_id ) {
     }
 }, 10, 1);
 
-// Movido a MERC_Shipment_Filters::render_filter_cliente() en merc-table-customizer plugin
-
 // ---------------------------------------------------------------------------
+// AJAX: FLUJO FINANCIERO - ADMIN (NUEVO VOUCHER WORKFLOW)
+// Los handlers del cliente están en merc-finance/includes/ajax.php
+// ---------------------------------------------------------------------------
+
+add_action('wp_ajax_merc_admin_aprobar_pago', 'merc_admin_aprobar_pago_ajax');
+function merc_admin_aprobar_pago_ajax() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_admin_pago' ) ) {
+        wp_send_json_error( array( 'message' => 'Seguridad: nonce inválido' ) );
+    }
+    if ( ! current_user_can('manage_options') ) {
+        wp_send_json_error( array( 'message' => 'No tienes permisos' ) );
+    }
+    
+    $user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
+    $fecha_caja = isset( $_POST['fecha_caja'] ) ? sanitize_text_field( $_POST['fecha_caja'] ) : '';
+    
+    if ( $user_id <= 0 || empty($fecha_caja) ) {
+        wp_send_json_error( array( 'message' => 'Datos incompletos' ) );
+    }
+    
+    $pago_en_revision = get_user_meta( $user_id, 'merc_pago_en_revision', true );
+    if ( empty($pago_en_revision) ) {
+        wp_send_json_error( array( 'message' => 'No hay pago en revisión para este cliente' ) );
+    }
+    
+    $liq_id = $pago_en_revision['liq_id'];
+    $amount = $pago_en_revision['monto'];
+    $attachment_id = $pago_en_revision['attachment_id'];
+    
+    global $wpdb;
+    
+    // Obtener todos los envíos de esa caja para este cliente
+    $query = $wpdb->prepare("
+        SELECT p.ID
+        FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} pm_shipper 
+            ON p.ID = pm_shipper.post_id 
+            AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN {$wpdb->postmeta} pm_pickup 
+            ON p.ID = pm_pickup.post_id 
+            AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_shipper.meta_value = %s
+        AND STR_TO_DATE(pm_pickup.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')
+    ", $user_id, $fecha_caja);
+    
+    $shipments = $wpdb->get_col($query);
+    
+    if ( !empty($shipments) ) {
+        foreach ( $shipments as $shipment_id ) {
+            $estado_upper = strtoupper(trim(get_post_meta($shipment_id, 'wpcargo_status', true)));
+            if ( $estado_upper === 'ENTREGADO' || $estado_upper === 'NO RECIBIDO' || $estado_upper === 'NO RECOGIDO' ) {
+                update_post_meta( $shipment_id, 'wpcargo_included_in_liquidation', $liq_id );
+                update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            } elseif ( $estado_upper === 'ANULADO' ) {
+                update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            } elseif ( $estado_upper === 'REPROGRAMADO' ) {
+                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja );
+            } else {
+                update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+            }
+        }
+    }
+    
+    // Registrar liquidación — solo en el historial del CLIENTE para evitar duplicados
+    // El campo 'performed_by' sirve como audit trail del admin que aprobó
+    $liquidation = array(
+        'id'          => $liq_id,
+        'date'        => current_time('mysql'),
+        'fecha_caja'  => date('Y-m-d', strtotime($fecha_caja)),
+        'action'      => 'marca_pago_a_merc',
+        'amount'      => $amount,
+        'attachment_id' => $attachment_id,
+        'verified'    => true,
+        'verified_by' => get_current_user_id(),
+        'performed_by' => get_current_user_id()
+    );
+    
+    $history_client = get_user_meta( $user_id, 'merc_liquidations', true );
+    if ( ! is_array( $history_client ) ) $history_client = array();
+
+    $history_client[] = $liquidation;
+    update_user_meta( $user_id, 'merc_liquidations', $history_client );
+    
+    // Limpiar revisión
+    delete_user_meta( $user_id, 'merc_pago_en_revision' );
+    
+    wp_send_json_success( array( 'message' => 'Pago aprobado y envíos liquidados correctamente.' ) );
+}
+
+add_action('wp_ajax_merc_admin_rechazar_pago', 'merc_admin_rechazar_pago_ajax');
+function merc_admin_rechazar_pago_ajax() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_admin_pago' ) ) {
+        wp_send_json_error( array( 'message' => 'Seguridad: nonce inválido' ) );
+    }
+    if ( ! current_user_can('manage_options') ) {
+        wp_send_json_error( array( 'message' => 'No tienes permisos' ) );
+    }
+    
+    $user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
+    
+    if ( $user_id <= 0 ) {
+        wp_send_json_error( array( 'message' => 'Datos incompletos' ) );
+    }
+    
+    // Marcar rechazo para que lo vea el cliente
+    update_user_meta( $user_id, 'merc_pago_rechazado', 1 );
+    delete_user_meta( $user_id, 'merc_pago_en_revision' );
+    
+    wp_send_json_success( array( 'message' => 'Pago rechazado. El cliente ha sido notificado.' ) );
+}
+
+add_action('wp_ajax_merc_admin_cancelar_pago_cliente', 'merc_admin_cancelar_pago_cliente_ajax');
+function merc_admin_cancelar_pago_cliente_ajax() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'merc_admin_pago' ) ) {
+        wp_send_json_error( array( 'message' => 'Seguridad: nonce inválido' ) );
+    }
+    if ( ! current_user_can('manage_options') ) {
+        wp_send_json_error( array( 'message' => 'No tienes permisos' ) );
+    }
+    
+    $user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
+    $liq_id = isset( $_POST['liq_id'] ) ? sanitize_text_field( $_POST['liq_id'] ) : '';
+    
+    if ( $user_id <= 0 || empty($liq_id) ) {
+        wp_send_json_error( array( 'message' => 'Datos incompletos' ) );
+    }
+    
+    $admin_id = get_current_user_id();
+    
+    // Encontrar attachment_id para eliminar el archivo
+    $attachment_id = 0;
+    $history_admin = get_user_meta( $admin_id, 'merc_liquidations', true );
+    if ( is_array( $history_admin ) ) {
+        foreach ( $history_admin as $idx => $entry ) {
+            if ( isset($entry['id']) && $entry['id'] === $liq_id ) {
+                if ( isset($entry['attachment_id']) ) {
+                    $attachment_id = intval($entry['attachment_id']);
+                }
+                unset($history_admin[$idx]);
+            }
+        }
+        update_user_meta( $admin_id, 'merc_liquidations', array_values($history_admin) );
+    }
+    
+    $history_client = get_user_meta( $user_id, 'merc_liquidations', true );
+    if ( is_array( $history_client ) ) {
+        foreach ( $history_client as $idx => $entry ) {
+            if ( isset($entry['id']) && $entry['id'] === $liq_id ) {
+                unset($history_client[$idx]);
+            }
+        }
+        update_user_meta( $user_id, 'merc_liquidations', array_values($history_client) );
+    }
+    
+    // Eliminar archivo
+    if ( $attachment_id > 0 ) {
+        wp_delete_attachment( $attachment_id, true );
+    }
+    
+    // Desmarcar envíos que tengan esta liquidación
+    global $wpdb;
+    $wpdb->query( $wpdb->prepare("
+        DELETE FROM {$wpdb->postmeta}
+        WHERE meta_key = 'wpcargo_included_in_liquidation'
+        AND meta_value = %s
+    ", $liq_id) );
+    
+    wp_send_json_success( array( 'message' => 'Liquidación cancelada. El botón de pago ha sido restaurado.' ) );
+}
 // AJAX: AÑADIR CARGO ADICIONAL
 // ---------------------------------------------------------------------------
 add_action( 'wp_ajax_merc_add_cargo_adicional', 'merc_add_cargo_adicional_ajax' );
 function merc_add_cargo_adicional_ajax() {
     check_ajax_referer( 'merc_cargo_adicional', 'nonce' );
 
-    if ( ! current_user_can( 'administrator' ) ) {
+    if ( ! current_user_can('manage_options') ) {
         wp_send_json_error( array( 'message' => 'No tienes permisos.' ) );
     }
 
@@ -16177,7 +16559,7 @@ add_action( "wp_ajax_merc_delete_cargo_adicional", "merc_delete_cargo_adicional_
 function merc_delete_cargo_adicional_ajax() {
     check_ajax_referer( "merc_cargo_adicional", "nonce" );
 
-    if ( ! current_user_can( "administrator" ) ) {
+    if ( ! current_user_can( 'manage_options' ) ) {
         wp_send_json_error( array( "message" => "No tienes permisos." ) );
     }
 
@@ -16207,5 +16589,27 @@ function merc_delete_cargo_adicional_ajax() {
         merc_sync_service_cost_by_status( $shipment_id );
     }
 
-    wp_send_json_success( array( "message" => "Cargo eliminado con �xito." ) );
+    wp_send_json_success( array( "message" => "Cargo eliminado con éxito." ) );
 }
+
+/**
+ * ============================================================================
+ * REINTENTOS DE ENTREGA: LIMPIEZA DE LIQUIDACIÓN
+ * ============================================================================
+ * Si un pedido estaba en estado final (Liquidado) y se cambia a un estado 
+ * activo para reintentar su entrega, se deben borrar las marcas de liquidación
+ * para que genere un nuevo cobro en la caja del nuevo día.
+ */
+add_action( 'updated_post_meta', 'merc_clear_liquidation_on_reintent', 10, 4 );
+function merc_clear_liquidation_on_reintent( $meta_id, $object_id, $meta_key, $_meta_value ) {
+    if ( $meta_key === 'wpcargo_status' ) {
+        $estado = strtoupper( trim( $_meta_value ) );
+        $estados_activos = array( 'RECEPCIONADO', 'PENDIENTE', 'EN TRANSITO', 'ASIGNADO' );
+        if ( in_array( $estado, $estados_activos ) ) {
+            delete_post_meta( $object_id, 'wpcargo_included_in_liquidation' );
+            delete_post_meta( $object_id, 'merc_remitente_liquidated' );
+            delete_post_meta( $object_id, 'merc_remitente_liquidado_fecha' );
+        }
+    }
+}
+

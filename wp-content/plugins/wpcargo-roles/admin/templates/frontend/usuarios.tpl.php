@@ -9,6 +9,7 @@ $msgs_map = [
 
 <div class="d-flex align-items-center mb-3 border-bottom pb-3">
     <h5 class="mb-0 mr-auto"><i class="fa fa-shield mr-2 text-primary"></i>Roles & Accesos</h5>
+    <?php if ( ! wcrol_es_wpcargo_admin() ): ?>
     <div>
         <a href="<?php echo esc_url($page_url); ?>" class="btn btn-primary btn-sm mr-1">
             <i class="fa fa-users mr-1"></i>Usuarios
@@ -17,6 +18,7 @@ $msgs_map = [
             <i class="fa fa-th-list mr-1"></i>Módulos
         </a>
     </div>
+    <?php endif; ?>
 </div>
 
 <?php if ($msg && isset($msgs_map[$msg])): [$mt,$mm] = $msgs_map[$msg]; ?>
@@ -54,6 +56,7 @@ $msgs_map = [
     </a>
 </div>
 
+<?php if ( ! wcrol_es_wpcargo_admin() ): ?>
 <!-- SECCIÓN 1: Tipo de acceso -->
 <div style="background:#fff;border:1px solid #dee2e6;border-radius:6px;overflow:hidden;margin-bottom:16px">
     <div style="padding:12px 16px;border-bottom:1px solid #dee2e6;background:#f8f9fa">
@@ -154,11 +157,12 @@ $msgs_map = [
     <?php endif; ?>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- SECCIÓN 2: Módulos del dashboard -->
 <div style="background:#fff;border:1px solid #dee2e6;border-radius:6px;overflow:hidden">
     <div style="padding:12px 16px;border-bottom:1px solid #dee2e6;background:#f8f9fa;display:flex;align-items:center;justify-content:space-between">
-        <strong style="font-size:.9rem"><i class="fa fa-th-list mr-1 text-primary"></i>Módulos del dashboard</strong>
+        <strong style="font-size:.9rem"><i class="fa fa-th-list mr-1 text-primary"></i>Módulos Asignados</strong>
         <?php if ($sin_restric): ?>
         <span style="background:#d7f7c2;color:#135d3e;font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700">Sin restricción — ve todos</span>
         <?php else: ?>
@@ -166,78 +170,59 @@ $msgs_map = [
         <?php endif; ?>
     </div>
     <div style="padding:16px">
-        <?php if (empty($modulos)): ?>
-        <div class="alert alert-warning small">
-            <i class="fa fa-exclamation-triangle mr-1"></i>
-            No hay módulos en el catálogo. Visita el dashboard de WPCargo y luego ve a <strong>Módulos → Sincronizar</strong>.
-        </div>
-        <?php else: ?>
-        <p class="text-muted small mb-3">Marca los módulos que este usuario puede ver en el sidebar del dashboard.</p>
+        <p class="text-muted small mb-3">Marca los módulos a los que este administrador tendrá acceso en el menú principal.</p>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('wcrol_fe_permisos_nonce'); ?>
             <input type="hidden" name="action"  value="wcrol_fe_guardar_permisos">
             <input type="hidden" name="user_id" value="<?php echo intval($edit_uid); ?>">
 
-            <?php
-            $grupos = [];
-            foreach ($modulos as $mod) $grupos[$mod['fuente'] ?? 'manual'][] = $mod;
-            $labels_fuente = ['wpcargo_core'=>'WPCargo Core','pagina'=>'Páginas WP','plugin'=>'Plugins externos','manual'=>'Manuales'];
-            foreach (['wpcargo_core','pagina','plugin','manual'] as $fuente):
-                if (empty($grupos[$fuente])) continue;
-                $fc = $fuentes_color[$fuente] ?? '#666';
-                $fl = $labels_fuente[$fuente] ?? $fuente;
-            ?>
-            <div style="margin-bottom:14px">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:<?php echo esc_attr($fc); ?>;padding:4px 8px;border-left:3px solid <?php echo esc_attr($fc); ?>;margin-bottom:8px">
-                    <?php echo esc_html($fl); ?>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px">
-                    <?php foreach ($grupos[$fuente] as $mod):
-                        $slug_mod = $mod['slug'];
-                        $checked  = $sin_restric || ($permisos_u !== null && in_array($slug_mod, $permisos_u, true));
-                        $bid = 'wcrol_mod_'.esc_attr($slug_mod);
-                    ?>
-                    <label for="<?php echo $bid; ?>"
-                           style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid <?php echo $checked?'#b8daff':'#dee2e6'; ?>;border-radius:4px;cursor:pointer;background:<?php echo $checked?'#e8f4fd':'#fff'; ?>;transition:border-color .15s,background .15s;user-select:none">
-                        <input type="checkbox" id="<?php echo $bid; ?>" name="modulos[]"
-                               value="<?php echo esc_attr($slug_mod); ?>"
-                               <?php checked($checked); ?> style="flex-shrink:0;margin:0"
-                               onchange="var l=this.closest('label');l.style.background=this.checked?'#e8f4fd':'#fff';l.style.borderColor=this.checked?'#b8daff':'#dee2e6'">
-                        <span>
-                            <i class="fa <?php echo esc_attr($mod['icon']??'fa-circle-o'); ?>" style="color:<?php echo esc_attr($fc); ?>;width:16px;text-align:center"></i>
-                            <strong style="font-size:12px"> <?php echo esc_html($mod['label']); ?></strong>
-                        </span>
-                    </label>
-                    <?php endforeach; ?>
-                </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
+                <?php foreach ($modulos as $mod):
+                    $slug_mod = $mod['slug'];
+                    $checked  = $sin_restric || ($permisos_u !== null && in_array($slug_mod, $permisos_u, true));
+                    $bid = 'wcrol_mod_'.esc_attr($slug_mod);
+                    
+                    // Colores visuales basados en si es del core o un módulo normal
+                    $fc = ($mod['fuente'] === 'wpcargo_core') ? '#2271b1' : '#495057';
+                ?>
+                <label for="<?php echo $bid; ?>"
+                       style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid <?php echo $checked?'#b8daff':'#e9ecef'; ?>;border-radius:6px;cursor:pointer;background:<?php echo $checked?'#f0f6fc':'#f8f9fa'; ?>;transition:all .2s;user-select:none;margin:0">
+                    <input type="checkbox" id="<?php echo $bid; ?>" name="modulos[]"
+                           value="<?php echo esc_attr($slug_mod); ?>"
+                           <?php checked($checked); ?> style="flex-shrink:0;margin:0;width:16px;height:16px;"
+                           onchange="var l=this.closest('label');l.style.background=this.checked?'#f0f6fc':'#f8f9fa';l.style.borderColor=this.checked?'#b8daff':'#e9ecef'">
+                    <span>
+                        <i class="fa <?php echo esc_attr($mod['icon']??'fa-circle-o'); ?>" style="color:<?php echo esc_attr($fc); ?>;width:18px;text-align:center;margin-right:4px;"></i>
+                        <strong style="font-size:13px;color:#333;"> <?php echo esc_html($mod['label']); ?></strong>
+                    </span>
+                </label>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
 
-            <div class="d-flex align-items-center" style="gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid #dee2e6">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar permisos</button>
+            <div class="d-flex align-items-center" style="gap:8px;padding-top:16px;border-top:1px solid #dee2e6">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar módulos</button>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
-                        onclick="document.querySelectorAll('input[name=\'modulos[]\']').forEach(function(i){i.checked=true;var l=i.closest('label');l.style.background='#e8f4fd';l.style.borderColor='#b8daff';})">
-                    Marcar todos
+                        onclick="document.querySelectorAll('input[name=\'modulos[]\']').forEach(function(i){i.checked=true;var l=i.closest('label');l.style.background='#f0f6fc';l.style.borderColor='#b8daff';})">
+                    Seleccionar todos
                 </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
-                        onclick="document.querySelectorAll('input[name=\'modulos[]\']').forEach(function(i){i.checked=false;var l=i.closest('label');l.style.background='#fff';l.style.borderColor='#dee2e6';})">
-                    Desmarcar todos
+                        onclick="document.querySelectorAll('input[name=\'modulos[]\']').forEach(function(i){i.checked=false;var l=i.closest('label');l.style.background='#f8f9fa';l.style.borderColor='#e9ecef';})">
+                    Limpiar selección
                 </button>
             </div>
         </form>
 
         <?php if (!$sin_restric): ?>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #dee2e6">
-            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('¿Dar acceso total a este usuario?')">
+        <div style="margin-top:16px;padding-top:16px;border-top:1px dashed #dee2e6">
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('¿Seguro que deseas restaurar el acceso total a este usuario?')">
                 <?php wp_nonce_field('wcrol_fe_permisos_nonce'); ?>
                 <input type="hidden" name="action"  value="wcrol_fe_quitar_restricciones">
                 <input type="hidden" name="user_id" value="<?php echo intval($edit_uid); ?>">
-                <button type="submit" class="btn btn-link btn-sm text-muted p-0">
-                    <i class="fa fa-unlock mr-1"></i>Quitar restricciones (acceso total)
+                <button type="submit" class="btn btn-link btn-sm text-danger p-0">
+                    <i class="fa fa-unlock mr-1"></i>Restaurar acceso sin restricciones
                 </button>
             </form>
         </div>
-        <?php endif; ?>
         <?php endif; ?>
     </div>
 </div>
@@ -248,7 +233,7 @@ $msgs_map = [
 <div class="table-responsive">
 <table class="table table-hover table-sm mb-0">
     <thead class="thead-light">
-        <tr><th style="width:42px"></th><th>Usuario</th><th>Email</th><th>Tipo de acceso</th><th>Módulos</th><th style="width:90px">Acciones</th></tr>
+        <tr><th style="width:42px"></th><th>Usuario</th><th>Email</th><?php if ( ! wcrol_es_wpcargo_admin() ): ?><th>Tipo de acceso</th><?php endif; ?><th>Módulos</th><th style="width:90px">Acciones</th></tr>
     </thead>
     <tbody>
     <?php if ($usuarios): foreach ($usuarios as $entry):
@@ -265,6 +250,7 @@ $msgs_map = [
                 <?php if ($es_yo): ?><span style="background:#2271b1;color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;margin-left:4px">Tú</span><?php endif; ?>
             </td>
             <td class="small text-muted"><?php echo esc_html($u->user_email); ?></td>
+            <?php if ( ! wcrol_es_wpcargo_admin() ): ?>
             <td>
                 <?php if ($tipo === 'wordpress_admin'): ?>
                 <span style="background:#e3f0ff;color:#1a4a7a;font-size:11px;padding:2px 9px;border-radius:10px;font-weight:700;white-space:nowrap">
@@ -276,6 +262,7 @@ $msgs_map = [
                 </span>
                 <?php endif; ?>
             </td>
+            <?php endif; ?>
             <td>
                 <?php if ($sin): ?>
                 <span class="text-success small"><i class="fa fa-check-circle mr-1"></i>Todos</span>
@@ -296,8 +283,11 @@ $msgs_map = [
 </table>
 </div>
 </div>
+<?php if ( ! wcrol_es_wpcargo_admin() ): ?>
 <div style="margin-top:14px;padding:10px 14px;background:#fff8e5;border:1px solid #f0c040;border-radius:6px;font-size:13px">
     <i class="fa fa-info-circle text-warning mr-1"></i>
     <strong>WordPress Admin</strong> tiene acceso a wp-admin. <strong>WPCargo Admin</strong> solo ve el dashboard — sin acceso a WordPress. Ideal para asistentes y operadores.
 </div>
 <?php endif; ?>
+<?php endif; ?>
+

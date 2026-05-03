@@ -32,6 +32,12 @@ class WCROL_Frontend {
         }
         ob_start();
         $vista    = sanitize_key($_GET['wcrol_vista'] ?? 'usuarios');
+        
+        // Bloquear acceso a la pestaña Módulos para wpcargo_admin
+        if ( $vista === 'modulos' && wcrol_es_wpcargo_admin() ) {
+            $vista = 'usuarios';
+        }
+
         $edit_uid = intval($_GET['usuario'] ?? 0);
         match ($vista) {
             'modulos' => $this->render_modulos(),
@@ -140,3 +146,4 @@ class WCROL_Frontend {
 }
 
 new WCROL_Frontend();
+

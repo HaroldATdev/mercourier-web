@@ -13,10 +13,17 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Hook: cuando el estado cambia a REPROGRAMADO
- * Activa la bandera es_reprogramado = 1
+ * Hook: cuando el estado cambia a REPROGRAMADO o a un estado final.
+ * - Si llega a REPROGRAMADO: activa la bandera es_reprogramado = 1.
+ * - Si llega a un estado final: limpia la bandera es_reprogramado = 0.
+ *
+ * Nota: usamos 'updated_post_meta' (hook real de WordPress) en lugar
+ * del hook inexistente 'update_post_meta_wpcargo_status'.
  */
-add_action('update_post_meta_wpcargo_status', function($meta_id, $object_id, $meta_key, $meta_value) {
+add_action('updated_post_meta', function($meta_id, $object_id, $meta_key, $meta_value) {
+    if ($meta_key !== 'wpcargo_status') {
+        return;
+    }
     if ($meta_value === 'REPROGRAMADO') {
         error_log("🟠 REPROG: Envío $object_id cambió a REPROGRAMADO - Activando bandera es_reprogramado");
         update_post_meta($object_id, 'es_reprogramado', 1);
@@ -46,4 +53,5 @@ add_action('init', function() {
 register_deactivation_hook(MERC_RETURNS_FILE, function() {
     wp_clear_scheduled_hook('merc_reprogramacion_check_cron');
 });
+
 

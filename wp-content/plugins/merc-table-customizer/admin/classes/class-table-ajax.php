@@ -233,13 +233,36 @@ class MERC_Table_Ajax {
     private function get_reprogram_constraints( WP_Post $shipment ): array {
         $tz = wp_timezone();
 
+        // ── Fecha de envío asignada (base para calcular el mínimo) ──────────
+        // Leer wpcargo_pickup_date_picker (formato DD/MM/YYYY).
+        // Si no existe, caer a post_date como fallback.
+        $pickup_raw = get_post_meta( $shipment->ID, 'wpcargo_pickup_date_picker', true );
+        $envio_date_obj = null;
+        if ( ! empty( $pickup_raw ) ) {
+            $envio_date_obj = DateTime::createFromFormat( 'd/m/Y', trim( $pickup_raw ), $tz );
+            if ( ! $envio_date_obj ) {
+                // Intentar formato ISO por si acaso
+                $envio_date_obj = DateTime::createFromFormat( 'Y-m-d', trim( $pickup_raw ), $tz );
+            }
+        }
+        if ( ! $envio_date_obj ) {
+            $envio_date_obj = DateTime::createFromFormat( 'Y-m-d H:i:s', $shipment->post_date, $tz );
+        }
+        if ( ! $envio_date_obj ) {
+            $envio_date_obj = new DateTime( 'now', $tz );
+        }
+        $envio_date_obj->setTime( 0, 0, 0 );
+
+        // También necesitamos post_date para mostrarlo en el modal.
         $post_date_obj = DateTime::createFromFormat( 'Y-m-d H:i:s', $shipment->post_date, $tz );
         if ( ! $post_date_obj ) {
             $post_date_obj = new DateTime( 'now', $tz );
         }
         $post_date_obj->setTime( 0, 0, 0 );
 
-        $base_min = clone $post_date_obj;
+        // La fecha base mínima es la fecha de envío + 1 día.
+        // Si ese día ya pasó, se permite desde hoy en adelante.
+        $base_min = clone $envio_date_obj;
         $base_min->modify( '+1 day' );
 
         $today = new DateTime( 'today', $tz );
@@ -252,10 +275,13 @@ class MERC_Table_Ajax {
 
         return [
             'post_date'         => $post_date_obj,
+            'envio_date'        => $envio_date_obj,
             'base_min'          => $base_min,
             'min_allowed'       => $min_allowed,
             'post_date_iso'     => $post_date_obj->format( 'Y-m-d' ),
             'post_date_display' => $post_date_obj->format( 'd/m/Y' ),
+            'envio_date_iso'    => $envio_date_obj->format( 'Y-m-d' ),
+            'envio_date_display'=> $envio_date_obj->format( 'd/m/Y' ),
             'min_date_iso'      => $min_allowed->format( 'Y-m-d' ),
             'min_date_display'  => $min_allowed->format( 'd/m/Y' ),
         ];
@@ -279,6 +305,8 @@ class MERC_Table_Ajax {
         wp_send_json_success( [
             'post_date'         => $constraints['post_date_display'],
             'post_date_iso'     => $constraints['post_date_iso'],
+            'envio_date'        => $constraints['envio_date_display'],
+            'envio_date_iso'    => $constraints['envio_date_iso'],
             'min_date'          => $constraints['min_date_display'],
             'min_date_iso'      => $constraints['min_date_iso'],
         ] );
@@ -336,16 +364,10 @@ class MERC_Table_Ajax {
             call_user_func( [ 'LiteSpeed_Cache_API', 'purge_all' ], 'shipment date updated' );
         }
 
-        $tipo_envio = get_post_meta( $shipment_id, 'wpcargo_type_of_shipment', true )
-                   ?: get_post_meta( $shipment_id, 'tipo_envio', true );
-
-        if ( stripos( $tipo_envio, 'AGENCIA' ) !== false || strtolower( $tipo_envio ) === 'express' ) {
-            $nuevo_estado = 'RECEPCIONADO';
-        } elseif ( stripos( $tipo_envio, 'EMPRENDEDOR' ) !== false || strtolower( $tipo_envio ) === 'normal' ) {
-            $nuevo_estado = 'EN BASE MERCOURIER';
-        } else {
-            $nuevo_estado = 'EN BASE MERCOURIER';
-        }
+        // Al reprogramar, el estado siempre debe ser RECEPCIONADO
+        // independientemente del tipo de envío, ya que el paquete
+        // ya fue recepcionado en un intento anterior.
+        $nuevo_estado = 'RECEPCIONADO';
 
         // La reprogramación debe reflejarse al confirmar, sin esperar a ningún cron.
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
@@ -643,3 +665,4 @@ class MERC_Table_Ajax {
 if ( class_exists( 'MERC_Table_Ajax' ) ) {
     new MERC_Table_Ajax();
 }
+

@@ -70,6 +70,8 @@ function merc_cliente_pagar_deuda_ajax() {
 }
 
 // AJAX: cliente sube voucher para crear y pagar proactivamente su deuda global
+// La lógica de revisión administrativa ahora es obligatoria: el pago NO se aplica
+// hasta que el admin lo apruebe mediante merc_admin_aprobar_pago (en functions.php).
 add_action('wp_ajax_merc_cliente_crear_y_pagar_deuda', 'merc_cliente_crear_y_pagar_deuda_ajax');
 function merc_cliente_crear_y_pagar_deuda_ajax() {
     if ( ! isset($_POST['nonce']) || ! wp_verify_nonce( $_POST['nonce'], 'merc_cliente_pagar' ) ) {
@@ -109,44 +111,27 @@ function merc_cliente_crear_y_pagar_deuda_ajax() {
     if ( ! is_wp_error( $attachment_id ) ) {
         $attach_data = wp_generate_attachment_metadata( $attachment_id, $filename );
         wp_update_attachment_metadata( $attachment_id, $attach_data );
+    } else {
+        wp_send_json_error( array( 'message' => 'No se pudo guardar el archivo en WordPress' ) );
     }
 
-    global $wpdb;
-    // Buscar todos los envíos pendientes del cliente que estén ENTREGADOS (los que conforman la deuda)
-    $query = $wpdb->prepare("
-        SELECT p.ID
-        FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm_shipper ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper'
-        LEFT JOIN {$wpdb->postmeta} pm_included ON p.ID = pm_included.post_id AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
-        WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
-        AND pm_shipper.meta_value = %s
-        AND (pm_included.meta_value IS NULL OR pm_included.meta_value = '')
-    ", $user_id);
-    
-    // Aquí filtramos más si fuera necesario, pero por ahora enlazaremos todos los envíos no liquidados
-    // ya que la deuda abarca todo el balance histórico pendiente.
-    $shipments_db = $wpdb->get_col($query);
-
-    $liq_id = 'LIQ-' . date('Ymd-His') . '-' . wp_generate_password(4, false);
     $amount = isset($_POST['amount']) ? floatval($_POST['amount']) : 0;
-    
-    $entry = array(
-        'id'            => $liq_id,
-        'date'          => current_time('Y-m-d H:i:s'),
-        'amount'        => $amount,
-        'shipments'     => $shipments_db,
-        'action'        => 'marca_debe',
-        'verified'      => false,
-        'attachment_id' => $attachment_id
-    );
+    $fecha_caja = isset($_POST['fecha_caja']) ? sanitize_text_field($_POST['fecha_caja']) : current_time('Y-m-d');
+    $liq_id = 'LIQ-' . date('Ymd-His') . '-' . wp_generate_password(4, false);
 
-    $history = get_user_meta( $user_id, 'merc_liquidations', true );
-    if ( ! is_array( $history ) ) $history = array();
-    
-    array_unshift($history, $entry); // Añadir al principio
-    update_user_meta( $user_id, 'merc_liquidations', $history );
+    // Guardar en estado de revisión — el admin debe aprobar antes de liquidar
+    update_user_meta( $user_id, 'merc_pago_en_revision', array(
+        'attachment_id' => $attachment_id,
+        'fecha'         => current_time('mysql'),
+        'monto'         => $amount,
+        'liq_id'        => $liq_id,
+        'fecha_caja'    => $fecha_caja
+    ));
 
-    wp_send_json_success(array('message'=>'Comprobante subido y registrado exitosamente.'));
+    // Limpiar posible estado previo de rechazo
+    delete_user_meta( $user_id, 'merc_pago_rechazado' );
+
+    wp_send_json_success(array('message'=>'Comprobante recibido. MERC lo revisará a la brevedad.'));
 }
 
 // AJAX: Verificar liquidación (admin) — aplica la liquidación y marca envíos
@@ -212,5 +197,6 @@ function merc_finance_get_summary() {
     wp_send_json_success(['summary' => []]);
 }
 ?>
+
 
 
