@@ -18,9 +18,8 @@ class Merc_Bloqueos_Logic {
      */
     public static function evaluate($client_id, $tipo) {
         global $wpdb;
-        // Administradores nunca se bloquean
-        $current_user = wp_get_current_user();
-        if (in_array('administrator', (array) $current_user->roles)) {
+        // Administradores y wpcargo_admin nunca se bloquean
+        if (merc_is_admin_user()) {
             return [
                 'bloqueo_total' => false,
                 'bloquear_hoy' => false,
@@ -204,4 +203,5 @@ class Merc_Bloqueos_Logic {
         }
     }
 }
+
 

@@ -63,7 +63,7 @@ class Merc_Bloqueos_Settings {
     }
 
     public function render_shortcode($atts) {
-        if (!current_user_can('manage_options')) {
+        if (!merc_is_admin_user()) {
             return '<p>No tienes permiso para ver esta configuración.</p>';
         }
 
@@ -229,7 +229,7 @@ class Merc_Bloqueos_Settings {
     }
 
     public function handle_frontend_save() {
-        if (!current_user_can('manage_options') || !isset($_POST['merc_nonce']) || !wp_verify_nonce($_POST['merc_nonce'], 'merc_save_frontend_settings')) {
+        if (!merc_is_admin_user() || !isset($_POST['merc_nonce']) || !wp_verify_nonce($_POST['merc_nonce'], 'merc_save_frontend_settings')) {
             wp_die('Acceso denegado');
         }
 
@@ -257,7 +257,7 @@ class Merc_Bloqueos_Settings {
     }
 
     public function add_frontend_sidebar_menu() {
-        if (!current_user_can('manage_options')) {
+        if (!merc_is_admin_user()) {
             return;
         }
         
@@ -273,4 +273,5 @@ class Merc_Bloqueos_Settings {
         }
     }
 }
+
 

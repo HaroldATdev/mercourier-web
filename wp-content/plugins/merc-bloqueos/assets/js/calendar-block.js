@@ -1,4 +1,5 @@
 jQuery(document).ready(function($) {
+    // Forzando sync al servidor en vivo
 
     // Guard 1: si el objeto WCMAS existe, estamos en la página de Masivos.
     // El script de PHP ya no debería cargar aquí (guard en merc-bloqueos.php),
@@ -209,4 +210,5 @@ jQuery(document).ready(function($) {
         }
     });
 });
+
 

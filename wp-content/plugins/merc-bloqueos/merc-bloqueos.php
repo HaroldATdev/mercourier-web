@@ -1,4 +1,5 @@
-<?php
+<?php // sync
+
 /**
  * Plugin Name: Mercourier Bloqueos V2
  * Description: Control avanzado de horarios y calendarios para envíos Mercourier (Emprendedor, Agencia, Full Fitment).
@@ -72,6 +73,7 @@ function merc_bloqueos_enqueue_scripts() {
     <?php
 }
 add_action('wp_footer', 'merc_bloqueos_enqueue_scripts', 9999);
+
 
 
 
