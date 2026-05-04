@@ -103,19 +103,24 @@
 
                             <?php foreach ($modulos as $mod):
 
+                                $mod_lbl_lower = strtolower(trim($mod['label']));
+                                if (stripos($mod_lbl_lower, 'entrega de mercaderia') !== false || stripos($mod_lbl_lower, 'recojo de mercaderia') !== false || stripos($mod_lbl_lower, 'entrega de mercadería') !== false || stripos($mod_lbl_lower, 'recojo de mercadería') !== false) {
+                                    continue;
+                                }
+
                                 $ck = $sidebar_total || (
                                     is_array($sidebar_permisos) &&
                                     in_array($mod['slug'], $sidebar_permisos, true)
                                 );
                             ?>
-                                <label style="display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid <?php echo $ck ? '#c3d9f4' : '#ddd'; ?>;border-radius:4px;cursor:pointer;background:<?php echo $ck ? '#f0f6fc' : '#fff'; ?>">
+                                <label style="display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid <?php echo $ck ? '#c3d9f4' : '#f9c2c2'; ?>;border-radius:4px;cursor:pointer;background:<?php echo $ck ? '#e8f4fd' : '#fdf2f2'; ?>; <?php if(!$ck) echo 'color:#a12;'; ?>">
 
                                     <input
                                         type="checkbox"
                                         name="sidebar_modulos[]"
                                         value="<?php echo esc_attr($mod['slug']); ?>"
                                         <?php checked($ck, true); ?>
-                                        onchange="var l=this.closest('label');l.style.background=this.checked?'#f0f6fc':'#fff';l.style.borderColor=this.checked?'#c3d9f4':'#ddd'">
+                                        onchange="var l=this.closest('label');l.style.background=this.checked?'#e8f4fd':'#fdf2f2';l.style.borderColor=this.checked?'#c3d9f4':'#f9c2c2';l.style.color=this.checked?'':'#a12';">
 
                                     <span style="font-size:13px;display:flex;flex-direction:column">
                                         <strong><?php echo esc_html($mod['label']); ?></strong>
@@ -168,10 +173,15 @@
                             <h4 style="margin:16px 0 8px;padding:4px 8px;background:#f6f7f7;border-left:3px solid <?php echo esc_attr($fc); ?>;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:<?php echo esc_attr($fc); ?>"><?php echo esc_html($fl[$fuente] ?? $fuente); ?></h4>
                             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
                                 <?php foreach ($grupos[$fuente] as $mod):
+                                    $mod_lbl_lower = strtolower(trim($mod['label']));
+                                    if (stripos($mod_lbl_lower, 'entrega de mercaderia') !== false || stripos($mod_lbl_lower, 'recojo de mercaderia') !== false || stripos($mod_lbl_lower, 'entrega de mercadería') !== false || stripos($mod_lbl_lower, 'recojo de mercadería') !== false) {
+                                        continue;
+                                    }
+                                    
                                     $ck = $sin_restric || ($permisos_u !== null && in_array($mod['slug'], $permisos_u, true));
                                 ?>
-                                    <label style="display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid <?php echo $ck ? '#c3d9f4' : '#ddd'; ?>;border-radius:4px;cursor:pointer;background:<?php echo $ck ? '#f0f6fc' : '#fff'; ?>">
-                                        <input type="checkbox" name="modulos[]" value="<?php echo esc_attr($mod['slug']); ?>" <?php checked($ck, true); ?> onchange="var l=this.closest('label');l.style.background=this.checked?'#f0f6fc':'#fff';l.style.borderColor=this.checked?'#c3d9f4':'#ddd'">
+                                    <label style="display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid <?php echo $ck ? '#c3d9f4' : '#f9c2c2'; ?>;border-radius:4px;cursor:pointer;background:<?php echo $ck ? '#e8f4fd' : '#fdf2f2'; ?>; <?php if(!$ck) echo 'color:#a12;'; ?>">
+                                        <input type="checkbox" name="modulos[]" value="<?php echo esc_attr($mod['slug']); ?>" <?php checked($ck, true); ?> onchange="var l=this.closest('label');l.style.background=this.checked?'#e8f4fd':'#fdf2f2';l.style.borderColor=this.checked?'#c3d9f4':'#f9c2c2';l.style.color=this.checked?'':'#a12';">
                                         <span class="dashicons" style="color:<?php echo esc_attr($fc); ?>;font-size:14px;width:14px;height:14px"></span>
                                         <span style="font-size:13px"><strong><?php echo esc_html($mod['label']); ?></strong></span>
                                     </label>

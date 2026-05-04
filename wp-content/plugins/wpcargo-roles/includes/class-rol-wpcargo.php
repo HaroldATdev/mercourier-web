@@ -337,6 +337,10 @@ class WCROL_Rol_WPCargo {
      */
     public static function bloquear_wp_admin(): void {
         if ( wp_doing_ajax() ) return;
+
+        global $pagenow;
+        if ( $pagenow === 'admin-post.php' ) return;
+
         if ( ! is_user_logged_in() ) return;
         if ( ! wcrol_es_wpcargo_admin() ) return;
 
@@ -470,4 +474,5 @@ class WCROL_Rol_WPCargo {
 }
 
 WCROL_Rol_WPCargo::init();
+
 

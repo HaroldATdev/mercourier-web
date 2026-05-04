@@ -13,6 +13,10 @@ class WCROL_Frontend {
         add_action('admin_post_wcrol_fe_sincronizar',         [$this, 'handle_sincronizar']);
         add_action('admin_post_wcrol_fe_guardar_modulo',      [$this, 'handle_guardar_modulo']);
         add_action('admin_post_wcrol_fe_eliminar_modulo',     [$this, 'handle_eliminar_modulo']);
+
+        // AJAX handlers (evitan pasar por admin-post.php que bloquea a wpcargo_admin)
+        add_action('wp_ajax_wcrol_ajax_guardar_permisos',    [$this, 'ajax_guardar_permisos']);
+        add_action('wp_ajax_wcrol_ajax_quitar_restricciones',[$this, 'ajax_quitar_restricciones']);
     }
 
     public function sidebar_item( array $menu ): array {
@@ -81,6 +85,26 @@ class WCROL_Frontend {
         exit;
     }
 
+    // AJAX: guardar permisos de módulos (no pasa por wp-admin)
+    public function ajax_guardar_permisos(): void {
+        check_ajax_referer('wcrol_ajax_nonce', 'security');
+        if ( ! wcrol_puede_gestionar() ) wp_send_json_error('Sin permisos.');
+        $user_id = intval($_POST['user_id'] ?? 0);
+        if ( ! $user_id ) wp_send_json_error('Usuario inválido.');
+        WCROL_Permisos::guardar($user_id, array_map('sanitize_key', $_POST['modulos'] ?? []));
+        wp_send_json_success();
+    }
+
+    // AJAX: quitar restricciones (no pasa por wp-admin)
+    public function ajax_quitar_restricciones(): void {
+        check_ajax_referer('wcrol_ajax_nonce', 'security');
+        if ( ! wcrol_puede_gestionar() ) wp_send_json_error('Sin permisos.');
+        $user_id = intval($_POST['user_id'] ?? 0);
+        if ( ! $user_id ) wp_send_json_error('Usuario inválido.');
+        WCROL_Permisos::quitar_restricciones($user_id);
+        wp_send_json_success();
+    }
+
     public function handle_quitar_restricciones(): void {
         check_admin_referer('wcrol_fe_permisos_nonce');
         if ( ! wcrol_puede_gestionar() ) wp_die();
@@ -146,4 +170,5 @@ class WCROL_Frontend {
 }
 
 new WCROL_Frontend();
+
 

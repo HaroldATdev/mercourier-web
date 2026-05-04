@@ -73,15 +73,14 @@ function wcrol_es_wpcargo_admin( int $user_id = 0 ): bool {
     return in_array('wpcargo_admin', $roles, true) && ! in_array('administrator', $roles, true);
 }
 
-/** ¿Puede el usuario actual gestionar roles? (solo wp admins y wpcargo_admins) */
 function wcrol_puede_gestionar(): bool {
-    if ( ! current_user_can('manage_options') ) return false;
-    
     $user = wp_get_current_user();
     if ( ! $user || empty($user->roles) ) return false;
     
-    // Si tiene manage_options y es wpcargo_admin o administrator, puede gestionar.
-    // Esto permite que los wpcargo_admin puedan asignar roles a otros wpcargo_admin
-    return true;
+    if ( in_array('administrator', (array)$user->roles, true) ) return true;
+    if ( wcrol_es_wpcargo_admin() ) return true;
+
+    return false;
 }
+
 

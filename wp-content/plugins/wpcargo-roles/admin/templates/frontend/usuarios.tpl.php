@@ -171,57 +171,122 @@ $msgs_map = [
     </div>
     <div style="padding:16px">
         <p class="text-muted small mb-3">Marca los módulos a los que este administrador tendrá acceso en el menú principal.</p>
-        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-            <?php wp_nonce_field('wcrol_fe_permisos_nonce'); ?>
-            <input type="hidden" name="action"  value="wcrol_fe_guardar_permisos">
+
+        <?php
+        $wcrol_ajax_nonce = wp_create_nonce('wcrol_ajax_nonce');
+        ?>
+        <form id="wcrol-modulos-form">
             <input type="hidden" name="user_id" value="<?php echo intval($edit_uid); ?>">
 
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
                 <?php foreach ($modulos as $mod):
+                    $mod_lbl_lower = strtolower(trim($mod['label']));
+                    if (stripos($mod_lbl_lower, 'entrega de mercaderia') !== false || stripos($mod_lbl_lower, 'recojo de mercaderia') !== false || stripos($mod_lbl_lower, 'entrega de mercadería') !== false || stripos($mod_lbl_lower, 'recojo de mercadería') !== false) {
+                        continue;
+                    }
+
                     $slug_mod = $mod['slug'];
                     $checked  = $sin_restric || ($permisos_u !== null && in_array($slug_mod, $permisos_u, true));
                     $bid = 'wcrol_mod_'.esc_attr($slug_mod);
-                    
-                    // Colores visuales basados en si es del core o un módulo normal
-                    $fc = ($mod['fuente'] === 'wpcargo_core') ? '#2271b1' : '#495057';
+                    $fc = ($mod['fuente'] === 'wpcargo_core') ? '#1d4ed8' : '#374151';
                 ?>
-                <label for="<?php echo $bid; ?>"
-                       style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid <?php echo $checked?'#b8daff':'#e9ecef'; ?>;border-radius:6px;cursor:pointer;background:<?php echo $checked?'#f0f6fc':'#f8f9fa'; ?>;transition:all .2s;user-select:none;margin:0">
+                <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid <?php echo $checked?'#3b82f6':'#ef4444'; ?>;border-radius:6px;cursor:pointer;background:<?php echo $checked?'#dbeafe':'#fee2e2'; ?>;transition:all .2s;user-select:none;margin:0;color:<?php echo $checked?'#1e3a8a':'#991b1b'; ?>;">
                     <input type="checkbox" id="<?php echo $bid; ?>" name="modulos[]"
                            value="<?php echo esc_attr($slug_mod); ?>"
                            <?php checked($checked); ?> style="flex-shrink:0;margin:0;width:16px;height:16px;"
-                           onchange="var l=this.closest('label');l.style.background=this.checked?'#f0f6fc':'#f8f9fa';l.style.borderColor=this.checked?'#b8daff':'#e9ecef'">
+                           onchange="var l=this.closest('label');l.style.background=this.checked?'#dbeafe':'#fee2e2';l.style.borderColor=this.checked?'#3b82f6':'#ef4444';l.style.color=this.checked?'#1e3a8a':'#991b1b';">
                     <span>
                         <i class="fa <?php echo esc_attr($mod['icon']??'fa-circle-o'); ?>" style="color:<?php echo esc_attr($fc); ?>;width:18px;text-align:center;margin-right:4px;"></i>
-                        <strong style="font-size:13px;color:#333;"> <?php echo esc_html($mod['label']); ?></strong>
+                        <strong style="font-size:13px;color:inherit;"> <?php echo esc_html($mod['label']); ?></strong>
                     </span>
                 </label>
                 <?php endforeach; ?>
             </div>
 
             <div class="d-flex align-items-center" style="gap:8px;padding-top:16px;border-top:1px solid #dee2e6">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar módulos</button>
+                <button type="button" id="wcrol-guardar-modulos-btn" class="btn btn-primary btn-sm">
+                    <i class="fa fa-save mr-1"></i><span id="wcrol-guardar-modulos-txt">Guardar módulos</span>
+                </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
-                        onclick="document.querySelectorAll('input[name=\'modulos[]\']').forEach(function(i){i.checked=true;var l=i.closest('label');l.style.background='#f0f6fc';l.style.borderColor='#b8daff';})">
+                        onclick="document.querySelectorAll('#wcrol-modulos-form input[name=\'modulos[]\']').forEach(function(i){i.checked=true;var l=i.closest('label');l.style.background='#dbeafe';l.style.borderColor='#3b82f6';l.style.color='#1e3a8a';})">
                     Seleccionar todos
                 </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
-                        onclick="document.querySelectorAll('input[name=\'modulos[]\']').forEach(function(i){i.checked=false;var l=i.closest('label');l.style.background='#f8f9fa';l.style.borderColor='#e9ecef';})">
+                        onclick="document.querySelectorAll('#wcrol-modulos-form input[name=\'modulos[]\']').forEach(function(i){i.checked=false;var l=i.closest('label');l.style.background='#fee2e2';l.style.borderColor='#ef4444';l.style.color='#991b1b';})">
                     Limpiar selección
                 </button>
+                <span id="wcrol-modulos-msg" style="font-size:13px;display:none"></span>
             </div>
         </form>
 
+        <script>
+        (function(){
+            var btn  = document.getElementById('wcrol-guardar-modulos-btn');
+            var txt  = document.getElementById('wcrol-guardar-modulos-txt');
+            var msg  = document.getElementById('wcrol-modulos-msg');
+            var form = document.getElementById('wcrol-modulos-form');
+            if (!btn) return;
+
+            btn.addEventListener('click', function(){
+                btn.disabled = true;
+                txt.textContent = 'Guardando...';
+                msg.style.display = 'none';
+
+                var checks = form.querySelectorAll('input[name="modulos[]"]');
+                var seleccionados = [];
+                checks.forEach(function(c){ if (c.checked) seleccionados.push(c.value); });
+
+                var data = new URLSearchParams();
+                data.append('action', 'wcrol_ajax_guardar_permisos');
+                data.append('security', '<?php echo esc_js($wcrol_ajax_nonce); ?>');
+                data.append('user_id', '<?php echo intval($edit_uid); ?>');
+                seleccionados.forEach(function(s){ data.append('modulos[]', s); });
+
+                fetch('<?php echo esc_url(admin_url('admin-ajax.php')); ?>', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: data.toString()
+                })
+                .then(function(r){ return r.json(); })
+                .then(function(res){
+                    btn.disabled = false;
+                    txt.textContent = 'Guardar módulos';
+                    if (res.success) {
+                        msg.style.color = '#135d3e';
+                        msg.textContent = '✓ Guardado correctamente.';
+                    } else {
+                        msg.style.color = '#8a1a1a';
+                        msg.textContent = '✕ ' + (res.data || 'Error al guardar.');
+                    }
+                    msg.style.display = 'inline';
+                    setTimeout(function(){ msg.style.display = 'none'; }, 3500);
+                })
+                .catch(function(){
+                    btn.disabled = false;
+                    txt.textContent = 'Guardar módulos';
+                    msg.style.color = '#8a1a1a';
+                    msg.textContent = '✕ Error de conexión.';
+                    msg.style.display = 'inline';
+                });
+            });
+        })();
+        </script>
+
         <?php if (!$sin_restric): ?>
         <div style="margin-top:16px;padding-top:16px;border-top:1px dashed #dee2e6">
-            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('¿Seguro que deseas restaurar el acceso total a este usuario?')">
-                <?php wp_nonce_field('wcrol_fe_permisos_nonce'); ?>
-                <input type="hidden" name="action"  value="wcrol_fe_quitar_restricciones">
-                <input type="hidden" name="user_id" value="<?php echo intval($edit_uid); ?>">
-                <button type="submit" class="btn btn-link btn-sm text-danger p-0">
-                    <i class="fa fa-unlock mr-1"></i>Restaurar acceso sin restricciones
-                </button>
-            </form>
+            <?php $wcrol_ajax_nonce_quitar = wp_create_nonce('wcrol_ajax_nonce'); ?>
+            <button type="button" class="btn btn-link btn-sm text-danger p-0"
+                    onclick="if(!confirm('\u00bfSeguro que deseas restaurar el acceso total a este usuario?')) return;
+                    var d=new URLSearchParams();
+                    d.append('action','wcrol_ajax_quitar_restricciones');
+                    d.append('security','<?php echo esc_js($wcrol_ajax_nonce_quitar); ?>');
+                    d.append('user_id','<?php echo intval($edit_uid); ?>');
+                    fetch('<?php echo esc_url(admin_url('admin-ajax.php')); ?>',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:d.toString()})
+                    .then(function(r){return r.json();})
+                    .then(function(res){if(res.success){location.reload();}else{alert(res.data||'Error.');}});
+            ">
+                <i class="fa fa-unlock mr-1"></i>Restaurar acceso sin restricciones
+            </button>
         </div>
         <?php endif; ?>
     </div>
@@ -271,9 +336,19 @@ $msgs_map = [
                 <?php endif; ?>
             </td>
             <td>
+                <?php
+                // wpcargo_admin solo puede editar otros wpcargo_admin, no a los wp admins
+                $puede_editar = ! wcrol_es_wpcargo_admin() || $tipo !== 'wordpress_admin';
+                if ( $puede_editar ):
+                ?>
                 <a href="<?php echo esc_url(add_query_arg('usuario',$u->ID,$page_url)); ?>" class="btn btn-outline-primary btn-sm">
                     <i class="fa fa-pencil"></i>
                 </a>
+                <?php else: ?>
+                <span style="font-size:12px;color:#bbb;padding:4px 6px;display:inline-block" title="No puedes editar un WordPress Admin">
+                    <i class="fa fa-lock"></i>
+                </span>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; else: ?>
@@ -290,4 +365,5 @@ $msgs_map = [
 </div>
 <?php endif; ?>
 <?php endif; ?>
+
 

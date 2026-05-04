@@ -192,7 +192,56 @@ class WCMAS_Columnas {
 
 
     public static function get_opciones_wpcf( string $meta_key ): array {
-        return self::get_meta_values_distintos($meta_key);
+        global $wpdb;
+        $opciones = [];
+
+        // 1. Obtener opciones de la configuración de WPCargo Custom Fields (para distritos nuevos)
+        $table = $wpdb->prefix . 'wpcargo_custom_fields';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$table}'");
+        
+        if ( $table_exists ) {
+            $field_data = $wpdb->get_var($wpdb->prepare(
+                "SELECT field_data FROM {$table} WHERE field_key = %s LIMIT 1",
+                $meta_key
+            ));
+            
+            if ( ! empty($field_data) ) {
+                $unserialized = maybe_unserialize($field_data);
+                
+                if ( is_array($unserialized) ) {
+                    // WPCargo guarda las opciones como un array serializado
+                    foreach ( $unserialized as $item ) {
+                        if ( is_string($item) && trim($item) !== '' ) {
+                            $opciones[] = trim($item);
+                        }
+                    }
+                } else {
+                    // Fallback para datos antiguos guardados como texto separado
+                    $separador = strpos($field_data, ',') !== false ? ',' : "\n";
+                    $items = explode($separador, $field_data);
+                    foreach ( $items as $item ) {
+                        $item = trim($item);
+                        if ( $item !== '' ) {
+                            $opciones[] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Si WPCargo tiene opciones, SOLO usamos esas (ignora el historial antiguo).
+        // Si no tiene, hacemos fallback al historial de la base de datos.
+        if ( ! empty($opciones) ) {
+            $todas = array_unique(array_filter($opciones));
+        } else {
+            $bd = self::get_meta_values_distintos($meta_key);
+            $todas = array_unique(array_filter($bd));
+        }
+        
+        // 3. Ordenar alfabéticamente
+        sort($todas);
+        
+        return array_values($todas);
     }
 
     private static function get_meta_values_distintos( string $meta_key, string $extra_where = '' ): array {
@@ -222,6 +271,12 @@ class WCMAS_Columnas {
             // Mantener estos campos clave siempre como select_db aunque la config haya sido alterada.
             if ( in_array($col_id, ['tipo_envio','tipo_programado','modo_de_pago'], true) ) {
                 $c['tipo'] = 'select_db';
+            }
+
+            // Forzar que el distrito de envío SIEMPRE use las opciones más recientes, 
+            // saltándose el caché de la BD.
+            if ( $meta_key === 'wpcargo_distrito_destino' || $col_id === 'distrito_envio' ) {
+                $c['opciones'] = self::get_opciones_wpcf('wpcargo_distrito_destino');
             }
 
             if ( $c['tipo'] !== 'select_db' ) continue;
@@ -257,5 +312,6 @@ class WCMAS_Columnas {
         }, $cols)));
     }
 }
+
 
 

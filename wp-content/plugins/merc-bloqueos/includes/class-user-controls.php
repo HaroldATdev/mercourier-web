@@ -16,6 +16,22 @@ class Merc_Bloqueos_User_Controls {
         // AJAX Endpoints para los botones
         add_action('wp_ajax_merc_bloqueos_temp_unlock', [$this, 'handle_temp_unlock']);
         add_action('wp_ajax_merc_bloqueos_toggle_total', [$this, 'handle_toggle_total']);
+        add_action('wp_ajax_merc_bloqueos_get_states', [$this, 'handle_get_states']);
+    }
+
+    public function handle_get_states() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error();
+        }
+
+        $user_ids = isset($_POST['user_ids']) ? array_map('intval', (array)$_POST['user_ids']) : [];
+        $states = [];
+        foreach ($user_ids as $uid) {
+            if ($uid > 0) {
+                $states[$uid] = get_user_meta($uid, 'merc_bloqueo_total', true);
+            }
+        }
+        wp_send_json_success(['states' => $states]);
     }
 
     public function enqueue_admin_scripts($hook) {
@@ -48,33 +64,51 @@ class Merc_Bloqueos_User_Controls {
             
             // Reemplazar la columna "Bloquear/Desbloquear" existente con nuestros controles
             function render_merc_controls() {
+                var usersToFetch = [];
+                var targetCells = {};
+
                 $('.wpcumanage-blocked').each(function() {
                     var td = $(this);
                     
-                    // Extraer el ID del usuario del botón original
                     var btn = td.find('button').first();
                     if (!btn.length) return;
                     
                     var userId = btn.data('id');
                     if (!userId) return;
 
-                    // Si ya lo procesamos, saltar
                     if (td.find('.merc-controls-container').length) return;
 
-                    // Consultar estado actual (en un caso ideal esto vendría en el HTML, 
-                    // pero para no alterar el otro plugin lo inyectamos visualmente).
-                    var container = $('<div class="merc-controls-container" style="display:flex; flex-direction:column; gap:8px; align-items:flex-start;"></div>');
-                    
-                    // Determinar estado inicial (el botón original dirá "Desbloquear" si está bloqueado, o podemos sacar el data attr, pero para simplificar usamos el estilo)
-                    // Como no tenemos el estado exacto del bloqueo total a mano sin alterar la fila, asumimos que el usuario lo verá al hacer clic o podemos cargar el estado vía AJAX.
-                    // Por ahora mejoramos el diseño del botón.
-                    var btnTotal = $('<button class="btn btn-sm btn-danger merc-toggle-total" data-id="' + userId + '" style="width: 100%; text-align: left;"><i class="fa fa-ban" style="margin-right: 5px;"></i> Bloqueo Total</button>');
-                    
-                    // Botón Desbloqueo Temporal
-                    var btnTemp = $('<button class="btn btn-sm btn-info merc-temp-unlock" data-id="' + userId + '" style="width: 100%; text-align: left; background-color: #17a2b8; border-color: #17a2b8; color: white;"><i class="fa fa-clock-o" style="margin-right: 5px;"></i> Desbloqueo Temp.</button>');
+                    usersToFetch.push(userId);
+                    targetCells[userId] = td;
+                });
 
-                    container.append(btnTotal).append(btnTemp);
-                    td.html(container);
+                if (usersToFetch.length === 0) return;
+
+                // Hacer una petición AJAX para obtener el estado de estos usuarios
+                $.post(ajaxurl, {
+                    action: 'merc_bloqueos_get_states',
+                    user_ids: usersToFetch
+                }, function(res) {
+                    if (res.success) {
+                        var states = res.data.states;
+                        
+                        $.each(targetCells, function(userId, td) {
+                            var isBlocked = states[userId] === '1';
+                            var container = $('<div class="merc-controls-container" style="display:flex; flex-direction:column; gap:8px; align-items:flex-start;"></div>');
+                            
+                            var btnTotal;
+                            if (isBlocked) {
+                                btnTotal = $('<button class="btn btn-sm btn-success merc-toggle-total" data-id="' + userId + '" style="width: 100%; text-align: left;"><i class="fa fa-check-circle" style="margin-right: 5px;"></i> Quitar Bloqueo</button>');
+                            } else {
+                                btnTotal = $('<button class="btn btn-sm btn-danger merc-toggle-total" data-id="' + userId + '" style="width: 100%; text-align: left;"><i class="fa fa-ban" style="margin-right: 5px;"></i> Bloqueo Total</button>');
+                            }
+                            
+                            var btnTemp = $('<button class="btn btn-sm btn-info merc-temp-unlock" data-id="' + userId + '" style="width: 100%; text-align: left; background-color: #17a2b8; border-color: #17a2b8; color: white;"><i class="fa fa-clock-o" style="margin-right: 5px;"></i> Desbloqueo Temp.</button>');
+
+                            container.append(btnTotal).append(btnTemp);
+                            td.html(container);
+                        });
+                    }
                 });
             }
 
@@ -249,4 +283,5 @@ class Merc_Bloqueos_User_Controls {
         ]);
     }
 }
+
 

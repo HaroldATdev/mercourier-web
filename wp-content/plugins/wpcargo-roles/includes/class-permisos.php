@@ -40,6 +40,30 @@ class WCROL_Permisos {
     }
 
 
+    /**
+     * Ordena: primero wpcargo_admin (por número de módulos descendente),
+     * al final wordpress_admin (que el wpcargo_admin no puede editar).
+     */
+    private static function ordenar( array $resultado ): array {
+        usort($resultado, function( $a, $b ) {
+            $a_wp = ($a['tipo_acceso'] === 'wordpress_admin') ? 1 : 0;
+            $b_wp = ($b['tipo_acceso'] === 'wordpress_admin') ? 1 : 0;
+
+            // WP admins al final
+            if ( $a_wp !== $b_wp ) {
+                return $a_wp - $b_wp;
+            }
+
+            // Dentro del mismo grupo: más módulos primero
+            // Los 'sin restricción' se tratan como máximo
+            $a_num = $a['sin_restriccion'] ? PHP_INT_MAX : (int) $a['num_modulos'];
+            $b_num = $b['sin_restriccion'] ? PHP_INT_MAX : (int) $b['num_modulos'];
+
+            return $b_num - $a_num; // descendente
+        });
+
+        return $resultado;
+    }
 
     public static function obtener_usuarios(): array {
         $users = get_users([
@@ -64,7 +88,7 @@ class WCROL_Permisos {
             ];
         }
 
-        return $resultado;
+        return self::ordenar($resultado);
     }
 
     /**
@@ -116,3 +140,4 @@ class WCROL_Permisos {
         return $filtrado;
     }
 }
+

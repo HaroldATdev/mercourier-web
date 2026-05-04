@@ -8112,12 +8112,42 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 $badge_html = '<span class="badge badge-danger" style="margin-left:auto; font-size:14px; padding:6px 10px; background-color:#e74c3c; color:#fff;">⚠️ Pendiente de pago</span>';
             }
         }
+
+        // WhatsApp Button Logic
+        $phone = get_user_meta( $client->client_id, 'billing_phone', true );
+        if ( empty( $phone ) ) {
+            $phone = get_user_meta( $client->client_id, 'wpc_phone', true );
+        }
+        if ( empty( $phone ) ) {
+            $phone = get_user_meta( $client->client_id, 'wpcargo_phone', true );
+        }
+        
+        $clean_phone = preg_replace('/[^0-9]/', '', (string)$phone);
+        if ( strlen($clean_phone) == 9 ) {
+            $clean_phone = '51' . $clean_phone; // Agregar prefijo de Perú
+        }
+
+        $fecha_formatted = date('d/m/Y', strtotime($fecha_inicio));
+        $link_panel = 'https://mercourier.com/panel-cliente/?fecha_caja=' . esc_attr($fecha_inicio);
+        
+        if ( $modo === 'deudoras' ) {
+            $ws_text = "Hola, ¿qué tal? 👋 Somos Mercourier 🏍️ Te recordamos que tienes un pago pendiente por los servicios de entrega de la fecha {$fecha_formatted} 💰 Por favor, realiza el pago y sube la captura en tu módulo de finanzas {$link_panel}📲 Quedamos atentos a tu confirmación, ¡gracias! 🙌";
+        } else {
+            $ws_text = "Hola, ¿qué tal? 👋 Somos Mercourier 🏍️ Te confirmamos que ya se realizó el pago de tus envíos de la fecha {$fecha_formatted} ✅ Puedes verificarlo en tu módulo de finanzas {$link_panel}📲 ¡Gracias por confiar en nosotros! 🙌";
+        }
+        
+        $ws_btn_html = '';
+        if ( !empty($clean_phone) ) {
+            $ws_url = "https://wa.me/" . $clean_phone . "?text=" . urlencode($ws_text);
+            $ws_btn_html = '<a href="' . esc_url($ws_url) . '" target="_blank" class="btn btn-sm" style="background-color:#25D366;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;text-decoration:none;margin-left:5px;display:inline-flex;align-items:center;gap:4px;" onclick="event.stopPropagation();"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/></svg> Enviar mensaje</a>';
+        }
         ?>
         <div class="merc-user-card" style="border-left-color: #27ae60;width:100%;box-sizing:border-box;margin-bottom:12px;">
             <div class="merc-user-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" data-target="#<?php echo esc_attr( $card_id ); ?>">
                 <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
                     <h4 style="margin:0;">🏢 <?php echo esc_html( $display_name ); ?></h4>
                     <span class="badge badge-secondary"><?php echo esc_html( count($todos_envios) ); ?> envíos</span>
+                    <?php echo $ws_btn_html; ?>
                 </div>
                 <?php echo $badge_html; ?>
                 <div class="merc-card-toggle" style="font-size:18px;padding-left:8px;margin-left:10px;">▾</div>

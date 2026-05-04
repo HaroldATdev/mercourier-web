@@ -250,6 +250,13 @@ class WCMAS_Admin {
         check_ajax_referer('wcmas_procesar_nonce', 'nonce');
         if ( ! wcmas_puede_crear() ) wp_send_json_error(['msg'=>'Sin permisos.'], 403);
 
+        // Seguridad estricta: Bloqueo Total
+        if ( ! current_user_can('manage_options') ) {
+            if ( get_user_meta(get_current_user_id(), 'merc_bloqueo_total', true) === '1' ) {
+                wp_send_json_error(['msg' => 'Tu cuenta ha sido bloqueada. No puedes crear envíos.'], 403);
+            }
+        }
+
         $filas = $_POST['filas'] ?? [];
         if ( ! is_array($filas) || empty($filas) ) {
             wp_send_json_error(['msg'=>'No hay filas para procesar.']);
@@ -298,6 +305,14 @@ class WCMAS_Admin {
     public function ajax_validar_fila(): void {
         check_ajax_referer('wcmas_procesar_nonce', 'nonce');
         if ( ! wcmas_puede_crear() ) wp_send_json_error([], 403);
+
+        // Seguridad estricta: Bloqueo Total
+        if ( ! current_user_can('manage_options') ) {
+            if ( get_user_meta(get_current_user_id(), 'merc_bloqueo_total', true) === '1' ) {
+                wp_send_json_error(['errores' => [['msg' => 'Tu cuenta está bloqueada.', 'col' => '']]], 403);
+            }
+        }
+
         $fila   = array_map(fn($v) => sanitize_text_field(wp_unslash($v)), $_POST['fila'] ?? []);
         $errors = WCMAS_Procesador::validar_fila($fila);
         wp_send_json_success(['errores' => $errors, 'valida' => empty($errors)]);
@@ -410,4 +425,5 @@ class WCMAS_Admin {
 }
 
 new WCMAS_Admin();
+
 

@@ -21,6 +21,7 @@ require_once MERC_BLOQUEOS_DIR . 'includes/class-block-logic.php';
 require_once MERC_BLOQUEOS_DIR . 'includes/class-ajax.php';
 require_once MERC_BLOQUEOS_DIR . 'includes/class-save-guard.php';
 require_once MERC_BLOQUEOS_DIR . 'includes/class-user-controls.php';
+require_once MERC_BLOQUEOS_DIR . 'includes/class-global-shield.php';
 
 // Inicializar el plugin
 function merc_bloqueos_init() {
@@ -28,6 +29,7 @@ function merc_bloqueos_init() {
     new Merc_Bloqueos_Ajax();
     new Merc_Bloqueos_Save_Guard();
     new Merc_Bloqueos_User_Controls();
+    new Merc_Bloqueos_Global_Shield();
 }
 add_action('plugins_loaded', 'merc_bloqueos_init');
 
@@ -60,4 +62,5 @@ function merc_bloqueos_enqueue_scripts() {
     <?php
 }
 add_action('wp_footer', 'merc_bloqueos_enqueue_scripts', 9999);
+
 

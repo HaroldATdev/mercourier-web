@@ -75,6 +75,7 @@ class MERC_Shipment_Filters {
     public function render_marca_filter(): void {
         $current_user = wp_get_current_user();
         if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_admin', (array) $current_user->roles ) &&
              ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
             return;
         }
@@ -104,6 +105,7 @@ class MERC_Shipment_Filters {
     public function render_celular_filter(): void {
         $current_user = wp_get_current_user();
         if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_admin', (array) $current_user->roles ) &&
              ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
             return;
         }
@@ -168,6 +170,7 @@ class MERC_Shipment_Filters {
     public function render_driver_filters(): void {
         $current_user = wp_get_current_user();
         if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_admin', (array) $current_user->roles ) &&
              ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
             return;
         }
@@ -232,6 +235,7 @@ class MERC_Shipment_Filters {
     public function render_filter_cliente(): void {
         $current_user = wp_get_current_user();
         if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_admin', (array) $current_user->roles ) &&
              ! in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
             return;
         }
@@ -350,6 +354,7 @@ class MERC_Shipment_Filters {
         // ── Marca ─────────────────────────────────────────────────────────
         $current_user = wp_get_current_user();
         $is_admin_or_driver = in_array( 'administrator', (array) $current_user->roles ) ||
+                              in_array( 'wpcargo_admin', (array) $current_user->roles ) ||
                               in_array( 'wpcargo_driver', (array) $current_user->roles );
         
         if ( ! empty( $_GET['wpcargo_tiendaname'] ) && $is_admin_or_driver ) {
@@ -526,6 +531,7 @@ class MERC_Shipment_Filters {
 if ( class_exists( 'MERC_Shipment_Filters' ) ) {
     new MERC_Shipment_Filters();
 }
+
 
 
 
