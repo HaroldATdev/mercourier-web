@@ -14,6 +14,16 @@ if (!defined('ABSPATH')) {
 define('MERC_BLOQUEOS_VERSION', '2.0.0');
 define('MERC_BLOQUEOS_DIR', plugin_dir_path(__FILE__));
 define('MERC_BLOQUEOS_URL', plugin_dir_url(__FILE__));
+// Función global de permisos
+if (!function_exists('merc_is_admin_user')) {
+    function merc_is_admin_user() {
+        if (current_user_can('manage_options')) return true;
+        $user = wp_get_current_user();
+        if (in_array('wpcargo_admin', (array) $user->roles)) return true;
+        return false;
+    }
+}
+
 
 // Cargar módulos
 require_once MERC_BLOQUEOS_DIR . 'includes/class-settings.php';
@@ -55,12 +65,14 @@ function merc_bloqueos_enqueue_scripts() {
         var mercBloqueos = {
             "ajax_url": "<?php echo esc_js(admin_url('admin-ajax.php')); ?>",
             "client_id": <?php echo esc_js($user->ID); ?>,
-            "is_admin": <?php echo current_user_can('manage_options') ? 'true' : 'false'; ?>
+            "is_admin": <?php echo merc_is_admin_user() ? 'true' : 'false'; ?>
         };
     </script>
     <script src="<?php echo esc_url(MERC_BLOQUEOS_URL . 'assets/js/calendar-block.js?v=' . time()); ?>"></script>
     <?php
 }
 add_action('wp_footer', 'merc_bloqueos_enqueue_scripts', 9999);
+
+
 
 

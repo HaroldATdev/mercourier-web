@@ -20,7 +20,7 @@ class Merc_Bloqueos_User_Controls {
     }
 
     public function handle_get_states() {
-        if (!current_user_can('manage_options')) {
+        if (!merc_is_admin_user()) {
             wp_send_json_error();
         }
 
@@ -229,7 +229,7 @@ class Merc_Bloqueos_User_Controls {
     }
 
     public function handle_temp_unlock() {
-        if (!current_user_can('manage_options')) {
+        if (!merc_is_admin_user()) {
             wp_send_json_error(['message' => 'Sin permisos']);
         }
 
@@ -254,7 +254,7 @@ class Merc_Bloqueos_User_Controls {
     }
 
     public function handle_toggle_total() {
-        if (!current_user_can('manage_options')) {
+        if (!merc_is_admin_user()) {
             wp_send_json_error(['message' => 'Sin permisos']);
         }
 
@@ -283,5 +283,7 @@ class Merc_Bloqueos_User_Controls {
         ]);
     }
 }
+
+
 
 

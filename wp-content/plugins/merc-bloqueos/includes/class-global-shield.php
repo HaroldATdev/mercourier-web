@@ -17,7 +17,7 @@ class Merc_Bloqueos_Global_Shield {
     }
 
     private function is_user_blocked() {
-        if (!is_user_logged_in() || current_user_can('manage_options')) {
+        if (!is_user_logged_in() || merc_is_admin_user()) {
             return false;
         }
         $user_id = get_current_user_id();
@@ -91,4 +91,6 @@ class Merc_Bloqueos_Global_Shield {
         return ob_get_clean();
     }
 }
+
+
 

@@ -27,7 +27,7 @@ class Merc_Bloqueos_Save_Guard {
         $client_id = get_current_user_id();
 
         // Si el usuario es administrador, no lo bloqueamos
-        if (current_user_can('manage_options')) {
+        if (merc_is_admin_user()) {
             return;
         }
 
@@ -95,3 +95,5 @@ class Merc_Bloqueos_Save_Guard {
         ];
     }
 }
+
+

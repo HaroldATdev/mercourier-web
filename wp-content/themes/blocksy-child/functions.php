@@ -8998,14 +8998,15 @@ if ( ! function_exists( 'merc_pickup_date_matches' ) ) {
         $pickup_date = get_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', true );
         if ( empty( $pickup_date ) ) return false;
         
-        // Formato dd/mm/yyyy a Y-m-d
-        $date_obj = DateTime::createFromFormat('d/m/Y', $pickup_date);
-        if ($date_obj !== false) {
-            return $date_obj->format('Y-m-d') === $fecha_target_iso;
+        $date_obj1 = DateTime::createFromFormat('d/m/Y', trim($pickup_date));
+        $date_obj2 = DateTime::createFromFormat('j/n/Y', trim($pickup_date));
+        if ($date_obj1 !== false) {
+            return $date_obj1->format('Y-m-d') === $fecha_target_iso;
+        } elseif ($date_obj2 !== false) {
+            return $date_obj2->format('Y-m-d') === $fecha_target_iso;
         }
         
-        // Fallback
-        return $pickup_date === $fecha_target_iso;
+        return trim($pickup_date) === $fecha_target_iso;
     }
 }
 
@@ -9086,15 +9087,13 @@ function merc_liquidar_todo_ajax() {
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
             AND pm_driver.meta_value = %s
+            AND EXISTS(
+                SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+                WHERE pm_pickup.post_id = p.ID 
+                AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%Y-%m-%d')
+            )
         ", $user_id ) );
-
-        // Filtrar solo envíos del día de caja (evitar procesar entregas de otras fechas)
-        if ( is_array( $shipments ) ) {
-            $shipments = array_filter( $shipments, function( $sid ) use ( $fecha_caja ) {
-                return merc_pickup_date_matches( $sid, $fecha_caja );
-            });
-            $shipments = array_values( $shipments );
-        }
 
         $count = 0;
         foreach ( $shipments as $shipment_id ) {
@@ -9138,21 +9137,20 @@ function merc_liquidar_todo_ajax() {
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
             AND pm_sender.meta_value = %s
-            AND (pm_included.meta_value IS NULL)
-            AND (pm_remitente_liq.meta_value IS NULL)
+            AND (pm_included.meta_value IS NULL OR pm_included.meta_value = '')
+            AND (pm_remitente_liq.meta_value IS NULL OR pm_remitente_liq.meta_value = '')
             AND NOT EXISTS (
                 SELECT 1 FROM {$wpdb->postmeta} pm_excl WHERE pm_excl.post_id = p.ID 
                 AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
                 AND pm_excl.meta_value = '" . sanitize_text_field($fecha_caja) . "'
             )
+            AND EXISTS(
+                SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+                WHERE pm_pickup.post_id = p.ID 
+                AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%Y-%m-%d')
+            )
         ", $user_id ) );
-        // Filtrar sólo envíos del día de caja (evitar incluir reprogramados/pasados)
-        if ( is_array( $shipments ) ) {
-            $shipments = array_filter( $shipments, function( $sid ) use ( $fecha_caja ) {
-                return merc_pickup_date_matches( $sid, $fecha_caja );
-            });
-            $shipments = array_values( $shipments );
-        }
         if ( empty( $shipments ) ) {
             wp_send_json_error( array( 'message' => 'No hay envíos pendientes para este remitente' ) );
         }
