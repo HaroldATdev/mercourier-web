@@ -46,3 +46,7 @@ wp-content/litespeed/
 *.sql
 *.data
 scan_server.php
+# Archivos basura de Windows
+*:Zone.Identifier
+desktop.ini
+thumbs.db
