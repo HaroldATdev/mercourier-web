@@ -126,7 +126,7 @@
                                   padding: 8px 12px; border: none; border-radius: 4px; 
                                   font-size: 12px; text-align: center; font-weight: 500; 
                                   cursor: pointer; width: 100%;">
-                            💬 Contactar por WhatsApp
+                            💬 Contactar por WhatsApp (con mensaje)
                         </button>
                         
                         <button onclick="sendSupportMessage('${shipmentNumber}')" 
@@ -135,7 +135,7 @@
                                   padding: 8px 12px; border: none; border-radius: 4px; 
                                   font-size: 12px; text-align: center; font-weight: 500; 
                                   cursor: pointer; width: 100%;">
-                            🆘 Solicitar soporte a Marca
+                            🆘 Solicitar soporte a Marca (con mensaje)
                         </button>
                     </div>
                 </div>
@@ -173,8 +173,48 @@
             element.style.display = element.style.display === 'none' ? 'block' : 'none';
         }
     }
+
+    // Abrir WhatsApp del cliente SIN mensaje predefinido
+    async function openWhatsAppClientDirect(shipmentNumber) {
+        const delivery = deliveries.find(d => d.number === shipmentNumber);
+        if (!delivery || !delivery.id) {
+            alert('❌ No se encontró el pedido.');
+            return;
+        }
+        try {
+            const data = await getShipmentData(delivery.id);
+            const phone = formatPhoneNumber(data.receiver_phone);
+            if (!phone) {
+                alert('❌ No hay teléfono disponible para este cliente.');
+                return;
+            }
+            window.open(`https://wa.me/${phone}`, '_blank');
+        } catch (error) {
+            alert('❌ Error al obtener el teléfono del cliente.');
+        }
+    }
+
+    // Abrir WhatsApp de la marca SIN mensaje predefinido
+    async function openWhatsAppBrandDirect(shipmentNumber) {
+        const delivery = deliveries.find(d => d.number === shipmentNumber);
+        if (!delivery || !delivery.id) {
+            alert('❌ No se encontró el pedido.');
+            return;
+        }
+        try {
+            const data = await getShipmentData(delivery.id);
+            const phone = formatPhoneNumber(data.shipper_phone);
+            if (!phone) {
+                alert('❌ No hay teléfono disponible para la marca.');
+                return;
+            }
+            window.open(`https://wa.me/${phone}`, '_blank');
+        } catch (error) {
+            alert('❌ Error al obtener el teléfono de la marca.');
+        }
+    }
     
-    // Función para solicitar soporte a la marca
+    // Función para solicitar soporte a la marca (con mensaje predefinido)
     async function sendSupportMessage(shipmentNumber) {
         jQuery('body').append('<div id="whatsapp-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"><div style="background: white; padding: 20px; border-radius: 8px; text-align: center;"><div style="font-size: 18px; margin-bottom: 10px;">⏳ Obteniendo datos...</div></div></div>');
         
@@ -221,7 +261,7 @@
         }
     }
     
-    // Función para enviar mensaje de WhatsApp al cliente
+    // Función para enviar mensaje de WhatsApp al cliente (con mensaje predefinido)
     async function sendWhatsAppMessage(shipmentNumber) {
         jQuery('body').append('<div id="whatsapp-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"><div style="background: white; padding: 20px; border-radius: 8px; text-align: center;"><div style="font-size: 18px; margin-bottom: 10px;">⏳ Obteniendo datos...</div></div></div>');
         
@@ -959,29 +999,45 @@
                         <!-- ═══ HEADER: nombre + select estado ═══ -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; gap: 10px;">
                             
-                            <!-- Nombre del destinatario + badge número de seguimiento -->
-                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <!-- Columna izquierda: nombre, tracking badge y botones WA rápidos -->
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
 
-                                <!-- NOMBRE: link directo a WhatsApp sin mensaje (se actualiza el href vía JS) -->
-                                <a id="receiver-wa-${delivery.id}"
-                                   href="#"
-                                   target="_blank"
-                                   title="Abrir WhatsApp del destinatario"
-                                   style="font-weight: bold; font-size: 17px; color: #25D366; text-decoration: none;">
-                                    💬 ${index + 1}. ${receiverDisplay}
-                                </a>
+                                <!-- Fila: nombre + badge tracking juntos -->
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: bold; font-size: 17px; color: #333;">
+                                        ${index + 1}. ${receiverDisplay}
+                                    </span>
+                                    <a href="${trackingUrl}"
+                                       target="_blank"
+                                       title="Ver hoja de tracking en WPCargo"
+                                       style="display: inline-flex; align-items: center; gap: 4px;
+                                              background: #343a40; color: #ffffff;
+                                              padding: 4px 11px; border-radius: 20px;
+                                              font-size: 12px; font-weight: bold;
+                                              text-decoration: none; white-space: nowrap;">
+                                        🔍 ${delivery.number}
+                                    </a>
+                                </div>
 
-                                <!-- Badge clickeable con número de seguimiento -->
-                                <a href="${trackingUrl}"
-                                   target="_blank"
-                                   title="Ver hoja de tracking en WPCargo"
-                                   style="display: inline-flex; align-items: center; gap: 5px;
-                                          background: #343a40; color: #ffffff;
-                                          padding: 4px 11px; border-radius: 20px;
-                                          font-size: 12px; font-weight: bold;
-                                          text-decoration: none; width: fit-content;">
-                                    🔍 ${delivery.number}
-                                </a>
+                                <!-- Botones WA rápidos sin mensaje -->
+                                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    <button onclick="openWhatsAppClientDirect('${delivery.number}')"
+                                       type="button"
+                                       style="background-color: #25D366; color: white;
+                                              padding: 5px 12px; border: none; border-radius: 20px;
+                                              font-size: 12px; font-weight: 600; cursor: pointer;
+                                              display: inline-flex; align-items: center; gap: 4px;">
+                                        💬 Cliente
+                                    </button>
+                                    <button onclick="openWhatsAppBrandDirect('${delivery.number}')"
+                                       type="button"
+                                       style="background-color: #128C7E; color: white;
+                                              padding: 5px 12px; border: none; border-radius: 20px;
+                                              font-size: 12px; font-weight: 600; cursor: pointer;
+                                              display: inline-flex; align-items: center; gap: 4px;">
+                                        🏪 Marca
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Select de estado -->
@@ -1013,28 +1069,6 @@
         listHTML += '</div>';
         summaryPanel.innerHTML = listHTML;
 
-        // ── Resolver hrefs de WhatsApp de forma asíncrona tras renderizar ──
-        setTimeout(() => {
-            deliveries.forEach(async (delivery) => {
-                try {
-                    const data = await getShipmentData(delivery.id);
-                    const phone = formatPhoneNumber(data.receiver_phone);
-                    const el = document.getElementById(`receiver-wa-${delivery.id}`);
-                    if (el && phone) {
-                        el.href = `https://wa.me/${phone}`;
-                    } else if (el) {
-                        // Sin teléfono: desactivar el link visualmente
-                        el.style.color = '#007bff';
-                        el.style.cursor = 'default';
-                        el.removeAttribute('href');
-                        el.title = 'Sin teléfono disponible';
-                    }
-                } catch (e) {
-                    // silencioso
-                }
-            });
-        }, 0);
-        
         $('#wpcpod-route-planner #wpcpod-route-loader').remove();
     }
     

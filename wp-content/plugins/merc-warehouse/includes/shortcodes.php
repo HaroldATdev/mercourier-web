@@ -65,7 +65,8 @@ add_shortcode('merc_almacen_productos', function() {
     window.mercAlmacenData = {
         nonce: '<?php echo esc_js($nonce); ?>',
         isAdmin: <?php echo $is_admin ? 'true' : 'false'; ?>,
-        isClient: <?php echo $is_client ? 'true' : 'false'; ?>
+        isClient: <?php echo $is_client ? 'true' : 'false'; ?>,
+        ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>'
     };
     
     console.log('🔷 mercAlmacenData inyectado:', window.mercAlmacenData);
@@ -298,5 +299,6 @@ add_shortcode('merc_almacen_productos', function() {
     <?php
     return ob_get_clean();
 });
+
 
 

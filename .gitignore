@@ -37,3 +37,12 @@ wp-content/hostinger-migration-archives/
 *.hstgr
 *.tar
 *.zip
+
+# LiteSpeed Cache (Culpable de los avatares y CSS temporales)
+wp-content/litespeed/
+
+# Archivos de respaldo y temporales
+*.bak
+*.sql
+*.data
+scan_server.php

@@ -120,6 +120,8 @@ class MERC_Shipment_Form_Fields {
 			const districtPricesExpress = {
 				"-- Seleccione uno --": 0.00,
 				"El Agustino": 8.00,
+ 			    "Ate - Huaycan (Gloria Grande - Pariachi)": 12.00,
+  			    "Ate - Santa Clara": 10.00,
 				"San Juan de Lurigancho": 8.00,
 				"Santa Anita": 8.00,
 				"Ate - Salamanca - Vitarte": 10.00,
@@ -168,6 +170,8 @@ class MERC_Shipment_Form_Fields {
 			const districtPricesNormal = {
 				"-- Seleccione uno --": 0.00,
 				"El Agustino": 10.00,
+ 			    "Ate - Huaycan (Gloria Grande - Pariachi)": 14.00,
+  			    "Ate - Santa Clara": 12.00,
 				"San Juan de Lurigancho": 10.00,
 				"Santa Anita": 10.00,
 				"Ate - Salamanca - Vitarte": 10.00,

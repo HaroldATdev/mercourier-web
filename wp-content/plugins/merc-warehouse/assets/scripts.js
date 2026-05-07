@@ -1,16 +1,19 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Merc Warehouse cargado');
 
-    // Si mercAlmacenData no está disponible, intentamos sin nonce
+    // Si mercAlmacenData no esta disponible, intentamos sin nonce
     const nonce = (typeof window.mercAlmacenData !== 'undefined') ? window.mercAlmacenData.nonce : '';
     const isAdmin = (typeof window.mercAlmacenData !== 'undefined') ? window.mercAlmacenData.isAdmin : false;
 
     // Obtener URL AJAX
-    const ajaxUrl = (typeof ajaxurl !== 'undefined') ? ajaxurl : '/wp-admin/admin-ajax.php';
+    let ajaxUrl = (typeof window.mercAlmacenData !== 'undefined' && window.mercAlmacenData.ajaxUrl) ? window.mercAlmacenData.ajaxUrl : '';
+    if (!ajaxUrl) {
+        ajaxUrl = (typeof ajaxurl !== 'undefined') ? ajaxurl : '/wp-admin/admin-ajax.php';
+    }
 
-    console.log('Configuración:', { nonce: !!nonce, isAdmin, ajaxUrl });
+    console.log('Configuracion:', { nonce: !!nonce, isAdmin, ajaxUrl });
 
-    // Función para cargar productos
+    // Funcion para cargar productos
     function cargarProductos() {
         console.log('Iniciando carga de productos...');
 
@@ -21,15 +24,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new URLSearchParams({
             action: 'merc_almacen_get_productos',
 
-            // Enviar ID numérico del cliente
+            // Enviar ID numerico del cliente
             cliente_id: shipperIdInput ? shipperIdInput.value : ''
         });
-        // Añadir nonce si está disponible
+        // Anadir nonce si esta disponible
         if (nonce) {
             formData.append('nonce', nonce);
         }
 
-        // Cargar datos del almacén
+        // Cargar datos del almacen
         fetch(ajaxUrl, {
             method: 'POST',
             headers: {
@@ -48,10 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderProducts(res.data.productos);
                     updateStats(res.data.productos);
                 } else {
-                    console.warn('No hay productos o error en respuesta:', res);
+                    console.warn('Error en respuesta:', res);
                     const tabla = document.getElementById('almacen-tabla');
                     if (tabla) {
-                        tabla.innerHTML = '<p style="padding:20px;color:#e74c3c;">Error al cargar productos</p>';
+                        const errorMsg = (res.data && res.data.message) ? res.data.message : 'Error al cargar productos';
+                        tabla.innerHTML = `<p style="padding:20px;color:#e74c3c;">${errorMsg}</p>`;
                     }
                 }
             })
@@ -59,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error en AJAX:', error);
                 const tabla = document.getElementById('almacen-tabla');
                 if (tabla) {
-                    tabla.innerHTML = '<p style="padding:20px;color:#e74c3c;">Error de conexión: ' + error.message + '</p>';
+                    tabla.innerHTML = '<p style="padding:20px;color:#e74c3c;">Error de conexion: ' + error.message + '</p>';
                 }
             });
     }
@@ -74,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Renderizando productos:', productos.length);
 
         if (!productos || productos.length === 0) {
-            container.innerHTML = '<div style="padding:40px;text-align:center;color:#7f8c8d;"><p>📦 No hay productos en el almacén</p></div>';
+            container.innerHTML = '<div style="padding:40px;text-align:center;color:#7f8c8d;"><p>ðŸ“¦ No hay productos en el almacen</p></div>';
             return;
         }
 
@@ -103,14 +107,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             html += `<div class="grupo-cliente" style="margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">`;
             html += `<button class="grupo-cliente-header" data-grupo="${grupoId}" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%); color: white; cursor: pointer; user-select: none; font-size: 16px; font-weight: 700; border: none; width: 100%; text-align: left; transition: background 0.3s;">`;
-            html += `👤 ${cliente} <span style="font-size: 13px; font-weight: 400; opacity: 0.85; margin-left: auto;">${prods.length} producto(s) · ${totalCliente} unidades</span>`;
-            html += `<span class="grupo-cliente-chevron" style="font-size: 14px; margin-left: auto; transition: transform 0.25s; transform: rotate(-90deg);">▼</span>`;
+            html += `&#128100; ${cliente} <span style="font-size: 13px; font-weight: 400; opacity: 0.85; margin-left: auto;">${prods.length} producto(s) &middot; ${totalCliente} unidades</span>`;
+            html += `<span class="grupo-cliente-chevron" style="font-size: 14px; margin-left: auto; transition: transform 0.25s; transform: rotate(-90deg);">&#9660;</span>`;
             html += `</button>`;
             html += `<div class="grupo-cliente-body" id="${grupoId}" style="background: white; display: none;">`;
 
             // Tabla de productos del grupo
             html += '<table style="width: 100%; border-collapse: collapse;">';
             html += '<thead><tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">';
+            html += '<th style="padding: 12px 12px; text-align: center; font-weight: 600; font-size: 13px; color: #495057; width:52px;">Foto</th>';
             html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Producto</th>';
             html += '<th style="padding: 12px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #495057;">Stock</th>';
             html += '<th style="padding: 12px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #495057;">Tipo + Medida</th>';
@@ -125,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
             html += '<tbody>';
 
             prods.forEach((prod, idx) => {
-                const estadoText = prod.estado === 'asignado' ? '🚚 Asignado' : (prod.estado === 'entregado' ? '✅ Entregado' : '📦 Sin Asignar');
+                const estadoText = prod.estado === 'asignado' ? 'Asignado' : (prod.estado === 'entregado' ? 'Entregado' : 'Sin Asignar');
                 const bgcolor = idx % 2 === 0 ? 'white' : '#f9f9f9';
 
                 // Tipo + valor de medida combinados
@@ -140,22 +145,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const motorizado = prod.motorizado && prod.motorizado !== '-' ? prod.motorizado : '-';
+                const fotoHtml = prod.foto_url
+                    ? `<img src="${prod.foto_url}" style="width:40px;height:40px;object-fit:cover;border-radius:5px;display:block;margin:auto;" />`
+                    : `<span style="display:block;text-align:center;font-size:22px;color:#ccc;" title="Sin foto">[foto]</span>`;
 
                 html += `<tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">`;
+                html += `<td style="padding: 8px 12px; text-align:center; vertical-align:middle;">${fotoHtml}</td>`;
                 html += `<td style="padding: 12px 20px;"><strong>${prod.nombre || 'Sin nombre'}</strong></td>`;
-                html += `<td style="padding: 12px 20px; text-align: center;"><button class="btn-ver-cantidad" data-product-id="${prod.id}" data-product-name="${prod.nombre}" style="background: none; border: none; cursor: pointer; color: #1976d2; font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 4px; transition: background-color 0.3s;" title="Ver detalles de envíos">📋 ${prod.cantidad || 0}</button></td>`;
+                html += `<td style="padding: 12px 20px; text-align: center;"><button class="btn-ver-cantidad" data-product-id="${prod.id}" data-product-name="${prod.nombre}" style="background: none; border: none; cursor: pointer; color: #1976d2; font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 4px; transition: background-color 0.3s;" title="Ver unidades">${prod.cantidad || 0} uds.</button></td>`;
                 html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${tipoMedidaLabel}</td>`;
                 html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${prod.fecha_creacion || '-'}</td>`;
                 html += `<td style="padding: 12px 20px; font-size: 13px; color: #7f8c8d;">${prod.fecha_modificacion || '-'}</td>`;
                 html += `<td style="padding: 12px 20px; text-align: center;"><span style="display: inline-block; padding: 6px 12px; background: #e9ecef; color: #495057; border-radius: 6px; font-size: 12px; font-weight: 600;">${estadoText}</span></td>`;
                 html += `<td style="padding: 12px 20px; text-align: center; color: #2c3e50; font-weight: 600;">${motorizado}</td>`;
                 if (isAdmin) {
-                    html += `<td style="padding: 12px 20px; text-align: center; display: flex; gap: 8px; justify-content: center;">`;
-                    html += `<button class="btn-edit" onclick="window.editarProducto(${prod.id})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;">✏️ Editar</button>`;
-                    html += `<button class="btn-delete" onclick="window.eliminarProducto(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}', ${parseInt(prod.cantidad) || 0})" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background 0.3s;" title="Eliminar producto">🗑️ Eliminar</button>`;
-                    html += `</td>`;
+                    html += `<td style="padding: 8px 12px; text-align: center;">`;
+                    html += `<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;">`;
+                    html += `<button class="btn-edit" onclick="window.editarProducto(${prod.id})" style="background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">Editar</button>`;
+                    html += `<button class="btn-ingreso" data-product-id="${prod.id}" data-product-name="${prod.nombre}" style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">+ Ingreso</button>`;
+                    html += `<button class="btn-egreso" data-product-id="${prod.id}" data-product-name="${prod.nombre}" data-stock="${prod.cantidad || 0}" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">- Egreso</button>`;
+                    html += `<button class="btn-delete" onclick="window.eliminarProducto(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}', ${parseInt(prod.cantidad) || 0})" style="background: #95a5a6; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">Eliminar</button>`;
+                    html += `</div></td>`;
                 }
-                html += '</tr>';
             });
 
             html += '</tbody>';
@@ -166,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         container.innerHTML = html;
 
-        // Event listeners para botones de cantidad (ver envíos)
+        // Event listeners para botones de cantidad (ver envios)
         document.querySelectorAll('.btn-ver-cantidad').forEach(btn => {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -192,12 +203,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+
+        // Listeners botones Ingreso
+        document.querySelectorAll('.btn-ingreso').forEach(btn => {
+            btn.addEventListener('click', function () {
+                abrirModalIngreso(this.dataset.productId, this.dataset.productName);
+            });
+        });
+
+        // Listeners botones Egreso
+        document.querySelectorAll('.btn-egreso').forEach(btn => {
+            btn.addEventListener('click', function () {
+                abrirModalEgreso(this.dataset.productId, this.dataset.productName, parseInt(this.dataset.stock) || 0);
+            });
+        });
     }
 
     function updateStats(productos) {
-        console.log('Actualizando estadísticas...');
+        console.log('Actualizando estadisticas...');
 
-        // Contar usuarios únicos
+        // Contar usuarios unicos
         const usuarios = new Set();
         productos.forEach(p => {
             if (p.cliente_asignado) usuarios.add(p.cliente_asignado);
@@ -218,13 +243,106 @@ document.addEventListener('DOMContentLoaded', function () {
         if (statAsignados) statAsignados.textContent = asignados;
         if (statEntregados) statEntregados.textContent = entregados;
 
-        console.log('Estadísticas actualizadas:', { usuarios: usuarios.size, total, asignados, entregados });
+        console.log('Estadisticas actualizadas:', { usuarios: usuarios.size, total, asignados, entregados });
+    }
+    // -----------------------------------------------------------------------
+    // MODAL: INGRESO DE MERCADERIA
+    // -----------------------------------------------------------------------
+    function abrirModalIngreso(productId, productName) {
+        console.log('Abriendo modal ingreso para:', productId, productName);
+        Swal.fire({
+            title: 'Registrar Ingreso',
+            html: '<p style="color:#555;margin-bottom:12px;">Producto: <strong>' + productName + '</strong></p>' +
+                  '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Cantidad a ingresar *</label>' +
+                  '<input id="swal-cantidad-ingreso" type="number" min="1" value="1" class="swal2-input" style="width:100%;margin:0;" /></div>' +
+                  '<div style="text-align:left;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Notas (opcional)</label>' +
+                  '<textarea id="swal-notas-ingreso" class="swal2-textarea" placeholder="Observaciones..." style="width:100%;margin:0;height:70px;"></textarea></div>',
+            showCancelButton: true,
+            confirmButtonColor: '#27ae60',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Registrar Ingreso',
+            cancelButtonText: 'Cancelar',
+            preConfirm: function() {
+                var c = parseInt(document.getElementById('swal-cantidad-ingreso').value);
+                if (!c || c < 1) { Swal.showValidationMessage('La cantidad debe ser mayor a 0'); return false; }
+                return { cantidad: c, notas: document.getElementById('swal-notas-ingreso').value };
+            }
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            fetch(ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'merc_registrar_ingreso', product_id: productId, cantidad: result.value.cantidad, notas: result.value.notas, nonce: nonce })
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                if (res.success) {
+                    Swal.fire({ icon: 'success', title: 'Ingreso registrado', text: res.data.message, confirmButtonColor: '#27ae60' }).then(function() { cargarProductos(); });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: (res.data && res.data.message) || 'Error desconocido', confirmButtonColor: '#e74c3c' });
+                }
+            });
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // MODAL: EGRESO DE MERCADERIA
+    // -----------------------------------------------------------------------
+    function abrirModalEgreso(productId, productName, stockActual) {
+        console.log('Abriendo modal egreso para:', productId, productName, stockActual);
+        Swal.fire({
+            title: 'Registrar Egreso',
+            html: '<p style="color:#555;margin-bottom:12px;">Producto: <strong>' + productName + '</strong> &mdash; Stock disponible: <strong>' + stockActual + '</strong></p>' +
+                  '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Cantidad a egresar *</label>' +
+                  '<input id="swal-cantidad-egreso" type="number" min="1" max="' + stockActual + '" value="1" class="swal2-input" style="width:100%;margin:0;" /></div>' +
+                  '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Motivo *</label>' +
+                  '<select id="swal-motivo-egreso" class="swal2-input" style="width:100%;margin:0;height:40px;font-size:14px;">' +
+                  '<option value="">-- Seleccionar motivo --</option>' +
+                  '<option value="merma">Merma / Dano</option>' +
+                  '<option value="devolucion_cliente">Devolucion al cliente</option>' +
+                  '<option value="perdida">Perdida</option>' +
+                  '<option value="ajuste">Ajuste de inventario</option>' +
+                  '<option value="otro">Otro</option></select></div>' +
+                  '<div style="text-align:left;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Notas <span id="swal-nota-req" style="color:#e74c3c;display:none;">(requerido para Otro)</span></label>' +
+                  '<textarea id="swal-notas-egreso" class="swal2-textarea" placeholder="Observaciones..." style="width:100%;margin:0;height:70px;"></textarea></div>',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Registrar Egreso',
+            cancelButtonText: 'Cancelar',
+            didOpen: function() {
+                document.getElementById('swal-motivo-egreso').addEventListener('change', function() {
+                    document.getElementById('swal-nota-req').style.display = this.value === 'otro' ? 'inline' : 'none';
+                });
+            },
+            preConfirm: function() {
+                var c = parseInt(document.getElementById('swal-cantidad-egreso').value);
+                var m = document.getElementById('swal-motivo-egreso').value;
+                var n = document.getElementById('swal-notas-egreso').value;
+                if (!c || c < 1) { Swal.showValidationMessage('Cantidad invalida'); return false; }
+                if (c > stockActual) { Swal.showValidationMessage('Solo hay ' + stockActual + ' unidades disponibles'); return false; }
+                if (!m) { Swal.showValidationMessage('Debes seleccionar un motivo'); return false; }
+                if (m === 'otro' && !n.trim()) { Swal.showValidationMessage('Las notas son obligatorias para "Otro"'); return false; }
+                return { cantidad: c, motivo: m, notas: n };
+            }
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            fetch(ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'merc_registrar_egreso', product_id: productId, cantidad: result.value.cantidad, motivo: result.value.motivo, notas: result.value.notas, nonce: nonce })
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                if (res.success) {
+                    Swal.fire({ icon: 'success', title: 'Egreso registrado', text: res.data.message, confirmButtonColor: '#27ae60' }).then(function() { cargarProductos(); });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: (res.data && res.data.message) || 'Error desconocido', confirmButtonColor: '#e74c3c' });
+                }
+            });
+        });
     }
 
     // Cargar productos inicialmente
     cargarProductos();
 
-    // Recargar productos automáticamente cuando cambie el cliente del envío
+    // Recargar productos automaticamente cuando cambie el cliente del envio
     const clienteInput = document.getElementById('shipper_id');
 
     if (clienteInput) {
@@ -234,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Handler para botón "Nuevo Producto"
+    // Handler para boton "Nuevo Producto"
     const btnNuevo = document.getElementById('btn-nuevo');
     if (btnNuevo) {
         btnNuevo.addEventListener('click', function () {
@@ -242,10 +360,10 @@ document.addEventListener('DOMContentLoaded', function () {
             abrirModalNuevoProducto();
         });
     } else {
-        console.warn('Botón btn-nuevo no encontrado');
+        console.warn('Boton btn-nuevo no encontrado');
     }
 
-    // Función para abrir modal
+    // Funcion para abrir modal
     function abrirModalNuevoProducto() {
         let modal = document.getElementById('modal-nuevo-producto');
 
@@ -297,9 +415,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                         
                         <div class="form-group" style="padding: 12px 20px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Código de Barras <small>(opcional)</small></label>
-                            <input type="text" name="codigo_barras" placeholder="Código o SKU" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📦 Código único para identificar el producto</small>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Codigo de Barras <small>(opcional)</small></label>
+                            <input type="text" name="codigo_barras" placeholder="Codigo o SKU" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📦 Codigo unico para identificar el producto</small>
                         </div>
                         
                         <div class="form-group" style="padding: 12px 20px;">
@@ -336,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="form-group" style="padding: 12px 20px;">
                             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Valor de Medida <small>(opcional)</small></label>
                             <input type="text" name="valor_medida" placeholder="Ej: S, M, L, XL o 100ml" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📐 Valor específico de la medida (talla, color, etc.)</small>
+                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📏 Valor especifico de la medida (talla, color, etc.)</small>
                         </div>
                         
                         <div class="form-group" style="padding: 12px 20px;">
@@ -346,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <input type="number" name="ancho" min="0" step="0.1" placeholder="Ancho (cm)" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                                 <input type="number" name="alto" min="0" step="0.1" placeholder="Alto (cm)" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                             </div>
-                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📦 Ingresa las dimensiones en centímetros</small>
+                            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 3px;">📦 Ingresa las dimensiones en centimetros</small>
                         </div>
                     </form>
                     
@@ -421,7 +539,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (res.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Éxito',
+                                title: '&#201;xito',
                                 text: 'Producto creado exitosamente',
                                 confirmButtonColor: '#3498db'
                             }).then(() => {
@@ -448,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error('Error:', err);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error de conexión',
+                            title: 'Error de conexion',
                             text: 'No se pudo conectar con el servidor',
                             confirmButtonColor: '#e74c3c'
                         });
@@ -456,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // Mostrar modal (si fue creado ahora o ya existía)
+        // Mostrar modal (si fue creado ahora o ya existia)
         if (modal) modal.style.display = 'flex';
     }
 
@@ -494,15 +612,15 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Función global para editar producto
+    // Funcion global para editar producto
     window.editarProducto = function (id) {
         console.log('Editando producto ID:', id);
         abrirModalEditarProducto(id);
     };
 
-    // Función para abrir modal de edición
+    // Funcion para abrir modal de edicion
     function abrirModalEditarProducto(productId) {
-        console.log('Abriendo modal de edición para producto:', productId);
+        console.log('Abriendo modal de edicion para producto:', productId);
 
         // Primero obtener los datos del producto
         fetch(ajaxUrl, {
@@ -534,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error de conexión',
+                    title: 'Error de conexion',
                     text: 'No se pudo conectar con el servidor',
                     confirmButtonColor: '#e74c3c'
                 });
@@ -568,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.innerHTML = `
             <div class="modal-box" style="position: relative; background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
                 <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #ecf0f1; flex-shrink: 0;">
-                    <h3 style="margin: 0; font-size: 20px; color: #2c3e50;">✏️ Editar Producto</h3>
+                    <h3 style="margin: 0; font-size: 20px; color: #2c3e50;">&#9998; Editar Producto</h3>
                     <button class="modal-close-btn" style="background: none; border: none; font-size: 24px; color: #7f8c8d; cursor: pointer; padding: 0; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">&times;</button>
                 </div>
                 
@@ -581,13 +699,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     
                     <div class="form-group" style="padding: 12px 20px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Código de Barras <small>(opcional)</small></label>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Codigo de Barras <small>(opcional)</small></label>
                         <input type="text" id="edit-codigo" value="${producto.codigo_barras || ''}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                     </div>
                     
                     <div class="form-group" style="padding: 12px 20px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Cantidad *</label>
-                        <input type="number" id="edit-cantidad" min="0" value="${producto.cantidad || 0}" required style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Stock actual</label>
+                        <input type="number" id="edit-cantidad" min="0" value="${producto.cantidad || 0}" readonly style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: #f8f9fa; color: #6c757d; cursor: not-allowed;">
+                        <small style="color: #e67e22; font-size: 12px; display: block; margin-top: 4px;">El stock solo se modifica mediante los botones Ingreso / Egreso en la tabla.</small>
                     </div>
                     
                     <div class="form-group" style="padding: 12px 20px;">
@@ -600,9 +719,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="form-group" style="padding: 12px 20px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 14px;">Estado</label>
                         <select id="edit-estado" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                            <option value="sin_asignar">📦 Sin Asignar</option>
-                            <option value="asignado">🚚 Asignado</option>
-                            <option value="entregado">✅ Entregado</option>
+                            <option value="sin_asignar">&#128230; Sin Asignar</option>
+                            <option value="asignado">Asignado</option>
+                            <option value="entregado">Entregado</option>
                         </select>
                     </div>
                     
@@ -635,6 +754,19 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input type="number" id="edit-alto" min="0" step="0.1" placeholder="Alto (cm)" value="${producto.alto || 0}" style="width: 100%; padding: 10px 12px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                         </div>
                     </div>
+                    
+                    <div class="form-group" style="padding: 12px 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Foto del Producto <small>(opcional)</small></label>
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <img id="edit-foto-preview" src="${producto.foto_url || ''}" alt="foto" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid #dfe6e9;display:${producto.foto_url ? 'block' : 'none'};" />
+                            <span id="edit-foto-placeholder" style="display:${producto.foto_url ? 'none' : 'flex'};width:72px;height:72px;align-items:center;justify-content:center;border:2px dashed #dfe6e9;border-radius:8px;font-size:28px;color:#bdc3c7;">&#128247;</span>
+                            <div>
+                                <label for="edit-foto-input" style="display:inline-block;background:#3498db;color:#fff;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">&#128444;&#65039; Cambiar foto</label>
+                                <input type="file" id="edit-foto-input" accept="image/*" style="display:none;" />
+                                <small style="display:block;color:#7f8c8d;margin-top:5px;font-size:11px;">Se actualiza automaticamente al seleccionar</small>
+                            </div>
+                        </div>
+                    </div>
                 </form>
                 
                 <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 15px 20px; border-top: 1px solid #ecf0f1; background: #f8f9fa; flex-shrink: 0;">
@@ -646,6 +778,9 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
 
         document.body.appendChild(modal);
+
+        // Activar subida de foto
+        if (typeof window._attachFotoUpload === 'function') window._attachFotoUpload(producto.id);
 
         // Cargar clientes en el select pasando el objeto producto
         cargarClientesParaEdicion(producto);
@@ -674,12 +809,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('btn-eliminar').addEventListener('click', function () {
             Swal.fire({
                 icon: 'warning',
-                title: '¿Estás seguro?',
-                text: 'Esta acción no se puede deshacer',
+                title: 'Â¿Estas seguro?',
+                text: 'Esta accion no se puede deshacer',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
+                confirmButtonText: 'Si, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -726,7 +861,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         select.appendChild(option);
                     });
 
-                    // Convertir cliente_asignado a string para comparación consistente
+                    // Convertir cliente_asignado a string para comparacion consistente
                     const clienteId = String(producto.cliente_asignado || '');
                     console.log('Cliente ID a buscar (string):', clienteId);
 
@@ -736,31 +871,31 @@ document.addEventListener('DOMContentLoaded', function () {
                         select.value = clienteId;
                     }
 
-                    // Inicializar SelectSearchable después
+                    // Inicializar SelectSearchable despues
                     setTimeout(() => {
                         if (typeof window.SelectSearchable !== 'undefined') {
                             console.log('Inicializando SelectSearchable para edit-cliente');
                             const searchable = new window.SelectSearchable(select);
-                            console.log('✓ SelectSearchable inicializado en modal de edición');
-                            console.log('Valor del select después de init:', select.value);
+                            console.log('âœ“ SelectSearchable inicializado en modal de edicion');
+                            console.log('Valor del select despues de init:', select.value);
 
-                            // Actualizar el input de búsqueda con el nombre del cliente
+                            // Actualizar el input de busqueda con el nombre del cliente
                             setTimeout(() => {
                                 const searchInput = select.parentNode.querySelector('.select-search-input');
                                 console.log('SearchInput encontrado:', !!searchInput);
 
                                 if (searchInput && select.value) {
                                     const selectedOption = Array.from(select.options).find(o => o.value === select.value);
-                                    console.log('Opción seleccionada:', selectedOption?.textContent);
+                                    console.log('Opcion seleccionada:', selectedOption?.textContent);
 
                                     if (selectedOption) {
                                         searchInput.value = selectedOption.textContent;
-                                        console.log('Input de búsqueda actualizado a:', selectedOption.textContent);
+                                        console.log('Input de busqueda actualizado a:', selectedOption.textContent);
                                     }
                                 }
                             }, 50);
                         } else {
-                            console.warn('⚠️ SelectSearchable no disponible aún');
+                            console.warn('âš&nbsp;ï¸ SelectSearchable no disponible aun');
                         }
                     }, 200);
                 }
@@ -797,11 +932,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
             .then(r => r.json())
             .then(res => {
-                console.log('Respuesta actualización:', res);
+                console.log('Respuesta actualizacion:', res);
                 if (res.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Éxito',
+                        title: 'A‰xito',
                         text: 'Producto actualizado correctamente',
                         confirmButtonColor: '#3498db'
                     }).then(() => {
@@ -826,7 +961,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error de conexión',
+                    title: 'Error de conexion',
                     text: 'No se pudo conectar con el servidor',
                     confirmButtonColor: '#e74c3c'
                 });
@@ -849,11 +984,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
             .then(r => r.json())
             .then(res => {
-                console.log('Respuesta eliminación:', res);
+                console.log('Respuesta eliminacion:', res);
                 if (res.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Éxito',
+                        title: 'A‰xito',
                         text: 'Producto eliminado correctamente',
                         confirmButtonColor: '#3498db'
                     }).then(() => {
@@ -873,27 +1008,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error de conexión',
+                    title: 'Error de conexion',
                     text: 'No se pudo conectar con el servidor',
                     confirmButtonColor: '#e74c3c'
                 });
             });
     }
 
-    // Función global para refrescar productos
+    // Funcion global para refrescar productos
     window.refrescarProductos = function () {
         cargarProductos();
     };
 
-    // Función global para eliminar producto
+    // Funcion global para eliminar producto
     window.eliminarProducto = function (productId, productName, cantidad) {
         Swal.fire({
             icon: 'warning',
-            title: 'Confirmar eliminación',
-            html: `¿Está seguro de que desea eliminar el producto <strong>"${productName}"</strong> con <strong>${cantidad}</strong> unidades?<br><small style="color: #e74c3c;">Esta acción no se puede deshacer.</small>`,
+            title: 'Confirmar eliminacion',
+            html: `Â¿Esta seguro de que desea eliminar el producto <strong>"${productName}"</strong> con <strong>${cantidad}</strong> unidades?<br><small style="color: #e74c3c;">Esta accion no se puede deshacer.</small>`,
             showCancelButton: true,
             confirmButtonColor: '#e74c3c',
-            confirmButtonText: '🗑️ Sí, eliminar',
+            confirmButtonText: 'ðŸ—‘ï¸ Si, eliminar',
             cancelButtonText: 'Cancelar',
             cancelButtonColor: '#95a5a6'
         }).then((result) => {
@@ -913,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
                     .then(r => r.json())
                     .then(res => {
-                        console.log('Respuesta eliminación:', res);
+                        console.log('Respuesta eliminacion:', res);
                         if (res.success) {
                             Swal.fire({
                                 icon: 'success',
@@ -936,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error('Error al eliminar:', err);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error de conexión',
+                            title: 'Error de conexion',
                             text: 'No se pudo conectar con el servidor',
                             confirmButtonColor: '#e74c3c'
                         });
@@ -945,118 +1080,171 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
-    // Función global para abrir modal de unidades/envíos
-    window.openUnitsModal = function (productId, productName) {
-        console.log('Abriendo modal de unidades para producto:', productId, productName);
 
-        const datos = {
-            action: 'merc_get_product_units',
-            product_id: productId,
-            nonce: nonce
-        };
+    // -----------------------------------------------------------------------
+    // MODAL UNIDADES con 2 pestanas: Unidades | Historial
+    // -----------------------------------------------------------------------
+    window.openUnitsModal = function(productId, productName) {
+        var existing = document.getElementById('modal-units-hist');
+        if (existing) existing.remove();
 
-        // Mostrar loading mientras se cargan los datos
-        Swal.fire({
-            title: 'Cargando envíos...',
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            allowOutsideClick: false,
-            allowEscapeKey: false
+        var modal = document.createElement('div');
+        modal.id = 'modal-units-hist';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);display:flex;justify-content:center;align-items:center;z-index:99999;';
+        modal.innerHTML = [
+            '<div style="background:#fff;border-radius:12px;width:95%;max-width:780px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,0.3);">',
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #eee;">',
+            '<h3 style="margin:0;font-size:18px;color:#2c3e50;">Producto: ' + productName + '</h3>',
+            '<button id="btn-close-units" style="background:none;border:none;font-size:24px;cursor:pointer;color:#7f8c8d;">&times;</button></div>',
+            '<div style="display:flex;padding:0 20px;border-bottom:1px solid #eee;">',
+            '<button class="merc-tab" data-tab="panel-unidades" style="padding:12px 20px;border:none;border-bottom:3px solid #3498db;font-weight:700;cursor:pointer;color:#3498db;background:none;">Unidades</button>',
+            '<button class="merc-tab" data-tab="panel-historial" style="padding:12px 20px;border:none;border-bottom:3px solid transparent;font-weight:600;cursor:pointer;color:#7f8c8d;background:none;">Historial</button></div>',
+            '<div style="flex:1;overflow-y:auto;">',
+            '<div id="panel-unidades" class="merc-panel"><div style="padding:20px;text-align:center;color:#7f8c8d;">Cargando...</div></div>',
+            '<div id="panel-historial" class="merc-panel" style="display:none;"><div style="padding:20px;text-align:center;color:#7f8c8d;">Selecciona la pestana Historial para cargar.</div></div>',
+            '</div></div>'
+        ].join('');
+
+        document.body.appendChild(modal);
+
+        document.getElementById('btn-close-units').onclick = function() { modal.remove(); };
+        modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+
+        var histCargado = false;
+        modal.querySelectorAll('.merc-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                modal.querySelectorAll('.merc-tab').forEach(function(t) {
+                    t.style.borderBottomColor = 'transparent';
+                    t.style.color = '#7f8c8d';
+                    t.style.fontWeight = '600';
+                });
+                this.style.borderBottomColor = '#3498db';
+                this.style.color = '#3498db';
+                this.style.fontWeight = '700';
+                modal.querySelectorAll('.merc-panel').forEach(function(p) { p.style.display = 'none'; });
+                document.getElementById(this.dataset.tab).style.display = 'block';
+                if (this.dataset.tab === 'panel-historial' && !histCargado) {
+                    histCargado = true; cargarHistorialModal(productId);
+                }
+            });
         });
 
-        fetch(ajaxUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(datos)
-        })
+        cargarUnidadesModal(productId);
+
+        function cargarUnidadesModal(pid) {
+            fetch(ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'merc_get_product_units', product_id: pid, nonce: nonce })
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                var panel = document.getElementById('panel-unidades');
+                if (!panel) return;
+                if (!res.success || !res.data || res.data.length === 0) {
+                    panel.innerHTML = '<div style="padding:30px;text-align:center;color:#7f8c8d;">Sin unidades registradas.</div>'; return;
+                }
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f8f9fa;border-bottom:2px solid #dee2e6;">';
+                html += '<th style="padding:10px 16px;text-align:left;">SKU/ID</th><th style="padding:10px 16px;">Estado</th>';
+                html += '<th style="padding:10px 16px;">Envio</th><th style="padding:10px 16px;">Motorizado</th><th style="padding:10px 16px;">Fecha</th>';
+                html += '</tr></thead><tbody>';
+                res.data.forEach(function(u, i) {
+                    var bg = i%2===0 ? '#fff' : '#f9f9f9';
+                    var st = String(u.status_effective || u.status || '').toLowerCase();
+                    var isD = ['delivered','entregado'].includes(st);
+                    var isA = ['assigned','asignado'].includes(st);
+                    var stTxt = isD ? 'Entregado' : (isA ? 'Asignado' : 'Disponible');
+                    var stClr = isD ? '#27ae60' : (isA ? '#3498db' : '#95a5a6');
+                    html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
+                    html += '<td style="padding:10px 16px;font-weight:600;">' + (u.sku || u.id) + '</td>';
+                    html += '<td style="padding:10px 16px;"><span style="background:' + stClr + ';color:#fff;padding:3px 8px;border-radius:4px;font-size:12px;">' + stTxt + '</span></td>';
+                    html += '<td style="padding:10px 16px;text-align:center;color:#7f8c8d;">' + (u.shipment_id ? '#'+u.shipment_id : '-') + '</td>';
+                    html += '<td style="padding:10px 16px;text-align:center;">' + (u.motorizado || '-') + '</td>';
+                    html += '<td style="padding:10px 16px;color:#7f8c8d;font-size:12px;">' + (u.created_at || '-') + '</td></tr>';
+                });
+                html += '</tbody></table>';
+                panel.innerHTML = html;
+            }).catch(function() {
+                var p = document.getElementById('panel-unidades');
+                if (p) p.innerHTML = '<div style="padding:20px;color:#e74c3c;">Error al cargar unidades.</div>';
+            });
+        }
+
+        function cargarHistorialModal(pid) {
+            var panel = document.getElementById('panel-historial');
+            if (panel) panel.innerHTML = '<div style="padding:20px;text-align:center;color:#7f8c8d;">Cargando historial...</div>';
+            fetch(ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'merc_get_historial_movimientos', product_id: pid, nonce: nonce })
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                if (!panel) return;
+                if (!res.success || !res.data || !res.data.movimientos || res.data.movimientos.length === 0) {
+                    panel.innerHTML = '<div style="padding:30px;text-align:center;color:#7f8c8d;">Sin movimientos registrados.</div>'; return;
+                }
+                var ml = { ingreso_mercaderia:'Ingreso mercaderia', merma:'Merma/Dano', devolucion_cliente:'Devolucion cliente', perdida:'Perdida', ajuste:'Ajuste inventario', otro:'Otro' };
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f8f9fa;border-bottom:2px solid #dee2e6;">';
+                html += '<th style="padding:10px 16px;text-align:left;">Fecha</th><th style="padding:10px 16px;text-align:center;">Tipo</th>';
+                html += '<th style="padding:10px 16px;text-align:center;">Cant.</th><th style="padding:10px 16px;">Motivo</th>';
+                html += '<th style="padding:10px 16px;">Notas</th><th style="padding:10px 16px;">Por</th></tr></thead><tbody>';
+                res.data.movimientos.forEach(function(m, i) {
+                    var bg = i%2===0 ? '#fff' : '#f9f9f9';
+                    var isI = m.tipo === 'ingreso';
+                    var badge = isI
+                        ? '<span style="background:#27ae60;color:#fff;padding:3px 8px;border-radius:4px;font-size:12px;">Ingreso</span>'
+                        : '<span style="background:#e74c3c;color:#fff;padding:3px 8px;border-radius:4px;font-size:12px;">Egreso</span>';
+                    html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
+                    html += '<td style="padding:10px 16px;color:#7f8c8d;font-size:12px;">' + (m.created_at || '-') + '</td>';
+                    html += '<td style="padding:10px 16px;text-align:center;">' + badge + '</td>';
+                    html += '<td style="padding:10px 16px;text-align:center;font-weight:700;color:' + (isI?'#27ae60':'#e74c3c') + ';">' + m.cantidad + '</td>';
+                    html += '<td style="padding:10px 16px;">' + (ml[m.motivo] || m.motivo) + '</td>';
+                    html += '<td style="padding:10px 16px;color:#7f8c8d;">' + (m.notas || '-') + '</td>';
+                    html += '<td style="padding:10px 16px;">' + (m.admin_nombre || '-') + '</td></tr>';
+                });
+                html += '</tbody></table>';
+                panel.innerHTML = html;
+            }).catch(function() {
+                if (panel) panel.innerHTML = '<div style="padding:20px;color:#e74c3c;">Error al cargar historial.</div>';
+            });
+        }
+    };
+
+    window._attachFotoUpload = function(productId) {
+        const input = document.getElementById('edit-foto-input');
+        if (!input) return;
+        input.addEventListener('change', function() {
+            if (!this.files || !this.files[0]) return;
+            const file = this.files[0];
+            const formData = new FormData();
+            formData.append('action', 'merc_subir_foto_producto');
+            formData.append('product_id', productId);
+            formData.append('foto', file);
+            formData.append('nonce', nonce);
+
+            Swal.fire({ title: 'Subiendo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            fetch(ajaxUrl, { method: 'POST', body: formData })
             .then(r => r.json())
             .then(res => {
-                console.log('Unidades obtenidas:', res);
-
-                if (res.success && res.data && res.data.length > 0) {
-                    let unitsHtml = `
-                    <div style="text-align: left; max-height: 400px; overflow-y: auto;">
-                        <h3 style="margin-bottom: 15px; color: #2c3e50;">📦 Envíos de "${productName}"</h3>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                            <thead>
-                                <tr style="background: #ecf0f1; border-bottom: 2px solid #bdc3c7;">
-                                    <th style="padding: 10px; text-align: left; font-weight: 600;">SKU</th>
-                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Estado</th>
-                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Envío #</th>
-                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Motorizado</th>
-                                    <th style="padding: 10px; text-align: left; font-weight: 600;">Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-
-                    res.data.forEach((unit, idx) => {
-                        const bgcolor = idx % 2 === 0 ? '#ffffff' : '#f9f9f9';
-                        const unitStatusRaw = String(unit.status_effective || unit.status || unit.estado || '').toLowerCase().trim();
-                        const unitStatus = (unit.shipment_id && ['available', 'disponible', 'sin_asignar', ''].includes(unitStatusRaw)) ? 'assigned' : unitStatusRaw;
-
-                        const isDelivered = ['entregado', 'delivered'].includes(unitStatus);
-                        const isAssigned = ['asignado', 'assigned'].includes(unitStatus);
-                        const statusText = isDelivered ? '✅ Entregado' : (isAssigned ? '🚚 Asignado' : '📦 Disponible');
-                        const statusColor = isDelivered ? '#27ae60' : (isAssigned ? '#3498db' : '#95a5a6');
-                        unitsHtml += `
-                        <tr style="background: ${bgcolor}; border-bottom: 1px solid #ecf0f1;">
-                            <td style="padding: 10px; font-weight: 600; color: #2c3e50;">${unit.sku || unit.id}</td>
-                            <td style="padding: 10px;">
-                                <span style="display: inline-block; padding: 4px 8px; background: ${statusColor}; color: white; border-radius: 4px; font-weight: 600; font-size: 12px;">
-                                    ${statusText}
-                                </span>
-                            </td>
-                            <td style="padding: 10px; color: #7f8c8d;">${unit.shipment_id ? '#' + unit.shipment_id : '-'}</td>
-                            <td style="padding: 10px; color: #2c3e50;">${unit.motorizado || '-'}</td>
-                            <td style="padding: 10px; color: #7f8c8d; font-size: 12px;">${unit.created_at || unit.fecha_creacion || '-'}</td>
-                        </tr>
-                    `;
-                    });
-
-                    unitsHtml += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-
-                    Swal.fire({
-                        title: '📋 Detalles de Envíos',
-                        html: unitsHtml,
-                        icon: 'info',
-                        confirmButtonColor: '#3498db',
-                        confirmButtonText: 'Cerrar',
-                        width: '700px'
-                    });
-                } else if (res.success && (!res.data || res.data.length === 0)) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Sin envíos',
-                        text: `El producto "${productName}" no tiene unidades registradas.`,
-                        confirmButtonColor: '#3498db'
-                    });
+                if (res.success) {
+                    const preview = document.getElementById('edit-foto-preview');
+                    const placeholder = document.getElementById('edit-foto-placeholder');
+                    if (preview) {
+                        preview.src = res.data.url;
+                        preview.style.display = 'block';
+                    }
+                    if (placeholder) placeholder.style.display = 'none';
+                    Swal.fire({ icon: 'success', title: 'Foto actualizada', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                    cargarProductos();
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: res.data || 'No se pudieron cargar los envíos',
-                        confirmButtonColor: '#e74c3c'
-                    });
+                    Swal.fire({ icon: 'error', title: 'Error', text: res.data.message });
                 }
             })
             .catch(err => {
-                console.error('Error cargando unidades:', err);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de conexión',
-                    text: 'No se pudo conectar con el servidor',
-                    confirmButtonColor: '#e74c3c'
-                });
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Error de red' });
             });
+        });
     };
+
 });
 
 

@@ -148,3 +148,93 @@
     }
 }
 
+/* ============================================================
+   ALMACÉN v2 — Botones Ingreso / Egreso
+   ============================================================ */
+.btn-ingreso {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: background 0.25s;
+}
+.btn-ingreso:hover { background: #219a52; }
+
+.btn-egreso {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: background 0.25s;
+}
+.btn-egreso:hover { background: #c0392b; }
+
+/* ============================================================
+   ALMACÉN v2 — Foto portada en tabla
+   ============================================================ */
+.merc-foto-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 5px;
+    display: block;
+    margin: auto;
+    border: 1px solid #dee2e6;
+}
+
+/* ============================================================
+   ALMACÉN v2 — Badges de movimiento en historial
+   ============================================================ */
+.badge-ingreso {
+    display: inline-block;
+    padding: 3px 9px;
+    background: #27ae60;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge-egreso {
+    display: inline-block;
+    padding: 3px 9px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ============================================================
+   ALMACÉN v2 — Modal con pestañas (Unidades / Historial)
+   ============================================================ */
+.merc-tab {
+    padding: 12px 20px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #7f8c8d;
+    transition: color 0.2s, border-color 0.2s;
+}
+.merc-tab:hover {
+    color: #3498db;
+}
+.merc-tab.active,
+.merc-tab[style*="border-bottom-color: rgb(52, 152, 219)"] {
+    border-bottom-color: #3498db;
+    color: #3498db;
+    font-weight: 700;
+}
+.merc-panel {
+    display: block;
+}
+

@@ -1,9 +1,8 @@
-<?php // sync
-
+<?php
 /**
  * Plugin Name: Mercourier Bloqueos V2
  * Description: Control avanzado de horarios y calendarios para envíos Mercourier (Emprendedor, Agencia, Full Fitment).
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author: Mercourier
  */
 
@@ -12,9 +11,10 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('MERC_BLOQUEOS_VERSION', '2.0.0');
+define('MERC_BLOQUEOS_VERSION', '2.0.1');
 define('MERC_BLOQUEOS_DIR', plugin_dir_path(__FILE__));
 define('MERC_BLOQUEOS_URL', plugin_dir_url(__FILE__));
+
 // Función global de permisos
 if (!function_exists('merc_is_admin_user')) {
     function merc_is_admin_user() {
@@ -24,7 +24,6 @@ if (!function_exists('merc_is_admin_user')) {
         return false;
     }
 }
-
 
 // Cargar módulos
 require_once MERC_BLOQUEOS_DIR . 'includes/class-settings.php';
@@ -44,37 +43,38 @@ function merc_bloqueos_init() {
 }
 add_action('plugins_loaded', 'merc_bloqueos_init');
 
-// Cargar scripts en el frontend
+/**
+ * Excluir el script de bloqueos de la optimización y minificación de LiteSpeed Cache.
+ * Esto evita que el archivo JS externo se corrompa en el entorno de Hostinger.
+ */
+add_filter('litespeed_optm_js_excludes', function($excludes) {
+    $excludes[] = 'calendar-block.js';
+    return $excludes;
+});
+
 function merc_bloqueos_enqueue_scripts() {
     if (!is_user_logged_in()) {
         return;
     }
 
-    // No cargar en la página de Envíos Masivos.
-    // calendar-block.js tiene una guarda JS por pathname, pero es frágil.
-    // Esta guard PHP es definitiva: usa el ID real del post de WordPress.
-    $masivos_page_id = (int) get_option('wcmas_frontend_page_id');
-    if ($masivos_page_id && is_page($masivos_page_id)) {
-        return;
-    }
+    $es_formulario = (
+        ( isset( $_GET['wpcfe'] ) && in_array( $_GET['wpcfe'], [ 'add', 'update' ], true ) ) ||
+        ( is_page() && ( has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcfe_shipment_form' ) ||
+                         has_shortcode( get_post_field( 'post_content', get_the_ID() ), 'wpcargo_add_shipment' ) ) )
+    );
 
-    $user = wp_get_current_user();
-    
-    // Inyectar script inline para evitar cualquier problema de caché o de enqueue
+    // Si no estamos en el formulario, no cargamos el script (como lo hacíamos en functions.php)
+    if ( ! $es_formulario ) return;
+
+    $version = filemtime(MERC_BLOQUEOS_DIR . 'assets/js/calendar-block.js');
+    $js_url  = MERC_BLOQUEOS_URL . 'assets/js/calendar-block.js?ver=' . $version;
+    $ajaxurl = admin_url('admin-ajax.php');
+
     ?>
-    <script>
-        var mercBloqueos = {
-            "ajax_url": "<?php echo esc_js(admin_url('admin-ajax.php')); ?>",
-            "client_id": <?php echo esc_js($user->ID); ?>,
-            "is_admin": <?php echo merc_is_admin_user() ? 'true' : 'false'; ?>
-        };
-    </script>
-    <script src="<?php echo esc_url(MERC_BLOQUEOS_URL . 'assets/js/calendar-block.js?v=' . time()); ?>"></script>
+    <script>var mercBloqueos = { ajax_url: '<?php echo esc_js( $ajaxurl ); ?>' };</script>
+    <script data-no-optimize="1" data-no-minify="1" src="<?php echo esc_url( $js_url ); ?>"></script>
     <?php
 }
-add_action('wp_footer', 'merc_bloqueos_enqueue_scripts', 9999);
-
-
-
+add_action('wp_footer', 'merc_bloqueos_enqueue_scripts', 20);
 
 
