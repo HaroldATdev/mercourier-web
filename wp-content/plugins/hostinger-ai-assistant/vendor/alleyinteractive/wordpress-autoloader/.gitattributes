@@ -16,7 +16,7 @@
 #
 # http://davidlaing.com/2012/09/19/customise-your-gitattributes-to-become-a-git-ninja/
 #
-* text=auto
+* binary
 
 #
 # The above will handle all files not found below.
