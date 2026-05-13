@@ -45,6 +45,9 @@ class Merc_Bloqueos_Settings {
         register_setting('merc_bloqueos_options', 'merc_hora_full_sin_pedidos');
         register_setting('merc_bloqueos_options', 'merc_hora_full_con_pedidos');
 
+        // Bloqueo duro de formulario
+        register_setting('merc_bloqueos_options', 'merc_hora_bloqueo_duro');
+
         // Fechas y domingos
         register_setting('merc_bloqueos_options', 'merc_bloqueos_fechas_especiales');
         register_setting('merc_bloqueos_options', 'merc_bloqueos_domingos_desbloqueados');
@@ -96,6 +99,7 @@ class Merc_Bloqueos_Settings {
         $h_ag_con  = get_option('merc_hora_agencia_con_pedidos', '12:30');
         $h_fu_sin  = get_option('merc_hora_full_sin_pedidos', '12:30');
         $h_fu_con  = get_option('merc_hora_full_con_pedidos', '12:30');
+        $h_duro    = get_option('merc_hora_bloqueo_duro', '15:00');
 
         $fechas = get_option('merc_bloqueos_fechas_especiales', []);
         if (!is_array($fechas)) $fechas = [];
@@ -163,6 +167,13 @@ class Merc_Bloqueos_Settings {
                         <td><input type="time" name="merc_hora_full_con_pedidos" class="merc-input-time" value="<?php echo esc_attr($h_fu_con); ?>"></td>
                     </tr>
                 </table>
+                <div style="margin-top:20px; padding:15px; background:#fff; border:1px solid #e2e8f0; border-radius:6px; display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <strong style="color:#1e293b; display:block; margin-bottom:4px;">Bloqueo Duro de Formulario</strong>
+                        <span style="color:#64748b; font-size:13px;">Hora en la que se habilitan los formularios y masivos si hubo bloqueo general.</span>
+                    </div>
+                    <input type="time" name="merc_hora_bloqueo_duro" class="merc-input-time" value="<?php echo esc_attr($h_duro); ?>">
+                </div>
             </div>
 
             <div class="merc-form-section">
@@ -273,5 +284,6 @@ class Merc_Bloqueos_Settings {
         }
     }
 }
+
 
 

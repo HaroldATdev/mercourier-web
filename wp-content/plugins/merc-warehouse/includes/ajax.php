@@ -12,6 +12,7 @@ add_action('wp_ajax_merc_obtener_producto', 'merc_obtener_producto');
 add_action('wp_ajax_merc_actualizar_producto', 'merc_actualizar_producto');
 add_action('wp_ajax_merc_eliminar_producto', 'merc_eliminar_producto');
 add_action('wp_ajax_merc_get_product_units', 'merc_get_product_units_ajax');
+add_action('wp_ajax_merc_eliminar_unidad', 'merc_eliminar_unidad_ajax');
 add_action('wp_ajax_merc_subir_foto_producto', 'merc_subir_foto_producto_ajax');
 add_action('wp_ajax_merc_registrar_ingreso', 'merc_registrar_ingreso_ajax');
 add_action('wp_ajax_merc_registrar_egreso', 'merc_registrar_egreso_ajax');
@@ -222,6 +223,13 @@ function merc_actualizar_producto() {
     wp_update_post(['ID' => $id, 'post_title' => $nombre]);
     update_post_meta($id, '_merc_producto_codigo_barras', sanitize_text_field($_POST['codigo_barras'] ?? ''));
     update_post_meta($id, '_merc_producto_cliente_asignado', (string)intval($_POST['cliente_asignado'] ?? 0));
+    update_post_meta($id, '_merc_producto_estado', sanitize_text_field($_POST['estado'] ?? ''));
+    update_post_meta($id, '_merc_producto_peso', floatval($_POST['peso'] ?? 0));
+    update_post_meta($id, '_merc_producto_tipo_medida', sanitize_text_field($_POST['tipo_medida'] ?? ''));
+    update_post_meta($id, '_merc_producto_valor_medida', sanitize_text_field($_POST['valor_medida'] ?? ''));
+    update_post_meta($id, '_merc_producto_largo', floatval($_POST['largo'] ?? 0));
+    update_post_meta($id, '_merc_producto_ancho', floatval($_POST['ancho'] ?? 0));
+    update_post_meta($id, '_merc_producto_alto', floatval($_POST['alto'] ?? 0));
     
     while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['message' => 'Producto actualizado']);
@@ -255,11 +263,59 @@ function merc_get_product_units_ajax() {
         $row['tracking'] = '-';
         if (!empty($row['shipment_id'])) {
             $ship = get_post($row['shipment_id']);
-            if ($ship) $row['tracking'] = $ship->post_title;
+            if ($ship) {
+                $tracking = get_post_meta($ship->ID, 'wpcargo_tracking_number', true);
+                $row['tracking'] = !empty($tracking) ? $tracking : $ship->post_title;
+            }
         }
     }
+
     while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success($rows);
+}
+
+/**
+ * Eliminar una unidad específica (suelta o asignada)
+ */
+function merc_eliminar_unidad_ajax() {
+    $unit_id = intval($_POST['unit_id'] ?? 0);
+    if (!$unit_id) wp_send_json_error(['message' => 'ID inválido']);
+    
+    global $wpdb;
+    $table = function_exists('merc_get_stock_table_name') ? merc_get_stock_table_name() : $wpdb->prefix . 'merc_stock_units';
+    
+    $unit = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $unit_id));
+    if (!$unit) wp_send_json_error(['message' => 'La unidad no existe']);
+    
+    $product_id = intval($unit->product_id);
+    $shipment_id = intval($unit->shipment_id);
+    
+    // Si estaba asignada a un envío, ANULAR el envío
+    if ($shipment_id > 0) {
+        $ship = get_post($shipment_id);
+        if ($ship && $ship->post_type === 'wpcargo_shipment') {
+            update_post_meta($shipment_id, 'wpcargo_status', 'ANULADO');
+            // Nota: el hook merc_hook_stock_por_estado_envio (agregado antes) 
+            // no revertirá el stock de forma automática si eliminamos la fila de BD aquí mismo.
+            // Para no duplicar lógica y asegurar que desaparece, lo borramos de la BD:
+        }
+    }
+    
+    // Borrar la unidad física de la tabla
+    $wpdb->query($wpdb->prepare("DELETE FROM {$table} WHERE id = %d", $unit_id));
+    
+    // Recalcular y actualizar cantidad total
+    $nuevo_total = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d", $product_id)));
+    update_post_meta($product_id, '_merc_producto_cantidad', $nuevo_total);
+    if (function_exists('merc_set_product_stock')) merc_set_product_stock($product_id, $nuevo_total);
+    
+    // Registrar movimiento
+    $motivo = ($shipment_id > 0) ? 'eliminacion_unidad_asignada' : 'eliminacion_unidad_suelta';
+    $notas = ($shipment_id > 0) ? "Envío asociado $shipment_id fue anulado." : "Unidad borrada manualmente.";
+    if (function_exists('merc_registrar_movimiento')) merc_registrar_movimiento($product_id, 'egreso', 1, $motivo, $notas);
+    
+    while ( ob_get_level() > 0 ) { ob_end_clean(); }
+    wp_send_json_success(['message' => 'Unidad eliminada correctamente', 'nuevo_stock' => $nuevo_total]);
 }
 
 /**
@@ -348,4 +404,5 @@ function merc_get_historial_movimientos_ajax() {
     while ( ob_get_level() > 0 ) { ob_end_clean(); }
     wp_send_json_success(['movimientos' => $rows ?: []]);
 }
+
 

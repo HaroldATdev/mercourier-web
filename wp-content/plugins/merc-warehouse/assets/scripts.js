@@ -253,29 +253,29 @@ document.addEventListener('DOMContentLoaded', function () {
         Swal.fire({
             title: 'Registrar Ingreso',
             html: '<p style="color:#555;margin-bottom:12px;">Producto: <strong>' + productName + '</strong></p>' +
-                  '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Cantidad a ingresar *</label>' +
-                  '<input id="swal-cantidad-ingreso" type="number" min="1" value="1" class="swal2-input" style="width:100%;margin:0;" /></div>' +
-                  '<div style="text-align:left;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Notas (opcional)</label>' +
-                  '<textarea id="swal-notas-ingreso" class="swal2-textarea" placeholder="Observaciones..." style="width:100%;margin:0;height:70px;"></textarea></div>',
+                '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Cantidad a ingresar *</label>' +
+                '<input id="swal-cantidad-ingreso" type="number" min="1" value="1" class="swal2-input" style="width:100%;margin:0;" /></div>' +
+                '<div style="text-align:left;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Notas (opcional)</label>' +
+                '<textarea id="swal-notas-ingreso" class="swal2-textarea" placeholder="Observaciones..." style="width:100%;margin:0;height:70px;"></textarea></div>',
             showCancelButton: true,
             confirmButtonColor: '#27ae60',
             cancelButtonColor: '#95a5a6',
             confirmButtonText: 'Registrar Ingreso',
             cancelButtonText: 'Cancelar',
-            preConfirm: function() {
+            preConfirm: function () {
                 var c = parseInt(document.getElementById('swal-cantidad-ingreso').value);
                 if (!c || c < 1) { Swal.showValidationMessage('La cantidad debe ser mayor a 0'); return false; }
                 return { cantidad: c, notas: document.getElementById('swal-notas-ingreso').value };
             }
-        }).then(function(result) {
+        }).then(function (result) {
             if (!result.isConfirmed) return;
             fetch(ajaxUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ action: 'merc_registrar_ingreso', product_id: productId, cantidad: result.value.cantidad, notas: result.value.notas, nonce: nonce })
-            }).then(function(r) { return r.json(); }).then(function(res) {
+            }).then(function (r) { return r.json(); }).then(function (res) {
                 if (res.success) {
-                    Swal.fire({ icon: 'success', title: 'Ingreso registrado', text: res.data.message, confirmButtonColor: '#27ae60' }).then(function() { cargarProductos(); });
+                    Swal.fire({ icon: 'success', title: 'Ingreso registrado', text: res.data.message, confirmButtonColor: '#27ae60' }).then(function () { cargarProductos(); });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: (res.data && res.data.message) || 'Error desconocido', confirmButtonColor: '#e74c3c' });
                 }
@@ -291,29 +291,29 @@ document.addEventListener('DOMContentLoaded', function () {
         Swal.fire({
             title: 'Registrar Egreso',
             html: '<p style="color:#555;margin-bottom:12px;">Producto: <strong>' + productName + '</strong> &mdash; Stock disponible: <strong>' + stockActual + '</strong></p>' +
-                  '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Cantidad a egresar *</label>' +
-                  '<input id="swal-cantidad-egreso" type="number" min="1" max="' + stockActual + '" value="1" class="swal2-input" style="width:100%;margin:0;" /></div>' +
-                  '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Motivo *</label>' +
-                  '<select id="swal-motivo-egreso" class="swal2-input" style="width:100%;margin:0;height:40px;font-size:14px;">' +
-                  '<option value="">-- Seleccionar motivo --</option>' +
-                  '<option value="merma">Merma / Dano</option>' +
-                  '<option value="devolucion_cliente">Devolucion al cliente</option>' +
-                  '<option value="perdida">Perdida</option>' +
-                  '<option value="ajuste">Ajuste de inventario</option>' +
-                  '<option value="otro">Otro</option></select></div>' +
-                  '<div style="text-align:left;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Notas <span id="swal-nota-req" style="color:#e74c3c;display:none;">(requerido para Otro)</span></label>' +
-                  '<textarea id="swal-notas-egreso" class="swal2-textarea" placeholder="Observaciones..." style="width:100%;margin:0;height:70px;"></textarea></div>',
+                '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Cantidad a egresar *</label>' +
+                '<input id="swal-cantidad-egreso" type="number" min="1" max="' + stockActual + '" value="1" class="swal2-input" style="width:100%;margin:0;" /></div>' +
+                '<div style="text-align:left;margin-bottom:10px;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Motivo *</label>' +
+                '<select id="swal-motivo-egreso" class="swal2-input" style="width:100%;margin:0;height:40px;font-size:14px;">' +
+                '<option value="">-- Seleccionar motivo --</option>' +
+                '<option value="merma">Merma / Dano</option>' +
+                '<option value="devolucion_cliente">Devolucion al cliente</option>' +
+                '<option value="perdida">Perdida</option>' +
+                '<option value="ajuste">Ajuste de inventario</option>' +
+                '<option value="otro">Otro</option></select></div>' +
+                '<div style="text-align:left;"><label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Notas <span id="swal-nota-req" style="color:#e74c3c;display:none;">(requerido para Otro)</span></label>' +
+                '<textarea id="swal-notas-egreso" class="swal2-textarea" placeholder="Observaciones..." style="width:100%;margin:0;height:70px;"></textarea></div>',
             showCancelButton: true,
             confirmButtonColor: '#e74c3c',
             cancelButtonColor: '#95a5a6',
             confirmButtonText: 'Registrar Egreso',
             cancelButtonText: 'Cancelar',
-            didOpen: function() {
-                document.getElementById('swal-motivo-egreso').addEventListener('change', function() {
+            didOpen: function () {
+                document.getElementById('swal-motivo-egreso').addEventListener('change', function () {
                     document.getElementById('swal-nota-req').style.display = this.value === 'otro' ? 'inline' : 'none';
                 });
             },
-            preConfirm: function() {
+            preConfirm: function () {
                 var c = parseInt(document.getElementById('swal-cantidad-egreso').value);
                 var m = document.getElementById('swal-motivo-egreso').value;
                 var n = document.getElementById('swal-notas-egreso').value;
@@ -323,15 +323,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (m === 'otro' && !n.trim()) { Swal.showValidationMessage('Las notas son obligatorias para "Otro"'); return false; }
                 return { cantidad: c, motivo: m, notas: n };
             }
-        }).then(function(result) {
+        }).then(function (result) {
             if (!result.isConfirmed) return;
             fetch(ajaxUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ action: 'merc_registrar_egreso', product_id: productId, cantidad: result.value.cantidad, motivo: result.value.motivo, notas: result.value.notas, nonce: nonce })
-            }).then(function(r) { return r.json(); }).then(function(res) {
+            }).then(function (r) { return r.json(); }).then(function (res) {
                 if (res.success) {
-                    Swal.fire({ icon: 'success', title: 'Egreso registrado', text: res.data.message, confirmButtonColor: '#27ae60' }).then(function() { cargarProductos(); });
+                    Swal.fire({ icon: 'success', title: 'Egreso registrado', text: res.data.message, confirmButtonColor: '#27ae60' }).then(function () { cargarProductos(); });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: (res.data && res.data.message) || 'Error desconocido', confirmButtonColor: '#e74c3c' });
                 }
@@ -1084,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------------------------------------------------
     // MODAL UNIDADES con 2 pestanas: Unidades | Historial
     // -----------------------------------------------------------------------
-    window.openUnitsModal = function(productId, productName) {
+    window.openUnitsModal = function (productId, productName) {
         var existing = document.getElementById('modal-units-hist');
         if (existing) existing.remove();
 
@@ -1107,13 +1107,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.body.appendChild(modal);
 
-        document.getElementById('btn-close-units').onclick = function() { modal.remove(); };
-        modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+        document.getElementById('btn-close-units').onclick = function () { modal.remove(); };
+        modal.onclick = function (e) { if (e.target === modal) modal.remove(); };
 
         var histCargado = false;
-        modal.querySelectorAll('.merc-tab').forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                modal.querySelectorAll('.merc-tab').forEach(function(t) {
+        modal.querySelectorAll('.merc-tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                modal.querySelectorAll('.merc-tab').forEach(function (t) {
                     t.style.borderBottomColor = 'transparent';
                     t.style.color = '#7f8c8d';
                     t.style.fontWeight = '600';
@@ -1121,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.style.borderBottomColor = '#3498db';
                 this.style.color = '#3498db';
                 this.style.fontWeight = '700';
-                modal.querySelectorAll('.merc-panel').forEach(function(p) { p.style.display = 'none'; });
+                modal.querySelectorAll('.merc-panel').forEach(function (p) { p.style.display = 'none'; });
                 document.getElementById(this.dataset.tab).style.display = 'block';
                 if (this.dataset.tab === 'panel-historial' && !histCargado) {
                     histCargado = true; cargarHistorialModal(productId);
@@ -1136,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ action: 'merc_get_product_units', product_id: pid, nonce: nonce })
-            }).then(function(r) { return r.json(); }).then(function(res) {
+            }).then(function (r) { return r.json(); }).then(function (res) {
                 var panel = document.getElementById('panel-unidades');
                 if (!panel) return;
                 if (!res.success || !res.data || res.data.length === 0) {
@@ -1145,24 +1145,81 @@ document.addEventListener('DOMContentLoaded', function () {
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f8f9fa;border-bottom:2px solid #dee2e6;">';
                 html += '<th style="padding:10px 16px;text-align:left;">SKU/ID</th><th style="padding:10px 16px;">Estado</th>';
                 html += '<th style="padding:10px 16px;">Envio</th><th style="padding:10px 16px;">Motorizado</th><th style="padding:10px 16px;">Fecha</th>';
+                if (window.MERC_IS_ADMIN) {
+                    html += '<th style="padding:10px 16px;text-align:center;">Acción</th>';
+                }
                 html += '</tr></thead><tbody>';
-                res.data.forEach(function(u, i) {
-                    var bg = i%2===0 ? '#fff' : '#f9f9f9';
+                res.data.forEach(function (u, i) {
+                    var bg = i % 2 === 0 ? '#fff' : '#f9f9f9';
                     var st = String(u.status_effective || u.status || '').toLowerCase();
-                    var isD = ['delivered','entregado'].includes(st);
-                    var isA = ['assigned','asignado'].includes(st);
+                    var isD = ['delivered', 'entregado'].includes(st);
+                    var isA = ['assigned', 'asignado'].includes(st);
                     var stTxt = isD ? 'Entregado' : (isA ? 'Asignado' : 'Disponible');
                     var stClr = isD ? '#27ae60' : (isA ? '#3498db' : '#95a5a6');
+
+                    var tracking = u.tracking && u.tracking !== '-' ? u.tracking : (u.shipment_id ? '#' + u.shipment_id : '-');
+
                     html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
                     html += '<td style="padding:10px 16px;font-weight:600;">' + (u.sku || u.id) + '</td>';
                     html += '<td style="padding:10px 16px;"><span style="background:' + stClr + ';color:#fff;padding:3px 8px;border-radius:4px;font-size:12px;">' + stTxt + '</span></td>';
-                    html += '<td style="padding:10px 16px;text-align:center;color:#7f8c8d;">' + (u.shipment_id ? '#'+u.shipment_id : '-') + '</td>';
+                    html += '<td style="padding:10px 16px;text-align:center;color:#7f8c8d;">' + tracking + '</td>';
                     html += '<td style="padding:10px 16px;text-align:center;">' + (u.motorizado || '-') + '</td>';
-                    html += '<td style="padding:10px 16px;color:#7f8c8d;font-size:12px;">' + (u.created_at || '-') + '</td></tr>';
+                    html += '<td style="padding:10px 16px;color:#7f8c8d;font-size:12px;">' + (u.created_at || '-') + '</td>';
+
+                    // Botón de eliminar (Solo admins)
+                    if (window.MERC_IS_ADMIN) {
+                        html += '<td style="padding:10px 16px;text-align:center;">';
+                        html += '<button type="button" class="merc-btn-eliminar-unidad" data-id="' + u.id + '" title="Eliminar Unidad" style="background:transparent;border:none;color:#e74c3c;cursor:pointer;"><i class="fa fa-trash"></i></button>';
+                        html += '</td>';
+                    }
+                    html += '</tr>';
                 });
                 html += '</tbody></table>';
                 panel.innerHTML = html;
-            }).catch(function() {
+
+                // Add event listeners for delete buttons
+                var btnEliminar = panel.querySelectorAll('.merc-btn-eliminar-unidad');
+                btnEliminar.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var unitId = this.getAttribute('data-id');
+                        if (!confirm('¿Seguro que deseas eliminar esta unidad física?\n\nSi está asignada, el envío asociado se cambiará a estado ANULADO y la unidad se restará del inventario.')) {
+                            return;
+                        }
+
+                        var prevHtml = this.innerHTML;
+                        this.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+                        this.disabled = true;
+
+                        fetch(ajaxUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({ action: 'merc_eliminar_unidad', unit_id: unitId, nonce: nonce })
+                        }).then(function (r) { return r.json(); }).then(function (res) {
+                            if (res.success) {
+                                // Reload units and update stock
+                                cargarUnidadesModal(pid);
+                                if (res.data && typeof res.data.nuevo_stock !== 'undefined') {
+                                    // Update main table row if exists
+                                    var stockCell = document.querySelector('tr[data-id="' + pid + '"] .merc-stock-badge');
+                                    if (stockCell) stockCell.textContent = res.data.nuevo_stock;
+                                    var modalTitle = document.getElementById('merc-modal-title');
+                                    if (modalTitle) {
+                                        modalTitle.textContent = modalTitle.textContent.replace(/\(Stock: \d+\)/, '(Stock: ' + res.data.nuevo_stock + ')');
+                                    }
+                                }
+                            } else {
+                                alert('Error: ' + (res.data ? res.data.message : 'Desconocido'));
+                                btn.innerHTML = prevHtml;
+                                btn.disabled = false;
+                            }
+                        }).catch(function () {
+                            alert('Error de conexión al eliminar.');
+                            btn.innerHTML = prevHtml;
+                            btn.disabled = false;
+                        });
+                    });
+                });
+            }).catch(function () {
                 var p = document.getElementById('panel-unidades');
                 if (p) p.innerHTML = '<div style="padding:20px;color:#e74c3c;">Error al cargar unidades.</div>';
             });
@@ -1175,18 +1232,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ action: 'merc_get_historial_movimientos', product_id: pid, nonce: nonce })
-            }).then(function(r) { return r.json(); }).then(function(res) {
+            }).then(function (r) { return r.json(); }).then(function (res) {
                 if (!panel) return;
                 if (!res.success || !res.data || !res.data.movimientos || res.data.movimientos.length === 0) {
                     panel.innerHTML = '<div style="padding:30px;text-align:center;color:#7f8c8d;">Sin movimientos registrados.</div>'; return;
                 }
-                var ml = { ingreso_mercaderia:'Ingreso mercaderia', merma:'Merma/Dano', devolucion_cliente:'Devolucion cliente', perdida:'Perdida', ajuste:'Ajuste inventario', otro:'Otro' };
+                var ml = { ingreso_mercaderia: 'Ingreso mercaderia', merma: 'Merma/Dano', devolucion_cliente: 'Devolucion cliente', perdida: 'Perdida', ajuste: 'Ajuste inventario', otro: 'Otro' };
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f8f9fa;border-bottom:2px solid #dee2e6;">';
                 html += '<th style="padding:10px 16px;text-align:left;">Fecha</th><th style="padding:10px 16px;text-align:center;">Tipo</th>';
                 html += '<th style="padding:10px 16px;text-align:center;">Cant.</th><th style="padding:10px 16px;">Motivo</th>';
                 html += '<th style="padding:10px 16px;">Notas</th><th style="padding:10px 16px;">Por</th></tr></thead><tbody>';
-                res.data.movimientos.forEach(function(m, i) {
-                    var bg = i%2===0 ? '#fff' : '#f9f9f9';
+                res.data.movimientos.forEach(function (m, i) {
+                    var bg = i % 2 === 0 ? '#fff' : '#f9f9f9';
                     var isI = m.tipo === 'ingreso';
                     var badge = isI
                         ? '<span style="background:#27ae60;color:#fff;padding:3px 8px;border-radius:4px;font-size:12px;">Ingreso</span>'
@@ -1194,23 +1251,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
                     html += '<td style="padding:10px 16px;color:#7f8c8d;font-size:12px;">' + (m.created_at || '-') + '</td>';
                     html += '<td style="padding:10px 16px;text-align:center;">' + badge + '</td>';
-                    html += '<td style="padding:10px 16px;text-align:center;font-weight:700;color:' + (isI?'#27ae60':'#e74c3c') + ';">' + m.cantidad + '</td>';
+                    html += '<td style="padding:10px 16px;text-align:center;font-weight:700;color:' + (isI ? '#27ae60' : '#e74c3c') + ';">' + m.cantidad + '</td>';
                     html += '<td style="padding:10px 16px;">' + (ml[m.motivo] || m.motivo) + '</td>';
                     html += '<td style="padding:10px 16px;color:#7f8c8d;">' + (m.notas || '-') + '</td>';
                     html += '<td style="padding:10px 16px;">' + (m.admin_nombre || '-') + '</td></tr>';
                 });
                 html += '</tbody></table>';
                 panel.innerHTML = html;
-            }).catch(function() {
+            }).catch(function () {
                 if (panel) panel.innerHTML = '<div style="padding:20px;color:#e74c3c;">Error al cargar historial.</div>';
             });
         }
     };
 
-    window._attachFotoUpload = function(productId) {
+    window._attachFotoUpload = function (productId) {
         const input = document.getElementById('edit-foto-input');
         if (!input) return;
-        input.addEventListener('change', function() {
+        input.addEventListener('change', function () {
             if (!this.files || !this.files[0]) return;
             const file = this.files[0];
             const formData = new FormData();
@@ -1222,34 +1279,27 @@ document.addEventListener('DOMContentLoaded', function () {
             Swal.fire({ title: 'Subiendo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
             fetch(ajaxUrl, { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) {
-                    const preview = document.getElementById('edit-foto-preview');
-                    const placeholder = document.getElementById('edit-foto-placeholder');
-                    if (preview) {
-                        preview.src = res.data.url;
-                        preview.style.display = 'block';
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        const preview = document.getElementById('edit-foto-preview');
+                        const placeholder = document.getElementById('edit-foto-placeholder');
+                        if (preview) {
+                            preview.src = res.data.url;
+                            preview.style.display = 'block';
+                        }
+                        if (placeholder) placeholder.style.display = 'none';
+                        Swal.fire({ icon: 'success', title: 'Foto actualizada', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                        cargarProductos();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: res.data.message });
                     }
-                    if (placeholder) placeholder.style.display = 'none';
-                    Swal.fire({ icon: 'success', title: 'Foto actualizada', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-                    cargarProductos();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: res.data.message });
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire({ icon: 'error', title: 'Error de red' });
-            });
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire({ icon: 'error', title: 'Error de red' });
+                });
         });
     };
 
 });
-
-
-
-
-
-
-

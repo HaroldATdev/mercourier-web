@@ -81,10 +81,10 @@ if( isset( $_GET['wpcfe'] ) && $_GET['wpcfe'] == 'update' ){
                     $s_shipment     = isset( $_GET['wpcfes'] ) ? $_GET['wpcfes'] : '' ;
 
                     // Date filter
-                    $date_start     = $date_range ? date('Y-m-d', strtotime('today - '.$date_range.' days')) : '';
-                    $date_end       = $date_range ? date('Y-m-d') : '';
-                    $date_start     = isset( $_GET['date_start'] ) ? $_GET['date_start'] : $date_start;
-                    $date_end       = isset( $_GET['date_end'] ) ? $_GET['date_end'] : $date_end;
+                    // Date filter - OPTIMIZED: Default to TODAY if nothing is set
+                    $default_today  = date('Y-m-d');
+                    $date_start     = isset( $_GET['date_start'] ) && !empty($_GET['date_start']) ? $_GET['date_start'] : $default_today;
+                    $date_end       = isset( $_GET['date_end'] ) && !empty($_GET['date_end']) ? $_GET['date_end'] : $default_today;
 
                     // Count distinct users who created shipments today
                     global $wpdb;
@@ -149,6 +149,13 @@ if( isset( $_GET['wpcfe'] ) && $_GET['wpcfe'] == 'update' ){
                         'meta_query' => array(
                             'relation' => 'AND',
                             $meta_query
+                        ),
+                        'date_query' => array(
+                            array(
+                                'after'     => $date_start . ' 00:00:00',
+                                'before'    => $date_end . ' 23:59:59',
+                                'inclusive' => true,
+                            )
                         )
                     );
                     $args = apply_filters( 'wpcfe_dashboard_arguments', $args );
@@ -176,6 +183,9 @@ if( isset( $_GET['wpcfe'] ) && $_GET['wpcfe'] == 'update' ){
                             $key = $name ? $name : '__empty__';
                             if( ! isset( $counts[ $key ] ) ) $counts[ $key ] = 0;
                             $counts[ $key ]++;
+                            
+                            // MEMORY FIX: Prevent fatal memory exhaustion
+                            wp_cache_delete( $pid, 'post_meta' );
                         }
 
                         $scores = array();
@@ -183,6 +193,9 @@ if( isset( $_GET['wpcfe'] ) && $_GET['wpcfe'] == 'update' ){
                             $name = get_post_meta( $pid, $shipper_data['field_key'], true );
                             $key = $name ? $name : '__empty__';
                             $scores[ $pid ] = isset( $counts[ $key ] ) ? $counts[ $key ] : 0;
+                            
+                            // MEMORY FIX: Prevent fatal memory exhaustion
+                            wp_cache_delete( $pid, 'post_meta' );
                         }
 
                         if( $wpcfe_order == 'count_desc' ){

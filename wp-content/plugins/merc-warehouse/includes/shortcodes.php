@@ -293,12 +293,15 @@ add_shortcode('merc_almacen_productos', function() {
     <?php
     $css_ver  = file_exists(MERC_WAREHOUSE_DIR . 'assets/styles.css') ? filemtime(MERC_WAREHOUSE_DIR . 'assets/styles.css') : time();
     $js_ver   = file_exists(MERC_WAREHOUSE_DIR . 'assets/scripts.js') ? filemtime(MERC_WAREHOUSE_DIR . 'assets/scripts.js') : time();
+    $is_admin = current_user_can('administrator') || current_user_can('wpcargo_admin') ? 'true' : 'false';
     ?>
+    <script>window.MERC_IS_ADMIN = <?php echo $is_admin; ?>;</script>
     <link rel="stylesheet" href="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/styles.css?ver=' . $css_ver); ?>">
     <script src="<?php echo esc_url(MERC_WAREHOUSE_URL . 'assets/scripts.js?ver=' . $js_ver); ?>"></script>
     <?php
     return ob_get_clean();
 });
+
 
 
 

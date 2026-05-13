@@ -1,8 +1,26 @@
 <?php
 /**
  * Plantilla personalizada para la selección del tipo de servicio antes de crear un envío.
- * Evita cargar el formulario pesado de WPCargo en segundo plano hasta que se seleccione el servicio.
+ * Cada servicio (Emprendedor, Agencia, Full Fitment) se evalúa individualmente.
  */
+
+$hora_duro    = '15:00';
+$bloq_normal  = false;
+$bloq_agencia = false;
+$bloq_full    = false;
+
+if ( class_exists('Merc_Bloqueos_Logic') ) {
+    $hora_duro    = Merc_Bloqueos_Logic::get_hora_bloqueo_duro();
+    $bloq_normal  = Merc_Bloqueos_Logic::is_formulario_bloqueado('normal');
+    $bloq_agencia = Merc_Bloqueos_Logic::is_formulario_bloqueado('express');
+    $bloq_full    = Merc_Bloqueos_Logic::is_formulario_bloqueado('full_fitment');
+}
+
+// Construir lista de servicios bloqueados para el aviso
+$avisos = [];
+if ( $bloq_normal )  $avisos[] = 'Emprendedor';
+if ( $bloq_agencia ) $avisos[] = 'Agencia';
+if ( $bloq_full )    $avisos[] = 'Full Fitment';
 ?>
 <div class="merc-service-selector-container">
     <div class="merc-service-selector-inner animate-popup">
@@ -12,39 +30,57 @@
                 <i class="fa fa-arrow-left"></i> Volver
             </button>
         </div>
-        
+
+        <?php if ( ! empty($avisos) ) : ?>
+            <div class="alert alert-warning text-center" style="font-size: 15px; margin-bottom: 20px;">
+                <i class="fa fa-clock-o mr-2"></i>
+                <?php if ( count($avisos) === 1 ) : ?>
+                    El servicio <strong><?php echo esc_html($avisos[0]); ?></strong> está bloqueado para hoy. Habilitado a partir de las <strong><?php echo esc_html($hora_duro); ?></strong>.
+                <?php else : ?>
+                    Los servicios <strong><?php echo esc_html(implode(' y ', $avisos)); ?></strong> están bloqueados para hoy. Habilitados a partir de las <strong><?php echo esc_html($hora_duro); ?></strong>.
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
         <div class="row justify-content-center">
+
             <!-- Opción 1: MERC EMPRENDEDOR -->
-            <div class="col-md-3 text-center mx-3 option-box-shipment"
-                style="cursor: pointer;"
-                onclick="selectShipmentType('normal')"
-            >
+            <div class="col-md-3 text-center mx-3 option-box-shipment <?php echo $bloq_normal ? 'merc-option-bloqueada' : ''; ?>"
+                style="cursor: <?php echo $bloq_normal ? 'not-allowed' : 'pointer'; ?>; <?php echo $bloq_normal ? 'opacity: 0.6;' : ''; ?>"
+                onclick="<?php echo $bloq_normal ? 'return false;' : "selectShipmentType('normal')"; ?>">
                 <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-normal.png" alt="Normal" class="img-fluid mb-3">
                 <h4>MERC EMPRENDEDOR</h4>
                 <p>Usa este modo para registrar un envío estándar.</p>
+                <?php if ( $bloq_normal ) : ?>
+                    <small class="text-danger"><i class="fa fa-lock mr-1"></i>Bloqueado hasta las <?php echo esc_html($hora_duro); ?></small>
+                <?php endif; ?>
             </div>
-            
+
             <!-- Opción 2: MERC AGENCIA -->
-            <div class="col-md-3 text-center mx-3 option-box-shipment"
-                style="cursor: pointer;"
-                onclick="selectShipmentType('express')"
-            >
+            <div class="col-md-3 text-center mx-3 option-box-shipment <?php echo $bloq_agencia ? 'merc-option-bloqueada' : ''; ?>"
+                style="cursor: <?php echo $bloq_agencia ? 'not-allowed' : 'pointer'; ?>; <?php echo $bloq_agencia ? 'opacity: 0.6;' : ''; ?>"
+                onclick="<?php echo $bloq_agencia ? 'return false;' : "selectShipmentType('express')"; ?>">
                 <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-express.png" alt="Express" class="img-fluid mb-3">
                 <h4>MERC AGENCIA</h4>
                 <p>Ideal para entregas urgentes o de prioridad alta.</p>
+                <?php if ( $bloq_agencia ) : ?>
+                    <small class="text-danger"><i class="fa fa-lock mr-1"></i>Bloqueado hasta las <?php echo esc_html($hora_duro); ?></small>
+                <?php endif; ?>
             </div>
-            
+
             <!-- Opción 3: MERC FULL FITMENT -->
-            <div class="col-md-3 text-center mx-3 option-box-shipment"
-                style="cursor: pointer;"
-                onclick="selectShipmentType('full_fitment')"
-            >
+            <div class="col-md-3 text-center mx-3 option-box-shipment <?php echo $bloq_full ? 'merc-option-bloqueada' : ''; ?>"
+                style="cursor: <?php echo $bloq_full ? 'not-allowed' : 'pointer'; ?>; <?php echo $bloq_full ? 'opacity: 0.6;' : ''; ?>"
+                onclick="<?php echo $bloq_full ? 'return false;' : "selectShipmentType('full_fitment')"; ?>">
                 <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-express.png" alt="Full Fitment" class="img-fluid mb-3">
                 <h4>MERC FULL FITMENT</h4>
                 <p>Envío con producto del almacén asignado.</p>
+                <?php if ( $bloq_full ) : ?>
+                    <small class="text-danger"><i class="fa fa-lock mr-1"></i>Bloqueado hasta las <?php echo esc_html($hora_duro); ?></small>
+                <?php endif; ?>
             </div>
-            
-            <!-- Opción 4: MERC EXPRESS (WhatsApp) -->
+
+            <!-- Opción 4: MERC EXPRESS (WhatsApp) — nunca bloqueado -->
             <div class="col-md-3 text-center mx-3 option-box-shipment"
                 style="cursor: pointer;"
                 onclick="window.open('https://wa.me/51931430389', '_blank')">
@@ -52,6 +88,7 @@
                 <h4>MERC EXPRESS</h4>
                 <p>Consulta o solicita ayuda directa por chat.</p>
             </div>
+
         </div>
     </div>
 </div>
@@ -101,15 +138,19 @@
         max-width: 280px;
         min-width: 200px;
     }
-    .option-box-shipment:hover {
+    .option-box-shipment:hover:not(.merc-option-bloqueada) {
         transform: translateY(-5px);
         background: #fff;
         border-color: #2196F3;
         box-shadow: 0 8px 25px rgba(33,150,243,0.15);
     }
+    .merc-option-bloqueada {
+        border-color: #f5c6cb !important;
+        background: #fff5f5 !important;
+    }
     .option-box-shipment img { max-height: 120px; width: auto; height: auto; margin-bottom: 15px; }
     .option-box-shipment h4 { color: #1976D2; font-weight: 600; margin-bottom: 10px; font-size: 18px; }
-    .option-box-shipment p  { color: #666; font-size: 14px; line-height: 1.4; margin-bottom: 0; }
+    .option-box-shipment p  { color: #666; font-size: 14px; line-height: 1.4; margin-bottom: 8px; }
     @media (max-width: 768px) {
         .option-box-shipment { flex: 1 1 calc(50% - 20px); max-width: none; padding: 20px 10px; }
         .option-box-shipment img { max-height: 80px; }
@@ -130,5 +171,4 @@
         window.location.href = url.toString();
     }
 </script>
-
 

@@ -399,14 +399,17 @@ function wpcfe_shipment_searched_callback(){
         'post_type'      => 'wpcargo_shipment',
         'post_status'    => 'publish',
         'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'no_found_rows'  => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
         's'              => $s_shipment,
         'meta_query'     => array_merge( array( 'relation' => 'AND' ), (array) $meta_query ),
     );
     // Let other filters (including date meta injection) modify args the same way dashboard.php does
     $args = apply_filters( 'wpcfe_dashboard_arguments', $args );
 
-    $posts_objs = get_posts( $args );
-    $posts = wp_list_pluck( $posts_objs, 'ID' );
+    $posts = get_posts( $args );
 
     // Aggregate counts: count distinct tiendas (store names), total shipments, normal shipments
     $tiendas_map = array(); // normalized => ['label'=>display_label,'count'=>int]
@@ -427,34 +430,53 @@ function wpcfe_shipment_searched_callback(){
         }
     }
 
+    if ( empty( $posts ) ) {
+        return;
+    }
+
+    // Bulk fetch meta values in a single query to eliminate N+1 latency
+    global $wpdb;
+    $ids_str = implode(',', array_map('intval', $posts));
+    
+    // Fetch meta
+    $meta_results = $wpdb->get_results("
+        SELECT post_id, meta_key, meta_value 
+        FROM {$wpdb->postmeta} 
+        WHERE post_id IN ({$ids_str}) 
+        AND meta_key IN ('tipo_envio', 'wpcargo_tiendaname', 'registered_shipper')
+    ");
+
+    $meta_map = array();
+    foreach ( $meta_results as $row ) {
+        $meta_map[ $row->post_id ][ $row->meta_key ] = $row->meta_value;
+    }
+
     foreach( $posts as $pid ){
         $total_shipments++;
-        $tipo = get_post_meta( $pid, 'tipo_envio', true );
+        
+        $tipo = isset($meta_map[$pid]['tipo_envio']) ? $meta_map[$pid]['tipo_envio'] : '';
         $tipo_lower = strtolower( trim( (string) $tipo ) );
         $is_normal = ( $tipo_lower === 'normal' || stripos( $tipo, 'emprendedor' ) !== false );
         if ( $is_normal ) $normal_shipments++;
 
         // derive tienda label same as MERC_Shipment_Table::custom_data
-        $tienda = get_post_meta( $pid, 'wpcargo_tiendaname', true );
+        $tienda = isset($meta_map[$pid]['wpcargo_tiendaname']) ? $meta_map[$pid]['wpcargo_tiendaname'] : '';
         if ( empty( $tienda ) ){
-            $cliente_id = get_post_meta( $pid, 'registered_shipper', true );
+            $cliente_id = isset($meta_map[$pid]['registered_shipper']) ? $meta_map[$pid]['registered_shipper'] : '';
             if ( ! empty( $cliente_id ) ){
                 $billing_company = get_user_meta( intval( $cliente_id ), 'billing_company', true );
                 if ( ! empty( $billing_company ) ){
                     $tienda = $billing_company;
                 } else {
-                    $first_name = get_user_meta( intval( $cliente_id ), 'first_name', true );
-                    $last_name  = get_user_meta( intval( $cliente_id ), 'last_name', true );
-                    $nombre_completo = trim( $first_name . ' ' . $last_name );
-                    if ( ! empty( $nombre_completo ) ){
-                        $tienda = $nombre_completo;
-                    } else {
-                        $user = get_userdata( intval( $cliente_id ) );
-                        if ( $user ) $tienda = $user->display_name;
+                    $user = get_userdata( intval( $cliente_id ) );
+                    if ( $user ) {
+                        $nombre_completo = trim( $user->first_name . ' ' . $user->last_name );
+                        $tienda = !empty($nombre_completo) ? $nombre_completo : $user->display_name;
                     }
                 }
             }
         }
+        
         // fallback to author display name
         if ( empty( $tienda ) ){
             $author = get_userdata( get_post_field( 'post_author', $pid ) );

@@ -700,11 +700,14 @@ function wpc_shipment_container_get_unassigned_shipment()
 	// OPTIMIZACIÓN EXTREMA: Filtrar en memoria RAM
     $status_in = "'" . implode("','", esc_sql($assigned_shipments)) . "'";
     
-    // 1. Obtener solo IDs en estado permitido
+    // 1. Obtener solo IDs en estado permitido Y que tengan fecha de recojo de HOY
+    $hoy_dmy = date('d/m/Y', current_time('timestamp'));
     $query_ids = "SELECT p.ID FROM {$wpdb->posts} p 
                   JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
+                  JOIN {$wpdb->postmeta} pm_date ON p.ID = pm_date.post_id 
                   WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' 
                   AND pm.meta_key = 'wpcargo_status' AND pm.meta_value IN ($status_in)
+                  AND pm_date.meta_key = 'wpcargo_pickup_date_picker' AND pm_date.meta_value = '{$hoy_dmy}'
                   ORDER BY p.post_title ASC";
     
     $pending_ids = $wpdb->get_col($query_ids);

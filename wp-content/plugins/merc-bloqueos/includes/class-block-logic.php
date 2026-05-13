@@ -27,9 +27,11 @@ class Merc_Bloqueos_Logic {
             ];
         }
 
-        // Usar wp_date para respetar la zona horaria de WordPress (Lima)
-        $today = wp_date('Y-m-d');
-        $now = wp_date('H:i');
+        // Usar zona horaria fija de Lima para evitar problemas si el servidor o WP están en UTC
+        $tz = new DateTimeZone('America/Lima');
+        $dt = new DateTime('now', $tz);
+        $today = $dt->format('Y-m-d');
+        $now = $dt->format('H:i');
         $tipo_clean = strtolower(trim($tipo));
 
         // 1. Verificación de Bloqueo Total (aplica a todos los tipos, incluyendo masivos)
@@ -82,11 +84,14 @@ class Merc_Bloqueos_Logic {
             $limite_sin = get_option('merc_hora_full_sin_pedidos', '12:30');
             $limite_con = get_option('merc_hora_full_con_pedidos', '12:30');
             $is_emprendedor = false;
+
         }
 
         // 4. Conteo de pedidos:
-        $today_iso = date('Y-m-d');
-        $today_dmy = date('d/m/Y');
+        $today_iso = $dt->format('Y-m-d');
+        $today_dmy = $dt->format('d/m/Y');
+        $today_dmy2 = $dt->format('j/m/Y'); // Sin cero a la izquierda en el día (ej. 7/05/2026)
+        $today_dmy3 = $dt->format('j/n/Y'); // Sin cero en día ni mes (ej. 7/5/2026)
         
         $log_dir = defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR . '/merc_logs' : ABSPATH . 'wp-content/merc_logs';
         if (!file_exists($log_dir)) @mkdir($log_dir, 0755, true);
@@ -105,14 +110,14 @@ class Merc_Bloqueos_Logic {
             LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
             WHERE p.post_type = 'wpcargo_shipment'
             AND p.post_status = 'publish'
-            AND (pm_date.meta_value = %s OR pm_date.meta_value = %s)
-        ", $today_iso, $today_dmy));
+            AND pm_date.meta_value IN (%s, %s, %s, %s)
+        ", $today_iso, $today_dmy, $today_dmy2, $today_dmy3));
 
         $envios_hoy = [];
         foreach ($all_today as $ship) {
             // Comprobación flexible del ID del cliente
             if (trim($ship->shipper_id) == trim($client_id)) {
-                $t = strtolower($ship->tipo_envio);
+                $t = strtolower($ship->tipo_envio ?? '');
                 if ($tipo_clean === 'normal' || $tipo_clean === 'masivo') {
                     if ($t === 'normal' || stripos($t, 'programado') !== false || empty($t)) {
                         $envios_hoy[] = $ship;
@@ -202,6 +207,29 @@ class Merc_Bloqueos_Logic {
             ];
         }
     }
+
+    public static function get_hora_bloqueo_duro() {
+        return get_option('merc_hora_bloqueo_duro', '15:00');
+    }
+
+    public static function is_formulario_bloqueado($tipo_envio) {
+        $client_id = get_current_user_id();
+        $resultado = self::evaluate($client_id, $tipo_envio);
+        if ($resultado['bloqueo_total']) return true;
+        
+        if ($resultado['bloquear_hoy']) {
+            $tz = new DateTimeZone('America/Lima');
+            $dt = new DateTime('now', $tz);
+            $hora_actual = $dt->format('H:i');
+            
+            $hora_limite = self::get_hora_bloqueo_duro();
+            if ($hora_actual < $hora_limite) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
+
 
 

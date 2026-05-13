@@ -32,6 +32,8 @@ class Merc_Bloqueos_Ajax {
         $response = [
             'bloqueo_total' => $result['bloqueo_total'],
             'bloquear_hoy' => $result['bloquear_hoy'],
+            'is_formulario_bloqueado' => Merc_Bloqueos_Logic::is_formulario_bloqueado($tipo),
+            'hora_bloqueo_duro' => Merc_Bloqueos_Logic::get_hora_bloqueo_duro(),
             'fechas_bloqueadas' => is_array($fechas) ? $fechas : [],
             'domingos_desbloqueados' => is_array($domingos) ? $domingos : [],
             '_debug_reason' => $result['reason']
@@ -40,3 +42,4 @@ class Merc_Bloqueos_Ajax {
         wp_send_json_success($response);
     }
 }
+

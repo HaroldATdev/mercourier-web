@@ -42,6 +42,26 @@ class WCMAS_Procesador {
             return ['ok' => false, 'errores' => $errores, 'datos' => $fila];
         }
 
+        // ── Validación de bloqueo de servicio por tipo (ídem al formulario individual) ───
+        // Solo aplica a clientes (los admins nunca se bloquean, se valida dentro de evaluate())
+        if ( class_exists('Merc_Bloqueos_Logic') ) {
+            $tipo_envio_check = strtolower(trim($meta['tipo_envio'] ?? ''));
+            // Mapear 'normal' -> 'normal', 'express' -> 'express'; ignorar si no reconocido
+            if ( $tipo_envio_check !== '' ) {
+                $client_id_check = get_current_user_id();
+                $resultado_bloqueo = Merc_Bloqueos_Logic::evaluate($client_id_check, $tipo_envio_check);
+                $is_bloqueado = Merc_Bloqueos_Logic::is_formulario_bloqueado($tipo_envio_check);
+                if ( $is_bloqueado ) {
+                    $label_tipo = $tipo_envio_check === 'express' ? 'Agencia (Express)' : 'Emprendedor (Normal)';
+                    return [
+                        'ok'     => false,
+                        'errores' => ['tipo_envio' => "El servicio {$label_tipo} ya no acepta pedidos para hoy. Por favor selecciona una fecha posterior o comunica con administración."],
+                        'datos'   => $fila,
+                    ];
+                }
+            }
+        }
+
         // Generar número de tracking (= post_title en WPCargo)
         $tracking = wcmas_generar_tracking();
 
@@ -216,8 +236,11 @@ class WCMAS_Procesador {
         }
 
         // ── Disparar hooks de WPCargo ─────────────────────────────────────────
+        // Envolver en ob_start para evitar que hooks mal diseñados (que impriman HTML) rompan el JSON de respuesta
+        ob_start();
         do_action('wpcargo_after_create_shipment', $post_id, $meta);
         do_action('wpcfe_after_create_shipment', $post_id);
+        ob_end_clean();
 
         return [
             'ok'       => true,
@@ -311,4 +334,5 @@ class WCMAS_Procesador {
         }
     }
 }
+
 

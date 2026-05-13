@@ -1017,6 +1017,12 @@ function wpcfe_get_bulk_report_counts( $date_start, $date_end, $statuses ) {
     $user_roles = wpcfe_current_user_role();
     $is_admin = wpcfe_is_super_admin();
     
+    $cache_key = 'wpcfe_bulk_' . md5($date_start . $date_end . implode(',', $statuses) . get_current_user_id());
+    $cached_results = wp_cache_get($cache_key, 'wpcargo_reports');
+    if ( false !== $cached_results ) {
+        return $cached_results;
+    }
+    
     $parameter = array( $date_start . ' 00:00:00', $date_end . ' 23:59:59' );
     
     $sql = "SELECT DATE(tblpost.post_date) as report_date, tblstatus.meta_value as status, COUNT(tblpost.ID) as count 
@@ -1053,9 +1059,12 @@ function wpcfe_get_bulk_report_counts( $date_start, $date_end, $statuses ) {
     $map = array();
     if ($results) {
         foreach ($results as $row) {
-            $map[$row['report_date']][$row['status']] = (int)$row['count'];
+            $map[ $row['report_date'] ][ $row['status'] ] = intval($row['count']);
         }
     }
+    
+    wp_cache_set($cache_key, $map, 'wpcargo_reports', 120);
+    
     return $map;
 }
 function wpcfe_get_all_shipment_count( $date_start, $date_end ){

@@ -74,7 +74,7 @@ var WCMAS = {
         </button>
         <div style="width:1px;height:26px;background:#dee2e6;margin:0 2px"></div>
         <button type="button" class="btn btn-success btn-sm px-3" id="wcmas-btn-preview" disabled>
-            <i class="fa fa-eye mr-1"></i>Vista previa
+            <i class="fa fa-paper-plane mr-1"></i>Crear envíos
             <span id="wcmas-badge" class="badge badge-light ml-1" style="font-size:11px">0</span>
         </button>
     </div>
@@ -156,7 +156,7 @@ var WCMAS = {
     <div style="background:#2271b1;color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px">
         <i class="fa fa-eye fa-lg"></i>
         <div style="flex:1">
-            <h5 class="mb-0" style="font-size:16px">Vista previa — Confirmar carga</h5>
+            <h5 class="mb-0" style="font-size:16px">Confirmar creación de envíos</h5>
             <small id="wcmas-modal-subtitle" style="opacity:.85"></small>
         </div>
         <button type="button" id="wcmas-modal-cerrar-x" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0;line-height:1">&times;</button>
@@ -966,34 +966,71 @@ function enviarFilas() {
     loader.style.display=''; result.style.display='none';
     document.getElementById('wcmas-hint').style.display='none';
 
-    var prog=0;
-    var tick=setInterval(function(){
-        prog=Math.min(prog+8,88); bar.style.width=prog+'%';
-        sub.textContent='Procesando '+_filasParaEnviar.length+' envío(s)...';
-    },180);
+    var totalFilas = _filasParaEnviar.length;
+    var chunkSize = 5;
+    var currentChunk = 0;
+    var totalChunks = Math.ceil(totalFilas / chunkSize);
+    var resultadosAcumulados = { ok: 0, errores: 0, resultados: [] };
 
-    var fd=new FormData();
-    fd.append('action','wcmas_procesar_lote');
-    fd.append('nonce',WCMAS.nonce);
+    function procesarSiguienteChunk() {
+        if (currentChunk >= totalChunks) {
+            // Terminado
+            bar.style.width = '100%';
+            sub.textContent = '¡Proceso completado!';
+            setTimeout(function(){ 
+                loader.style.display='none'; 
+                mostrarResultado({ success: true, data: resultadosAcumulados }); 
+            }, 500);
+            return;
+        }
 
-    _filasParaEnviar.forEach(function(fila,i){
-        WCMAS.columnas.forEach(function(c){ fd.append('filas['+i+']['+c.id+']', fila[c.id]||''); });
-        fd.append('filas['+i+']['+ID_CONTAINER+']', fila[ID_CONTAINER] || '');
-        fd.append('filas['+i+']['+ID_DRIVER+']', fila[ID_DRIVER] || '');
-        if (fila[ID_SHIPPER]) fd.append('asignar_a', fila[ID_SHIPPER]);
-    });
+        var inicio = currentChunk * chunkSize;
+        var fin = Math.min(inicio + chunkSize, totalFilas);
+        var chunkFilas = _filasParaEnviar.slice(inicio, fin);
+        
+        var percent = Math.round((currentChunk / totalChunks) * 100);
+        bar.style.width = percent + '%';
+        sub.textContent = 'Procesando envíos ' + (inicio + 1) + ' al ' + fin + ' de ' + totalFilas + '...';
 
-    fetch(WCMAS.ajax_url,{method:'POST',body:fd,credentials:'same-origin'})
-        .then(function(r){ return r.json(); })
-        .then(function(resp){
-            clearInterval(tick); bar.style.width='100%';
-            setTimeout(function(){ loader.style.display='none'; mostrarResultado(resp); },300);
-        })
-        .catch(function(){
-            clearInterval(tick); loader.style.display='none';
-            grid.style.display=''; toolbar.style.display='flex';
-            alert('Error de conexión. Intenta de nuevo.');
+        var fd = new FormData();
+        fd.append('action', 'wcmas_procesar_lote');
+        fd.append('nonce', WCMAS.nonce);
+
+        chunkFilas.forEach(function(fila, i) {
+            var indexReal = inicio + i; // Para mantener el tracking si es necesario
+            WCMAS.columnas.forEach(function(c) { fd.append('filas['+indexReal+']['+c.id+']', fila[c.id] || ''); });
+            fd.append('filas['+indexReal+']['+ID_CONTAINER+']', fila[ID_CONTAINER] || '');
+            fd.append('filas['+indexReal+']['+ID_DRIVER+']', fila[ID_DRIVER] || '');
+            if (fila[ID_SHIPPER]) fd.append('asignar_a', fila[ID_SHIPPER]);
         });
+
+        fetch(WCMAS.ajax_url, {method: 'POST', body: fd, credentials: 'same-origin'})
+            .then(function(r){ return r.json(); })
+            .then(function(resp){
+                if (resp.success && resp.data) {
+                    resultadosAcumulados.ok += resp.data.ok || 0;
+                    resultadosAcumulados.errores += resp.data.errores || 0;
+                    if (resp.data.resultados) {
+                        resultadosAcumulados.resultados = resultadosAcumulados.resultados.concat(resp.data.resultados);
+                    }
+                }
+                currentChunk++;
+                procesarSiguienteChunk();
+            })
+            .catch(function(e){
+                console.error(e);
+                loader.style.display='none';
+                grid.style.display=''; toolbar.style.display='flex';
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Error de conexión',
+                    text: 'Ocurrió un problema de red en el bloque ' + (currentChunk+1) + '. Por favor, revisa el historial para confirmar si los envíos se crearon.',
+                    confirmButtonColor: '#f39c12'
+                });
+            });
+    }
+
+    procesarSiguienteChunk();
 }
 
 /* ── Resultado ──────────────────────────────────────────────────── */
@@ -1074,18 +1111,93 @@ document.getElementById('wcmas-btn-nueva').addEventListener('click', function(){
     }
 
     // Cargar bloqueos en background (no bloquea la grilla)
-    var seguro = { bloquear_hoy: false, fechas_bloqueadas: [], domingos_desbloqueados: [] };
+    var seguro = { bloquear_hoy: false, fechas_bloqueadas: [], domingos_desbloqueados: [], is_formulario_bloqueado: false };
     function cargarBloqueo(tipo) {
         return fetch(WCMAS.ajax_url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'action=merc_bloqueo_info&tipo=' + tipo
+            body: 'action=merc_bloqueo_info&tipo=' + encodeURIComponent(tipo) + '&nonce=' + encodeURIComponent(WCMAS.nonce)
         }).then(function(r){ return r.json(); })
           .then(function(r){ return r.success ? r.data : seguro; })
           .catch(function(){ return seguro; });
     }
-    cargarBloqueo('normal').then(function(d){ WCMAS.bloqueos.normal  = d; });
-    cargarBloqueo('express').then(function(d){ WCMAS.bloqueos.express = d; });
+
+    /**
+     * Aplica bloqueo de servicio al select tipo_envio de cada fila.
+     * Si normal/express está bloqueado para hoy, deshabilita esa opción
+     * y muestra un texto indicativo en el label de la opción.
+     */
+    function aplicarBloqueosTipoEnvio() {
+        var bloqueoNormal  = WCMAS.bloqueos.normal  && WCMAS.bloqueos.normal.is_formulario_bloqueado;
+        var bloqueoExpress = WCMAS.bloqueos.express && WCMAS.bloqueos.express.is_formulario_bloqueado;
+        if (!bloqueoNormal && !bloqueoExpress) return; // Nada bloqueado, no hacer nada
+
+        var horaNormal  = (WCMAS.bloqueos.normal  && WCMAS.bloqueos.normal.hora_bloqueo_duro)  || '15:00';
+        var horaExpress = (WCMAS.bloqueos.express && WCMAS.bloqueos.express.hora_bloqueo_duro) || '15:00';
+
+        // Actualizar todos los selects existentes de tipo_envio
+        document.querySelectorAll('[data-col="tipo_envio"]').forEach(function(sel) {
+            for (var i = 0; i < sel.options.length; i++) {
+                var opt = sel.options[i];
+                var v = (opt.value || '').toLowerCase().trim();
+                if (v === 'normal' && bloqueoNormal) {
+                    opt.disabled = true;
+                    opt.textContent = opt.textContent.replace(/ \(bloqueado.*\)$/, '') + ' (bloqueado hasta ' + horaNormal + ')';
+                    // Si la fila ya tenía este valor seleccionado, resetear
+                    if (sel.value === opt.value) { sel.value = ''; }
+                } else if ((v === 'express' || v === 'agencia') && bloqueoExpress) {
+                    opt.disabled = true;
+                    opt.textContent = opt.textContent.replace(/ \(bloqueado.*\)$/, '') + ' (bloqueado hasta ' + horaExpress + ')';
+                    if (sel.value === opt.value) { sel.value = ''; }
+                } else {
+                    // Asegurarse de que opciones no bloqueadas estén habilitadas
+                    opt.disabled = false;
+                }
+            }
+        });
+    }
+
+    // Guardamos referencia al método original crearFila para parcharlo
+    var _crearFilaOrig = crearFila;
+    crearFila = function(n) {
+        var tr = _crearFilaOrig(n);
+        // Después de crear la fila, aplicar restricciones si ya cargaron los bloqueos
+        setTimeout(function() { aplicarBloqueosTipoEnvio(); }, 50);
+        return tr;
+    };
+
+    // Mostrar aviso de servicio bloqueado (sin bloquear toda la grilla)
+    function mostrarAvisoServiciosBloqueados() {
+        var bloqueados = [];
+        if (WCMAS.bloqueos.normal  && WCMAS.bloqueos.normal.is_formulario_bloqueado)  bloqueados.push('Emprendedor (Normal)');
+        if (WCMAS.bloqueos.express && WCMAS.bloqueos.express.is_formulario_bloqueado) bloqueados.push('Agencia (Express)');
+        if (!bloqueados.length) return;
+
+        var hora = (WCMAS.bloqueos.normal && WCMAS.bloqueos.normal.hora_bloqueo_duro) || '15:00';
+        var existente = document.getElementById('wcmas-aviso-bloqueo-servicio');
+        if (existente) return;
+        var alertDiv = document.createElement('div');
+        alertDiv.id = 'wcmas-aviso-bloqueo-servicio';
+        alertDiv.className = 'alert alert-warning mb-3';
+        alertDiv.innerHTML = '<i class="fa fa-clock-o mr-1"></i> <strong>Servicios bloqueados por horario:</strong> ' +
+            bloqueados.join(', ') + '. Estas opciones no están disponibles para el día de hoy. ' +
+            'Si tienes pedidos pendientes o desbloqueo temporal, comunícate con administración.';
+        var grid = document.getElementById('wcmas-grid');
+        if (grid && grid.parentNode) grid.parentNode.insertBefore(alertDiv, grid);
+    }
+
+    Promise.all([
+        cargarBloqueo('normal').then(function(d){
+            WCMAS.bloqueos.normal = d;
+        }),
+        cargarBloqueo('express').then(function(d){
+            WCMAS.bloqueos.express = d;
+        })
+    ]).then(function() {
+        aplicarBloqueosTipoEnvio();
+        mostrarAvisoServiciosBloqueados();
+    });
+
 })();
 
 
