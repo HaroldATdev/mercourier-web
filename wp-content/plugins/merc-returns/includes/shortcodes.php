@@ -14,8 +14,10 @@ add_shortcode('merc_devoluciones', function () {
     $estado     = isset($_GET['estado'])     ? sanitize_text_field($_GET['estado'])    : '';
     $marca      = isset($_GET['marca'])      ? sanitize_text_field($_GET['marca'])     : '';
     $motorizado = isset($_GET['motorizado']) ? absint($_GET['motorizado'])             : 0;
-    $desde      = isset($_GET['desde']) && !empty($_GET['desde']) ? sanitize_text_field($_GET['desde']) : '';
-    $hasta      = isset($_GET['hasta']) && !empty($_GET['hasta']) ? sanitize_text_field($_GET['hasta']) : '';
+    $default_desde = date('Y-m-d', strtotime('-1 day'));
+    $default_hasta = date('Y-m-d');
+    $desde      = isset($_GET['desde']) && !empty($_GET['desde']) ? sanitize_text_field($_GET['desde']) : $default_desde;
+    $hasta      = isset($_GET['hasta']) && !empty($_GET['hasta']) ? sanitize_text_field($_GET['hasta']) : $default_hasta;
     $buscar     = isset($_GET['buscar'])     ? sanitize_text_field($_GET['buscar'])    : '';
 
     ob_start();
@@ -230,6 +232,9 @@ function merc_render_export_buttons($estado, $marca, $motorizado, $desde, $hasta
  */
 function merc_render_table($estado, $marca, $motorizado, $desde, $hasta, $buscar) {
     $args  = merc_build_query($estado, $marca, $motorizado, $desde, $hasta, $buscar);
+    $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+    $args['posts_per_page'] = 30;
+    $args['paged'] = $paged;
     $query = new WP_Query($args);
 
     ob_start();
@@ -340,6 +345,32 @@ function merc_render_table($estado, $marca, $motorizado, $desde, $hasta, $buscar
         </tbody>
     </table>
 
+    <?php if ($query->max_num_pages > 1): ?>
+        <div class="merc-pagination" style="margin-top:20px; text-align:center;">
+            <?php
+            echo paginate_links(array(
+                'base' => add_query_arg('paged', '%#%'),
+                'format' => '',
+                'current' => $paged,
+                'total' => $query->max_num_pages,
+                'prev_text' => '&laquo; Anterior',
+                'next_text' => 'Siguiente &raquo;',
+            ));
+            ?>
+        </div>
+        <style>
+        .merc-pagination a, .merc-pagination span {
+            display: inline-block; padding: 8px 12px; margin: 0 2px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; background: #fff; color: #333; font-weight: bold;
+        }
+        .merc-pagination .current {
+            background: #2271b1; color: #fff; border-color: #2271b1;
+        }
+        .merc-pagination a:hover {
+            background: #f1f1f1;
+        }
+        </style>
+    <?php endif; ?>
+
     <?php if ($query->found_posts > 0): ?>
         <div style="margin-top:20px;padding:15px;background:#e8f4fd;border-left:4px solid #2271b1;border-radius:4px;">
             <strong>📊 Total:</strong> <?php echo intval($query->found_posts); ?> devoluciones encontradas
@@ -348,3 +379,4 @@ function merc_render_table($estado, $marca, $motorizado, $desde, $hasta, $buscar
 
     return ob_get_clean();
 }
+

@@ -285,13 +285,16 @@
                 return;
             }
             
-            let mensaje = `¡Hola! Te saluda👋🏼 *${data.motorizado_name}* motorizado🏍️ de MERCourier, tengo una entrega🎁 para ud de parte de la marca *${data.tienda_name}*, me podría confirmar la recepción de su pedido🛂 en la *${data.receiver_address}*.\n\n`;
+            let receiverNameStr = data.receiver_name ? ` *${data.receiver_name}*` : '';
+            let mensaje = `¡Hola! Te saluda👋🏼 *${data.motorizado_name}* motorizado🏍️ de MERCourier, tengo una entrega🎁 para ud${receiverNameStr} de parte de la marca *${data.tienda_name}*, me podría confirmar la recepción de su pedido🛂 en la dirección *${data.receiver_address}* o brindarme su ubicación en tiempo actual para hacer factible mi llegada.\n\n`;
             mensaje += `⏳ Te notificaremos de 10 a 15 min antes de llegar. El horario de reparto es de 2:30 a 7:30 pm\n\n`;
             
-            if (data.monto > 0) {
-                mensaje += `💰 Tipo de Pago: YAPE o efectivo (monto exacto S/. ${data.monto.toFixed(2)}).\n\n`;
-            } else {
-                mensaje += `💰 Tipo de Pago: YAPE o efectivo (monto exacto). Si no tiene ningún cobro omita el aviso 🤓\n\n`;
+            const isNoCobrar = data.modo_pago && data.modo_pago.toString().toLowerCase().trim() === 'no cobrar';
+            
+            if (!isNoCobrar) {
+                const modoDisplay = data.modo_pago ? data.modo_pago : 'YAPE o efectivo';
+                const montoDisplay = data.monto ? data.monto.toFixed(2) : '0.00';
+                mensaje += `💰 Modalidad de Pago: ${modoDisplay}, el monto a cobrar es S/. ${montoDisplay}.\n\n`;
             }
             
             mensaje += `¡Gracias! Por tu atención`;
@@ -1076,3 +1079,4 @@
         initPODRouteMap();
     });
 </script>
+

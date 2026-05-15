@@ -69,28 +69,40 @@
 				$stats = get_transient($transient_key);
 				
 				if (false === $stats) {
-					// Puntos de Recojo: contar usuarios ÚNICOS (registered_shipper) de envíos tipo normal para HOY (sin requisito de contenedor)
+					// Puntos de Recojo: contar usuarios ÚNICOS con envíos tipo normal para HOY
+					// que AÚN NO TIENEN motorizado de recojo asignado (wpcargo_motorizo_recojo vacío o 0)
+					// y que no estén en estado terminal
 					$recojo_query = "
 						SELECT COUNT(DISTINCT CAST(pm_shipper.meta_value AS UNSIGNED)) as conteo
 						FROM {$wpdb->posts} p
 						INNER JOIN {$wpdb->postmeta} pm_shipper ON pm_shipper.post_id = p.ID AND pm_shipper.meta_key = 'registered_shipper'
 						INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 						INNER JOIN {$wpdb->postmeta} pd ON pd.post_id = p.ID AND pd.meta_key = 'wpcargo_pickup_date_picker'
+						LEFT JOIN {$wpdb->postmeta} pm_mot_rec ON pm_mot_rec.post_id = p.ID AND pm_mot_rec.meta_key = 'wpcargo_motorizo_recojo'
+						LEFT JOIN {$wpdb->postmeta} pm_status ON pm_status.post_id = p.ID AND pm_status.meta_key = 'wpcargo_status'
 						WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
 						AND pm_shipper.meta_value != ''
 						AND pm_tipo.meta_value = 'normal'
 						AND (pd.meta_value = '{$today_peru}' OR pd.meta_value = '{$today_peru_alt}')
+						AND (pm_mot_rec.meta_value IS NULL OR pm_mot_rec.meta_value = '' OR pm_mot_rec.meta_value = '0')
+						AND (pm_status.meta_value IS NULL OR pm_status.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'RECOGIDO'))
 					";
 					$puntos_recojo = $wpdb->get_var($recojo_query);
 					$puntos_recojo = $puntos_recojo ?: 0;
 
-					// Puntos de Entrega: contar total de envíos (sin restricción de tipo) de HOY (sin importar si tienen contenedor asignado)
+					// Puntos de Entrega: contar total de envíos de HOY
+					// que AÚN NO TIENEN motorizado de entrega asignado (wpcargo_motorizo_entrega vacío o 0)
+					// y que no estén en estado terminal
 					$entrega_query = "
 						SELECT COUNT(DISTINCT p.ID) as conteo
 						FROM {$wpdb->posts} p
 						INNER JOIN {$wpdb->postmeta} pm_fecha ON pm_fecha.post_id = p.ID AND pm_fecha.meta_key = 'wpcargo_pickup_date_picker'
+						LEFT JOIN {$wpdb->postmeta} pm_mot_ent ON pm_mot_ent.post_id = p.ID AND pm_mot_ent.meta_key = 'wpcargo_motorizo_entrega'
+						LEFT JOIN {$wpdb->postmeta} pm_status ON pm_status.post_id = p.ID AND pm_status.meta_key = 'wpcargo_status'
 						WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
 						AND (pm_fecha.meta_value = '{$today_peru}' OR pm_fecha.meta_value = '{$today_peru_alt}')
+						AND (pm_mot_ent.meta_value IS NULL OR pm_mot_ent.meta_value = '' OR pm_mot_ent.meta_value = '0')
+						AND (pm_status.meta_value IS NULL OR pm_status.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED'))
 					";
 					$puntos_entrega = $wpdb->get_var($entrega_query);
 					$puntos_entrega = $puntos_entrega ?: 0;
@@ -99,7 +111,7 @@
 						'recojo' => $puntos_recojo,
 						'entrega' => $puntos_entrega
 					);
-					set_transient($transient_key, $stats, 5 * MINUTE_IN_SECONDS);
+					set_transient($transient_key, $stats, 2 * MINUTE_IN_SECONDS);
 				} else {
 					$puntos_recojo = $stats['recojo'];
 					$puntos_entrega = $stats['entrega'];
@@ -119,6 +131,7 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 
 
 

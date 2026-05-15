@@ -10747,71 +10747,84 @@ function merc_panel_cliente_shortcode() {
     ?>
     <div class="merc-panel-cliente">
         <?php if ($tiene_bloqueo): ?>
-        <div class="alert alert-warning" style="margin-bottom: 20px; border-left: 4px solid #ff9800;">
-            <h5 style="margin-top: 0; color: #f57c00;">⚠️ Cuenta con Restricción Temporal</h5>
-            <p style="margin-bottom: 0;">
-                <strong>Todos tus envíos de hoy ya fueron recogidos por el motorizado.</strong><br>
-                No puedes crear nuevos envíos hasta que se completen las entregas.
-                Una vez que todos los envíos estén "Entregados y pagados", "Reprogramados" o "Anulados",
-                podrás crear nuevos envíos para el día siguiente.
-                <br><small><em>Nota: Los envíos marcados como "No recogidos" también mantienen el bloqueo y generan una penalización.</em></small>
-            </p>
+        <div class="merc-pc-alert merc-pc-alert-warn">
+            <strong>⚠️ Cuenta con Restricción Temporal</strong><br>
+            <span style="font-size:13px;">Todos tus envíos de hoy ya fueron recogidos. Podrás crear nuevos cuando todos estén en estado final (Entregado, Reprogramado o Anulado).</span>
         </div>
         <?php endif; ?>
-        
         <?php if ($mostrar_alerta_bloqueo): ?>
-        <div class="alert alert-danger" style="margin-bottom: 20px;">
-            <h5 style="margin-top: 0;">🚫 Acceso Bloqueado</h5>
-            <p style="margin-bottom: 0;">
-                No puedes crear nuevos envíos porque todos tus envíos de hoy ya están en estado "Recogido".
-                Debes esperar a que el motorizado los entregue y se liquiden los pagos para poder crear envíos del día siguiente.
-            </p>
+        <div class="merc-pc-alert merc-pc-alert-danger">
+            <strong>🚫 Acceso Bloqueado</strong><br>
+            <span style="font-size:13px;">No puedes crear nuevos envíos porque todos tus envíos de hoy ya están en estado "Recogido".</span>
         </div>
         <?php endif; ?>
-        
-        <div class="card mb-4">
-            <div class="card-header" style="background: #27ae60; color: white;">
-                <h4 class="mb-0">🏢 Panel del Cliente: <?php echo esc_html( $current_user->display_name ); ?></h4>
-            </div>
-            <div class="card-body">
-                <?php merc_cliente_balance( $current_user->ID ); ?>
-            </div>
-        </div>
-        <!-- Historial de liquidaciones (cliente) -->
-        <div class="card mb-4">
-            <div class="card-header"><h5 class="mb-0">💳 Historial de liquidaciones</h5></div>
-            <div class="card-body">
-                <?php echo do_shortcode('[merc_finanzas_cliente fecha_inicio="' . esc_attr($fecha_caja) . '" fecha_fin="' . esc_attr($fecha_caja) . '"]'); ?>
-            </div>
-        </div>
-        <!-- Penalidades: ahora renderizadas por el plugin merc-finance -->
+
+        <?php merc_cliente_balance( $current_user->ID ); ?>
+
         <?php do_action('merc_cliente_dashboard_after_envios'); ?>
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">📊 Mis Envíos</h5>
-            </div>
-            <div class="card-body">
-                <?php merc_cliente_envios( $current_user->ID, $fecha_caja ); ?>
-            </div>
+
+        <div class="merc-pc-card">
+            <div class="merc-pc-card-header">📋 Detalle de Envíos</div>
+            <?php merc_cliente_envios( $current_user->ID, $fecha_caja ); ?>
         </div>
     </div>
     <style>
-        .merc-panel-cliente .badge { font-size: 0.9em; padding: 0.5em 0.8em; }
-        .merc-balance-positive { color: #27ae60; font-weight: bold; font-size: 1.2em; }
-        .merc-balance-negative { color: #e74c3c; font-weight: bold; font-size: 1.2em; }
-        .merc-summary-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .merc-summary-box h3 { color: #1976D2; margin-bottom: 15px; }
-        .merc-summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #dee2e6; }
-        .merc-summary-item:last-child { border-bottom: none; }
-        .merc-summary-value { font-weight: bold; color: #2c3e50; }
-        .merc-entregas-table { width: 100%; border-collapse: collapse; }
-        .merc-entregas-table th { background: #e9ecef; padding: 12px; text-align: left; border: 1px solid #dee2e6; }
-        .merc-entregas-table td { padding: 12px; border: 1px solid #dee2e6; }
-        .merc-entregas-table tfoot td { background: #d4edda; font-weight: bold; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        .merc-panel-cliente { font-family:'Inter',sans-serif; max-width:900px; margin:0 auto; padding:8px 6px; box-sizing:border-box; }
+        .merc-pc-alert { padding:12px 14px; border-radius:10px; margin-bottom:12px; line-height:1.5; }
+        .merc-pc-alert-warn   { background:#fff7ed; border-left:4px solid #fb923c; color:#92400e; }
+        .merc-pc-alert-danger { background:#fef2f2; border-left:4px solid #f87171; color:#991b1b; }
+        .merc-pc-date-bar { background:#fff; border-radius:12px; padding:12px 14px; margin-bottom:12px; box-shadow:0 1px 6px rgba(0,0,0,.08); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .merc-pc-date-bar label { font-size:13px; font-weight:600; color:#555; white-space:nowrap; }
+        .merc-pc-date-bar input[type=date] { padding:8px 10px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px; flex:1; min-width:130px; font-family:inherit; }
+        .merc-pc-btn-filter { padding:8px 16px; background:#2563eb; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px; font-family:inherit; }
+        .merc-pc-btn-filter:hover { background:#1d4ed8; }
+        .merc-pc-btn-hoy { padding:8px 12px; background:#e5e7eb; color:#374151; border-radius:8px; font-weight:600; font-size:13px; text-decoration:none; display:inline-block; }
+        .merc-pc-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+        @media(max-width:600px){ .merc-pc-cards{ grid-template-columns:1fr 1fr; } .merc-pc-cards .merc-pc-stat:last-child{ grid-column:1/-1; } }
+        .merc-pc-stat { background:#fff; border-radius:12px; padding:14px 10px 12px; box-shadow:0 1px 6px rgba(0,0,0,.08); text-align:center; }
+        .merc-pc-stat-label { font-size:10px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.7px; margin-bottom:5px; }
+        .merc-pc-stat-value { font-size:22px; font-weight:800; line-height:1.1; }
+        .merc-pc-stat-note { font-size:10px; color:#9ca3af; margin-top:4px; }
+        .merc-pc-green .merc-pc-stat-value { color:#16a34a; }
+        .merc-pc-red   .merc-pc-stat-value { color:#dc2626; }
+        .merc-pc-blue  .merc-pc-stat-value { color:#2563eb; }
+        .merc-pc-card { background:#fff; border-radius:12px; box-shadow:0 1px 6px rgba(0,0,0,.08); margin-bottom:12px; overflow:hidden; }
+        .merc-pc-card-header { padding:12px 14px; font-weight:700; font-size:14px; background:#f9fafb; border-bottom:1px solid #e5e7eb; }
+        .merc-pc-card-body { padding:14px; }
+        .merc-pc-pay { border-radius:10px; padding:14px; }
+        .merc-pc-pay.merc-debe   { background:#fef2f2; border:1.5px solid #fca5a5; }
+        .merc-pc-pay.tienda-debe { background:#fff7ed; border:1.5px solid #fdba74; }
+        .merc-pc-pay.saldado     { background:#f0fdf4; border:1.5px solid #86efac; }
+        .merc-pc-pay-title { font-weight:700; font-size:14px; margin-bottom:8px; }
+        .merc-pc-pay.merc-debe   .merc-pc-pay-title { color:#b91c1c; }
+        .merc-pc-pay.tienda-debe .merc-pc-pay-title { color:#c2410c; }
+        .merc-pc-pay.saldado     .merc-pc-pay-title { color:#15803d; }
+        .merc-pc-upload { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .merc-pc-upload input[type=file] { font-size:12px; flex:1; min-width:0; }
+        .merc-pc-upload-btn { padding:8px 14px; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; font-family:inherit; white-space:nowrap; }
+        .merc-pc-upload-btn-red { background:#dc2626; color:#fff; }
+        .merc-pc-upload-btn-red:hover { background:#b91c1c; }
+        .merc-envios-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .merc-envios-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .merc-envios-table th { background:#f3f4f6; padding:9px 10px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; white-space:nowrap; border-bottom:2px solid #e5e7eb; }
+        .merc-envios-table td { padding:9px 10px; border-bottom:1px solid #f3f4f6; vertical-align:middle; }
+        .merc-envios-table tbody tr:last-child td { border-bottom:none; }
+        .merc-envios-table tfoot td { background:#f9fafb; font-weight:700; border-top:2px solid #e5e7eb; }
+        .merc-badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+        .merc-badge-entregado    { background:#dcfce7; color:#15803d; }
+        .merc-badge-anulado      { background:#f3f4f6; color:#6b7280; }
+        .merc-badge-reprogramado { background:#e0f2fe; color:#0369a1; }
+        .merc-badge-norecibido   { background:#fce7f3; color:#9d174d; }
+        .merc-badge-liquidado    { background:#dcfce7; color:#15803d; }
+        .merc-badge-pendiente    { background:#fef9c3; color:#854d0e; }
+        .merc-badge-default      { background:#f3f4f6; color:#374151; }
+        .merc-panel-cliente .badge { font-size:.9em; padding:.4em .8em; }
     </style>
     <?php
     return ob_get_clean();
 }
+
 
 /**
  * Verifica si todos los envíos de un cliente para una fecha de caja específica
@@ -10866,61 +10879,33 @@ function merc_cliente_balance( $client_id ) {
     $hoy = current_time('Y-m-d');
     $fecha_caja = isset($_GET['fecha_caja']) && !empty($_GET['fecha_caja']) ? sanitize_text_field($_GET['fecha_caja']) : $hoy;
     
-    // DEBUG: Log fecha recibida
-    error_log('=== MERC_CLIENTE_BALANCE DEBUG ===');
-    error_log('Cliente ID: ' . $client_id);
-    error_log('Fecha caja (GET): ' . ($fecha_caja ?: 'VACÍA'));
-    
-    // Mostrar formulario de filtro
+    // ---- Date bar ----
     ?>
-    <div style="background:#f9f9f9;padding:15px;margin-bottom:20px;border-radius:6px;border:1px solid #ddd;">
-        <h4 style="margin-top:0;margin-bottom:12px;">📅 Filtrar por fecha de caja</h4>
-        <form method="get" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-            <div>
-                <label for="fecha_caja" style="display:block;margin-bottom:5px;font-weight:500;font-size:13px;">Fecha:</label>
-                <input type="date" id="fecha_caja" name="fecha_caja" value="<?php echo esc_attr($fecha_caja); ?>" style="padding:8px;border:1px solid #ccc;border-radius:4px;">
-            </div>
-            <button type="submit" style="padding:8px 16px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:500;">
-                🔍 Filtrar
-            </button>
+    <div class="merc-pc-date-bar">
+        <label for="merc_fecha_caja_in">📅 Fecha:</label>
+        <form method="get" style="display:contents;">
+            <?php foreach ($_GET as $k => $v): if ($k === 'fecha_caja') continue; ?>
+                <input type="hidden" name="<?php echo esc_attr($k); ?>" value="<?php echo esc_attr($v); ?>">
+            <?php endforeach; ?>
+            <input type="date" id="merc_fecha_caja_in" name="fecha_caja" value="<?php echo esc_attr($fecha_caja); ?>">
+            <button type="submit" class="merc-pc-btn-filter">🔍 Ver</button>
             <?php if ($fecha_caja && $fecha_caja !== $hoy): ?>
-                <a href="<?php echo remove_query_arg('fecha_caja'); ?>" style="padding:8px 16px;background:#bdc3c7;color:#fff;border:none;border-radius:4px;cursor:pointer;text-decoration:none;font-weight:500;display:inline-block;">
-                    ✕ Hoy
-                </a>
+                <a href="<?php echo esc_url(remove_query_arg('fecha_caja')); ?>" class="merc-pc-btn-hoy">Hoy</a>
             <?php endif; ?>
         </form>
     </div>
     <?php
 
-    // Construir query base
-    // NOTA: Las fechas en meta_value están en formato DD/MM/YYYY, necesitamos convertir para comparar
+    // ---- Query: traemos TODOS los envíos del día (incluso liquidados) para que los totales sean reales ----
     $query = "
         SELECT p.ID,
-               pm_producto.meta_value         AS costo_producto,
                pm_envio.meta_value            AS costo_envio,
-               pm_quien_paga.meta_value       AS quien_paga,
-               pm_included.meta_value         AS estado_pago_remitente,
-               pm_cliente_pago_a.meta_value   AS cliente_pago_a,
                pm_pickup_date.meta_value      AS pickup_date
         FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm_shipper 
-            ON p.ID = pm_shipper.post_id 
-            AND pm_shipper.meta_key = 'registered_shipper'
-        LEFT JOIN {$wpdb->postmeta} pm_producto 
-            ON p.ID = pm_producto.post_id 
-            AND pm_producto.meta_key = 'wpcargo_costo_producto'
-        LEFT JOIN {$wpdb->postmeta} pm_envio 
-            ON p.ID = pm_envio.post_id 
-            AND pm_envio.meta_key = 'wpcargo_costo_envio'
-        LEFT JOIN {$wpdb->postmeta} pm_quien_paga 
-            ON p.ID = pm_quien_paga.post_id 
-            AND pm_quien_paga.meta_key = 'wpcargo_quien_paga'
-        LEFT JOIN {$wpdb->postmeta} pm_included 
-            ON p.ID = pm_included.post_id 
-            AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
-        LEFT JOIN {$wpdb->postmeta} pm_cliente_pago_a 
-            ON p.ID = pm_cliente_pago_a.post_id 
-            AND pm_cliente_pago_a.meta_key = 'wpcargo_cliente_pago_a'
+        LEFT JOIN {$wpdb->postmeta} pm_shipper
+            ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN {$wpdb->postmeta} pm_envio
+            ON p.ID = pm_envio.post_id AND pm_envio.meta_key = 'wpcargo_costo_envio'
         LEFT JOIN {$wpdb->postmeta} pm_pickup_date
             ON p.ID = pm_pickup_date.post_id
             AND pm_pickup_date.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'wpcargo_fecha_envio')
@@ -10928,262 +10913,245 @@ function merc_cliente_balance( $client_id ) {
         AND p.post_status = 'publish'
         AND pm_shipper.meta_value = %s
     ";
-    
-    // Agregar filtro de fecha de caja
-    // Las fechas están en formato DD/MM/YYYY, así que convertimos con STR_TO_DATE
-    // Las fechas ya están validadas con regex, así que las insertamos directamente
-    // IMPORTANTE: Escapar % con %% para que prepare() no las interprete como placeholders
+
     if ($fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja)) {
         $query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
-        
-        // Bloque 5: Excluir envíos que ya fueron liquidados a costo 0 (REPROGRAMADOS) en una liquidación previa
-        $query .= " AND NOT EXISTS (
-            SELECT 1 FROM {$wpdb->postmeta} pm_excl WHERE pm_excl.post_id = p.ID 
-            AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
-            AND pm_excl.meta_value = '" . sanitize_text_field($fecha_caja) . "'
-        )";
-        
-        error_log('✓ Filtro FECHA CAJA aplicado: = ' . $fecha_caja . ' (convertido de DD/MM/YYYY)');
-    }
-    
-    // Ejecutar query con argumentos seguros
-    $query = $wpdb->prepare($query, $client_id);
-    
-    // DEBUG: Log query completa
-    error_log('📋 Query SQL generada:');
-    error_log($query);
-    
-    $shipments = $wpdb->get_results($query);
-    
-    // DEBUG: Log resultados
-    error_log('📦 Envíos encontrados: ' . count($shipments ?: array()));
-    if (!empty($shipments)) {
-        foreach ($shipments as $s) {
-            error_log('   → ID: ' . $s->ID . ', Fecha meta: ' . ($s->pickup_date ?: 'N/A'));
-        }
-    } else {
-        error_log('   ⚠️  SIN RESULTADOS - Verifica el formato de fechas en BD');
     }
 
-    $total_recaudado   = 0.0;
-    $pago_marca        = 0.0;
-    $efectivo_recaud   = 0.0;
-    $pos_total         = 0.0;
-    $costo_servicios   = 0.0;
+    $shipments = $wpdb->get_results($wpdb->prepare($query, $client_id));
+    error_log('MERC CLIENTE BALANCE - Envíos encontrados: ' . count($shipments ?: array()));
 
-    error_log('--- Procesando envíos para cálculo de totales ---');
-    
-    if ( ! empty( $shipments ) && is_array( $shipments ) ) {
-        foreach ( $shipments as $shipment ) {
-            // Ignorar envíos que ya han sido liquidados
-            $is_included = get_post_meta($shipment->ID, 'wpcargo_included_in_liquidation', true);
-            if ( !empty($is_included) ) {
-                continue;
-            }
+    $total_recaudado = 0.0;
+    $efectivo_recaud = 0.0;
+    $pos_total       = 0.0;
+    $costo_servicios = 0.0;
 
-            $estado_wpcargo = get_post_meta($shipment->ID, 'wpcargo_status', true);
-            $estado_upper = strtoupper(trim($estado_wpcargo));
+    if (!empty($shipments) && is_array($shipments)) {
+        foreach ($shipments as $shipment) {
+            $estado_upper = strtoupper(trim((string)get_post_meta($shipment->ID, 'wpcargo_status', true)));
 
-            // Si está entregado, sumar recaudación
-            if ( $estado_upper === 'ENTREGADO' ) {
-                $totales = get_payment_totals_by_method( $shipment->ID );
-                $pos_neto = get_pos_net_for_shipment( $shipment->ID, $totales );
-
+            if ($estado_upper === 'ENTREGADO') {
+                $totales = get_payment_totals_by_method($shipment->ID);
+                $pos_neto = get_pos_net_for_shipment($shipment->ID, $totales);
                 $total_recaudado += floatval($totales['efectivo']) + floatval($totales['pago_merc']) + $pos_neto + floatval($totales['pago_marca']);
-                $pago_marca += floatval($totales['pago_marca']);
                 $efectivo_recaud += floatval($totales['efectivo']) + floatval($totales['pago_merc']);
-                $pos_total += $pos_neto;
+                $pos_total       += $pos_neto;
             }
 
-            // Costo de servicio: se cobra a menos que sea Anulado o Reprogramado
-            if ( stripos( $estado_upper, 'ANULADO' ) === false && stripos( $estado_upper, 'REPROGRAMADO' ) === false ) {
-                $envio = function_exists( 'merc_get_adjusted_service_cost' ) ? merc_get_adjusted_service_cost( $shipment->ID ) : floatval( $shipment->costo_envio );
+            if (stripos($estado_upper, 'ANULADO') === false && stripos($estado_upper, 'REPROGRAMADO') === false) {
+                $envio = function_exists('merc_get_adjusted_service_cost') ? merc_get_adjusted_service_cost($shipment->ID) : floatval($shipment->costo_envio);
                 $costo_servicios += $envio;
             }
         }
     }
-    
-    // Balance Neto = (Efectivo + Pago MERC + POS Neto) - Costo Servicios
+
     $recaudado_por_merc = $efectivo_recaud + $pos_total;
-    $balance_neto = $recaudado_por_merc - $costo_servicios;
+    $balance_neto_real  = $recaudado_por_merc - $costo_servicios;
 
+    // Verificar si el día ya fue liquidado (tiene shipments con merc_remitente_liquidado_fecha para esta fecha)
+    $liquidacion_aprobada = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} pm_liq
+         JOIN {$wpdb->posts} p2 ON p2.ID = pm_liq.post_id
+         WHERE p2.post_type = 'wpcargo_shipment' AND p2.post_status = 'publish'
+         AND pm_liq.meta_key = 'merc_remitente_liquidado_fecha'
+         AND pm_liq.meta_value = %s
+         AND EXISTS (
+             SELECT 1 FROM {$wpdb->postmeta} pm_sh2
+             WHERE pm_sh2.post_id = pm_liq.post_id
+             AND pm_sh2.meta_key = 'registered_shipper' AND pm_sh2.meta_value = %s
+         )",
+        $fecha_caja,
+        $client_id
+    ));
+    $dia_pagado  = intval($liquidacion_aprobada) > 0;
+    $tienda_debe = $balance_neto_real > 0 && !$dia_pagado;
+    $merc_debe   = $balance_neto_real < 0 && !$dia_pagado;
+    $saldado     = $dia_pagado || $balance_neto_real == 0;
+
+    // Estado del pago pendiente
+    $dia_cerrado      = merc_dia_cerrado_para_cliente($client_id, $fecha_caja);
+    $pago_rechazado   = get_user_meta($client_id, 'merc_pago_rechazado', true);
+    $pago_en_revision = get_user_meta($client_id, 'merc_pago_en_revision', true);
+    if (!empty($pago_rechazado)) {
+        delete_user_meta($client_id, 'merc_pago_rechazado');
+    }
     ?>
-    <div class="merc-summary-box">
-		<h3>💵 Balance Financiero (Pendiente de liquidación)</h3>
 
-		<!-- TOTAL RECAUDADO -->
-		<div class="merc-summary-item">
-			<span>Total Recaudado (MERC + Marca + Motorizado + POS):</span>
-			<span class="merc-summary-value">
-				S/. <?php echo number_format( $total_recaudado, 2 ); ?>
-			</span>
-		</div>
-
-		<!-- PAGO A MARCA -->
-		<div class="merc-summary-item">
-			<span>Pago a MARCA (Transferencia directa del cliente a ti):</span>
-			<span class="merc-summary-value" style="color:#8e44ad;">
-				S/. <?php echo number_format( $pago_marca, 2 ); ?>
-			</span>
-		</div>
-
-		<!-- EFECTIVO RECAUDADO -->
-		<div class="merc-summary-item">
-			<span>Efectivo Recaudado (Cobrado por MERC y Motorizado):</span>
-			<span class="merc-summary-value" style="color:#3498db;">
-				S/. <?php echo number_format( $efectivo_recaud, 2 ); ?>
-			</span>
-		</div>
-
-		<!-- POS -->
-		<div class="merc-summary-item">
-			<span>POS (Neto depositado a MERC):</span>
-			<span class="merc-summary-value" style="color:#16a085;">
-				S/. <?php echo number_format( $pos_total, 2 ); ?>
-			</span>
-		</div>
-
-		<!-- TOTAL SERVICIOS -->
-		<div class="merc-summary-item">
-			<span>Total Costo de Servicios:</span>
-			<span class="merc-summary-value" style="color:#e74c3c;">
-				S/. <?php echo number_format( $costo_servicios, 2 ); ?>
-			</span>
-		</div>
-
-		<!-- BALANCE NETO -->
-		<div class="merc-summary-item" style="background:#f0f0f0;padding:15px;margin-top:10px;border-radius:6px;display:block;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-			    <span><strong>Balance Neto Actual (MERC vs MARCA):</strong></span>
-			    <span class="<?php echo $balance_neto >= 0 ? 'merc-balance-positive' : 'merc-balance-negative'; ?>" style="font-size:1.4em;">
-				    S/. <?php echo number_format( abs($balance_neto), 2 ); ?>
-			    </span>
-            </div>
-			<div style="font-size:12px;margin-top:4px;color:#7f8c8d;text-align:right;">
-                *Fórmula: (Efectivo Recaudado + POS) - Total Costo de Servicios
-            </div>
-
-			<?php if ( $balance_neto < 0 ) : ?>
-                <div style="margin-top:15px;background:#fff;padding:12px;border:1px solid #e74c3c;border-radius:6px;border-left:4px solid #e74c3c;">
-                    <?php
-                    $dia_cerrado = merc_dia_cerrado_para_cliente( $client_id, $fecha_caja );
-                    $pago_rechazado = get_user_meta( $client_id, 'merc_pago_rechazado', true );
-                    $pago_en_revision = get_user_meta( $client_id, 'merc_pago_en_revision', true );
-                    
-                    if ( ! empty( $pago_rechazado ) ) :
-                        // Limpiar el meta para que el aviso se muestre solo una vez
-                        delete_user_meta( $client_id, 'merc_pago_rechazado' );
-                    ?>
-                        <div style="font-weight:bold;color:#e74c3c;margin-bottom:8px;">⚠️ Tu constancia fue rechazada. Por favor sube una nueva.</div>
-                        <form id="merc-pago-proactivo-form" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                            <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf" style="font-size:13px;max-width:200px;">
-                            <button type="button" onclick="mercPagarDeudaProactiva(this)" 
-                                    data-amount="<?php echo abs($balance_neto); ?>"
-                                    style="background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">
-                                Subir Constancia de S/. <?php echo number_format( abs($balance_neto), 2 ); ?>
-                            </button>
-                        </form>
-                    <?php elseif ( ! empty( $pago_en_revision ) ) : 
-                        $attachment_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
-                        $img_url = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
-                    ?>
-                        <div style="font-weight:bold;color:#f39c12;margin-bottom:8px;">⏳ Constancia enviada — MERC está revisando tu pago.</div>
-                        <?php if ($img_url) : ?>
-                            <a href="<?php echo esc_url($img_url); ?>" target="_blank" style="display:inline-block; margin-top:5px; padding: 5px 10px; background: #f39c12; color: #fff; border-radius: 4px; text-decoration: none; font-size: 12px;">📄 Ver Constancia</a>
-                        <?php endif; ?>
-                    <?php elseif ( ! $dia_cerrado ) : ?>
-                        <div style="font-weight:bold;color:#f39c12;margin-bottom:8px;">📦 Aún tienes envíos en proceso hoy.</div>
-                        <p style="margin:0;font-size:13px;color:#555;">Podrás liquidar cuando todos estén en estado final (ej. Entregado, Reprogramado, Anulado).</p>
-                    <?php else : ?>
-                        <div style="font-weight:bold;color:#e74c3c;margin-bottom:8px;">⚠️ Tienes un saldo pendiente a favor de MERC por los servicios prestados.</div>
-                        <form id="merc-pago-proactivo-form" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                            <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf" style="font-size:13px;max-width:200px;">
-                            <button type="button" onclick="mercPagarDeudaProactiva(this)" 
-                                    data-amount="<?php echo abs($balance_neto); ?>"
-                                    data-fecha="<?php echo esc_attr($fecha_caja); ?>"
-                                    style="background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">
-                                Subir Constancia de S/. <?php echo number_format( abs($balance_neto), 2 ); ?>
-                            </button>
-                        </form>
+    <!-- ===== TARJETAS DE RESUMEN ===== -->
+    <div class="merc-pc-cards">
+        <div class="merc-pc-stat merc-pc-blue">
+            <div class="merc-pc-stat-label">Total Recaudado</div>
+            <div class="merc-pc-stat-value">S/. <?php echo number_format($total_recaudado, 2); ?></div>
+            <div class="merc-pc-stat-note">Efectivo + Marca + POS</div>
+        </div>
+        <div class="merc-pc-stat merc-pc-red">
+            <div class="merc-pc-stat-label">Costo Servicios</div>
+            <div class="merc-pc-stat-value">S/. <?php echo number_format($costo_servicios, 2); ?></div>
+            <div class="merc-pc-stat-note">Cobrado por MERC</div>
+        </div>
+        <div class="merc-pc-stat <?php echo $saldado ? 'merc-pc-green' : ($tienda_debe ? 'merc-pc-green' : 'merc-pc-red'); ?>">
+            <div class="merc-pc-stat-label">Balance Neto</div>
+            <?php if ($dia_pagado): ?>
+                <div class="merc-pc-stat-value" style="font-size:16px;text-decoration:line-through;opacity:.5;">S/. <?php echo number_format(abs($balance_neto_real), 2); ?></div>
+                <div class="merc-pc-stat-note" style="color:#15803d;font-weight:700;">&#10003; Saldado</div>
+            <?php else: ?>
+                <div class="merc-pc-stat-value">S/. <?php echo number_format(abs($balance_neto_real), 2); ?></div>
+                <div class="merc-pc-stat-note">
+                    <?php if ($balance_neto_real == 0): ?>Sin saldo pendiente
+                    <?php elseif ($tienda_debe): ?>MERC te deposita
+                    <?php else: ?>Debes pagar a MERC
                     <?php endif; ?>
                 </div>
-			<?php endif; ?>
-		</div>
+            <?php endif; ?>
+        </div>
+    </div>
 
-		<div class="alert alert-info mt-3 mb-0">
-			<strong>ℹ️ Nota:</strong>
-			Un balance positivo indica que MERC debe depositarte.
-			Un balance negativo indica que debes cubrir el costo de los servicios pendientes.
-		</div>
-	</div>
+    <!-- ===== SECCION DE PAGO / CONSTANCIA ===== -->
+    <div class="merc-pc-card">
+        <div class="merc-pc-card-header">
+            <?php if ($saldado): ?>&#10003; Liquidacion del dia
+            <?php elseif ($tienda_debe): ?>MERC te debe depositar
+            <?php else: ?>Pago pendiente a MERC
+            <?php endif; ?>
+        </div>
+        <div class="merc-pc-card-body">
+            <?php if ($saldado): ?>
+                <div class="merc-pc-pay saldado">
+                    <div class="merc-pc-pay-title">&#10003; Dia cerrado sin saldo pendiente</div>
+                    <p style="margin:0;font-size:13px;color:#166534;">
+                        <?php if ($dia_pagado): ?>
+                            El pago fue confirmado. No hay saldo pendiente para este dia.
+                        <?php else: ?>
+                            El balance de este dia quedo en cero. No hay pagos ni depositos pendientes.
+                        <?php endif; ?>
+                    </p>
+                </div>
 
-	<script>
+            <?php elseif ($tienda_debe): ?>
+                <div class="merc-pc-pay tienda-debe">
+                    <div class="merc-pc-pay-title">MERC debe depositarte S/. <?php echo number_format($balance_neto_real, 2); ?></div>
+                    <?php if (!empty($pago_en_revision)):
+                        $att_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
+                        $img_url = $att_id ? wp_get_attachment_url($att_id) : '';
+                    ?>
+                        <p style="margin:0 0 8px;font-size:13px;color:#92400e;">Nuestro equipo esta procesando el deposito.</p>
+                        <?php if ($img_url): ?>
+                            <a href="<?php echo esc_url($img_url); ?>" target="_blank"
+                               style="display:inline-block;padding:6px 12px;background:#f59e0b;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;">
+                                Ver Constancia enviada
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p style="margin:0;font-size:13px;color:#92400e;">Nuestro equipo procesara este deposito. Si tienes alguna duda, contactanos por WhatsApp.</p>
+                    <?php endif; ?>
+                </div>
+
+            <?php else: ?>
+                <div class="merc-pc-pay merc-debe">
+                    <?php if (!empty($pago_rechazado)): ?>
+                        <div class="merc-pc-pay-title">Constancia rechazada — Sube una nueva</div>
+                        <p style="margin:0 0 10px;font-size:13px;color:#991b1b;">Tu pago anterior fue rechazado. Por favor adjunta un nuevo comprobante.</p>
+                        <div class="merc-pc-upload">
+                            <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf">
+                            <button type="button" class="merc-pc-upload-btn merc-pc-upload-btn-red"
+                                    onclick="mercPagarDeudaProactiva(this)"
+                                    data-amount="<?php echo abs($balance_neto_real); ?>"
+                                    data-fecha="<?php echo esc_attr($fecha_caja); ?>">
+                                Subir Constancia &middot; S/. <?php echo number_format(abs($balance_neto_real), 2); ?>
+                            </button>
+                        </div>
+                    <?php elseif (!empty($pago_en_revision)): ?>
+                        <?php
+                        $att_id  = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
+                        $img_url = $att_id ? wp_get_attachment_url($att_id) : '';
+                        ?>
+                        <div class="merc-pc-pay-title">Constancia enviada — En revision</div>
+                        <p style="margin:0 0 8px;font-size:13px;color:#b45309;">MERC esta verificando tu pago. Te notificaremos cuando este aprobado.</p>
+                        <?php if ($img_url): ?>
+                            <a href="<?php echo esc_url($img_url); ?>" target="_blank"
+                               style="display:inline-block;padding:6px 12px;background:#f59e0b;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;">
+                                Ver Constancia
+                            </a>
+                        <?php endif; ?>
+                    <?php elseif (!$dia_cerrado): ?>
+                        <div class="merc-pc-pay-title">Envios aun en proceso</div>
+                        <p style="margin:0;font-size:13px;color:#b45309;">
+                            Podras realizar el pago cuando todos tus envios del dia esten en estado final (Entregado, Reprogramado o Anulado).
+                        </p>
+                    <?php else: ?>
+                        <div class="merc-pc-pay-title">Tienes un saldo pendiente a favor de MERC &middot; S/. <?php echo number_format(abs($balance_neto_real), 2); ?></div>
+                        <p style="margin:0 0 10px;font-size:13px;color:#991b1b;">Adjunta la constancia de tu transferencia para que podamos verificarla.</p>
+                        <div class="merc-pc-upload">
+                            <input type="file" id="merc-voucher-proactivo" accept="image/*,.pdf">
+                            <button type="button" class="merc-pc-upload-btn merc-pc-upload-btn-red"
+                                    onclick="mercPagarDeudaProactiva(this)"
+                                    data-amount="<?php echo abs($balance_neto_real); ?>"
+                                    data-fecha="<?php echo esc_attr($fecha_caja); ?>">
+                                Subir Constancia &middot; S/. <?php echo number_format(abs($balance_neto_real), 2); ?>
+                            </button>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <script>
     function mercPagarDeudaProactiva(btn) {
         var fileInput = document.getElementById('merc-voucher-proactivo');
-        if (!fileInput.files || fileInput.files.length === 0) {
-            alert('Por favor, selecciona el archivo del comprobante de transferencia.');
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            alert('Por favor, selecciona el archivo del comprobante.');
             return;
         }
-
-        var amount = btn.getAttribute('data-amount');
+        var amount     = btn.getAttribute('data-amount');
         var fecha_caja = btn.getAttribute('data-fecha');
-        if (!confirm('¿Seguro que deseas reportar el pago por S/. ' + amount + '?')) return;
-
+        if (!confirm('Confirmas el pago de S/. ' + amount + '?')) return;
         var oldText = btn.textContent;
-        btn.textContent = 'Subiendo y procesando...';
+        btn.textContent = 'Subiendo...';
         btn.disabled = true;
-
         var fd = new FormData();
         fd.append('action', 'merc_cliente_crear_y_pagar_deuda');
         fd.append('amount', amount);
         if (fecha_caja) fd.append('fecha_caja', fecha_caja);
         fd.append('nonce', '<?php echo wp_create_nonce("merc_cliente_pagar"); ?>');
         fd.append('voucher', fileInput.files[0]);
-
-        fetch('<?php echo admin_url("admin-ajax.php"); ?>', {
-            method: 'POST',
-            body: fd
-        })
-        .then(response => response.json())
-        .then(res => {
-            if (res && res.success) {
-                alert(res.data.message || 'Comprobante subido y registrado con éxito. MERC lo revisará pronto.');
-                location.reload();
-            } else {
-                alert(res && res.data && res.data.message ? res.data.message : 'Error al registrar el pago.');
-                btn.textContent = oldText;
-                btn.disabled = false;
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Error de conexión. Intenta de nuevo.');
-            btn.textContent = oldText;
-            btn.disabled = false;
-        });
+        fetch('<?php echo admin_url("admin-ajax.php"); ?>', { method: 'POST', body: fd })
+            .then(function(r){ return r.json(); })
+            .then(function(res){
+                if (res && res.success) {
+                    alert(res.data.message || 'Comprobante enviado. MERC lo revisara pronto.');
+                    location.reload();
+                } else {
+                    alert(res && res.data && res.data.message ? res.data.message : 'Error al registrar el pago.');
+                    btn.textContent = oldText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(function(err){ console.error(err); alert('Error de conexion.'); btn.textContent = oldText; btn.disabled = false; });
     }
     </script>
     <?php
 }
 
 function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
+
     global $wpdb;
 
     $shipments_query = "
         SELECT p.ID, p.post_title,
                pm_destino.meta_value         AS destino,
                pm_included.meta_value        AS estado_pago_remitente,
-               pm_pickup_date.meta_value     AS pickup_date
+               pm_pickup_date.meta_value     AS pickup_date,
+               pm_status.meta_value          AS wpcargo_status
         FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm_shipper 
-            ON p.ID = pm_shipper.post_id 
-            AND pm_shipper.meta_key = 'registered_shipper'
-        LEFT JOIN {$wpdb->postmeta} pm_destino 
-            ON p.ID = pm_destino.post_id 
-            AND pm_destino.meta_key = 'wpcargo_distrito_destino'
-        LEFT JOIN {$wpdb->postmeta} pm_included 
-            ON p.ID = pm_included.post_id 
-            AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
+        LEFT JOIN {$wpdb->postmeta} pm_shipper
+            ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN {$wpdb->postmeta} pm_destino
+            ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
+        LEFT JOIN {$wpdb->postmeta} pm_included
+            ON p.ID = pm_included.post_id AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
+        LEFT JOIN {$wpdb->postmeta} pm_status
+            ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
         LEFT JOIN {$wpdb->postmeta} pm_pickup_date
             ON p.ID = pm_pickup_date.post_id
             AND pm_pickup_date.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'wpcargo_fecha_envio')
@@ -11191,25 +11159,16 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
         AND p.post_status = 'publish'
         AND pm_shipper.meta_value = %s
     ";
-    
-    // Aplicar filtro de fecha de caja
-    if ( $fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja) ) {
-        $shipments_query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
-        
-        // Bloque 5: Excluir envíos que ya fueron liquidados a costo 0 (REPROGRAMADOS) en una liquidación previa
-        $shipments_query .= " AND NOT EXISTS (
-            SELECT 1 FROM {$wpdb->postmeta} pm_excl WHERE pm_excl.post_id = p.ID 
-            AND pm_excl.meta_key = 'merc_remitente_liquidado_fecha' 
-            AND pm_excl.meta_value = '" . sanitize_text_field($fecha_caja) . "'
-        )";
-    }
-    
-    $shipments_query .= " ORDER BY p.post_date DESC LIMIT 50";
-    
-    $shipments = $wpdb->get_results( $wpdb->prepare( $shipments_query, $client_id ) );
 
-    if ( empty( $shipments ) ) {
-        echo '<div class="alert alert-warning">No tienes envíos registrados.</div>';
+    if ($fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja)) {
+        $shipments_query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
+    }
+
+    $shipments_query .= " ORDER BY p.post_date DESC LIMIT 50";
+    $shipments = $wpdb->get_results($wpdb->prepare($shipments_query, $client_id));
+
+    if (empty($shipments)) {
+        echo '<div style="padding:16px;text-align:center;color:#6b7280;font-size:14px;">No tienes envios para esta fecha.</div>';
         return;
     }
 
@@ -11219,65 +11178,75 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
     $total_pos_sum        = 0.0;
     $total_general        = 0.0;
     ?>
-    <table class="merc-entregas-table">
+    <div class="merc-envios-wrap">
+    <table class="merc-envios-table">
         <thead>
             <tr>
-                <th>Pedido</th>
+                <th>#Pedido</th>
                 <th>Destino</th>
                 <th>Efectivo</th>
-                <th>Pago a MERC</th>
-                <th>Pago a MARCA</th>
+                <th>Pago MERC</th>
+                <th>Marca</th>
                 <th>POS</th>
                 <th>Total</th>
                 <th>Estado</th>
             </tr>
         </thead>
         <tbody>
-        <?php foreach ( $shipments as $shipment ) :
-            $estado_remitente = $shipment->estado_pago_remitente ? $shipment->estado_pago_remitente : '';
-            $is_verified = merc_is_shipment_liquidation_verified( $shipment->ID );
-            $totales          = get_payment_totals_by_method( $shipment->ID );
-            // Mostrar POS neto guardado
-            $pos_display      = get_pos_net_for_shipment( $shipment->ID, $totales );
+        <?php foreach ($shipments as $shipment):
+            $estado_envio    = strtoupper(trim((string)$shipment->wpcargo_status));
+            $is_anulado      = ($estado_envio === 'ANULADO');
+            $is_reprogramado = ($estado_envio === 'REPROGRAMADO');
+            $is_no_recibido  = ($estado_envio === 'NO RECIBIDO');
+            $is_sin_costo    = $is_anulado || $is_reprogramado;
+            $estado_remit    = $shipment->estado_pago_remitente ? $shipment->estado_pago_remitente : '';
+            $is_verified     = merc_is_shipment_liquidation_verified($shipment->ID);
+            $totales         = get_payment_totals_by_method($shipment->ID);
+            $pos_display     = get_pos_net_for_shipment($shipment->ID, $totales);
 
-            $total_efectivo_sum   += $totales['efectivo'];
-            $total_pago_merc_sum  += $totales['pago_merc'];
-            $total_pago_marca_sum += $totales['pago_marca'];
-            $total_pos_sum        += $pos_display;
-            $total_general        += $totales['total'];
+            if (!$is_sin_costo) {
+                $total_efectivo_sum   += $totales['efectivo'];
+                $total_pago_merc_sum  += $totales['pago_merc'];
+                $total_pago_marca_sum += $totales['pago_marca'];
+                $total_pos_sum        += $pos_display;
+                $total_general        += $totales['total'];
+            }
+
+            if ($is_anulado)          $badge = '<span class="merc-badge merc-badge-anulado">Anulado</span>';
+            elseif ($is_reprogramado) $badge = '<span class="merc-badge merc-badge-reprogramado">Reprogramado</span>';
+            elseif ($is_no_recibido)  $badge = '<span class="merc-badge merc-badge-norecibido">No Recibido</span>';
+            elseif ($is_verified || $estado_remit === 'liquidado') $badge = '<span class="merc-badge merc-badge-liquidado">Liquidado</span>';
+            elseif ($estado_envio === 'ENTREGADO') $badge = '<span class="merc-badge merc-badge-entregado">Entregado</span>';
+            else   $badge = '<span class="merc-badge merc-badge-pendiente">Pendiente</span>';
             ?>
-            <tr>
-                <td><strong>#<?php echo esc_html( $shipment->post_title ); ?></strong></td>
-                <td><?php echo esc_html( $shipment->destino ); ?></td>
-                <td>S/. <?php echo number_format( $totales['efectivo'], 2 ); ?></td>
-                <td>S/. <?php echo number_format( $totales['pago_merc'], 2 ); ?></td>
-                <td>S/. <?php echo number_format( $totales['pago_marca'], 2 ); ?><?php echo merc_get_pago_marca_voucher_thumb_html( $shipment->ID, 20 ); ?></td>
-                <td>S/. <?php echo number_format( $pos_display, 2 ); ?></td>
-                <td><strong>S/. <?php echo number_format( $totales['total'], 2 ); ?></strong></td>
-                <td>
-                    <?php if ( $is_verified || $estado_remitente === 'liquidado' ) : ?>
-                        <span class="badge badge-success">✅ Liquidado</span>
-                    <?php else : ?>
-                        <span class="badge badge-warning">⏳ Pendiente</span>
-                    <?php endif; ?>
-                </td>
+            <tr <?php if ($is_sin_costo) echo 'style="opacity:.6;"'; ?>>
+                <td><strong>#<?php echo esc_html($shipment->post_title); ?></strong></td>
+                <td style="white-space:nowrap;"><?php echo esc_html($shipment->destino ?: '-'); ?></td>
+                <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['efectivo'], 2); ?></td>
+                <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['pago_merc'], 2); ?></td>
+                <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['pago_marca'], 2); echo merc_get_pago_marca_voucher_thumb_html($shipment->ID, 16); ?></td>
+                <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($pos_display, 2); ?></td>
+                <td><strong><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['total'], 2); ?></strong></td>
+                <td><?php echo $badge; ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2" style="text-align: right;"><strong>TOTAL:</strong></td>
-                <td><strong>S/. <?php echo number_format( $total_efectivo_sum, 2 ); ?></strong></td>
-                <td><strong>S/. <?php echo number_format( $total_pago_merc_sum, 2 ); ?></strong></td>
-                <td><strong>S/. <?php echo number_format( $total_pago_marca_sum, 2 ); ?></strong></td>
-                <td><strong>S/. <?php echo number_format( $total_pos_sum, 2 ); ?></strong></td>
-                <td><strong>S/. <?php echo number_format( $total_general, 2 ); ?></strong></td>
+                <td colspan="2" style="text-align:right;font-weight:700;">TOTAL:</td>
+                <td>S/. <?php echo number_format($total_efectivo_sum, 2); ?></td>
+                <td>S/. <?php echo number_format($total_pago_merc_sum, 2); ?></td>
+                <td>S/. <?php echo number_format($total_pago_marca_sum, 2); ?></td>
+                <td>S/. <?php echo number_format($total_pos_sum, 2); ?></td>
+                <td><strong>S/. <?php echo number_format($total_general, 2); ?></strong></td>
                 <td></td>
             </tr>
         </tfoot>
     </table>
+    </div>
     <?php
 }
+
 
 // ========== ASIGNACIÓN AUTOMÁTICA DE ENVÍOS A CONTENEDORES ==========
 /**

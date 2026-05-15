@@ -139,6 +139,14 @@ if( isset( $_GET['wpcfe'] ) && $_GET['wpcfe'] == 'update' ){
                             'compare' => '='
                         );
                     }
+                    // Filtro por nombre de destinatario (búsqueda parcial)
+                    if( isset($_GET['recipient_name']) && !empty( trim($_GET['recipient_name']) ) ){
+                        $meta_query[] = array(
+                            'key'     => 'wpcargo_receiver_name',
+                            'value'   => sanitize_text_field( urldecode( $_GET['recipient_name'] ) ),
+                            'compare' => 'LIKE'
+                        );
+                    }
                     $meta_query = apply_filters( 'wpcfe_dashboard_meta_query', $meta_query );
                     $args           = array(
                         'post_type'         => 'wpcargo_shipment',
@@ -270,3 +278,4 @@ if( isset( $_GET['wpcfe'] ) && $_GET['wpcfe'] == 'update' ){
 	<!--/.Copyright-->
 </footer>
 <?php include('footer.php'); ?>
+

@@ -21,19 +21,35 @@ add_filter('wpcfe_after_sidebar_menu_items', function ($menu_items) {
     $page = get_page_by_path('devoluciones');
     if (!$page) return $menu_items;
 
-    $count_args = array(
-        'post_type'      => 'wpcargo_shipment',
-        'posts_per_page' => -1,
-        'post_status'    => 'publish',
-        'fields'         => 'ids',
-        'meta_query'     => array(
-            'relation' => 'OR',
-            array('key' => 'wpcargo_status', 'value' => array('Reprogramado','Anulado','No recibido'), 'compare' => 'IN'),
-            array('key' => 'cambio_producto', 'value' => 'Sí', 'compare' => '=')
-        )
-    );
-    $q     = new WP_Query($count_args);
-    $count = (int) $q->found_posts;
+    $desde = date('Y-m-d', strtotime('-1 day'));
+    $hasta = date('Y-m-d');
+    
+    global $wpdb;
+    $ids = $wpdb->get_col($wpdb->prepare("
+        SELECT post_id FROM {$wpdb->postmeta}
+        WHERE meta_key = 'wpcargo_pickup_date_picker'
+        AND STR_TO_DATE(meta_value, '%%d/%%m/%%Y') BETWEEN %s AND %s
+    ", $desde, $hasta));
+
+    if (empty($ids)) {
+        $count = 0;
+    } else {
+        $count_args = array(
+            'post_type'      => 'wpcargo_shipment',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+            'post__in'       => $ids,
+            'meta_query'     => array(
+                'relation' => 'OR',
+                array('key' => 'wpcargo_status', 'value' => array('Reprogramado','Anulado','No recibido'), 'compare' => 'IN'),
+                array('key' => 'cambio_producto', 'value' => 'Sí', 'compare' => '='),
+                array('key' => 'merc_es_devolucion', 'value' => '1', 'compare' => '=')
+            )
+        );
+        $q     = new WP_Query($count_args);
+        $count = (int) $q->found_posts;
+    }
 
     $label = '<i>🔄</i> Devoluciones';
     if ($count > 0) {
@@ -254,3 +270,4 @@ function merc_devoluciones_admin_styles() {
     </style>
     <?php
 }
+

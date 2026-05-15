@@ -6,6 +6,7 @@ $s_shipper     	= isset( $_GET['shipper'] ) ? sanitize_text_field( $_GET['shippe
 $s_receiver     = isset( $_GET['receiver'] ) ? sanitize_text_field( $_GET['receiver'] ) : '' ;
 $s_shipment     = isset( $_GET['wpcfes'] ) ? sanitize_text_field( $_GET['wpcfes'] ) : '' ;
 $s_status 		= isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) : '' ;
+$s_recipient_name = isset( $_GET['recipient_name'] ) ? sanitize_text_field( $_GET['recipient_name'] ) : '' ;
 
 ?>
 <div class="col-lg-9 col-md-8 mt-0">
@@ -46,6 +47,20 @@ $s_status 		= isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) 
 				</select>
 			</div>
 			<?php do_action( 'wpcfe_after_shipment_filters' ); ?>
+							<!-- Filtro: Nombre de Destinatario -->
+			<div class="form-group wpcfe-filter recipient-name-filter p-0 mx-1">
+				<label class="sr-only" for="recipient_name"><?php esc_html_e('Nombre Destinatario', 'wpcargo-frontend-manager'); ?></label>
+				<input
+					type="text"
+					id="recipient_name"
+					name="recipient_name"
+					class="form-control form-control-sm"
+					placeholder="<?php esc_attr_e('Buscar destinatario...', 'wpcargo-frontend-manager'); ?>"
+					value="<?php echo esc_attr( $s_recipient_name ); ?>"
+					autocomplete="off"
+					style="width: 160px;"
+				>
+			</div>
 			<div class="form-group submit-filter p-0 mx-1">
 				<button id="wpcfe-submit-filter" type="submit" class="btn btn-primary btn-fill btn-sm"><?php esc_html_e('Filter', 'wpcargo-frontend-manager' ); ?></button>
 				<?php if(isset( $s_status )): ?>
@@ -64,6 +79,7 @@ $s_status 		= isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) 
 			<input type="hidden" name="shipper" value="<?php echo esc_attr( $s_shipper ); ?>">
 			<input type="hidden" name="receiver" value="<?php echo esc_attr( $s_receiver ); ?>">
 			<input type="hidden" name="status" value="<?php echo esc_attr( $s_status ); ?>">
+			<input type="hidden" name="recipient_name" value="<?php echo esc_attr( $s_recipient_name ); ?>">
 			<button type="submit" class="btn btn-primary btn-sm mx-md-0 ml-2"><?php esc_html_e('Search', 'wpcargo-frontend-manager' ); ?></button>
 		</div>
 	</form>

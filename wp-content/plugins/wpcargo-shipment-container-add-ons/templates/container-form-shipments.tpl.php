@@ -85,53 +85,66 @@
                                     <option value="">-- Seleccione un motorizado --</option>
                                     <option value="desasignar" style="color: #dc3545; font-weight: 600;">❌ Desasignar motorizado</option>
                                     <?php
-                                    $drivers = get_users(array('role' => 'wpcargo_driver'));
                                     $today_meta = current_time('Y-m-d');
-                                    foreach ($drivers as $driver) {
-                                        $first = get_user_meta($driver->ID, 'first_name', true);
-                                        $last  = get_user_meta($driver->ID, 'last_name', true);
-                                        $driver_full = trim($first . ' ' . $last);
-                                        if (empty($driver_full)) {
-                                            $driver_full = trim($driver->display_name) ?: $driver->user_email;
-                                        }
+                                    $transient_key = 'merc_dr_work_' . md5($today_meta);
+                                    $drivers_workload = get_transient($transient_key);
 
-                                        $assigned_users_recojo = array();
-                                        $assigned_posts_recojo = get_posts(array(
-                                            'post_type'      => 'wpcargo_shipment',
-                                            'posts_per_page' => -1,
-                                            'fields'         => 'ids',
-                                            'meta_key'       => 'wpcargo_motorizo_recojo',
-                                            'meta_value'     => $driver->ID,
-                                        ));
-                                        if (!empty($assigned_posts_recojo)) {
-                                            foreach ($assigned_posts_recojo as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
-                                                    $client_id = get_post_meta($sp_id, 'registered_shipper', true);
-                                                    if (!empty($client_id)) {
-                                                        $assigned_users_recojo[$client_id] = true;
+                                    if (false === $drivers_workload) {
+                                        $drivers_workload = array();
+                                        $drivers = get_users(array('role' => 'wpcargo_driver'));
+                                        foreach ($drivers as $driver) {
+                                            $first = get_user_meta($driver->ID, 'first_name', true);
+                                            $last  = get_user_meta($driver->ID, 'last_name', true);
+                                            $driver_full = trim($first . ' ' . $last);
+                                            if (empty($driver_full)) {
+                                                $driver_full = trim($driver->display_name) ?: $driver->user_email;
+                                            }
+
+                                            $assigned_users_recojo = array();
+                                            $assigned_posts_recojo = get_posts(array(
+                                                'post_type'      => 'wpcargo_shipment',
+                                                'posts_per_page' => -1,
+                                                'fields'         => 'ids',
+                                                'meta_key'       => 'wpcargo_motorizo_recojo',
+                                                'meta_value'     => $driver->ID,
+                                            ));
+                                            if (!empty($assigned_posts_recojo)) {
+                                                foreach ($assigned_posts_recojo as $sp_id) {
+                                                    if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
+                                                        $client_id = get_post_meta($sp_id, 'registered_shipper', true);
+                                                        if (!empty($client_id)) {
+                                                            $assigned_users_recojo[$client_id] = true;
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
 
-                                        $assigned_entrega = 0;
-                                        $assigned_posts_entrega = get_posts(array(
-                                            'post_type'      => 'wpcargo_shipment',
-                                            'posts_per_page' => -1,
-                                            'fields'         => 'ids',
-                                            'meta_key'       => 'wpcargo_motorizo_entrega',
-                                            'meta_value'     => $driver->ID,
-                                        ));
-                                        if (!empty($assigned_posts_entrega)) {
-                                            foreach ($assigned_posts_entrega as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
-                                                    $assigned_entrega++;
+                                            $assigned_entrega = 0;
+                                            $assigned_posts_entrega = get_posts(array(
+                                                'post_type'      => 'wpcargo_shipment',
+                                                'posts_per_page' => -1,
+                                                'fields'         => 'ids',
+                                                'meta_key'       => 'wpcargo_motorizo_entrega',
+                                                'meta_value'     => $driver->ID,
+                                            ));
+                                            if (!empty($assigned_posts_entrega)) {
+                                                foreach ($assigned_posts_entrega as $sp_id) {
+                                                    if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
+                                                        $assigned_entrega++;
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        $label = $driver_full . ' (👥' . intval(count($assigned_users_recojo)) . ' 🚚' . intval($assigned_entrega) . ')';
-                                        echo '<option value="' . esc_attr($driver->ID) . '">' . esc_html($label) . '</option>';
+                                            $drivers_workload[] = array(
+                                                'id' => $driver->ID,
+                                                'label' => $driver_full . ' (👥' . intval(count($assigned_users_recojo)) . ' 🚚' . intval($assigned_entrega) . ')'
+                                            );
+                                        }
+                                        set_transient($transient_key, $drivers_workload, 2 * MINUTE_IN_SECONDS);
+                                    }
+
+                                    foreach ($drivers_workload as $dw) {
+                                        echo '<option value="' . esc_attr($dw['id']) . '">' . esc_html($dw['label']) . '</option>';
                                     }
                                     ?>
                                 </select>
@@ -172,53 +185,10 @@
                                     <option value="">-- Seleccione un motorizado --</option>
                                     <option value="desasignar" style="color: #dc3545; font-weight: 600;">❌ Desasignar motorizado</option>
                                     <?php
-                                    $drivers = get_users(array('role' => 'wpcargo_driver'));
-                                    $today_meta = current_time('Y-m-d');
-                                    foreach ($drivers as $driver) {
-                                        $first = get_user_meta($driver->ID, 'first_name', true);
-                                        $last  = get_user_meta($driver->ID, 'last_name', true);
-                                        $driver_full = trim($first . ' ' . $last);
-                                        if (empty($driver_full)) {
-                                            $driver_full = trim($driver->display_name) ?: $driver->user_email;
+                                    if (!empty($drivers_workload)) {
+                                        foreach ($drivers_workload as $dw) {
+                                            echo '<option value="' . esc_attr($dw['id']) . '">' . esc_html($dw['label']) . '</option>';
                                         }
-
-                                        $assigned_users_recojo = array();
-                                        $assigned_posts_recojo = get_posts(array(
-                                            'post_type'      => 'wpcargo_shipment',
-                                            'posts_per_page' => -1,
-                                            'fields'         => 'ids',
-                                            'meta_key'       => 'wpcargo_motorizo_recojo',
-                                            'meta_value'     => $driver->ID,
-                                        ));
-                                        if (!empty($assigned_posts_recojo)) {
-                                            foreach ($assigned_posts_recojo as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
-                                                    $client_id = get_post_meta($sp_id, 'registered_shipper', true);
-                                                    if (!empty($client_id)) {
-                                                        $assigned_users_recojo[$client_id] = true;
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        $assigned_entrega = 0;
-                                        $assigned_posts_entrega = get_posts(array(
-                                            'post_type'      => 'wpcargo_shipment',
-                                            'posts_per_page' => -1,
-                                            'fields'         => 'ids',
-                                            'meta_key'       => 'wpcargo_motorizo_entrega',
-                                            'meta_value'     => $driver->ID,
-                                        ));
-                                        if (!empty($assigned_posts_entrega)) {
-                                            foreach ($assigned_posts_entrega as $sp_id) {
-                                                if ( function_exists('_wpcu_shipment_pickup_date_ymd') && _wpcu_shipment_pickup_date_ymd($sp_id) === $today_meta) {
-                                                    $assigned_entrega++;
-                                                }
-                                            }
-                                        }
-
-                                        $label = $driver_full . ' (👥' . intval(count($assigned_users_recojo)) . ' 🚚' . intval($assigned_entrega) . ')';
-                                        echo '<option value="' . esc_attr($driver->ID) . '">' . esc_html($label) . '</option>';
                                     }
                                     ?>
                                 </select>
@@ -906,3 +876,4 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+

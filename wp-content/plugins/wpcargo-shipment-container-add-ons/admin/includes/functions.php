@@ -604,11 +604,15 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	}
 	
 	// Buscar envíos por el meta nuevo 'shipment_container_entrega'
-	$sql_entrega = "SELECT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
+	// FILTRO: Excluir estados terminales/avanzados donde el envío ya no necesita asignación
+	$sql_entrega = "SELECT DISTINCT tbl1.ID FROM {$wpdb->prefix}posts AS tbl1 ";
 	$sql_entrega .= "INNER JOIN {$wpdb->prefix}postmeta as tbl2 ON tbl1.ID = tbl2.post_id ";
+	$sql_entrega .= "LEFT JOIN {$wpdb->prefix}postmeta as tbl3 ON tbl1.ID = tbl3.post_id AND tbl3.meta_key = 'wpcargo_status' ";
 	$sql_entrega .= "WHERE tbl1.post_status = 'publish' AND tbl1.post_type = 'wpcargo_shipment' ";
 	$sql_entrega .= " AND tbl2.meta_key = 'shipment_container_entrega' ";
 	$sql_entrega .= " AND tbl2.meta_value = %s ";
+	// Excluir envíos que ya fueron entregados, en ruta, no recibidos o anulados
+	$sql_entrega .= " AND (tbl3.meta_value IS NULL OR tbl3.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED')) ";
 	$assigned_shipments_entrega = $wpdb->get_col($wpdb->prepare($sql_entrega, $postID));
 	
 	foreach ((array)$assigned_shipments_entrega as $shipment_id) {

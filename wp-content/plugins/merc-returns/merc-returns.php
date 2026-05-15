@@ -21,12 +21,12 @@ define('MERC_RETURNS_DIR', plugin_dir_path(__FILE__));
 define('MERC_RETURNS_URL', plugin_dir_url(__FILE__));
 define('MERC_RETURNS_BASENAME', plugin_basename(__FILE__));
 
-// Cargar archivos requeridos
 require_once MERC_RETURNS_DIR . 'includes/helpers.php';
 require_once MERC_RETURNS_DIR . 'includes/shortcodes.php';
 require_once MERC_RETURNS_DIR . 'includes/ajax.php';
 require_once MERC_RETURNS_DIR . 'includes/hooks.php';
 require_once MERC_RETURNS_DIR . 'includes/reprogramacion.php';
+require_once MERC_RETURNS_DIR . 'includes/motorizado-view.php';
 
 /**
  * Enqueuear scripts y estilos
@@ -87,4 +87,5 @@ register_activation_hook(__FILE__, function() {
 register_deactivation_hook(__FILE__, function() {
     error_log('[MERC RETURNS] Plugin desactivado');
 });
+
 

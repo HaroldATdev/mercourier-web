@@ -51,7 +51,8 @@ function merc_build_query($estado, $marca, $motorizado, $desde, $hasta, $buscar 
     $base = array(
         'relation' => 'OR',
         array('key' => 'wpcargo_status', 'value' => array('Reprogramado','Anulado','No recibido'), 'compare' => 'IN'),
-        array('key' => 'cambio_producto', 'value' => 'Sí', 'compare' => '=')
+        array('key' => 'cambio_producto', 'value' => 'Sí', 'compare' => '='),
+        array('key' => 'merc_es_devolucion', 'value' => '1', 'compare' => '=')
     );
 
     if (!empty($estado)) {
@@ -59,14 +60,24 @@ function merc_build_query($estado, $marca, $motorizado, $desde, $hasta, $buscar 
             $meta_query[] = array('key' => 'cambio_producto', 'value' => 'Sí', 'compare' => '=');
         } else {
             $meta_query[] = $base;
-            $meta_query[] = array('key' => 'wpcargo_status', 'value' => $estado, 'compare' => '=');
+            $meta_query[] = array(
+                'relation' => 'OR',
+                array('key' => 'wpcargo_status', 'value' => $estado, 'compare' => '='),
+                array('key' => 'merc_es_devolucion', 'value' => '1', 'compare' => '=') // Mantenemos visible si es devolucion persistente
+            );
         }
     } else {
         $meta_query[] = $base;
     }
 
     if (!empty($marca))      $meta_query[] = array('key' => 'wpcargo_tiendaname', 'value' => $marca, 'compare' => '=');
-    if (!empty($motorizado)) $meta_query[] = array('key' => 'wpcargo_driver', 'value' => $motorizado, 'compare' => '=');
+    if (!empty($motorizado)) {
+        $meta_query[] = array(
+            'relation' => 'OR',
+            array('key' => 'wpcargo_driver', 'value' => $motorizado, 'compare' => '='),
+            array('key' => 'merc_motorizado_devolucion', 'value' => $motorizado, 'compare' => '=')
+        );
+    }
     
     if (!empty($desde) && !empty($hasta)) {
         global $wpdb;
@@ -88,3 +99,4 @@ function merc_build_query($estado, $marca, $motorizado, $desde, $hasta, $buscar 
     $args['meta_query'] = $meta_query;
     return $args;
 }
+
