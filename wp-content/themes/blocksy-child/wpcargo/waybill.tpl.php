@@ -37,13 +37,14 @@ if (!function_exists('get_maps_url')) {
 
 <style>
 @page {
-    size: 80mm 100mm;
+    size: 50mm 76mm;
     margin: 0;
 }
 
 @media print {
     html, body {
-        width: 80mm;
+        width: 50mm;
+        height: 76mm;
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden;
@@ -54,12 +55,13 @@ if (!function_exists('get_maps_url')) {
 
 body {
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 9.5px;
+    font-size: 7px;
+    color: #000;
 }
 
 /* CONTENEDOR */
 .thermal-label {
-    width: 76mm;        /* margen simétrico */
+    width: 48mm;        /* margen simétrico */
     margin: 0 auto;    /* centra izquierda / derecha */
     background: #fff;
     position: relative;
@@ -77,7 +79,7 @@ body {
 }
 
 .watermark-logo img {
-    width: 250px;
+    width: 150px;
 }
 
 /* CONTENIDO */
@@ -88,7 +90,7 @@ body {
     flex-direction: column;   /* ← clave */
     align-items: center;
     justify-content: center;
-    padding: 6px 3px 4px;
+    padding: 2px;
     border-bottom: 2px solid #000;
     text-align: center;
 }
@@ -106,12 +108,12 @@ body {
     width: 100%;
     display: block !important;
     text-align: center !important;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .logo-wrap img {
     display: inline-block !important;
-    max-height: 36px !important;
+    max-height: 20px !important;
     width: auto !important;
     height: auto !important;
     margin: 0 auto !important;
@@ -125,15 +127,17 @@ body {
 
 /* NOMBRE EMPRESA */
 .brand-name {
-    font-size: 9px;
+    font-size: 7px;
     font-weight: bold;
     text-transform: uppercase;
     line-height: 1.1;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 /* DATOS EMPRESA */
 .company-data {
-    font-size: 7.5px;
+    font-size: 6.5px;
     line-height: 1.1;
     word-break: normal;       /* no romper palabras */
     overflow-wrap: break-word;
@@ -144,17 +148,17 @@ body {
 /* TRACKING */
 .tracking-section {
     text-align: center;
-    padding: 6px;
+    padding: 2px;
     border-bottom: 2px solid #000;
 }
 
 .barcode-container img {
     max-width: 100%;
-    max-height: 30px;
+    max-height: 20px;
 }
 
 .tracking-number {
-    font-size: 12px;
+    font-size: 9px;
     font-weight: bold;
 }
 
@@ -163,47 +167,57 @@ body {
     background: transparent;
     color: #000;
     text-align: center;
-    padding: 5px;
+    padding: 2px;
     border-bottom: 2px solid #000;
 }
 
 .destination-value {
-    font-size: 14px;
+    font-size: 10px;
     font-weight: bold;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 /* DATOS */
 .receiver-section {
-    padding: 6px;
+    padding: 2px;
     border-bottom: 2px solid #000;
+}
+.receiver-section div {
+    line-height: 1;
+    margin-bottom: 1px;
 }
 
 .field-label {
-    font-size: 7px;
+    font-size: 5.5px;
     font-weight: bold;
     text-transform: uppercase;
 }
 
 .field-value {
-    font-size: 9.5px;
+    font-size: 7px;
     font-weight: bold;
+    display: block;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 /* QR */
 .qr-section {
     text-align: center;
-    padding: 6px;
+    padding: 2px;
 }
 
 .qr-code {
-    width: 85px;
-    height: 85px;
+    width: 45px;
+    height: 45px;
 }
 
 .qr-label {
-    font-size: 7px;
-    line-height: 1.2;
-    margin-top: 2px;   /* espacio seguro, no rompe página */
+    font-size: 5px;
+    line-height: 1;
+    margin-top: 1px;   /* espacio seguro, no rompe página */
 }
 </style>
 
@@ -276,4 +290,5 @@ body {
 
     </div>
 </div>
+
 

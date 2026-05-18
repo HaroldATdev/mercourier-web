@@ -17,7 +17,7 @@
  * del <tr> que WPCargo ya abrió mediante el hook wpcfe_shipment_table_data.
  */
 ?>
-<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: 'N/A' ); ?>" data-cliente-id="<?php echo esc_attr( $cliente_id ?: '' ); ?>" data-cliente-nombre="<?php 
+<td class="merc-tienda-cell" data-tienda="<?php echo esc_attr( $tienda ?: '' ); ?>" data-cliente-id="<?php echo esc_attr( $cliente_id ?: '' ); ?>" data-cliente-nombre="<?php 
 	$cliente_nombre = '';
 	if ( $cliente_id ) {
 		$first_name = get_user_meta( intval( $cliente_id ), 'first_name', true );
@@ -34,11 +34,19 @@
 	<?php echo $actions_html; ?>
 </td>
 
+<?php if ( current_user_can('manage_options') ) : ?>
+<td style="vertical-align: middle;">
+	<?php echo isset($whatsapp_buttons_html) ? $whatsapp_buttons_html : ''; ?>
+</td>
+<?php endif; ?>
 
-
-<td><?php echo ! empty( $distrito_destino )
-	? esc_html( $distrito_destino )
-	: '<span style="color:#999;">N/A</span>'; ?></td>
+<td>
+	<?php 
+		$receiver_display = ! empty( $receiver_name ) ? esc_html( $receiver_name ) : '<span style="color:#999;">Sin Nombre</span>';
+		$distrito_display = ! empty( $distrito_destino ) ? esc_html( $distrito_destino ) : '<span style="color:#999;">N/A</span>';
+		echo "<strong>{$receiver_display}</strong><br>{$distrito_display}";
+	?>
+</td>
 
 <td><?php echo esc_html( $fecha ); ?></td>
 
@@ -56,3 +64,32 @@
 
 
 <td><?php echo $motorizo_entrega_html; ?></td>
+
+<?php
+if ( current_user_can('manage_options') ) :
+	$estado_upper  = strtoupper( trim( $estado ) );
+	// Verificar si el envío pasó por LISTO PARA SALIR
+	$paso_lps = get_post_meta( $shipment_id, 'merc_paso_listo_para_salir', true );
+	if ( ! $paso_lps ) {
+		// Fallback histórico
+		$historial = get_post_meta( $shipment_id, 'wpcargo_shipments_update', true );
+		if ( is_array( $historial ) ) {
+			foreach ( $historial as $h ) {
+				if ( strtoupper( trim( $h['status'] ?? '' ) ) === 'LISTO PARA SALIR' ) {
+					$paso_lps = '1';
+					break;
+				}
+			}
+		}
+	}
+	$es_avanzado = ! empty( $paso_lps );
+?>
+<td style="text-align:center; font-size:18px;">
+	<?php if ( $es_avanzado ) : ?>
+		<span title="Pasó Listo para Salir" style="color:#28a745;">✅</span>
+	<?php else : ?>
+		<span title="Estado Inicial" style="color:#dc3545;">❌</span>
+	<?php endif; ?>
+</td>
+<?php endif; ?>
+

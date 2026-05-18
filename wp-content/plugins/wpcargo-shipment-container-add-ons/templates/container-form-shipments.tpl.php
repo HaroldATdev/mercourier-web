@@ -227,6 +227,7 @@
                                 <?php do_action( 'wpcsc_before_header_shipment_content_section' ); ?>
                                 <th class="text-center"><?php echo wpc_scpt_shipments_label(); ?></th>
                                 <th><?php esc_html_e('Distrito', 'wpcargo-shipment-container'); ?></th>
+                                <th class="text-center">Estado de Envío</th>
                                 <th class="text-center"><?php esc_html_e('Print', 'wpcargo-shipment-container'); ?></th>
                                 <th class="text-center"><?php esc_html_e('Motorizado', 'wpcargo-shipment-container'); ?></th>
                                 <th class="text-center"><?php esc_html_e('Remove', 'wpcargo-shipment-container'); ?></th>
@@ -283,7 +284,7 @@
                                             >
                                             <label class="form-check-label" for="user-<?php echo esc_attr($group_id); ?>"></label>
                                         </td>
-                                        <td colspan="6" style="padding: 12px 16px; vertical-align: middle;">
+                                        <td colspan="7" style="padding: 12px 16px; vertical-align: middle;">
                                             <strong style="color: #2980b9; font-size: 0.95em;">
                                                 <i class="fa fa-chevron-right user-toggle-icon" style="display: inline-block; width: 16px; transition: transform 0.3s;"></i>
                                                 <i class="fa fa-user-circle" style="margin-right: 8px;"></i><?php echo esc_html($client_name); ?>
@@ -320,6 +321,7 @@
                                                 <?php do_action( 'wpcsc_after_shipment_content_section', $shipment_id ); ?>
                                             </td>
                                             <td><?php echo esc_html($distrito); ?></td>
+                                            <td class="text-center font-weight-bold" style="color: #666;"><?php echo esc_html($status); ?></td>
                                             <td class="text-center print-shipment">
                                                 <div class="dropdown">
                                                     <button class="btn btn-default btn-sm dropdown-toggle m-0 py-1 px-2" type="button" id="dropdownPrint-<?php echo $shipment_id; ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-list"></i></button>
@@ -385,6 +387,7 @@
                                 <th class="text-center"><?php echo wpc_scpt_shipments_label(); ?></th>
                                 <th><?php esc_html_e('Marca', 'wpcargo-shipment-container'); ?></th>
                                 <th><?php esc_html_e('Distrito', 'wpcargo-shipment-container'); ?></th>
+                                <th class="text-center">Estado de Envío</th>
                                 <th class="text-center"><?php esc_html_e('Print', 'wpcargo-shipment-container'); ?></th>
                                 <th class="text-center"><?php esc_html_e('Motorizado', 'wpcargo-shipment-container'); ?></th>
                                 <th class="text-center"><?php esc_html_e('Remove', 'wpcargo-shipment-container'); ?></th>
@@ -452,6 +455,7 @@
                                             ?>
                                         </td>
                                         <td><?php echo esc_html($distrito); ?></td>
+                                        <td class="text-center font-weight-bold" style="color: #666;"><?php echo esc_html($status); ?></td>
                                         <td class="text-center print-shipment">
                                             <div class="dropdown">
                                                 <button class="btn btn-default btn-sm dropdown-toggle m-0 py-1 px-2" type="button" id="dropdownPrint-<?php echo $shipment_id; ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-list"></i></button>
@@ -876,4 +880,5 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+
 

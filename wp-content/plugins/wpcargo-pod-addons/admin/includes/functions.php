@@ -763,13 +763,30 @@ function wpcpod_get_route_address_order( $user_id = ''){
 	}else{
 		$destination 	= array_pop($waypoints);
 	}
+	$driver_id = !empty($user_id) ? $user_id : get_current_user_id();
+	if ( !empty($shipments) && !empty($shipments[0]['id']) ) {
+		$driver_meta = get_post_meta( $shipments[0]['id'], 'wpcargo_driver', true );
+		if ( !empty($driver_meta) ) {
+			$driver_id = $driver_meta;
+		}
+	}
+	
+	$estado_caja   = (string) get_user_meta( $driver_id, 'merc_caja_cerrada', true );
+	$fecha_cierre  = (string) get_user_meta( $driver_id, 'merc_caja_cerrada_fecha', true );
+	$fecha_actual  = wp_date( 'Y-m-d' );
+	
+	$caja_cerrada  = ( '1' === $estado_caja && $fecha_cierre === $fecha_actual ) ? true : false;
+	
+	error_log("📦 [wpcpod_get_route_address_order] driver_id: $driver_id | estado: $estado_caja | fecha_cierre: $fecha_cierre | fecha_actual: $fecha_actual | caja_cerrada: " . ($caja_cerrada ? 'true' : 'false'));
+
 	return array(
 			'status' => 'success',
 			'waypoints' => $waypoints,
 			'origin' => $origin,
 			'destination' => $destination,
 			'shipments' => $shipments,
-			'poo' => $poo
+			'poo' => $poo,
+			'caja_cerrada' => $caja_cerrada
 		);
 }
 
@@ -1098,3 +1115,4 @@ function wpcpod_bulk_update_pickup_status() {
     ) );
 }
 add_action( 'wp_ajax_wpcpod_bulk_update_pickup_status', 'wpcpod_bulk_update_pickup_status' );
+

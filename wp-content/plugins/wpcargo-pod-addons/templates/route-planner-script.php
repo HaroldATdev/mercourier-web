@@ -376,6 +376,8 @@
             showSignatureModalForStatus(shipmentId, newStatus, nonce);
         } else if (newStatus === 'NO RECIBIDO') {
             showNoRecibidoModal(shipmentId, newStatus, nonce);
+        } else if (newStatus === 'REPROGRAMADO') {
+            showReprogramadoModal(shipmentId, newStatus, nonce);
         } else {
             showStatusConfirmation(shipmentId, newStatus, nonce);
         }
@@ -879,6 +881,36 @@
             }
         });
     }
+
+    // Función para mostrar modal de REPROGRAMADO
+    function showReprogramadoModal(shipmentId, newStatus, nonce) {
+        Swal.fire({
+            title: '📅 Estado Reprogramado',
+            text: 'Por favor, ingrese un comentario obligatorio (Ej. Nueva fecha, razón, etc.):',
+            input: 'textarea',
+            inputPlaceholder: 'Escriba aquí los detalles de la reprogramación...',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#3498db',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Guardar y cambiar estado',
+            cancelButtonText: 'Cancelar',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            inputValidator: (value) => {
+                if (!value || value.trim() === '') {
+                    return 'El comentario es obligatorio para reprogramar un pedido.';
+                }
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const formData = [
+                    { name: 'remarks', value: result.value }
+                ];
+                await sendStatusUpdate(shipmentId, newStatus, nonce, formData);
+            }
+        });
+    }
     
     function initPODRouteMap() {
         $('#wpcpod-route-planner #wpcpod-route-map').hide();
@@ -900,6 +932,7 @@
         
         jQuery.ajax({
             type:"POST",
+            cache: false,
             data:{
                 action  : 'wpcpod_generate_route_address',
                 filter_date: today
@@ -907,7 +940,7 @@
             url : "<?php echo admin_url( 'admin-ajax.php' ); ?>",
             success:function(response){
                 if( response.status == 'success'){
-                    displayShipmentsList(response.origin, response.waypoints, response.shipments, response.poo);
+                    displayShipmentsList(response.origin, response.waypoints, response.shipments, response.poo, response.caja_cerrada);
                 }else{
                     $('#wpcpod-route-planner #wpcpod-route-map').remove();
                     $('#wpcpod-route-planner #wpcpod-route-loader').remove();
@@ -917,7 +950,7 @@
         });
     }
     
-    function displayShipmentsList(origin, waypoints, shipments, poo) {
+    function displayShipmentsList(origin, waypoints, shipments, poo, cajaCerrada = false) {
         const summaryPanel = document.getElementById("directions-panel");
         
         deliveries = [];
@@ -962,7 +995,9 @@
                     lng: lng,
                     distance: distance,
                     pickup_date: shipmentDate,
-                    status: shipment['status'] || 'N/A'
+                    status: shipment['status'] || 'N/A',
+                    paso_lps: shipment['paso_lps'] === true || shipment['paso_lps'] === 1,
+                    paso_lps_html: shipment['paso_lps_html'] || '<span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #dc3545; color: white; border-radius: 50%; font-size: 12px;" title="No ha pasado por Listo para Salir (JS Fallback)">🚫</span>'
                 });
             });
         }
@@ -976,15 +1011,22 @@
             listHTML += '<div class="alert alert-warning" style="padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; text-align: center;">⚠️ No se encontraron pedidos para entregar hoy</div>';
         } else {
             deliveries.forEach((delivery, index) => {
-                const permittedStatuses = getPermittedStatuses(delivery.status, availableStatuses);
+                // Si el estado en DB es "LISTO PARA SALIR", al motorizado se le muestra "EN BASE MERCOURIER" 
+                // para que siga su flujo natural hacia "EN RUTA".
+                let displayStatus = delivery.status;
+                if (displayStatus && displayStatus.toUpperCase().trim() === 'LISTO PARA SALIR') {
+                    displayStatus = 'EN BASE MERCOURIER';
+                }
+                
+                const permittedStatuses = getPermittedStatuses(displayStatus, availableStatuses);
                 
                 let statusOptions = '';
-                if (delivery.status) {
-                    statusOptions += `<option value="${delivery.status}" selected>${delivery.status}</option>`;
+                if (displayStatus) {
+                    statusOptions += `<option value="${displayStatus}" selected>${displayStatus}</option>`;
                 }
                 if (permittedStatuses && permittedStatuses.length > 0) {
                     permittedStatuses.forEach(status => {
-                        if (status !== delivery.status) {
+                        if (status !== displayStatus) {
                             statusOptions += `<option value="${status}">${status}</option>`;
                         }
                     });
@@ -1020,6 +1062,8 @@
                                               text-decoration: none; white-space: nowrap;">
                                         🔍 ${delivery.number}
                                     </a>
+                                    
+                                    ${delivery.paso_lps_html}
                                 </div>
 
                                 <!-- Botones WA rápidos sin mensaje -->
@@ -1043,11 +1087,17 @@
                                 </div>
                             </div>
 
-                            <!-- Select de estado -->
-                            <select onchange="updateDeliveryStatus(${delivery.id}, this.value)" 
-                               style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px; flex-shrink: 0;">
-                                ${statusOptions}
-                            </select>
+                            <!-- Select o Label de estado -->
+                            ${cajaCerrada ? `
+                                <span style="background: #e9ecef; color: #495057; padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; font-weight: bold; min-width: 120px; display: inline-block; text-align: center; flex-shrink: 0;">
+                                    ${displayStatus}
+                                </span>
+                            ` : `
+                                <select onchange="updateDeliveryStatus(${delivery.id}, this.value)" 
+                                   style="background: #fff; color: #333; padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 120px; flex-shrink: 0;">
+                                    ${statusOptions}
+                                </select>
+                            `}
                         </div>
 
                         <!-- Dirección -->
@@ -1079,4 +1129,5 @@
         initPODRouteMap();
     });
 </script>
+
 

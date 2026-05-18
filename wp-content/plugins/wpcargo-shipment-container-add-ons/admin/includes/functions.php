@@ -611,8 +611,8 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	$sql_entrega .= "WHERE tbl1.post_status = 'publish' AND tbl1.post_type = 'wpcargo_shipment' ";
 	$sql_entrega .= " AND tbl2.meta_key = 'shipment_container_entrega' ";
 	$sql_entrega .= " AND tbl2.meta_value = %s ";
-	// Excluir envíos que ya fueron entregados, en ruta, no recibidos o anulados
-	$sql_entrega .= " AND (tbl3.meta_value IS NULL OR tbl3.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED')) ";
+	// Excluir envíos que ya fueron entregados, no recibidos o anulados (NO excluir EN RUTA: el motorizado los lleva activamente)
+	$sql_entrega .= " AND (tbl3.meta_value IS NULL OR tbl3.meta_value NOT IN ('ENTREGADO', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED')) ";
 	$assigned_shipments_entrega = $wpdb->get_col($wpdb->prepare($sql_entrega, $postID));
 	
 	foreach ((array)$assigned_shipments_entrega as $shipment_id) {
@@ -705,13 +705,19 @@ function wpc_shipment_container_get_unassigned_shipment()
     $status_in = "'" . implode("','", esc_sql($assigned_shipments)) . "'";
     
     // 1. Obtener solo IDs en estado permitido Y que tengan fecha de recojo de HOY
-    $hoy_dmy = date('d/m/Y', current_time('timestamp'));
-    $query_ids = "SELECT p.ID FROM {$wpdb->posts} p 
+    $hoy_ts = current_time('timestamp');
+    $hoy_dmy = date('d/m/Y', $hoy_ts);
+    $hoy_iso = date('Y-m-d', $hoy_ts);
+    $hoy_dmy2 = date('j/m/Y', $hoy_ts);
+    $hoy_dmy3 = date('j/n/Y', $hoy_ts);
+    
+    $query_ids = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p 
                   JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
                   JOIN {$wpdb->postmeta} pm_date ON p.ID = pm_date.post_id 
                   WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish' 
                   AND pm.meta_key = 'wpcargo_status' AND pm.meta_value IN ($status_in)
-                  AND pm_date.meta_key = 'wpcargo_pickup_date_picker' AND pm_date.meta_value = '{$hoy_dmy}'
+                  AND pm_date.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_fecha_envio', 'wpcargo_pickup_date') 
+                  AND pm_date.meta_value IN ('{$hoy_dmy}', '{$hoy_iso}', '{$hoy_dmy2}', '{$hoy_dmy3}')
                   ORDER BY p.post_title ASC";
     
     $pending_ids = $wpdb->get_col($query_ids);
@@ -925,7 +931,25 @@ function wpc_shipment_container_bulk_save($post_id)
 		if ($apply_to_driver) {
 			if (!empty($shipments)) {
 				foreach ($shipments as $shipment_id) {
+					// Update the native wpcargo_driver
 					update_post_meta($shipment_id, 'wpcargo_driver', (int)$delivery_agent);
+					
+					// Custom logic for Mercourier assignment fields
+					$tipo = strtolower( (string) get_post_meta($shipment_id, 'tipo_envio', true) );
+					$isExpress = ($tipo === 'express' || $tipo === 'full_fitment' || $tipo === 'fullfitment');
+					
+					if ( $isExpress ) {
+						update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', (int)$delivery_agent );
+					} else {
+						$status = strtoupper( (string) get_post_meta($shipment_id, 'wpcargo_status', true) );
+						$recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+						
+						if ( in_array( $status, $recojo_states, true ) ) {
+							update_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', (int)$delivery_agent );
+						} else {
+							update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', (int)$delivery_agent );
+						}
+					}
 				}
 			}
 		}
@@ -954,7 +978,25 @@ function wpcsc_save_history($container_id, $data)
 	$driver_id 	        = array_search($delivery_agent, $drivers);
 	if ($driver_id && !empty($shipments)) {
 		foreach ($shipments as $shipment_id) {
+			// Update the native wpcargo_driver
 			update_post_meta($shipment_id, 'wpcargo_driver', (int)$driver_id);
+			
+			// Custom logic for Mercourier assignment fields
+			$tipo = strtolower( (string) get_post_meta($shipment_id, 'tipo_envio', true) );
+			$isExpress = ($tipo === 'express' || $tipo === 'full_fitment' || $tipo === 'fullfitment');
+			
+			if ( $isExpress ) {
+				update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', (int)$driver_id );
+			} else {
+				$status = strtoupper( (string) get_post_meta($shipment_id, 'wpcargo_status', true) );
+				$recojo_states = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+				
+				if ( in_array( $status, $recojo_states, true ) ) {
+					update_post_meta( $shipment_id, 'wpcargo_motorizo_recojo', (int)$driver_id );
+				} else {
+					update_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', (int)$driver_id );
+				}
+			}
 		}
 	}
 	//  Get latest data for the shipment history

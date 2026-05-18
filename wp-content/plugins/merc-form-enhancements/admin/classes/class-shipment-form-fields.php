@@ -1133,7 +1133,11 @@ class MERC_Shipment_Form_Fields {
 
 		$monto = floatval( get_post_meta( $post_id, 'wpcargo_monto', true ) );
 
-		update_post_meta( $post_id, 'wpcargo_quien_paga', 'remitente' );
+		// Determinar quien_paga según modo de pago: NO COBRAR → remitente, resto → destinatario
+                $modo_pago_raw = isset( $_POST['payment_wpcargo_mode_field'] ) ? sanitize_text_field( $_POST['payment_wpcargo_mode_field'] ) : get_post_meta( $post_id, 'payment_wpcargo_mode_field', true );
+                $modo_pago_lower = strtolower( trim( $modo_pago_raw ) );
+                $quien_paga_val = ( $modo_pago_lower === 'no cobrar' || $modo_pago_lower === '1' ) ? 'remitente' : 'destinatario';
+                update_post_meta( $post_id, 'wpcargo_quien_paga', $quien_paga_val );
 		update_post_meta( $post_id, 'wpcargo_cobrado_por_motorizado', $monto > 0 ? $monto : '0' );
 
 		if ( ! get_post_meta( $post_id, 'wpcargo_estado_pago_motorizado', true ) ) {

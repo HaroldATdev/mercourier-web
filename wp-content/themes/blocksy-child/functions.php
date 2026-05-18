@@ -3429,18 +3429,62 @@ if ( ! function_exists( 'get_payment_totals_by_method' ) ) {
                         $amount = (float) $item['monto'];
                         if ( array_key_exists( $method, $totals ) ) {
                             $totals[ $method ] += $amount;
-                            $totals['total']   += $amount;
+                            // El total solo suma efectivo, pago_merc y pos. NO suma pago_marca.
+                            if ( in_array( $method, ['efectivo', 'pago_merc', 'pos'] ) ) {
+                                $totals['total'] += $amount;
+                            }
                         }
                     }
                 }
             }
         }
+        // Si no hay pod_payment_methods, no hay cobro registrado → todo queda en cero.
+        // (No usar wpcargo_total_cobrar como fallback: es el monto esperado, no el cobrado.)
+
+        // --- REGLAS FINANCIERAS SEGÚN ESTADO ---
+        $status = strtoupper(trim(get_post_meta( $shipment_id, 'wpcargo_status', true )));
+
+        // Estados pre-entrega: aunque hubiera algo en el JSON, se muestra cero
+        $estados_pre_entrega = ['EN BASE MERCOURIER', 'PENDIENTE', 'RECOGIDO', 'NO RECOGIDO', 'EN RUTA', 'LISTO PARA SALIR', 'NO CONTESTA'];
+        if ( in_array( $status, $estados_pre_entrega ) ) {
+            $totals['efectivo']   = 0.0;
+            $totals['pago_merc']  = 0.0;
+            $totals['pago_marca'] = 0.0;
+            $totals['pos']        = 0.0;
+            $totals['total']      = 0.0;
+        } elseif ( in_array( $status, ['ANULADO', 'REPROGRAMADO'] ) ) {
+
+
+            // Si es anulado, reprogramado o no recibido, no se recaudó nada
+            $totals['efectivo']   = 0.0;
+            $totals['pago_merc']  = 0.0;
+            $totals['pago_marca'] = 0.0;
+            $totals['pos']        = 0.0;
+            $totals['total']      = 0.0;
+        } else {
+            // Si es NO COBRAR, no se debe contar el efectivo ni el pago recaudado
+            $modo_pago = strtolower(trim(get_post_meta($shipment_id, 'payment_wpcargo_mode_field', true)));
+            if ( empty($modo_pago) ) {
+                $modo_pago = strtolower(trim(get_post_meta($shipment_id, 'modo_pago', true)));
+            }
+            if ( $modo_pago === 'no cobrar' || $modo_pago === '1' ) {
+                $totals['efectivo']   = 0.0;
+                $totals['pago_merc']  = 0.0;
+                $totals['pago_marca'] = 0.0;
+                $totals['pos']        = 0.0;
+                $totals['total']      = 0.0;
+            }
+        }
         
-        // Si solo queremos efectivo liquidado, verificamos el estado
+        // Si solo queremos efectivo liquidado, verificamos el estado de liquidación
         if ( $solo_liquidado && $totals['efectivo'] > 0 ) {
             $estado_motorizado = get_post_meta( $shipment_id, 'wpcargo_estado_pago_motorizado', true );
             if ( $estado_motorizado !== 'liquidado' ) {
                 $totals['efectivo'] = 0.0;
+                // Ojo: si se quita el efectivo por no estar liquidado, ¿se resta del total general?
+                // Depende de dónde se use get_payment_totals_by_method.
+                // Generalmente 'total' se asume bruto, pero ajustémoslo por coherencia si se pidió solo_liquidado:
+                $totals['total'] = $totals['pago_merc'] + $totals['pos'];
             }
         }
         
@@ -3816,8 +3860,11 @@ function merc_motorizado_resumen( $driver_id ) {
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
         AND pm_driver.meta_value = %s
-        AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('" . sanitize_text_field($fecha_inicio) . "', '%%Y-%%m-%%d')
-        AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('" . sanitize_text_field($fecha_fin) . "', '%%Y-%%m-%%d')
+        AND (
+            (STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('" . sanitize_text_field($fecha_inicio) . "', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('" . sanitize_text_field($fecha_fin) . "', '%%Y-%%m-%%d'))
+            OR
+            (STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') >= STR_TO_DATE('" . sanitize_text_field($fecha_inicio) . "', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') <= STR_TO_DATE('" . sanitize_text_field($fecha_fin) . "', '%%Y-%%m-%%d'))
+        )
     ";
     
     $query = $wpdb->prepare($query, $driver_id);
@@ -3896,8 +3943,11 @@ function merc_motorizado_entregas( $driver_id ) {
         $dmy = date('d/m/Y', strtotime($start_date));
         $query .= " AND pm_pickup_date.meta_value = '{$dmy}'";
     } else {
-        $query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('%s', '%%Y-%%m-%%d')
-        AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('%s', '%%Y-%%m-%%d')";
+        $query .= " AND (
+            (STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('%s', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('%s', '%%Y-%%m-%%d'))
+            OR
+            (STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') >= STR_TO_DATE('%s', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') <= STR_TO_DATE('%s', '%%Y-%%m-%%d'))
+        )";
     }
     
     $query .= " ORDER BY p.post_date DESC
@@ -4556,7 +4606,8 @@ function merc_panel_admin_shortcode() {
                 $.post(mercAjaxUrl, {
                     action: 'merc_cerrar_caja',
                     nonce: mercCerrarCajaNonce,
-                    driver_id: driverId
+                    driver_id: driverId,
+                    fecha_caja: btn.data('fecha-caja') || ''
                 }, function(response) {
                     if (!response || !response.success) {
                         Swal.fire({
@@ -7840,7 +7891,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
         // Calcular estado de caja cerrada
         $caja_cerrada = false;
         $total_estados_no_finales = 0;
-        $estados_finales_cierre = array( 'NO RECIBIDO', 'REPROGRAMADO', 'NO CONTESTA', 'ANULADO', 'ENTREGADO' );
+        $estados_finales_cierre = array( 'NO RECIBIDO', 'REPROGRAMADO', 'ANULADO', 'ENTREGADO' );
 
         if ( ! empty( $entregas_pendientes ) ) {
             foreach ( $entregas_pendientes as $entrega_estado ) {
@@ -7882,6 +7933,7 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
                         <?php else : ?>
                             <button class="merc-btn-cierre-caja" 
                                     data-driver-id="<?php echo esc_attr( $driver->driver_id ); ?>" 
+                                    data-fecha-caja="<?php echo esc_attr( date('Y-m-d', strtotime($fecha_inicio)) ); ?>"
                                     data-tipo="motorizado"
                                     style="margin-right:10px;">
                                 🔒 Cierre de caja
@@ -8139,16 +8191,16 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
     $all_shipments_sql = "
         SELECT p.ID,
                p.post_title,
-               pm_sender.meta_value         AS client_id,
-               pm_producto.meta_value       AS costo_producto,
-               pm_envio.meta_value          AS costo_envio,
-               pm_quien_paga.meta_value     AS quien_paga,
-               pm_included.meta_value       AS estado_remitente,
-               pm_cliente_pago_a.meta_value AS cliente_pago_a,
-               pm_total.meta_value         AS wpcargo_total_cobrar,
-               pm_status.meta_value        AS wpcargo_status,
-               pm_liq_fecha.meta_value     AS liq_fecha,
-               pm_pod.meta_value           AS pod_payment_methods
+               MAX(pm_sender.meta_value)         AS client_id,
+               MAX(pm_producto.meta_value)       AS costo_producto,
+               MAX(pm_envio.meta_value)          AS costo_envio,
+               MAX(pm_quien_paga.meta_value)     AS quien_paga,
+               MAX(pm_included.meta_value)       AS estado_remitente,
+               MAX(pm_cliente_pago_a.meta_value) AS cliente_pago_a,
+               MAX(pm_total.meta_value)         AS wpcargo_total_cobrar,
+               MAX(pm_status.meta_value)        AS wpcargo_status,
+               MAX(pm_liq_fecha.meta_value)     AS liq_fecha,
+               MAX(pm_pod.meta_value)           AS pod_payment_methods
         FROM {$wpdb->posts} p
         INNER JOIN {$wpdb->postmeta} pm_sender 
             ON p.ID = pm_sender.post_id AND pm_sender.meta_key = 'registered_shipper'
@@ -8176,6 +8228,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
         AND pm_sender.meta_value != ''
         $date_query
         $client_query
+        GROUP BY p.ID, p.post_title
     ";
 
     $all_shipments_raw = $wpdb->get_results( $all_shipments_sql );
@@ -8240,24 +8293,32 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
             $liq_fecha = $shipment->liq_fecha;
             $is_included = !empty($included) || ( !empty($liq_fecha) && $liq_fecha === $fecha_caja_ymd_loop );
             if ( ! $is_included ) {
-                $all_liquidated = false;
-            }
-
-            // Calcular totales POD desde JSON pre-cargado (sin get_post_meta)
-            $pod_json = $shipment->pod_payment_methods;
-            $totales_shipment = array('efectivo'=>0.0,'pago_merc'=>0.0,'pago_marca'=>0.0,'pos'=>0.0,'total'=>0.0);
-            if ( !empty($pod_json) ) {
-                $pod_data = json_decode($pod_json, true);
-                if ( is_array($pod_data) ) {
-                    foreach ($pod_data as $item) {
-                        if ( isset($item['metodo'], $item['monto']) && array_key_exists($item['metodo'], $totales_shipment) ) {
-                            $totales_shipment[$item['metodo']] += floatval($item['monto']);
-                            $totales_shipment['total'] += floatval($item['monto']);
-                        }
-                    }
+                $estado_envio_upper = strtoupper(trim($shipment->wpcargo_status));
+                if ( $estado_envio_upper !== 'ANULADO' && $estado_envio_upper !== 'REPROGRAMADO' ) {
+                    $all_liquidated = false;
                 }
             }
 
+            $estado_envio_upper = strtoupper(trim($shipment->wpcargo_status));
+            
+            // Regla Costo Servicio: Anulado y Reprogramado no cobran servicio.
+            // (NO RECIBIDO sí cobra servicio, así que mantiene $envio)
+            if ( in_array($estado_envio_upper, ['ANULADO', 'REPROGRAMADO']) ) {
+                $envio = 0.0;
+            }
+
+            // Sumar cargos adicionales al costo del servicio ($envio)
+            $cargos_raw = get_post_meta( $shipment->ID, 'merc_cargos_adicionales', true );
+            $total_cargos_envio = 0;
+            if ( is_array( $cargos_raw ) ) {
+                foreach ( $cargos_raw as $c ) {
+                    $total_cargos_envio += floatval( $c['monto'] );
+                }
+            }
+            $envio += $total_cargos_envio;
+
+            // Usar la función centralizada para obtener totales con todas las reglas aplicadas
+            $totales_shipment = get_payment_totals_by_method($shipment->ID);
             $pos_display = $totales_shipment['pos'];
             $recaudado_envio = $totales_shipment['efectivo'] + $totales_shipment['pago_merc'] + $pos_display;
             
@@ -8273,14 +8334,29 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 $estados_del_cliente[] = strtoupper(trim($shipment->wpcargo_status));
             }
 
+            // Concepto: monto esperado a cobrar al cliente, independiente del estado del envío
+            $modo_pago_concepto = strtolower(trim(get_post_meta($shipment->ID, 'payment_wpcargo_mode_field', true)));
+            if ( empty($modo_pago_concepto) ) {
+                $modo_pago_concepto = strtolower(trim(get_post_meta($shipment->ID, 'modo_pago', true)));
+            }
+            $es_no_cobrar = ( $modo_pago_concepto === 'no cobrar' || $modo_pago_concepto === '1' );
+            // Si es ANULADO o REPROGRAMADO tampoco hay concepto
+            $es_anulado   = in_array( $estado_envio_upper, ['ANULADO', 'REPROGRAMADO'] );
+            $monto_concepto = ( $es_no_cobrar || $es_anulado )
+                ? 0.0
+                : (float) get_post_meta( $shipment->ID, 'wpcargo_total_cobrar', true );
+
             $todos_envios[] = array(
                 'id'             => $shipment->ID,
-                'titulo'         => $shipment->post_title, // MERC tracking number from DB (e.g. MERC-010168)
+                'titulo'         => $shipment->post_title,
                 'monto'          => $envio,
-                'monto_concepto' => $totales_shipment['total'],
+                'monto_concepto' => $monto_concepto,
                 'tipo'           => ( $shipment->quien_paga === 'cliente_final' ? 'cobrar' : 'pagar' ),
-                'liquidado'      => $is_included
+                'liquidado'      => $is_included,
+                'total_cargos'   => $total_cargos_envio,
+                'cargos_raw'     => $cargos_raw
             );
+
         }
         
         if ( empty($todos_envios) ) $all_liquidated = false;
@@ -8299,17 +8375,23 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
 
         // Leer historial de liquidaciones desde el mapa pre-cargado
         $has_liquidation_history = false;
+        $has_verified_liquidation = false;
         $history = isset($_liq_user_history[$client->client_id]) ? $_liq_user_history[$client->client_id] : array();
         if ( is_array($history) ) {
             foreach ( $history as $entry ) {
                 if ( !empty($entry['fecha_caja']) && date('Y-m-d', strtotime($entry['fecha_caja'])) === $fecha_caja_ymd_loop ) {
                     $has_liquidation_history = true;
-                    break;
+                    // Verificar si hay una entrada aprobada (verified=true) para esta fecha
+                    if ( !empty($entry['verified']) ) {
+                        $has_verified_liquidation = true;
+                    }
                 }
             }
         }
 
-        $all_liquidated_real = ($all_liquidated && $has_liquidation_history);
+        // all_liquidated_real: o bien todos los envíos individuales están liquidados vía postmeta
+        // o bien hay una entrada verificada en merc_liquidations (flujo merc_admin_aprobar_pago)
+        $all_liquidated_real = ($all_liquidated && $has_liquidation_history) || $has_verified_liquidation;
         $caja_en_cero  = ( ! empty($todos_envios) && !$has_liquidation_history && $dia_cerrado && abs($balance_neto) < 0.01 );
 
         // Filtrar según la pestaña activa basado en el BALANCE TOTAL HISTÓRICO
@@ -8408,7 +8490,9 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
         $link_panel = 'https://mercourier.com/panel-cliente/?fecha_caja=' . esc_attr($fecha_inicio);
         
         if ( $modo === 'deudoras' ) {
-            $ws_text = "Hola, ¿qué tal? 👋 Somos Mercourier 🏍️ Te recordamos que tienes un pago pendiente por los servicios de entrega de la fecha {$fecha_formatted} 💰 Por favor, realiza el pago y sube la captura en tu módulo de finanzas {$link_panel}📲 Quedamos atentos a tu confirmación, ¡gracias! 🙌";
+            $balance_positivo = number_format( abs($balance_neto), 2 );
+            $ws_text = "Hola, ¿qué tal? 👋 Somos Mercourier 🏍️ Te recordamos que tienes un pago pendiente por el monto de S/. {$balance_positivo} de tus servicios de entrega de la fecha {$fecha_formatted} 💰 Por favor realiza el pago.\nSi ya pagaste, por favor sube el pantallazo de pago al link enviado {$link_panel} 📲\nQuedamos atentos a tu confirmación, ¡gracias! Por tu preferencia 🤝😊";
+
         } else {
             $ws_text = "Hola, ¿qué tal? 👋 Somos Mercourier 🏍️ Te confirmamos que ya se realizó el pago de tus envíos de la fecha {$fecha_formatted} ✅ Puedes verificarlo en tu módulo de finanzas {$link_panel}📲 ¡Gracias por confiar en nosotros! 🙌";
         }
@@ -8651,12 +8735,19 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                                     <td><strong style="color: <?php echo $color_servicio; ?>;">S/. <?php echo number_format( $envio_item['monto'], 2 ); ?></strong></td>
                                     <td>
                                         <?php 
-                                        $cargos = get_post_meta( $envio_item['id'], 'merc_cargos_adicionales', true );
-                                        $total_cargos_envio = 0;
+                                        $cargos = isset($envio_item['cargos_raw']) ? $envio_item['cargos_raw'] : '';
+                                        if ( empty($cargos) ) {
+                                            $cargos = get_post_meta( $envio_item['id'], 'merc_cargos_adicionales', true );
+                                        }
+                                        $total_cargos_envio = isset($envio_item['total_cargos']) ? floatval($envio_item['total_cargos']) : 0;
                                         $desc_cargos = '';
                                         if ( is_array( $cargos ) ) {
+                                            if ( $total_cargos_envio === 0.0 ) {
+                                                foreach ( $cargos as $c ) {
+                                                    $total_cargos_envio += floatval( $c['monto'] );
+                                                }
+                                            }
                                             foreach ( $cargos as $c ) {
-                                                $total_cargos_envio += floatval( $c['monto'] );
                                                 $desc_cargos .= esc_html($c['descripcion']) . ' (S/. ' . number_format($c['monto'], 2) . ')' . "\n";
                                             }
                                         }
@@ -9379,7 +9470,10 @@ function merc_liquidar_todo_ajax() {
                 SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
                 WHERE pm_pickup.post_id = p.ID 
                 AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
-                AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%Y-%m-%d')
+                AND (
+                    STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%Y-%m-%d')
+                    OR STR_TO_DATE(pm_pickup.meta_value, '%Y-%m-%d') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%Y-%m-%d')
+                )
             )
         ", $user_id ) );
 
@@ -10029,10 +10123,22 @@ function merc_get_shipment_data_ajax() {
     }
 
     // Obtener motorizados de recojo y entrega
-    $motorizo_recojo = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
+    $motorizo_recojo  = get_post_meta($shipment_id, 'wpcargo_motorizo_recojo', true);
     $motorizo_entrega = get_post_meta($shipment_id, 'wpcargo_motorizo_entrega', true);
+    $wpcargo_driver   = get_post_meta($shipment_id, 'wpcargo_driver', true);
 
-    // Obtener monto total de la orden - usando mismo orden de prioridad que para motorizado
+    // Fallback: si motorizo_entrega está vacío y el estado no es de recojo,
+    // usar wpcargo_driver para que el dropdown de Entrega muestre el conductor correcto
+    $estados_recojo_ajax = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+    if ( empty($motorizo_entrega) && !in_array(strtoupper(trim($estado_actual)), $estados_recojo_ajax) ) {
+        if ( !empty($wpcargo_driver) ) {
+            $motorizo_entrega = $wpcargo_driver;
+            // También persistir en la BD para futura consistencia
+            update_post_meta($shipment_id, 'wpcargo_motorizo_entrega', intval($wpcargo_driver));
+        }
+    }
+
+    // Calcular monto total del envío
     $monto = 0;
     $wpcargo_total = get_post_meta($shipment_id, 'wpcargo_total_cobrar', true);
     if (!empty($wpcargo_total)) {
@@ -10050,17 +10156,18 @@ function merc_get_shipment_data_ajax() {
     }
 
     wp_send_json_success([
-        'tipo_envio' => $tipo_envio,
-        'estado_actual' => $estado_actual,
-        'estado_prev' => $estado_prev,
-        'shipment_id' => $shipment_id,
-        'customer_id' => $customer_id,
-        'customer_name' => $customer_name,
+        'tipo_envio'      => $tipo_envio,
+        'estado_actual'   => $estado_actual,
+        'estado_prev'     => $estado_prev,
+        'shipment_id'     => $shipment_id,
+        'customer_id'     => $customer_id,
+        'customer_name'   => $customer_name,
         'motorizo_recojo' => $motorizo_recojo,
-        'motorizo_entrega' => $motorizo_entrega,
-        'monto' => $monto,
+        'motorizo_entrega'=> $motorizo_entrega,
+        'monto'           => $monto,
     ]);
 }
+
 
 // ===============================================
 // PLANIFICADOR DE RUTAS: USAR LINK GOOGLE MAPS (CON FILTRO DE FECHA)
@@ -10206,70 +10313,70 @@ function merc_planificador_con_link_maps() {
         wp_die();
     }
     
-    // 🔥 NUEVO: Filtrar shipments por fecha
-    $shipments_filtrados = array();
-    $total_original = count($shipments);
+
+    // Filtrar por fecha de envío. Solo se excluyen los que tienen una fecha explícita
+    // diferente a la de hoy. Si no tienen fecha asignada, se incluyen.
+    $meta_date_keys = ['wpcargo_pickup_date_picker', 'wpcargo_pickup_date', 'calendarenvio', 'wpcargo_fecha_envio'];
+    $shipments_para_hoy = [];
     
-    // Aceptar varias claves de meta que puedan contener la fecha de envío
-    $meta_pickup_keys = array('wpcargo_pickup_date_picker','wpcargo_pickup_date','calendarenvio','wpcargo_fecha_envio');
-
+    // Normalizar $filter_date a d/m/Y sin ceros iniciales para comparación robusta
+    $filter_ts = strtotime(str_replace('/', '-', implode('-', array_reverse(explode('/', $filter_date)))));
+    $filter_normalized = $filter_ts ? date('j/n/Y', $filter_ts) : $filter_date;
+    
     foreach ($shipments as $shipment) {
-        $shipment_id = $shipment->id;
-        $matched = false;
-        $found_values = array();
+        $sid = $shipment->id;
+        $tiene_fecha = false;
+        $es_de_hoy   = false;
+        
+        foreach ($meta_date_keys as $mk) {
+            $val = trim(get_post_meta($sid, $mk, true));
+            if (empty($val)) continue;
+            $tiene_fecha = true;
+            
+            // Normalizar valor: cambiar '-' a '/' y tomar solo la parte de fecha
+            $val_norm = trim(explode(' ', str_replace('-', '/', $val))[0]);
 
-        foreach ($meta_pickup_keys as $mk) {
-            $val = get_post_meta($shipment_id, $mk, true);
-            if (!empty($val)) {
-                $found_values[] = "{$mk}='{$val}'";
-                // Normalizar valor: cambiar '-' a '/' y tomar solo la parte de fecha
-                $val_norm = trim(explode(' ', str_replace('-', '/', $val))[0]);
-
-                // Intentar parsear la fecha en varios formatos (soporta '22/2/2026' y '22/02/2026' y '2026-02-22')
-                $date_obj = false;
-                // Formatos comunes: 'Y-m-d', 'd/m/Y' (con ceros), 'j/n/Y' (sin ceros)
-                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val_norm)) {
-                    $date_obj = DateTime::createFromFormat('Y-m-d', $val_norm);
-                } elseif (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $val_norm)) {
-                    // Primero intentar 'j/n/Y' (sin ceros)
-                    $date_obj = DateTime::createFromFormat('j/n/Y', $val_norm);
-                    if (! $date_obj) {
-                        $date_obj = DateTime::createFromFormat('d/m/Y', $val_norm);
-                    }
-                } else {
-                    // Último recurso: intentar strtotime para formatos extraños
-                    $ts = strtotime($val_norm);
-                    if ($ts !== false) {
-                        $date_obj = (new DateTime())->setTimestamp($ts);
-                    }
+            $date_obj = false;
+            // Formatos comunes: 'Y-m-d', 'd/m/Y' (con ceros), 'j/n/Y' (sin ceros)
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val_norm)) {
+                $date_obj = DateTime::createFromFormat('Y-m-d', $val_norm);
+            } elseif (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $val_norm)) {
+                $date_obj = DateTime::createFromFormat('j/n/Y', $val_norm);
+                if (! $date_obj) {
+                    $date_obj = DateTime::createFromFormat('d/m/Y', $val_norm);
                 }
+            } else {
+                // Formato ISO Y/m/d que podría venir si cambiamos los guiones por barras
+                if (preg_match('/^\d{4}\/\d{1,2}\/\d{1,2}$/', $val_norm)) {
+                    $date_obj = DateTime::createFromFormat('Y/m/d', $val_norm);
+                }
+            }
 
-                if ($date_obj instanceof DateTime) {
-                    $d = $date_obj->format('d/m/Y');
-                    if ($d === $filter_date) { $matched = true; break; }
-                } else {
-                    // Si no se pudo parsear, comparar de forma más tolerante (ignorar ceros a la izquierda)
-                    $cmp1 = preg_replace('/\b0(\d)\b/', '$1', $val_norm);
-                    $cmp2 = preg_replace('/\b0(\d)\b/', '$1', $filter_date);
-                    if ($cmp1 === $cmp2) { $matched = true; break; }
+            if ($date_obj instanceof DateTime) {
+                if ($date_obj->format('d/m/Y') === $filter_date) { 
+                    $es_de_hoy = true; 
+                    break; 
+                }
+            } else {
+                // Último recurso: fallback a strtotime
+                $ts = strtotime($val_norm);
+                if ($ts !== false && date('d/m/Y', $ts) === $filter_date) {
+                    $es_de_hoy = true;
+                    break;
                 }
             }
         }
-
-        if ($matched) {
-            $shipments_filtrados[] = $shipment;
+        
+        // Incluir: si no tiene fecha o si la fecha es de hoy
+        if (!$tiene_fecha || $es_de_hoy) {
+            $shipments_para_hoy[] = $shipment;
         } else {
-            error_log("⏭️ Shipment #{$shipment_id} omitido - pickup metas: " . implode(', ', $found_values) . " (esperada: {$filter_date})");
+            error_log("⏭️ Entrega #{$sid} omitida: fecha no es hoy ({$filter_date})");
         }
     }
     
-    // Reemplazar $shipments con los filtrados
-    $shipments = $shipments_filtrados;
-    $total_filtrado = count($shipments);
+    $shipments = $shipments_para_hoy;
     
-    error_log("✅ Entregas filtradas: {$total_filtrado} de {$total_original} para la fecha {$filter_date}");
-    
-    // Verificar si hay shipments después del filtro
     if (empty($shipments)) {
         wp_send_json([
             'status' => 'error',
@@ -10277,6 +10384,9 @@ function merc_planificador_con_link_maps() {
         ]);
         wp_die();
     }
+    
+    error_log("✅ Entregas para {$filter_date}: " . count($shipments));
+    
     
     $addresses = [];
     
@@ -10361,10 +10471,12 @@ function merc_planificador_con_link_maps() {
                 'id' => $shipmentID,
                 'number' => $shipmentNumber,
                 'address' => urldecode($destination),
-                'link_maps' => get_post_meta($shipmentID, 'link_maps', true), // 🔥 NUEVO: Incluir link_maps
-                'pickup_date' => get_post_meta($shipmentID, 'wpcargo_pickup_date_picker', true), // 🔥 NUEVO: Incluir fecha
-                'status' => get_post_meta($shipmentID, 'wpcargo_status', true) ?: 'PENDIENTE', // 🔥 NUEVO: Incluir status
-				'receiver_name' => get_post_meta($shipmentID, 'wpcargo_receiver_name', true),
+                'link_maps' => get_post_meta($shipmentID, 'link_maps', true),
+                'pickup_date' => $filter_date, // Usar la fecha del filtro para que el JS lo acepte
+                'status' => get_post_meta($shipmentID, 'wpcargo_status', true) ?: 'PENDIENTE',
+                'receiver_name' => get_post_meta($shipmentID, 'wpcargo_receiver_name', true),
+                'paso_lps' => merc_calcular_paso_lps($shipmentID),
+                'paso_lps_html' => merc_generar_lps_html($shipmentID),
             ];
             
             $waypoints[$distance] = $data;
@@ -10374,10 +10486,12 @@ function merc_planificador_con_link_maps() {
                 'id' => $shipmentID,
                 'number' => $shipmentNumber,
                 'address' => urldecode($destination),
-                'link_maps' => get_post_meta($shipmentID, 'link_maps', true), // 🔥 NUEVO: Incluir link_maps
-                'pickup_date' => get_post_meta($shipmentID, 'wpcargo_pickup_date_picker', true), // 🔥 NUEVO: Incluir fecha
-                'status' => get_post_meta($shipmentID, 'wpcargo_status', true) ?: 'PENDIENTE', // 🔥 NUEVO: Incluir status
-				'receiver_name' => get_post_meta($shipmentID, 'wpcargo_receiver_name', true),
+                'link_maps' => get_post_meta($shipmentID, 'link_maps', true),
+                'pickup_date' => $filter_date, // Usar la fecha del filtro para que el JS lo acepte
+                'status' => get_post_meta($shipmentID, 'wpcargo_status', true) ?: 'PENDIENTE',
+                'receiver_name' => get_post_meta($shipmentID, 'wpcargo_receiver_name', true),
+                'paso_lps' => merc_calcular_paso_lps($shipmentID),
+                'paso_lps_html' => merc_generar_lps_html($shipmentID),
             ];
             $waypoints[$counter] = $data;
             $shipments_data[$counter] = $data;
@@ -10396,19 +10510,66 @@ function merc_planificador_con_link_maps() {
         $destination = array_pop($waypoints);
     }
     
+    // Obtener ID del motorizado para validar caja_cerrada
+    $driver_id = get_current_user_id();
+    if ( !empty($shipments) ) {
+        $first_shipment = is_array($shipments) ? reset($shipments) : null;
+        if ( $first_shipment ) {
+            $sid = isset($first_shipment->id) ? $first_shipment->id : (isset($first_shipment->ID) ? $first_shipment->ID : 0);
+            if ( $sid ) {
+                $driver_meta = get_post_meta( $sid, 'wpcargo_driver', true );
+                if ( !empty($driver_meta) ) {
+                    $driver_id = $driver_meta;
+                }
+            }
+        }
+    }
+    
+    $estado_caja   = (string) get_user_meta( $driver_id, 'merc_caja_cerrada', true );
+    $fecha_cierre  = (string) get_user_meta( $driver_id, 'merc_caja_cerrada_fecha', true );
+    $fecha_actual  = wp_date( 'Y-m-d' );
+    $caja_cerrada  = ( '1' === $estado_caja && $fecha_cierre === $fecha_actual ) ? true : false;
+    
     $result = [
         'status' => 'success',
         'waypoints' => $waypoints,
         'origin' => $origin,
         'destination' => $destination,
         'shipments' => $shipments_data,
-        'poo' => $poo
+        'poo' => $poo,
+        'caja_cerrada' => $caja_cerrada,
+        'available_statuses' => function_exists('wpcpod_api_shipment_status') ? array_values(wpcpod_api_shipment_status()) : [],
     ];
-    
-    error_log("🎯 Resultado final: " . count($shipments_data) . " entregas para {$filter_date}");
     
     wp_send_json($result);
     wp_die();
+}
+
+/**
+ * Helpers para calcular el badge de Listo Para Salir (reutilizables)
+ */
+function merc_calcular_paso_lps( $ship_id ) {
+    $paso_lps = get_post_meta( $ship_id, 'merc_paso_listo_para_salir', true );
+    if ( ! $paso_lps ) {
+        $historial = get_post_meta( $ship_id, 'wpcargo_shipments_update', true );
+        if ( is_array( $historial ) ) {
+            foreach ( $historial as $h ) {
+                if ( strtoupper( trim( $h['status'] ?? '' ) ) === 'LISTO PARA SALIR' ) {
+                    update_post_meta( $ship_id, 'merc_paso_listo_para_salir', '1' );
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    return true;
+}
+
+function merc_generar_lps_html( $ship_id ) {
+    if ( merc_calcular_paso_lps( $ship_id ) ) {
+        return '<span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #28a745; color: white; border-radius: 50%; font-size: 12px;" title="Pasó por Listo para Salir">✅</span>';
+    }
+    return '<span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #dc3545; color: white; border-radius: 50%; font-size: 12px;" title="No ha pasado por Listo para Salir">❌</span>';
 }
 
 // AJAX handler para obtener el tipo de envío de un shipment (legacy - mantener por compatibilidad)
@@ -10915,16 +11076,20 @@ function merc_cliente_balance( $client_id ) {
     ";
 
     if ($fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja)) {
-        $query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
+        $query .= " AND (
+            STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')
+            OR STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')
+        )";
     }
 
     $shipments = $wpdb->get_results($wpdb->prepare($query, $client_id));
     error_log('MERC CLIENTE BALANCE - Envíos encontrados: ' . count($shipments ?: array()));
 
-    $total_recaudado = 0.0;
-    $efectivo_recaud = 0.0;
-    $pos_total       = 0.0;
-    $costo_servicios = 0.0;
+    $total_recaudado  = 0.0;
+    $efectivo_recaud  = 0.0;
+    $pos_total        = 0.0;
+    $costo_servicios  = 0.0;
+    $total_pago_marca = 0.0;
 
     if (!empty($shipments) && is_array($shipments)) {
         foreach ($shipments as $shipment) {
@@ -10936,10 +11101,12 @@ function merc_cliente_balance( $client_id ) {
                 $total_recaudado += floatval($totales['efectivo']) + floatval($totales['pago_merc']) + $pos_neto + floatval($totales['pago_marca']);
                 $efectivo_recaud += floatval($totales['efectivo']) + floatval($totales['pago_merc']);
                 $pos_total       += $pos_neto;
+                $total_pago_marca += floatval($totales['pago_marca']);
             }
 
             if (stripos($estado_upper, 'ANULADO') === false && stripos($estado_upper, 'REPROGRAMADO') === false) {
                 $envio = function_exists('merc_get_adjusted_service_cost') ? merc_get_adjusted_service_cost($shipment->ID) : floatval($shipment->costo_envio);
+                
                 $costo_servicios += $envio;
             }
         }
@@ -10948,7 +11115,8 @@ function merc_cliente_balance( $client_id ) {
     $recaudado_por_merc = $efectivo_recaud + $pos_total;
     $balance_neto_real  = $recaudado_por_merc - $costo_servicios;
 
-    // Verificar si el día ya fue liquidado (tiene shipments con merc_remitente_liquidado_fecha para esta fecha)
+    // Verificar si el día ya fue liquidado:
+    // 1. Hay shipments con merc_remitente_liquidado_fecha para esta fecha (vía reprogramado o merc_debe)
     $liquidacion_aprobada = $wpdb->get_var($wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->postmeta} pm_liq
          JOIN {$wpdb->posts} p2 ON p2.ID = pm_liq.post_id
@@ -10963,7 +11131,25 @@ function merc_cliente_balance( $client_id ) {
         $fecha_caja,
         $client_id
     ));
-    $dia_pagado  = intval($liquidacion_aprobada) > 0;
+
+    // 2. O hay una entrada verificada en merc_liquidations para esta fecha (vía merc_admin_aprobar_pago)
+    $liq_verificada_en_fecha = false;
+    if ( !intval($liquidacion_aprobada) ) {
+        $liq_history = get_user_meta( $client_id, 'merc_liquidations', true );
+        if ( is_array($liq_history) ) {
+            $fecha_caja_ymd = date('Y-m-d', strtotime($fecha_caja));
+            foreach ( $liq_history as $liq_entry ) {
+                if ( !empty($liq_entry['verified'])
+                    && !empty($liq_entry['fecha_caja'])
+                    && date('Y-m-d', strtotime($liq_entry['fecha_caja'])) === $fecha_caja_ymd ) {
+                    $liq_verificada_en_fecha = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    $dia_pagado  = intval($liquidacion_aprobada) > 0 || $liq_verificada_en_fecha;
     $tienda_debe = $balance_neto_real > 0 && !$dia_pagado;
     $merc_debe   = $balance_neto_real < 0 && !$dia_pagado;
     $saldado     = $dia_pagado || $balance_neto_real == 0;
@@ -10983,6 +11169,11 @@ function merc_cliente_balance( $client_id ) {
             <div class="merc-pc-stat-label">Total Recaudado</div>
             <div class="merc-pc-stat-value">S/. <?php echo number_format($total_recaudado, 2); ?></div>
             <div class="merc-pc-stat-note">Efectivo + Marca + POS</div>
+        </div>
+        <div class="merc-pc-stat merc-pc-red">
+            <div class="merc-pc-stat-label">Recaudado Marca</div>
+            <div class="merc-pc-stat-value">S/. <?php echo number_format($total_pago_marca, 2); ?></div>
+            <div class="merc-pc-stat-note">Pagado directamente</div>
         </div>
         <div class="merc-pc-stat merc-pc-red">
             <div class="merc-pc-stat-label">Costo Servicios</div>
@@ -11025,6 +11216,30 @@ function merc_cliente_balance( $client_id ) {
                             El balance de este dia quedo en cero. No hay pagos ni depositos pendientes.
                         <?php endif; ?>
                     </p>
+                    <?php
+                    // Mostrar el voucher que el cliente subió (si existe) en la entrada de merc_liquidations
+                    $liq_voucher_url = '';
+                    $liq_history_client = get_user_meta( $client_id, 'merc_liquidations', true );
+                    if ( is_array($liq_history_client) ) {
+                        $fecha_caja_ymd_cli = date('Y-m-d', strtotime($fecha_caja));
+                        foreach ( $liq_history_client as $liq_entry_cli ) {
+                            if ( !empty($liq_entry_cli['fecha_caja'])
+                                && date('Y-m-d', strtotime($liq_entry_cli['fecha_caja'])) === $fecha_caja_ymd_cli
+                                && !empty($liq_entry_cli['attachment_id']) ) {
+                                $liq_voucher_url = wp_get_attachment_url( intval($liq_entry_cli['attachment_id']) );
+                                break;
+                            }
+                        }
+                    }
+                    if ( $liq_voucher_url ) : ?>
+                        <div style="margin-top:12px;">
+                            <p style="margin:0 0 6px;font-size:12px;color:#4b5563;font-weight:600;">Tu comprobante de pago:</p>
+                            <a href="<?php echo esc_url($liq_voucher_url); ?>" target="_blank"
+                               style="display:inline-block;padding:6px 14px;background:#10b981;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;">
+                                📄 Ver constancia subida
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
             <?php elseif ($tienda_debe): ?>
@@ -11142,10 +11357,13 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
                pm_destino.meta_value         AS destino,
                pm_included.meta_value        AS estado_pago_remitente,
                pm_pickup_date.meta_value     AS pickup_date,
-               pm_status.meta_value          AS wpcargo_status
+               pm_status.meta_value          AS wpcargo_status,
+               pm_envio.meta_value           AS costo_envio
         FROM {$wpdb->posts} p
         LEFT JOIN {$wpdb->postmeta} pm_shipper
             ON p.ID = pm_shipper.post_id AND pm_shipper.meta_key = 'registered_shipper'
+        LEFT JOIN {$wpdb->postmeta} pm_envio
+            ON p.ID = pm_envio.post_id AND pm_envio.meta_key = 'wpcargo_costo_envio'
         LEFT JOIN {$wpdb->postmeta} pm_destino
             ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
         LEFT JOIN {$wpdb->postmeta} pm_included
@@ -11161,7 +11379,10 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
     ";
 
     if ($fecha_caja && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja)) {
-        $shipments_query .= " AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')";
+        $shipments_query .= " AND (
+            STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')
+            OR STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') = STR_TO_DATE('" . sanitize_text_field($fecha_caja) . "', '%%Y-%%m-%%d')
+        )";
     }
 
     $shipments_query .= " ORDER BY p.post_date DESC LIMIT 50";
@@ -11189,6 +11410,7 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
                 <th>Marca</th>
                 <th>POS</th>
                 <th>Total</th>
+                <th>Servicio</th>
                 <th>Estado</th>
             </tr>
         </thead>
@@ -11204,12 +11426,25 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
             $totales         = get_payment_totals_by_method($shipment->ID);
             $pos_display     = get_pos_net_for_shipment($shipment->ID, $totales);
 
+            $total_cargos_envio = 0;
+            $desc_cargos = '';
+            $envio = 0.0;
             if (!$is_sin_costo) {
                 $total_efectivo_sum   += $totales['efectivo'];
                 $total_pago_merc_sum  += $totales['pago_merc'];
                 $total_pago_marca_sum += $totales['pago_marca'];
                 $total_pos_sum        += $pos_display;
                 $total_general        += $totales['total'];
+
+                $envio = floatval($shipment->costo_envio);
+                $cargos = get_post_meta($shipment->ID, 'merc_cargos_adicionales', true);
+                if (is_array($cargos)) {
+                    foreach ($cargos as $c) {
+                        $total_cargos_envio += floatval($c['monto']);
+                        $desc_cargos .= esc_html($c['descripcion']) . ' (S/. ' . number_format($c['monto'], 2) . ')' . "\n";
+                    }
+                }
+                $envio += $total_cargos_envio;
             }
 
             if ($is_anulado)          $badge = '<span class="merc-badge merc-badge-anulado">Anulado</span>';
@@ -11220,13 +11455,24 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
             else   $badge = '<span class="merc-badge merc-badge-pendiente">Pendiente</span>';
             ?>
             <tr <?php if ($is_sin_costo) echo 'style="opacity:.6;"'; ?>>
-                <td><strong>#<?php echo esc_html($shipment->post_title); ?></strong></td>
+                <?php $tracking_url = home_url( '/dashboard/?wpcfe=track&num=' . rawurlencode($shipment->post_title) ); ?>
+                <td><strong><a href="<?php echo esc_url($tracking_url); ?>" target="_blank" style="text-decoration: underline; color: inherit;">#<?php echo esc_html($shipment->post_title); ?></a></strong></td>
                 <td style="white-space:nowrap;"><?php echo esc_html($shipment->destino ?: '-'); ?></td>
                 <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['efectivo'], 2); ?></td>
                 <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['pago_merc'], 2); ?></td>
                 <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['pago_marca'], 2); echo merc_get_pago_marca_voucher_thumb_html($shipment->ID, 16); ?></td>
                 <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($pos_display, 2); ?></td>
                 <td><strong><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['total'], 2); ?></strong></td>
+                <td>
+                    <?php if ($is_sin_costo): ?>
+                        -
+                    <?php else: ?>
+                        S/. <?php echo number_format($envio, 2); ?>
+                        <?php if ($total_cargos_envio > 0): ?>
+                            <br><span class="badge badge-warning" style="font-size:10px;cursor:pointer;margin-top:2px;" title="<?php echo esc_attr(trim($desc_cargos)); ?>" onclick="alert('Cargos Adicionales:\n<?php echo esc_js(trim($desc_cargos)); ?>')">⚡ +S/. <?php echo number_format($total_cargos_envio, 2); ?></span>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </td>
                 <td><?php echo $badge; ?></td>
             </tr>
         <?php endforeach; ?>
@@ -11239,6 +11485,7 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
                 <td>S/. <?php echo number_format($total_pago_marca_sum, 2); ?></td>
                 <td>S/. <?php echo number_format($total_pos_sum, 2); ?></td>
                 <td><strong>S/. <?php echo number_format($total_general, 2); ?></strong></td>
+                <td><strong>S/. <?php echo number_format($costo_servicios, 2); ?></strong></td>
                 <td></td>
             </tr>
         </tfoot>
@@ -12304,6 +12551,12 @@ function merc_assign_motorizado_bulk_ajax() {
  
         error_log("✅ Total envíos procesados: $total");
  
+        // Limpiar transients para actualizar contadores de contenedores inmediatamente
+        delete_transient('merc_cont_stats_' . date('Ymd'));
+        if (isset($container_id) && $container_id) {
+            delete_transient('wpcsc_sh_c_' . $container_id . '_' . md5(current_time('Y-m-d')));
+        }
+ 
         if ($is_desasignar) {
             $mensaje = "Motorizado desasignado de " . count($user_ids) . " usuario(s). Se limpiaron $total envío(s).";
         } else {
@@ -12375,6 +12628,14 @@ function merc_asignar_motorizado_default_al_crear($post_id, $data = array()) {
 		error_log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 		return;
 	}
+ 
+    // Si la fecha de recojo es futura, no auto-asignar el motorizado default de hoy
+    if (function_exists('merc_pickup_date_is_future') && merc_pickup_date_is_future($post_id)) {
+        error_log("ℹ️ Envío #$post_id tiene fecha FUTURA. No aplica motorizado default de hoy.");
+        error_log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        return;
+    }
+    
     // Verificar si el envío ya tiene motorizado asignado
     $motorizado_actual_recojo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
     $motorizado_actual_entrega = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
@@ -12426,15 +12687,9 @@ function merc_asignar_motorizado_default_al_crear($post_id, $data = array()) {
     $motorizado_default_data = get_userdata($motorizado_default);
     $nombre_motorizado = $motorizado_default_data ? $motorizado_default_data->display_name : 'Motorizado #' . $motorizado_default;
     
-    if ($isExpress) {
-        // EXPRESS/FULL_FITMENT: asignar a motorizo_entrega
-        update_post_meta($post_id, 'wpcargo_motorizo_entrega', $motorizado_default);
-        error_log("   📝 Asignado a wpcargo_motorizo_entrega (EXPRESS/FULL_FITMENT): $motorizado_default");
-    } else {
-        // NORMAL: asignar a motorizo_recojo
-        update_post_meta($post_id, 'wpcargo_motorizo_recojo', $motorizado_default);
-        error_log("   📝 Asignado a wpcargo_motorizo_recojo (NORMAL): $motorizado_default");
-    }
+    // Solo asignar motorizado de RECOJO para todos los tipos (la entrega siempre es manual)
+    update_post_meta($post_id, 'wpcargo_motorizo_recojo', $motorizado_default);
+    error_log("   📝 Asignado a wpcargo_motorizo_recojo: $motorizado_default (tipo: $tipo_envio - entrega siempre manual)");
     
     // También asignar wpcargo_driver para que sea visible en la cuenta del motorizado
     delete_post_meta($post_id, 'wpcargo_driver');
@@ -12896,6 +13151,33 @@ function merc_sync_driver_on_form_load($shipment_id) {
 }
 
 /**
+ * SINCRONIZAR wpcargo_driver cuando el ADMIN abre el editor de WordPress
+ * Garantiza que el campo "Conductor" en wp-admin/post.php muestre el valor correcto.
+ */
+add_action('load-post.php', function() {
+    if (!is_admin()) return;
+    $post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;
+    if (!$post_id) return;
+    if (get_post_type($post_id) !== 'wpcargo_shipment') return;
+
+    $estado_actual  = get_post_meta($post_id, 'wpcargo_status', true);
+    $estados_recojo = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+
+    if (in_array(strtoupper(trim($estado_actual)), $estados_recojo)) {
+        $motorizado = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+    } else {
+        $motorizado = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
+    }
+
+    if (!empty($motorizado) && $motorizado !== '0') {
+        $current_driver = get_post_meta($post_id, 'wpcargo_driver', true);
+        if ((string)$current_driver !== (string)$motorizado) {
+            update_post_meta($post_id, 'wpcargo_driver', intval($motorizado));
+        }
+    }
+});
+
+/**
  * Asignar estado FINAL correcto según tipo de envío
  * Se ejecuta como ÚLTIMA acción después de guardar, para garantizar que
  * admin Y cliente tienen el estado correcto (sin depender del frontend)
@@ -13033,6 +13315,12 @@ function merc_assign_motorizado_entrega_bulk_ajax() {
         }
  
         error_log("✅ Total envíos procesados: $total");
+ 
+        // Limpiar transients para actualizar contadores de contenedores inmediatamente
+        delete_transient('merc_cont_stats_' . date('Ymd'));
+        if (isset($container_id) && $container_id) {
+            delete_transient('wpcsc_sh_c_' . $container_id . '_' . md5(current_time('Y-m-d')));
+        }
  
         if ($is_desasignar) {
             $mensaje = "Motorizado desasignado de $total envío(s) de entrega.";
@@ -13881,10 +14169,8 @@ function merc_set_product_stock($product_id, $quantity, $sku = '') {
     // Contar unidades no-disponibles (assigned/delivered)
     $non_available = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE product_id = %d AND status != 'available'", $product_id)));
 
-    // Si se intenta reducir la cantidad total por debajo del número de unidades ya asignadas/delivered, prohibir
-    if ($quantity < $non_available) {
-        return new WP_Error('stock_locked', 'No puedes establecer una cantidad menor que las unidades ya asignadas o entregadas.');
-    }
+    // Se elimina la validación que restringía la cantidad basada en non_available
+    // porque $quantity representa el nuevo stock DISPONIBLE deseado, no el total histórico.
 
     if ($quantity > $current_available) {
         $to_add = $quantity - $current_available;
@@ -15414,8 +15700,15 @@ function merc_pod_catch_and_save(){
                 $estado_form = sanitize_text_field($_POST['status']);
             }
 
-            // Solo ejecutar el guardado automático si detectamos firma o estado ENTREGADO
-            if ( $has_signature || strtoupper(trim($estado_form)) === 'ENTREGADO' || (isset($_POST['action']) && $_POST['action'] === 'pod_signed') ) {
+            // Validar foto obligatoria (siempre requerida)
+            $tiene_foto = !empty(get_post_meta($shipment_id, 'wpcargo-pod-image', true));
+            // Validar métodos de pago (solo si NO es NO COBRAR)
+            $modo_pago_bs = strtolower(trim(get_post_meta($shipment_id, 'payment_wpcargo_mode_field', true)));
+            $es_no_cobrar_bs = ($modo_pago_bs === 'no cobrar' || $modo_pago_bs === '1');
+            $tiene_metodos = !empty($_POST['pod_payment_methods']) && $_POST['pod_payment_methods'] !== '[]';
+            $pago_valido = $es_no_cobrar_bs || $tiene_metodos;
+            // Solo guardar si hay foto Y pago válido Y estado ENTREGADO
+            if ( $tiene_foto && $pago_valido && strtoupper(trim($estado_form)) === 'ENTREGADO' ) {
                 try {
                     error_log('MERC_POD_AUTO_SAVE - invocando merc_save_pod_payment_methods (final) para shipment ' . $shipment_id . ' has_signature=' . ($has_signature?1:0) . ' status=' . $estado_form);
                     merc_save_pod_payment_methods($shipment_id, $form_data);
@@ -15539,6 +15832,10 @@ function wpcpod_get_single_shipment_data_handler() {
     }
     $monto = floatval($monto);
     $link_maps = get_post_meta($post_id, 'link_maps', true);
+    $modo_pago = get_post_meta($post_id, 'modo_pago', true);
+    if ( empty($modo_pago) ) {
+        $modo_pago = get_post_meta($post_id, 'payment_wpcargo_mode_field', true);
+    }
     
 	$current_user = wp_get_current_user();
 	$first_name = get_user_meta( $current_user->ID, 'first_name', true );
@@ -15561,7 +15858,8 @@ function wpcpod_get_single_shipment_data_handler() {
         'shipper_name' => $shipper_name,
         'tienda_name' => $tienda_name,
         'monto' => $monto,
-        'link_maps' => $link_maps
+        'link_maps' => $link_maps,
+        'modo_pago' => $modo_pago
     ));
     
     error_log('=== FIN HANDLER ===');
@@ -16859,23 +17157,30 @@ function merc_admin_aprobar_pago_ajax() {
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
         AND pm_shipper.meta_value = %s
-        AND STR_TO_DATE(pm_pickup.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')
+        AND (
+            STR_TO_DATE(pm_pickup.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d')
+            OR STR_TO_DATE(pm_pickup.meta_value, '%%Y-%%m-%%d') = STR_TO_DATE(%s, '%%Y-%%m-%%d')
+        )
     ", $user_id, $fecha_caja);
     
     $shipments = $wpdb->get_col($query);
     
     if ( !empty($shipments) ) {
+        $fecha_caja_ymd = date('Y-m-d', strtotime($fecha_caja));
         foreach ( $shipments as $shipment_id ) {
             $estado_upper = strtoupper(trim(get_post_meta($shipment_id, 'wpcargo_status', true)));
             if ( $estado_upper === 'ENTREGADO' || $estado_upper === 'NO RECIBIDO' || $estado_upper === 'NO RECOGIDO' ) {
                 update_post_meta( $shipment_id, 'wpcargo_included_in_liquidation', $liq_id );
                 update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja_ymd );
             } elseif ( $estado_upper === 'ANULADO' ) {
                 update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja_ymd );
             } elseif ( $estado_upper === 'REPROGRAMADO' ) {
-                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja );
+                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja_ymd );
             } else {
                 update_post_meta( $shipment_id, 'merc_remitente_liquidated', '1' );
+                update_post_meta( $shipment_id, 'merc_remitente_liquidado_fecha', $fecha_caja_ymd );
             }
         }
     }
@@ -17117,27 +17422,66 @@ function merc_clear_liquidation_on_reintent( $meta_id, $object_id, $meta_key, $_
  * coincidan con los configurados en wcmas_buscar_contenedor_activo.
  */
 
-// 1. Registrar intervalo de 15 minutos
+// 1. Registrar intervalo de 2 minutos
 add_filter( 'cron_schedules', 'merc_add_cron_intervals' );
 function merc_add_cron_intervals( $schedules ) {
-    $schedules['fifteen_minutes'] = array(
-        'interval' => 15 * MINUTE_IN_SECONDS, // 900 segundos
-        'display'  => 'Cada 15 Minutos'
+    $schedules['two_minutes'] = array(
+        'interval' => 2 * MINUTE_IN_SECONDS, // 120 segundos
+        'display'  => 'Cada 2 Minutos'
     );
     return $schedules;
 }
 
 // 2. Programar con el nuevo intervalo
 $current_schedule = wp_get_schedule('merc_supervisor_contenedores_cron');
-if ($current_schedule !== 'fifteen_minutes') {
+if ($current_schedule !== 'two_minutes') {
     $timestamp = wp_next_scheduled('merc_supervisor_contenedores_cron');
     if ($timestamp) {
         wp_unschedule_event($timestamp, 'merc_supervisor_contenedores_cron');
     }
-    wp_schedule_event(time(), 'fifteen_minutes', 'merc_supervisor_contenedores_cron');
+    wp_schedule_event(time(), 'two_minutes', 'merc_supervisor_contenedores_cron');
 }
 
 add_action('merc_supervisor_contenedores_cron', 'merc_ejecutar_supervisor_contenedores');
+
+// Disparar verificación de contenedor inmediatamente al crear/guardar un pedido
+add_action('save_post_wpcargo_shipment', 'merc_supervisor_un_envio', 200, 1);
+function merc_supervisor_un_envio($post_id) {
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (get_post_type($post_id) !== 'wpcargo_shipment') return;
+    if (!function_exists('wcmas_buscar_contenedor_activo')) return;
+
+    $tipo_envio   = strtolower(trim(get_post_meta($post_id, 'tipo_envio', true)));
+    $dist_recojo  = get_post_meta($post_id, 'wpcargo_distrito_recojo', true);
+    $dist_destino = get_post_meta($post_id, 'wpcargo_distrito_destino', true);
+
+    // 1. Contenedor de recojo (solo NORMAL)
+    if ($tipo_envio === 'normal' && $dist_recojo) {
+        $cont_correcto = wcmas_buscar_contenedor_activo($dist_recojo, 'recojo');
+        $cont_actual   = get_post_meta($post_id, 'shipment_container_recojo', true);
+        if ($cont_correcto && $cont_actual != $cont_correcto) {
+            update_post_meta($post_id, 'shipment_container_recojo', $cont_correcto);
+            $driver = get_post_meta($cont_correcto, 'delivery_agent', true);
+            $motorizo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+            if (!empty($driver) && $driver !== '0' && empty($motorizo)) {
+                update_post_meta($post_id, 'wpcargo_motorizo_recojo', $driver);
+                update_post_meta($post_id, 'wpcargo_driver', $driver);
+            }
+            error_log("[Supervisor-OnSave] Envío #{$post_id}: contenedor recojo corregido a #{$cont_correcto}");
+        }
+    }
+
+    // 2. Contenedor de entrega (todos los tipos)
+    if ($dist_destino) {
+        $cont_correcto = wcmas_buscar_contenedor_activo($dist_destino, 'entrega');
+        $cont_actual   = get_post_meta($post_id, 'shipment_container_entrega', true);
+        if ($cont_correcto && $cont_actual != $cont_correcto) {
+            update_post_meta($post_id, 'shipment_container_entrega', $cont_correcto);
+            // NO heredar motorizado de entrega - siempre es manual
+            error_log("[Supervisor-OnSave] Envío #{$post_id}: contenedor entrega corregido a #{$cont_correcto}");
+        }
+    }
+}
 
 function merc_ejecutar_supervisor_contenedores() {
     global $wpdb;
@@ -17152,11 +17496,12 @@ function merc_ejecutar_supervisor_contenedores() {
     
     // Buscar shipments creados para hoy
     $shipments = $wpdb->get_col($wpdb->prepare("
-        SELECT p.ID 
+        SELECT DISTINCT p.ID 
         FROM {$wpdb->posts} p
-        INNER JOIN {$wpdb->postmeta} pm_date ON p.ID = pm_date.post_id AND pm_date.meta_key = 'wpcargo_pickup_date_picker'
+        INNER JOIN {$wpdb->postmeta} pm_date ON p.ID = pm_date.post_id 
         WHERE p.post_type = 'wpcargo_shipment' 
         AND p.post_status = 'publish'
+        AND pm_date.meta_key IN ('wpcargo_pickup_date_picker', 'wpcargo_fecha_envio', 'wpcargo_pickup_date')
         AND pm_date.meta_value IN (%s, %s, %s, %s)
     ", $hoy_iso, $hoy_dmy, $hoy_dmy2, $hoy_dmy3));
     
@@ -17182,6 +17527,14 @@ function merc_ejecutar_supervisor_contenedores() {
             if ($cont_recojo_correcto && $cont_recojo_actual !== $cont_recojo_correcto) {
                 update_post_meta($ship_id, 'shipment_container_recojo', $cont_recojo_correcto);
                 $hubo_cambio = true;
+                
+                // Inherit driver from container
+                $driver = get_post_meta($cont_recojo_correcto, 'delivery_agent', true);
+                $current_motorizo = get_post_meta($ship_id, 'wpcargo_motorizo_recojo', true);
+                if (!empty($driver) && $driver !== '0' && empty($current_motorizo)) {
+                    update_post_meta($ship_id, 'wpcargo_motorizo_recojo', $driver);
+                    update_post_meta($ship_id, 'wpcargo_driver', $driver);
+                }
             }
         }
         
@@ -17191,6 +17544,14 @@ function merc_ejecutar_supervisor_contenedores() {
             if ($cont_entrega_correcto && $cont_entrega_actual !== $cont_entrega_correcto) {
                 update_post_meta($ship_id, 'shipment_container_entrega', $cont_entrega_correcto);
                 $hubo_cambio = true;
+                
+                // Inherit driver from container
+                $driver = get_post_meta($cont_entrega_correcto, 'delivery_agent', true);
+                $current_motorizo = get_post_meta($ship_id, 'wpcargo_motorizo_entrega', true);
+                if (!empty($driver) && $driver !== '0' && empty($current_motorizo)) {
+                    update_post_meta($ship_id, 'wpcargo_motorizo_entrega', $driver);
+                    update_post_meta($ship_id, 'wpcargo_driver', $driver);
+                }
             }
         }
         
@@ -17205,3 +17566,371 @@ function merc_ejecutar_supervisor_contenedores() {
     }
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MERC: Tracking permanente de "LISTO PARA SALIR" via postmeta
+// (El badge se inyecta en merc_planificador_con_link_maps via merc_generar_lps_html)
+// ═══════════════════════════════════════════════════════════════════════════
+
+add_action( 'updated_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( $meta_key !== 'wpcargo_status' ) return;
+    if ( strtoupper( trim( (string) $meta_value ) ) === 'LISTO PARA SALIR' ) {
+        update_post_meta( $post_id, 'merc_paso_listo_para_salir', '1' );
+    }
+}, 10, 4 );
+
+add_action( 'added_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( $meta_key !== 'wpcargo_status' ) return;
+    if ( strtoupper( trim( (string) $meta_value ) ) === 'LISTO PARA SALIR' ) {
+        update_post_meta( $post_id, 'merc_paso_listo_para_salir', '1' );
+    }
+}, 10, 4 );
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MERC: Endpoint de diagnóstico y reasignación forzada de contenedor (TEMPORAL)
+// Uso: /wp-admin/admin-ajax.php?action=merc_debug_shipment&num=MERC-012444&force=1
+// Eliminar este bloque cuando ya no sea necesario.
+// ═══════════════════════════════════════════════════════════════════════════
+add_action( 'wp_ajax_merc_debug_shipment', function() {
+    if ( ! current_user_can('administrator') ) wp_die('No autorizado');
+
+    $num   = sanitize_text_field( $_GET['num'] ?? '' );
+    $force = (bool) ( $_GET['force'] ?? false );
+
+    if ( ! $num ) wp_send_json_error('Falta parámetro num');
+
+    global $wpdb;
+    $post = get_page_by_title( $num, OBJECT, 'wpcargo_shipment' );
+    if ( ! $post ) {
+        // Try partial match
+        $id = $wpdb->get_var( $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type='wpcargo_shipment' AND post_status='publish' AND post_title LIKE %s LIMIT 1",
+            '%' . $wpdb->esc_like($num) . '%'
+        ) );
+        if ( $id ) $post = get_post($id);
+    }
+
+    if ( ! $post ) wp_send_json_error("Pedido '$num' no encontrado");
+
+    $id   = $post->ID;
+    $meta = get_post_meta( $id );
+
+    // Flatten meta
+    $flat = [];
+    $relevant_keys = [
+        'wpcargo_status', 'tipo_envio', 'wpcargo_type_of_shipment',
+        'wpcargo_pickup_date_picker', 'wpcargo_fecha_envio', 'wpcargo_pickup_date',
+        'wpcargo_distrito_destino', 'wpcargo_distrito_recojo',
+        'shipment_container', 'shipment_container_recojo', 'shipment_container_entrega',
+        'wpcargo_motorizo_recojo', 'wpcargo_motorizo_entrega', 'wpcargo_driver',
+    ];
+    foreach ( $relevant_keys as $k ) {
+        $flat[$k] = get_post_meta( $id, $k, true );
+    }
+
+    $result = [
+        'shipment_id'    => $id,
+        'title'          => $post->post_title,
+        'meta_relevante' => $flat,
+    ];
+
+    // Intentar reasignar si force=1
+    if ( $force && function_exists('wcmas_buscar_contenedor_activo') ) {
+        $distrito_destino = $flat['wpcargo_distrito_destino'];
+        $distrito_recojo  = $flat['wpcargo_distrito_recojo'];
+        $tipo_envio       = strtolower( trim( (string) $flat['wpcargo_type_of_shipment'] ) );
+
+        if ( $distrito_destino ) {
+            $cont = wcmas_buscar_contenedor_activo( $distrito_destino, 'entrega' );
+            if ( $cont > 0 ) {
+                update_post_meta( $id, 'shipment_container_entrega', $cont );
+                $result['accion_entrega'] = "Asignado shipment_container_entrega = $cont";
+
+                $driver = get_post_meta( $cont, 'delivery_agent', true );
+                if ( ! empty($driver) && $driver !== '0' ) {
+                    update_post_meta( $id, 'wpcargo_motorizo_entrega', $driver );
+                    update_post_meta( $id, 'wpcargo_driver', $driver );
+                    $result['accion_driver'] = "Heredado driver = $driver del contenedor $cont";
+                }
+            } else {
+                $result['accion_entrega'] = "No se encontró contenedor para distrito '$distrito_destino' en el mapa";
+            }
+        }
+
+        if ( $tipo_envio === 'normal' && $distrito_recojo ) {
+            $cont_r = wcmas_buscar_contenedor_activo( $distrito_recojo, 'recojo' );
+            if ( $cont_r > 0 ) {
+                update_post_meta( $id, 'shipment_container_recojo', $cont_r );
+                $result['accion_recojo'] = "Asignado shipment_container_recojo = $cont_r";
+            }
+        }
+
+        // Refresh
+        foreach ( $relevant_keys as $k ) {
+            $flat[$k] = get_post_meta( $id, $k, true );
+        }
+        $result['meta_despues'] = $flat;
+    }
+
+    // Mostrar qué contenedor debería corresponder (sin forzar)
+    if ( function_exists('wcmas_buscar_contenedor_activo') && $flat['wpcargo_distrito_destino'] ) {
+        $cont_esperado = wcmas_buscar_contenedor_activo( $flat['wpcargo_distrito_destino'], 'entrega' );
+        $result['contenedor_esperado_entrega'] = $cont_esperado;
+        $result['contenedor_esperado_titulo']  = $cont_esperado ? get_the_title( $cont_esperado ) : 'No mapeado';
+    }
+
+    wp_send_json_success( $result );
+} );
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MERC: Reparación masiva de wpcargo_driver vacíos (TEMPORAL - una sola vez)
+// Uso: /wp-admin/admin-ajax.php?action=merc_repair_drivers
+// Eliminar este bloque después de ejecutarlo.
+// ═══════════════════════════════════════════════════════════════════════════
+add_action( 'wp_ajax_merc_repair_drivers', function() {
+    if ( ! current_user_can('administrator') ) wp_die('No autorizado');
+
+    global $wpdb;
+
+    // Obtener todos los envíos publicados
+    $shipment_ids = $wpdb->get_col(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'wpcargo_shipment' AND post_status = 'publish'"
+    );
+
+    $repaired   = 0;
+    $skipped    = 0;
+    $no_motorizo = 0;
+
+    $estados_recojo = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+
+    foreach ( $shipment_ids as $id ) {
+        $estado     = strtoupper( trim( (string) get_post_meta( $id, 'wpcargo_status', true ) ) );
+        $tipo       = strtolower( trim( (string) get_post_meta( $id, 'tipo_envio', true ) ) );
+        $isExpress  = ( $tipo === 'express' || $tipo === 'full_fitment' || $tipo === 'fullfitment' );
+
+        if ( $isExpress || ! in_array( $estado, $estados_recojo ) ) {
+            $motorizado = get_post_meta( $id, 'wpcargo_motorizo_entrega', true );
+        } else {
+            $motorizado = get_post_meta( $id, 'wpcargo_motorizo_recojo', true );
+        }
+
+        if ( empty($motorizado) || $motorizado === '0' ) {
+            $no_motorizo++;
+            continue;
+        }
+
+        $current_driver = get_post_meta( $id, 'wpcargo_driver', true );
+        if ( (string)$current_driver === (string)$motorizado ) {
+            $skipped++;
+            continue;
+        }
+
+        update_post_meta( $id, 'wpcargo_driver', intval($motorizado) );
+        $repaired++;
+    }
+
+    wp_send_json_success( array(
+        'total'       => count($shipment_ids),
+        'reparados'   => $repaired,
+        'ya_correctos'=> $skipped,
+        'sin_motorizo'=> $no_motorizo,
+        'mensaje'     => "$repaired pedidos reparados de " . count($shipment_ids) . " total.",
+    ) );
+} );
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MERC: Interceptar el estado "LISTO PARA SALIR"
+// Cuando el administrador (o cualquier proceso) intenta cambiar el estado 
+// a "LISTO PARA SALIR", evitamos que el estado principal cambie, pero 
+// activamos la bandera `merc_paso_listo_para_salir` para que se muestre el check.
+// ═══════════════════════════════════════════════════════════════════════════
+add_filter( 'update_post_metadata', 'merc_intercept_listo_para_salir', 10, 5 );
+add_filter( 'add_post_metadata', 'merc_intercept_listo_para_salir', 10, 5 );
+
+function merc_intercept_listo_para_salir( $check, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
+    if ( $meta_key === 'wpcargo_status' && strtoupper( trim( $meta_value ) ) === 'LISTO PARA SALIR' ) {
+        // 1. Activar el check de "Pasó por Listo para Salir"
+        update_post_meta( $object_id, 'merc_paso_listo_para_salir', '1' );
+        
+        // 2. Retornar true cortocircuita la actualización. 
+        // WPCargo pensará que tuvo éxito, pero en la BD se mantendrá el estado anterior.
+        return true; 
+    }
+    return $check;
+}
+
+/**
+ * SOBREESCRIBIR BADGE DE "HISTORIAL DE ENV�OS" (999+)
+ * Muestra el conteo optimizado de pedidos del d�a seg�n el rol.
+ */
+add_filter('wpcfe_shipments_menu', 'merc_dynamic_shipments_menu_badge');
+function merc_dynamic_shipments_menu_badge($menu_html) {
+    if (!is_user_logged_in()) {
+        return $menu_html;
+    }
+    
+    $user = wp_get_current_user();
+    $user_id = $user->ID;
+    $roles = (array) $user->roles;
+    
+    // Solo mostramos para estos roles
+    $is_client = in_array('wpcargo_client', $roles);
+    $is_driver = in_array('wpcargo_driver', $roles);
+    $is_admin  = in_array('administrator', $roles) || in_array('wpcargo_admin', $roles);
+    
+    if (!$is_client && !$is_driver && !$is_admin) {
+        return $menu_html; // Otros roles (ej. agent) no cambiamos
+    }
+    
+    // Cach� transitorio por 2 minutos para no saturar la BD
+    $transient_key = 'merc_unseen_today_' . $user_id;
+    $count = get_transient($transient_key);
+    
+    if (false === $count) {
+        global $wpdb;
+        
+        $today        = current_time('Y-m-d');
+        $today_dt     = new DateTime($today);
+        $today_d_noz  = ltrim($today_dt->format('d'), '0');
+        $today_m_noz  = ltrim($today_dt->format('m'), '0');
+        $today_y      = $today_dt->format('Y');
+
+        $date_variants = array(
+            $today_dt->format('Y-m-d'),
+            $today_dt->format('d/m/Y'),
+            $today_dt->format('d-m-Y'),
+            $today_d_noz . '/' . $today_m_noz . '/' . $today_y,
+            $today_d_noz . '/' . $today_dt->format('m') . '/' . $today_y,
+            $today_dt->format('d') . '/' . $today_m_noz . '/' . $today_y
+        );
+        
+        $date_likes_sql = implode(' OR ', array_fill(0, count($date_variants), 'pm_fecha.meta_value LIKE %s'));
+        $params = array();
+        foreach ($date_variants as $v) {
+            $params[] = $v . '%';
+        }
+        
+        $sql = "
+            SELECT COUNT(p.ID) 
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm_fecha ON p.ID = pm_fecha.post_id AND pm_fecha.meta_key = 'wpcargo_pickup_date_picker' AND ($date_likes_sql)
+        ";
+        
+        $where = "WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'";
+        
+        if ($is_client) {
+            $sql .= " INNER JOIN {$wpdb->postmeta} pm_user ON p.ID = pm_user.post_id AND pm_user.meta_key = 'registered_shipper' AND pm_user.meta_value = %d ";
+            $params[] = $user_id;
+        } elseif ($is_driver) {
+            // El motorizado puede ver los que tiene asignados para RECOJO o ENTREGA
+            $sql .= " INNER JOIN {$wpdb->postmeta} pm_user ON p.ID = pm_user.post_id AND pm_user.meta_value = %d AND pm_user.meta_key IN ('wpcargo_motorizo_recojo', 'wpcargo_motorizo_entrega', 'wpcargo_driver') ";
+            $params[] = $user_id;
+        }
+        
+        $sql .= " $where";
+        
+        $count = $wpdb->get_var($wpdb->prepare($sql, $params));
+        $count = $count ?: 0;
+        
+        set_transient($transient_key, $count, 2 * MINUTE_IN_SECONDS);
+    }
+    
+    if ($count > 0) {
+        $badge_text = $count > 999 ? '999+' : $count;
+        $badge_html = sprintf(' <span class="badge badge-pill bg-danger align-top">%s</span>', $badge_text);
+        // Retornar el texto base del men� + el badge
+        return __('Shipments', 'wpcargo-frontend-manager') . $badge_html;
+    }
+    
+    return __('Shipments', 'wpcargo-frontend-manager');
+}
+
+
+// ==============================================================================
+// SISTEMA ATÓMICO DE GENERACIÓN DE CÓDIGOS DE TRACKING
+// Soluciona la Condición de Carrera de generación de tracking duplicados
+// ==============================================================================
+
+function merc_atomic_get_next_tracking_number() {
+    global $wpdb;
+
+    $prefix = 'MERC-';
+    $digits = 6;
+    $option_name = 'merc_tracking_counter';
+
+    // 1. Asegurar que la opción exista. Si no existe, averiguar el número más alto en BD.
+    $exists = $wpdb->get_var($wpdb->prepare("SELECT option_id FROM {$wpdb->options} WHERE option_name = %s", $option_name));
+    
+    if (!$exists) {
+        $like_pattern = $wpdb->esc_like($prefix) . str_repeat('_', $digits);
+        $ultimo = $wpdb->get_var( $wpdb->prepare(
+            "SELECT post_title FROM {$wpdb->posts}
+             WHERE post_type = 'wpcargo_shipment'
+               AND post_title LIKE %s
+             ORDER BY post_title DESC
+             LIMIT 1",
+            $like_pattern
+        ));
+        
+        $last_num = 0;
+        if ($ultimo) {
+            $sin_prefix = substr($ultimo, strlen($prefix));
+            $last_num = intval(preg_replace('/\D/', '', $sin_prefix));
+        }
+
+        $wpdb->insert($wpdb->options, array(
+            'option_name' => $option_name,
+            'option_value' => (string)$last_num,
+            'autoload' => 'no'
+        ));
+    }
+
+    // 2. Incrementar atómicamente la opción en la base de datos
+    $wpdb->query($wpdb->prepare(
+        "UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s",
+        $option_name
+    ));
+
+    // 3. Leer el nuevo valor
+    $next_id = $wpdb->get_var($wpdb->prepare(
+        "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+        $option_name
+    ));
+
+    return $prefix . str_pad($next_id, $digits, '0', STR_PAD_LEFT);
+}
+
+// Enganchar al filtro de WPCargo con prioridad altísima (999) para sobrescribir a todos.
+add_filter('wpcargo_generated_shipment_number', 'merc_override_tracking_number_atomic', 999, 2);
+function merc_override_tracking_number_atomic($shipment_number, $generated_number = 0) {
+    static $cached_number = null;
+    
+    // Si estamos en un proceso de carga masiva (Bulk Importer) no usamos la caché
+    // porque se llaman a los filtros secuencialmente para posts distintos.
+    $is_bulk = ( isset($_POST['action']) && $_POST['action'] === 'wcmas_procesar_chunk' ) 
+            || ( isset($_GET['page']) && $_GET['page'] === 'wpcfe-add-shipment' ) 
+            || wp_doing_ajax();
+    
+    if (!$is_bulk && $cached_number !== null) {
+        return $cached_number;
+    }
+
+    $cached_number = merc_atomic_get_next_tracking_number();
+    
+    // Validación extra de seguridad
+    global $wpdb;
+    $intentos = 0;
+    while ($intentos < 50) {
+        $existe = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'wpcargo_shipment' AND post_title = %s LIMIT 1",
+            $cached_number
+        ));
+        if (!$existe) {
+            break;
+        }
+        $cached_number = merc_atomic_get_next_tracking_number();
+        $intentos++;
+    }
+    
+    return $cached_number;
+}

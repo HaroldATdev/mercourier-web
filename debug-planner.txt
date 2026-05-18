@@ -1,0 +1,96 @@
+Date Filter Debug
+-----------------
+Filter Date: 15/05/2026
+Total Active Shipments: 13
+
+Shipment: MERC-010181 (ID: 31175)
+wpcargo_pickup_date_picker: 07/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: RECEPCIONADO
+-----------------
+Shipment: MERC-011226 (ID: 33130)
+wpcargo_pickup_date_picker: 11/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: RECEPCIONADO
+-----------------
+Shipment: MERC-010378 (ID: 31664)
+wpcargo_pickup_date_picker: 11/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: RECEPCIONADO
+-----------------
+Shipment: MERC-011453 (ID: 33501)
+wpcargo_pickup_date_picker: 11/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: RECEPCIONADO
+-----------------
+Shipment: MERC-012288 (ID: 39504)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012346 (ID: 39564)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012279 (ID: 36112)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012415 (ID: 39640)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012418 (ID: 39643)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012274 (ID: 35999)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012359 (ID: 39579)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012370 (ID: 39590)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: EN BASE MERCOURIER
+-----------------
+Shipment: MERC-012426 (ID: 39652)
+wpcargo_pickup_date_picker: 15/05/2026
+wpcargo_pickup_date: 
+calendarenvio: 
+wpcargo_fecha_envio: 
+wpcargo_status: LISTO PARA SALIR
+-----------------

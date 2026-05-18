@@ -78,7 +78,16 @@ class MERC_Shipment_Table {
 
 		$distrito_recojo  = get_post_meta( $shipment_id, 'wpcargo_distrito_recojo',  true );
 		$distrito_destino = get_post_meta( $shipment_id, 'wpcargo_distrito_destino', true )
-		                 ?: get_post_meta( $shipment_id, 'wpcargo_destination',       true );
+		                 ?: get_post_meta( $shipment_id, 'wpcargo_destination',       true )
+		                 ?: get_post_meta( $shipment_id, 'wpcargo_receiver_address',  true );
+
+		// Obtener nombre del destinatario usando el field_key configurado en WPCargo (puede variar)
+		$_receiver_field  = function_exists( 'wpcfe_table_header' )
+		                  ? ( ( wpcfe_table_header( 'receiver' )['field_key'] ?? '' ) ?: 'wpcargo_receiver_name' )
+		                  : 'wpcargo_receiver_name';
+		$receiver_name    = get_post_meta( $shipment_id, $_receiver_field, true )
+		                 ?: get_post_meta( $shipment_id, 'wpcargo_receiver_name', true )
+		                 ?: get_post_meta( $shipment_id, 'wpcargo_receiver', true );
 
 		$fecha = get_post_meta( $shipment_id, 'wpcargo_pickup_date_picker', true )
 		      ?: get_post_meta( $shipment_id, 'wpcargo_calendarenvio', true )
@@ -97,13 +106,95 @@ class MERC_Shipment_Table {
 		$motorizo_recojo_html  = $this->render_driver( $motorizo_recojo_id );
 		$motorizo_recojo_name  = $this->get_driver_name( $motorizo_recojo_id );
 		
-		$motorizo_entrega_html = $this->render_driver( get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true ) );
+		$motorizo_entrega_id   = get_post_meta( $shipment_id, 'wpcargo_motorizo_entrega', true );
+		$motorizo_entrega_html = $this->render_driver( $motorizo_entrega_id );
+		
+		// Generar botones de WhatsApp si es administrador
+		$whatsapp_buttons_html = '';
+		if ( current_user_can('manage_options') ) {
+		    // Datos base
+		    $shipment_title = get_the_title($shipment_id);
+		    $receiver_phone = get_post_meta($shipment_id, 'wpcargo_receiver_phone', true);
+		    $receiver_address = get_post_meta($shipment_id, 'wpcargo_receiver_address', true);
+		    
+		    $shipper_phone = get_post_meta($shipment_id, 'wpcargo_shipper_phone', true);
+		    if (empty($shipper_phone) && !empty($cliente_id)) {
+		        $shipper_phone = get_user_meta($cliente_id, 'billing_phone', true);
+		    }
+		    
+		    $monto = get_post_meta($shipment_id, 'wpcargo_total_cobrar', true);
+		    $modo_pago = get_post_meta($shipment_id, 'payment_wpcargo_mode_field', true);
+		    if (empty($modo_pago)) {
+		        $modo_pago = get_post_meta($shipment_id, 'modo_pago', true);
+		    }
+		    
+		    $mot_name = 'asignado próximamente';
+		    $mot_phone = '';
+		    if (!empty($motorizo_entrega_id)) {
+		        $mot_name = $this->get_driver_name($motorizo_entrega_id);
+		        $mot_phone = get_user_meta($motorizo_entrega_id, 'billing_phone', true);
+		        if (empty($mot_phone)) $mot_phone = get_user_meta($motorizo_entrega_id, 'wpc_phone', true);
+		    }
+		    
+		    $mot_text = $mot_name . (!empty($mot_phone) ? ' - ' . $mot_phone : '');
+		    
+		    // Limpiar teléfonos
+		    $clean_receiver = preg_replace('/[^0-9]/', '', (string)$receiver_phone);
+		    if (strlen($clean_receiver) == 9) $clean_receiver = '51' . $clean_receiver;
+		    
+		    $clean_shipper = preg_replace('/[^0-9]/', '', (string)$shipper_phone);
+		    if (strlen($clean_shipper) == 9) $clean_shipper = '51' . $clean_shipper;
+		    
+		    // Mensaje CLIENTE
+		    $msg_cliente = "¡Hola! Te saluda👋🏼 el equipo de Soporte de MERCourier 🏍️. Tenemos una entrega🎁 programada para ti a nombre de la marca *" . ($tienda ?: 'Nuestra Tienda') . "*:\n\n";
+		    $msg_cliente .= "📍 *Dirección de entrega:* *" . ($receiver_address ?: 'No especificada') . "* (*" . ($distrito_destino ?: 'No especificado') . "*)\n";
+		    
+		    $is_no_cobrar = (strtolower(trim($modo_pago)) === 'no cobrar' || $modo_pago === '1');
+		    if (!$is_no_cobrar && floatval($monto) > 0) {
+		        $modo_display = $modo_pago ?: 'YAPE o efectivo';
+		        $msg_cliente .= "💰 *Monto a cobrar:* *S/. " . number_format((float)$monto, 2) . "* (" . $modo_display . ")\n";
+		    }
+		    
+		    $msg_cliente .= "\n¿Nos podrías confirmar si te encuentras en el punto para recibir tu pedido🛂, o brindarnos tu ubicación en tiempo real para facilitar la llegada?\n\n";
+		    $msg_cliente .= "⏳ *Importante:* Nuestro motorizado asignado (*" . $mot_text . "*) está intentando comunicarse contigo. Quedamos muy atentos a tu confirmación para poder concretar tu entrega.\n\n";
+		    $msg_cliente .= "*(Te recordamos que nuestro horario de reparto es de 2:30 pm a 7:30 pm)*\n\n";
+		    $msg_cliente .= "¡Gracias por tu atención! 😊";
+		    
+		    // Mensaje MARCA
+		    $msg_marca = "¡Hola! Te saluda👋🏼 el equipo de Soporte de MERCourier 🏍️, nos comunicamos sobre una entrega🎁 de tu clienta:\n\n";
+		    $msg_marca .= "📦 *Datos de la entrega:*\n";
+		    $msg_marca .= "- Número de pedido: *" . $shipment_title . "*\n";
+		    $msg_marca .= "- Destinatario: *" . ($receiver_name ?: 'No especificado') . "*\n";
+		    $msg_marca .= "- Dirección: *" . ($receiver_address ?: 'No especificada') . "* (*" . ($distrito_destino ?: 'No especificado') . "*)\n";
+		    $msg_marca .= "- Teléfono: *" . ($receiver_phone ?: 'No especificado') . "*\n";
+		    if (!$is_no_cobrar && floatval($monto) > 0) {
+		        $msg_marca .= "- Monto a cobrar: *S/. " . number_format((float)$monto, 2) . "*\n";
+		    }
+		    $msg_marca .= "\nEl motorizado asignado (*" . $mot_text . "*) está intentando contactarla pero no obtiene respuesta 📞. ¿Nos podrías apoyar con la comunicación🗣️ para que su pedido🛂 sea entregado💪🏻 correctamente?\n\n";
+		    $msg_marca .= "¡Gracias por tu apoyo! Quedamos atentos a tu respuesta. 😊🤝";
+		    
+		    $whatsapp_buttons_html .= '<div style="display:flex; flex-direction:column; gap:4px;">';
+		    if (!empty($clean_shipper)) {
+		        $url_marca = 'https://wa.me/' . $clean_shipper . '?text=' . urlencode($msg_marca);
+		        $whatsapp_buttons_html .= '<a href="' . esc_url($url_marca) . '" target="_blank" style="background-color:#25D366; color:white; padding:4px 8px; border-radius:4px; font-size:11px; text-decoration:none; text-align:center; display:block;" title="Enviar WhatsApp a la Marca">💬 MARCA</a>';
+		    } else {
+		        $whatsapp_buttons_html .= '<span style="background-color:#95a5a6; color:white; padding:4px 8px; border-radius:4px; font-size:11px; text-align:center; display:block;" title="Sin número de Marca">📵 MARCA</span>';
+		    }
+		    
+		    if (!empty($clean_receiver)) {
+		        $url_cliente = 'https://wa.me/' . $clean_receiver . '?text=' . urlencode($msg_cliente);
+		        $whatsapp_buttons_html .= '<a href="' . esc_url($url_cliente) . '" target="_blank" style="background-color:#128C7E; color:white; padding:4px 8px; border-radius:4px; font-size:11px; text-decoration:none; text-align:center; display:block;" title="Enviar WhatsApp al Cliente">💬 CLIENTE</a>';
+		    } else {
+		        $whatsapp_buttons_html .= '<span style="background-color:#95a5a6; color:white; padding:4px 8px; border-radius:4px; font-size:11px; text-align:center; display:block;" title="Sin número de Cliente">📵 CLIENTE</span>';
+		    }
+		    $whatsapp_buttons_html .= '</div>';
+		}
 
 		$this->render_tpl( 'table-row.tpl.php', compact(
 			'shipment_id', 'tienda', 'actions_html',
-			'distrito_recojo', 'distrito_destino', 'fecha',
+			'distrito_recojo', 'distrito_destino', 'receiver_name', 'fecha',
 			'tipo_html', 'cambio_html', 'estado', 'es_reprogramado', 'motorizo_recojo_html', 'motorizo_recojo_name', 'motorizo_entrega_html',
-			'cliente_id'
+			'cliente_id', 'whatsapp_buttons_html'
 		) );
 	}
 
@@ -436,23 +527,19 @@ class MERC_Shipment_Table {
 					});
 				}
 
-			// Crear cards SOLO para tiendas válidas (excluyendo "Sin tienda")
+			// Crear cards para TODAS las tiendas (sin tienda → agrupadas como 'Sin Tienda Asignada')
 			orden.forEach(function(tienda) {
-				// Saltar tiendas sin nombre
-				if (!tienda || tienda === 'Sin tienda' || tienda === '') {
-					console.log('⏭️ Omitiendo tienda vacía:', tienda);
-					return;
-				}
-
-				const tiendaSlug = String(tienda).replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 10);
+				// Normalizar: pedidos sin tienda se agrupan bajo un label visible
+				const tiendaLabel = (tienda && tienda !== 'Sin tienda') ? tienda : '⚠️ Sin Tienda Asignada';
+				const tiendaSlug  = tiendaLabel.replace(/[^a-z0-9]/gi, '').toLowerCase().substr(0, 14) || 'sintienda';
 				const rowsForTienda = tiendas[tienda];
-				
+
 				// Obtener el nombre del cliente de la primera fila
 				const $firstRow = rowsForTienda[0];
 				const clienteNombre = $firstRow.find('.merc-tienda-cell').data('cliente-nombre') || '';
-				let tiendaConCliente = tienda;
-				if (clienteNombre) {
-					tiendaConCliente = tienda + ' <small style="font-weight:normal;">(' + clienteNombre + ')</small>';
+				let tiendaConCliente = tiendaLabel;
+				if (clienteNombre && tienda) {
+					tiendaConCliente = tiendaLabel + ' <small style="font-weight:normal;">(' + clienteNombre + ')</small>';
 				}
 
 				// Recopilar shipment IDs específicos de las filas agrupadas
@@ -518,7 +605,7 @@ class MERC_Shipment_Table {
 				const $header = $('<div class="merc-tienda-card-header"></div>').html(
 					'<div class="merc-tienda-info">' +
 					'<strong>' + tiendaConCliente + '</strong>' +
-					'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + ' envíos)</span>' +
+					'<span style="font-size:11px; opacity:0.8;">(' + rowsForTienda.length + (rowsForTienda.length === 1 ? ' envío' : ' envíos') + ')</span>' +
 					infoAdicional +
 					'</div>' +
 					'<span class="merc-tienda-icon">▼</span>'
@@ -728,6 +815,7 @@ class MERC_Shipment_Table {
 if ( class_exists( 'MERC_Shipment_Table' ) ) {
 	new MERC_Shipment_Table();
 }
+
 
 
 

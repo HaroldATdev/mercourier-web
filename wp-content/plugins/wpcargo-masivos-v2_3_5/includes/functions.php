@@ -110,6 +110,8 @@ function wcmas_generar_tracking(): string {
         $intentos++;
     }
 
+    $tracking = apply_filters('wpcargo_generated_shipment_number', $tracking, 0);
+
     return $tracking;
 }
 
@@ -790,4 +792,5 @@ function wcmas_instalar_mapa_contenedores(): void {
     }
 }
  
+
 

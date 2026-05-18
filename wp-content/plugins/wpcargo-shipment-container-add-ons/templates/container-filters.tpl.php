@@ -73,11 +73,12 @@
 					// que AÚN NO TIENEN motorizado de recojo asignado (wpcargo_motorizo_recojo vacío o 0)
 					// y que no estén en estado terminal
 					$recojo_query = "
-						SELECT COUNT(DISTINCT CAST(pm_shipper.meta_value AS UNSIGNED)) as conteo
+						SELECT COUNT(DISTINCT CONCAT(pm_shipper.meta_value, '-', IFNULL(pm_cont_rec.meta_value, '0'))) as conteo
 						FROM {$wpdb->posts} p
 						INNER JOIN {$wpdb->postmeta} pm_shipper ON pm_shipper.post_id = p.ID AND pm_shipper.meta_key = 'registered_shipper'
 						INNER JOIN {$wpdb->postmeta} pm_tipo ON pm_tipo.post_id = p.ID AND pm_tipo.meta_key = 'tipo_envio'
 						INNER JOIN {$wpdb->postmeta} pd ON pd.post_id = p.ID AND pd.meta_key = 'wpcargo_pickup_date_picker'
+						LEFT JOIN {$wpdb->postmeta} pm_cont_rec ON pm_cont_rec.post_id = p.ID AND pm_cont_rec.meta_key = 'shipment_container_recojo'
 						LEFT JOIN {$wpdb->postmeta} pm_mot_rec ON pm_mot_rec.post_id = p.ID AND pm_mot_rec.meta_key = 'wpcargo_motorizo_recojo'
 						LEFT JOIN {$wpdb->postmeta} pm_status ON pm_status.post_id = p.ID AND pm_status.meta_key = 'wpcargo_status'
 						WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
@@ -131,6 +132,7 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 
 
 

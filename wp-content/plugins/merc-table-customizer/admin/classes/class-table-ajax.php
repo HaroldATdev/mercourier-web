@@ -610,6 +610,59 @@ class MERC_Table_Ajax {
             wp_send_json_error( [ 'message' => 'Motorizado no encontrado' ] );
         }
 
+        // VALIDACIÓN DE ESTADOS FINALES
+        global $wpdb;
+
+        // Usar la fecha del filtro activo enviada por el frontend.
+        // Si no se envía, caer a hoy como fallback.
+        $fecha_caja_raw = isset( $_POST['fecha_caja'] ) ? sanitize_text_field( $_POST['fecha_caja'] ) : '';
+        if ( $fecha_caja_raw && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_caja_raw) ) {
+            $today = $fecha_caja_raw;
+        } else {
+            $today = current_time('Y-m-d');
+        }
+
+        $today_dt     = new DateTime($today);
+        $today_d_noz  = ltrim($today_dt->format('d'), '0');
+        $today_m_noz  = ltrim($today_dt->format('m'), '0');
+        $today_y      = $today_dt->format('Y');
+
+        $date_variants = array(
+            $today_dt->format('Y-m-d'),
+            $today_dt->format('d/m/Y'),
+            $today_dt->format('d-m-Y'),
+            $today_d_noz . '/' . $today_m_noz . '/' . $today_y,
+            $today_d_noz . '/' . $today_dt->format('m') . '/' . $today_y,
+            $today_dt->format('d') . '/' . $today_m_noz . '/' . $today_y
+        );
+        
+        $date_likes_sql = implode(' OR ', array_fill(0, count($date_variants), 'pm_fecha.meta_value LIKE %s'));
+        $params = array();
+        foreach ($date_variants as $v) {
+            $params[] = $v . '%';
+        }
+        $params[] = $driver_id;
+        
+        // Estados finales permitidos
+        $estados_finales = array('NO RECIBIDO', 'REPROGRAMADO', 'ANULADO', 'ENTREGADO');
+        $placeholders = implode("','", $estados_finales);
+
+        $sql = "
+            SELECT COUNT(p.ID) 
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm_fecha ON p.ID = pm_fecha.post_id AND pm_fecha.meta_key = 'wpcargo_pickup_date_picker' AND ($date_likes_sql)
+            INNER JOIN {$wpdb->postmeta} pm_user ON p.ID = pm_user.post_id AND pm_user.meta_key = 'wpcargo_motorizo_entrega' AND pm_user.meta_value = %d
+            LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
+            WHERE p.post_type = 'wpcargo_shipment' AND p.post_status = 'publish'
+            AND (pm_status.meta_value IS NULL OR UPPER(pm_status.meta_value) NOT IN ('$placeholders'))
+        ";
+        
+        $envios_pendientes = (int) $wpdb->get_var($wpdb->prepare($sql, $params));
+        
+        if ($envios_pendientes > 0) {
+            wp_send_json_error( [ 'message' => "No se puede cerrar caja. El motorizado aún tiene {$envios_pendientes} envío(s) con estados intermedios de entrega para la fecha {$today_dt->format('d/m/Y')}." ] );
+        }
+
         $fecha_cierre = wp_date( 'Y-m-d' );
         update_user_meta( $driver_id, 'merc_caja_cerrada', '1' );
         update_user_meta( $driver_id, 'merc_caja_cerrada_fecha', $fecha_cierre );
@@ -665,4 +718,5 @@ class MERC_Table_Ajax {
 if ( class_exists( 'MERC_Table_Ajax' ) ) {
     new MERC_Table_Ajax();
 }
+
 

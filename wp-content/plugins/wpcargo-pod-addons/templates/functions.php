@@ -499,13 +499,27 @@ function wpcpod_get_route_address_order(){
 	}else{
 		$destination 	= array_pop($waypoints);
 	}
+	$driver_id = !empty($user_id) ? $user_id : get_current_user_id();
+	if ( !empty($shipments) && !empty($shipments[0]['id']) ) {
+		$driver_meta = get_post_meta( $shipments[0]['id'], 'wpcargo_driver', true );
+		if ( !empty($driver_meta) ) {
+			$driver_id = $driver_meta;
+		}
+	}
+	
+	$estado_caja   = (string) get_user_meta( $driver_id, 'merc_caja_cerrada', true );
+	$fecha_cierre  = (string) get_user_meta( $driver_id, 'merc_caja_cerrada_fecha', true );
+	$fecha_actual  = wp_date( 'Y-m-d' );
+	$caja_cerrada  = ( '1' === $estado_caja && $fecha_cierre === $fecha_actual ) ? true : false;
+
 	return array(
 			'status' => 'success',
 			'waypoints' => $waypoints,
 			'origin' => $origin,
 			'destination' => $destination,
 			'shipments' => $shipments,
-			'poo' => $poo
+			'poo' => $poo,
+			'caja_cerrada' => $caja_cerrada
 		);
 }
 
@@ -566,3 +580,4 @@ function wpcargo_pod_error_wptaskforce_license_label(){
 function wpcargo_pod_activate_wpcfe_message(){
 	return esc_html__( 'This plugin requires <strong>WPCargo Frontend Manager</strong> plugin to be active!', 'wpcargo-pod' );
 }
+

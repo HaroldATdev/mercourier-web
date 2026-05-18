@@ -988,9 +988,10 @@ function wpcsc_assign_partial_shipments_callback() {
 
 		if ( $assigned_ok ) {
 			// Remover cualquier referencia al contenedor en diferentes metakeys (compatibilidad)
-			delete_post_meta( $shipment_id, 'shipment_container' );
-			delete_post_meta( $shipment_id, 'shipment_container_recojo' );
-			delete_post_meta( $shipment_id, 'shipment_container_entrega' );
+			// Remover cualquier referencia al contenedor en diferentes metakeys (compatibilidad)
+			// delete_post_meta( $shipment_id, 'shipment_container' );
+			// delete_post_meta( $shipment_id, 'shipment_container_recojo' );
+			// delete_post_meta( $shipment_id, 'shipment_container_entrega' );
 
 			// Log para debugging
 			error_log( "✅ Pedido #{$shipment_id} asignado a motorizado #{$driver_id} (status={$status}) y removido del contenedor #{$container_id}" );
@@ -1008,6 +1009,8 @@ function wpcsc_assign_partial_shipments_callback() {
     }
     
     // Actualizar la lista de pedidos ordenados del contenedor
+    // Mantenemos los pedidos en la lista para que no desaparezcan
+    /*
     if ($container_id > 0) {
         $sorted_shipments = get_post_meta($container_id, 'wpcc_sorted_shipments', true);
         if (!empty($sorted_shipments)) {
@@ -1017,6 +1020,7 @@ function wpcsc_assign_partial_shipments_callback() {
             update_post_meta($container_id, 'wpcc_sorted_shipments', implode(',', $sorted_array));
         }
     }
+    */
     
     if ($success_count > 0) {
         $driver = get_userdata($driver_id);
@@ -1033,6 +1037,7 @@ function wpcsc_assign_partial_shipments_callback() {
         wp_send_json_error(array('message' => 'No se pudo procesar ningún pedido. Errores: ' . implode(', ', $errors)));
     }
 }
+
 
 
 
