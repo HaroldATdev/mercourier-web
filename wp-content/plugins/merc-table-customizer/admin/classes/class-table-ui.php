@@ -105,11 +105,8 @@ class MERC_Table_UI {
         $session_fecha_actual = wp_date( 'Y-m-d' );
         $session_caja_activa = ( '1' === $session_caja_cerrada_raw && $session_caja_cierre_fecha === $session_fecha_actual );
 
-        // Si cambió el día, la caja se considera abierta automáticamente.
-        if ( '1' === $session_caja_cerrada_raw && ! $session_caja_activa ) {
-            update_user_meta( $session_user_id, 'merc_caja_cerrada', '0' );
-            $session_caja_cerrada_raw = '0';
-        }
+        // Si cambió el día, la caja ya no se considera activa para HOY,
+        // pero NO reseteamos a 0 para no borrar el historial visual de días anteriores.
 
         $clientes_options_html = '<option value="">-- Selecciona un cliente --</option>';
         $clientes_form = get_users( [ 'role' => 'wpcargo_client' ] );

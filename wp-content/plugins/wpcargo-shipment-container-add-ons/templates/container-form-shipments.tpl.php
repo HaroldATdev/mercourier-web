@@ -531,12 +531,12 @@
     .merc-table-scroll-wrapper {
         max-height: 420px;
         overflow-y: auto;
-        overflow-x: hidden;
+        overflow-x: auto;
         border: 1px solid #dee2e6;
         border-top: none;
         margin-bottom: 15px;
     }
-    .merc-table-scroll-wrapper::-webkit-scrollbar { width: 7px; }
+    .merc-table-scroll-wrapper::-webkit-scrollbar { width: 7px; height: 7px; }
     .merc-table-scroll-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
     .merc-table-scroll-wrapper::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
     .merc-table-scroll-wrapper::-webkit-scrollbar-thumb:hover { background: #6c757d; }
@@ -793,16 +793,29 @@ jQuery(document).ready(function($) {
         }).get();
         const driverName   = $('#modal-motorizado-select option:selected').text();
 
+        let hasAssigned = false;
+        if (!isDesasignar) {
+            selectedUsers.each(function() {
+                const group = $(this).attr('data-group');
+                if ($('.user-shipment[data-group="' + group + '"].shipment-assigned').length > 0) {
+                    hasAssigned = true;
+                    return false;
+                }
+            });
+        }
+
         const confirmTitle = isDesasignar ? 'Confirmar desasignación' : 'Confirmar asignación';
-        const confirmText  = isDesasignar
+        const confirmHtml  = isDesasignar
             ? `¿Desasignar el motorizado de ${userIds.length} usuario(s)?`
-            : `¿Asignar ${driverName} a ${userIds.length} usuario(s)?`;
-        const confirmIcon  = isDesasignar ? 'warning' : 'question';
+            : (hasAssigned 
+                ? `<div style="color: #dc3545; font-weight: bold; margin-bottom: 10px;"><i class="fa fa-exclamation-triangle"></i> ADVERTENCIA: Algunos envíos ya tienen motorizado asignado.</div>Se SOBRESCRIBIRÁ la asignación anterior con <strong>${driverName}</strong>.<br><br>¿Continuar con la reasignación para ${userIds.length} usuario(s)?` 
+                : `¿Asignar <strong>${driverName}</strong> a ${userIds.length} usuario(s)?`);
+        const confirmIcon  = isDesasignar ? 'warning' : (hasAssigned ? 'warning' : 'question');
 
         Swal.fire({
             icon: confirmIcon,
             title: confirmTitle,
-            text: confirmText,
+            html: confirmHtml,
             showCancelButton: true,
             confirmButtonText: isDesasignar ? 'Sí, desasignar' : 'Sí, asignar',
             cancelButtonText: 'Cancelar',
@@ -847,16 +860,28 @@ jQuery(document).ready(function($) {
         const shipmentIds  = selectedShipments.map(function() { return $(this).val(); }).get();
         const driverName   = $('#modal-motorizado-select-entrega option:selected').text();
 
+        let hasAssigned = false;
+        if (!isDesasignar) {
+            selectedShipments.each(function() {
+                if ($(this).closest('tr').hasClass('shipment-assigned')) {
+                    hasAssigned = true;
+                    return false;
+                }
+            });
+        }
+
         const confirmTitle = isDesasignar ? 'Confirmar desasignación' : 'Confirmar asignación';
-        const confirmText  = isDesasignar
+        const confirmHtml  = isDesasignar
             ? `¿Desasignar el motorizado de ${shipmentIds.length} envío(s)?`
-            : `¿Asignar ${driverName} a ${shipmentIds.length} envío(s)?`;
-        const confirmIcon  = isDesasignar ? 'warning' : 'question';
+            : (hasAssigned 
+                ? `<div style="color: #dc3545; font-weight: bold; margin-bottom: 10px;"><i class="fa fa-exclamation-triangle"></i> ADVERTENCIA: Algunos envíos ya tienen motorizado asignado.</div>Se SOBRESCRIBIRÁ la asignación anterior con <strong>${driverName}</strong>.<br><br>¿Continuar con la reasignación de ${shipmentIds.length} envío(s)?` 
+                : `¿Asignar <strong>${driverName}</strong> a ${shipmentIds.length} envío(s)?`);
+        const confirmIcon  = isDesasignar ? 'warning' : (hasAssigned ? 'warning' : 'question');
 
         Swal.fire({
             icon: confirmIcon,
             title: confirmTitle,
-            text: confirmText,
+            html: confirmHtml,
             showCancelButton: true,
             confirmButtonText: isDesasignar ? 'Sí, desasignar' : 'Sí, asignar',
             cancelButtonText: 'Cancelar',
@@ -880,5 +905,6 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+
 
 

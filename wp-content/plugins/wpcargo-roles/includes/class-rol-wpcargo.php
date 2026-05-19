@@ -332,6 +332,44 @@ class WCROL_Rol_WPCargo {
     }
 
     /**
+     * Obtiene la URL de redirección apropiada para un administrador WPCargo.
+     */
+    public static function obtener_url_redireccion( int $user_id ): string {
+        $dashboard_url = function_exists('wpcfe_admin_page') ? get_permalink(wpcfe_admin_page()) : home_url('/');
+        
+        // 1. Si no tiene restricciones, va al historial por defecto
+        if ( WCROL_Permisos::es_sin_restriccion($user_id) ) {
+            return $dashboard_url;
+        }
+
+        $slugs_permitidos = WCROL_Permisos::obtener($user_id);
+        if ( empty($slugs_permitidos) ) {
+            return home_url('/');
+        }
+
+        // 2. Prioridad 1: Historial de envíos o Escritorio
+        if ( in_array('history', $slugs_permitidos, true) || in_array('core_escritorio', $slugs_permitidos, true) ) {
+            return $dashboard_url;
+        }
+
+        // 3. Prioridad 2: Crear servicio
+        if ( in_array('core_crear', $slugs_permitidos, true) ) {
+            return add_query_arg('wpcfe', 'add', $dashboard_url);
+        }
+
+        // 4. Buscar el primer módulo permitido que tenga una página de WordPress asociada
+        $catalogo = WCROL_Modulos::obtener_todos();
+        foreach ( $slugs_permitidos as $slug ) {
+            if ( isset($catalogo[$slug]['page_id']) && $catalogo[$slug]['page_id'] > 0 ) {
+                return get_permalink($catalogo[$slug]['page_id']);
+            }
+        }
+
+        // Fallback: Dashboard principal
+        return $dashboard_url;
+    }
+
+    /**
      * Bloquear acceso a wp-admin para rol wpcargo_admin.
      * Excepto peticiones AJAX que son necesarias para el frontend.
      */
@@ -344,8 +382,9 @@ class WCROL_Rol_WPCargo {
         if ( ! is_user_logged_in() ) return;
         if ( ! wcrol_es_wpcargo_admin() ) return;
 
-        // Redirigir al dashboard frontend de WPCargo
-        $destino = wcrol_frontend_url();
+        $user_id = get_current_user_id();
+        $destino = self::obtener_url_redireccion($user_id);
+        
         if ( ! $destino ) $destino = home_url('/');
         wp_safe_redirect($destino);
         exit;
@@ -357,7 +396,7 @@ class WCROL_Rol_WPCargo {
     public static function redirigir_login( string $redirect_to, string $requested, \WP_User|\WP_Error $user ): string {
         if ( is_wp_error($user) ) return $redirect_to;
         if ( ! wcrol_es_wpcargo_admin($user->ID) ) return $redirect_to;
-        return wcrol_frontend_url();
+        return self::obtener_url_redireccion($user->ID);
     }
 
     /**
@@ -474,5 +513,6 @@ class WCROL_Rol_WPCargo {
 }
 
 WCROL_Rol_WPCargo::init();
+
 
 

@@ -663,7 +663,7 @@ class MERC_Table_Ajax {
             wp_send_json_error( [ 'message' => "No se puede cerrar caja. El motorizado aún tiene {$envios_pendientes} envío(s) con estados intermedios de entrega para la fecha {$today_dt->format('d/m/Y')}." ] );
         }
 
-        $fecha_cierre = wp_date( 'Y-m-d' );
+        $fecha_cierre = $today_dt->format('Y-m-d');
         update_user_meta( $driver_id, 'merc_caja_cerrada', '1' );
         update_user_meta( $driver_id, 'merc_caja_cerrada_fecha', $fecha_cierre );
 
@@ -700,10 +700,6 @@ class MERC_Table_Ajax {
         $fecha_actual  = wp_date( 'Y-m-d' );
         $caja_cerrada  = ( '1' === $estado_caja && $fecha_cierre === $fecha_actual ) ? '1' : '0';
 
-        if ( '1' === $estado_caja && '0' === $caja_cerrada ) {
-            update_user_meta( $driver_id_int, 'merc_caja_cerrada', '0' );
-        }
-
         wp_send_json_success( [
             'driver_id'    => (string) $driver_id_int,
             'caja_cerrada' => $caja_cerrada,
@@ -718,5 +714,6 @@ class MERC_Table_Ajax {
 if ( class_exists( 'MERC_Table_Ajax' ) ) {
     new MERC_Table_Ajax();
 }
+
 
 
