@@ -596,7 +596,8 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	$sql_recojo .= " AND tbl2.meta_key = 'shipment_container_recojo' ";
 	$sql_recojo .= " AND tbl2.meta_value = %s ";
 	// Lógica: Los envíos tipo 'normal' SOLO aparecen en recojo cuando están en PENDIENTE, RECOGIDO o NO RECOGIDO
-	$sql_recojo .= " AND (tbl4.meta_value != 'normal' OR tbl3.meta_value IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO')) ";
+	// MODIFICACIÓN: Deshabilitado para mantener los envíos entregados/finalizados en el contenedor para auditorías.
+	// $sql_recojo .= " AND (tbl4.meta_value != 'normal' OR tbl3.meta_value IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO')) ";
 	$assigned_shipments_recojo = $wpdb->get_col($wpdb->prepare($sql_recojo, $postID));
 	
 	foreach ((array)$assigned_shipments_recojo as $shipment_id) {
@@ -612,7 +613,8 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	$sql_entrega .= " AND tbl2.meta_key = 'shipment_container_entrega' ";
 	$sql_entrega .= " AND tbl2.meta_value = %s ";
 	// Excluir envíos que ya fueron entregados, no recibidos o anulados (NO excluir EN RUTA: el motorizado los lleva activamente)
-	$sql_entrega .= " AND (tbl3.meta_value IS NULL OR tbl3.meta_value NOT IN ('ENTREGADO', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED')) ";
+	// MODIFICACIÓN: Deshabilitado para mantener los envíos entregados/finalizados en el contenedor para auditorías.
+	// $sql_entrega .= " AND (tbl3.meta_value IS NULL OR tbl3.meta_value NOT IN ('ENTREGADO', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED')) ";
 	$assigned_shipments_entrega = $wpdb->get_col($wpdb->prepare($sql_entrega, $postID));
 	
 	foreach ((array)$assigned_shipments_entrega as $shipment_id) {

@@ -7908,9 +7908,9 @@ function merc_admin_motorizados( $fecha_inicio, $fecha_fin, $filtro_estado, $fil
         }
         $caja_cerrada_raw = (string) get_user_meta( $driver->driver_id, 'merc_caja_cerrada', true );
         $caja_cerrada_fecha = (string) get_user_meta( $driver->driver_id, 'merc_caja_cerrada_fecha', true );
-        $fecha_actual = wp_date( 'Y-m-d' );
+        $fecha_comparar = ! empty( $fecha_inicio ) ? date('Y-m-d', strtotime($fecha_inicio)) : wp_date( 'Y-m-d' );
 
-        if ( '1' === $caja_cerrada_raw && $caja_cerrada_fecha === $fecha_actual ) {
+        if ( '1' === $caja_cerrada_raw && $caja_cerrada_fecha === $fecha_comparar ) {
             $caja_cerrada = true;
         }
 		?>
@@ -18042,28 +18042,36 @@ function merc_sync_driver_from_container_meta($meta_id, $post_id, $meta_key, $me
 /**
  * One-time repair function to sync drivers for existing shipments.
  * Finds shipments from the last 7 days that have container assignments but are missing the corresponding driver fields,
- * and populates them.
+ * and populates them. Also syncs from wpcargo_driver to phase-specific fields if the main driver is assigned.
  */
-function merc_repair_existing_shipments_drivers() {
+function merc_repair_existing_shipments_drivers( $only_post_id = 0, $force = false ) {
     // Solo ejecutar en el admin por administradores y solo una vez (usando un transient de 1 hora)
-    if ( ! is_admin() || ! current_user_can( 'manage_options' ) || get_transient( 'merc_repair_drivers_done' ) ) {
-        return;
+    if ( ! $force ) {
+        if ( ! is_admin() || ! current_user_can( 'manage_options' ) || get_transient( 'merc_repair_drivers_done' ) ) {
+            return;
+        }
     }
     
     global $wpdb;
     
-    // Encontrar envíos creados en los últimos 7 días
-    $siete_dias_atras = date('Y-m-d H:i:s', strtotime('-7 days'));
-    
-    $shipments = $wpdb->get_col($wpdb->prepare("
-        SELECT ID FROM {$wpdb->posts}
-        WHERE post_type = 'wpcargo_shipment'
-        AND post_status = 'publish'
-        AND post_date >= %s
-    ", $siete_dias_atras));
+    if ( $only_post_id > 0 ) {
+        $shipments = array( intval($only_post_id) );
+    } else {
+        // Encontrar envíos creados en los últimos 30 días
+        $treinta_dias_atras = date('Y-m-d H:i:s', strtotime('-30 days'));
+        
+        $shipments = $wpdb->get_col($wpdb->prepare("
+            SELECT ID FROM {$wpdb->posts}
+            WHERE post_type = 'wpcargo_shipment'
+            AND post_status = 'publish'
+            AND post_date >= %s
+        ", $treinta_dias_atras));
+    }
     
     if (empty($shipments)) {
-        set_transient( 'merc_repair_drivers_done', true, HOUR_IN_SECONDS );
+        if ( ! $force ) {
+            set_transient( 'merc_repair_drivers_done', true, HOUR_IN_SECONDS );
+        }
         return;
     }
     
@@ -18077,7 +18085,7 @@ function merc_repair_existing_shipments_drivers() {
         $isExpress = ($tipo === 'express' || $tipo === 'full_fitment' || $tipo === 'fullfitment');
         $estado = strtoupper( trim( (string) get_post_meta($post_id, 'wpcargo_status', true) ) );
         
-        // 1. Recojo
+        // 1. Recojo desde Contenedor
         if (!$isExpress) {
             $cont_recojo = get_post_meta($post_id, 'shipment_container_recojo', true);
             $driver_recojo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
@@ -18093,7 +18101,7 @@ function merc_repair_existing_shipments_drivers() {
             }
         }
         
-        // 2. Entrega
+        // 2. Entrega desde Contenedor
         $cont_entrega = get_post_meta($post_id, 'shipment_container_entrega', true);
         $driver_entrega = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
         if (!empty($cont_entrega) && (empty($driver_entrega) || $driver_entrega === '0')) {
@@ -18106,9 +18114,74 @@ function merc_repair_existing_shipments_drivers() {
                 $total_entrega_sync++;
             }
         }
+
+        // 3. Sincronizar desde wpcargo_driver si está asignado pero los específicos están vacíos
+        $wpcargo_driver = get_post_meta($post_id, 'wpcargo_driver', true);
+        if (!empty($wpcargo_driver) && $wpcargo_driver !== '0') {
+            if ($isExpress || (!empty($estado) && !in_array($estado, $estados_recojo, true))) {
+                // Fase de entrega
+                $driver_entrega = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
+                if (empty($driver_entrega) || $driver_entrega === '0') {
+                    update_post_meta($post_id, 'wpcargo_motorizo_entrega', intval($wpcargo_driver));
+                    $total_entrega_sync++;
+                }
+            } else {
+                // Fase de recojo
+                $driver_recojo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+                if (empty($driver_recojo) || $driver_recojo === '0') {
+                    update_post_meta($post_id, 'wpcargo_motorizo_recojo', intval($wpcargo_driver));
+                    $total_recojo_sync++;
+                }
+            }
+        }
     }
     
     error_log("🛠️ [REPAIR_DRIVERS] Reparación ejecutada: Se sincronizaron $total_recojo_sync motorizados de recojo y $total_entrega_sync motorizados de entrega.");
-    set_transient( 'merc_repair_drivers_done', true, HOUR_IN_SECONDS );
+    if ( ! $force ) {
+        set_transient( 'merc_repair_drivers_done', true, HOUR_IN_SECONDS );
+    }
 }
 add_action('admin_init', 'merc_repair_existing_shipments_drivers');
+
+/**
+ * Reverse sync hook: Sincronizar hacia wpcargo_motorizo_entrega o wpcargo_motorizo_recojo
+ * cuando cambie wpcargo_driver (ej. desde la app móvil del motorizado o por defecto en WPCargo).
+ */
+add_action('added_post_meta', 'merc_sync_from_wpcargo_driver_meta', 10, 4);
+add_action('updated_post_meta', 'merc_sync_from_wpcargo_driver_meta', 10, 4);
+function merc_sync_from_wpcargo_driver_meta($meta_id, $post_id, $meta_key, $meta_value) {
+    if ($meta_key !== 'wpcargo_driver') {
+        return;
+    }
+    
+    $driver_id = intval($meta_value);
+    if ($driver_id <= 0) {
+        return;
+    }
+    
+    $post = get_post($post_id);
+    if (!$post || $post->post_type !== 'wpcargo_shipment') {
+        return;
+    }
+    
+    $estado = strtoupper( trim( (string) get_post_meta($post_id, 'wpcargo_status', true) ) );
+    $estados_recojo = array('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO');
+    $tipo = strtolower( (string) get_post_meta($post_id, 'tipo_envio', true) );
+    $isExpress = ($tipo === 'express' || $tipo === 'full_fitment' || $tipo === 'fullfitment');
+    
+    if ($isExpress || (!empty($estado) && !in_array($estado, $estados_recojo, true))) {
+        // Fase de entrega
+        $current_motorizo = get_post_meta($post_id, 'wpcargo_motorizo_entrega', true);
+        if (empty($current_motorizo) || $current_motorizo === '0' || (string)$current_motorizo !== (string)$driver_id) {
+            update_post_meta($post_id, 'wpcargo_motorizo_entrega', $driver_id);
+            error_log("⚡ [AUTO_SYNC_DRIVER_REV] Envío #{$post_id} sincronizó motorizado entrega {$driver_id} desde wpcargo_driver");
+        }
+    } else {
+        // Fase de recojo
+        $current_motorizo = get_post_meta($post_id, 'wpcargo_motorizo_recojo', true);
+        if (empty($current_motorizo) || $current_motorizo === '0' || (string)$current_motorizo !== (string)$driver_id) {
+            update_post_meta($post_id, 'wpcargo_motorizo_recojo', $driver_id);
+            error_log("⚡ [AUTO_SYNC_DRIVER_REV] Envío #{$post_id} sincronizó motorizado recojo {$driver_id} desde wpcargo_driver");
+        }
+    }
+}
