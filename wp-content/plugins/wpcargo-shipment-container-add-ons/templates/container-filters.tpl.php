@@ -86,7 +86,7 @@
 						AND pm_tipo.meta_value = 'normal'
 						AND (pd.meta_value = '{$today_peru}' OR pd.meta_value = '{$today_peru_alt}')
 						AND (pm_mot_rec.meta_value IS NULL OR pm_mot_rec.meta_value = '' OR pm_mot_rec.meta_value = '0')
-						AND (pm_status.meta_value IS NULL OR pm_status.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'RECOGIDO'))
+						AND (pm_status.meta_value IS NULL OR UPPER(TRIM(pm_status.meta_value)) IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO'))
 					";
 					$puntos_recojo = $wpdb->get_var($recojo_query);
 					$puntos_recojo = $puntos_recojo ?: 0;
@@ -132,6 +132,7 @@
 		<?php do_action('wpcsc_after_add_container_dashboard'); ?>
 	</div>
 </div>
+
 
 
 

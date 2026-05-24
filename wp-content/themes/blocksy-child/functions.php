@@ -4036,6 +4036,70 @@ function merc_motorizado_entregas( $driver_id ) {
 // PANEL ADMINISTRADOR - MEJORADO
 // ---------------------------------------------------------------------------
 
+/**
+ * Obtiene la suma total de envíos asignados a motorizados activos para un rango de fechas.
+ */
+function merc_get_total_motorizados_shipments( $fecha_inicio, $fecha_fin, $filtro_motorizado ) {
+    global $wpdb;
+    
+    $pickup_date_filter = '';
+    if ( ! empty( $fecha_inicio ) && ! empty( $fecha_fin ) ) {
+        $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
+        $fecha_fin_ymd = date('Y-m-d', strtotime($fecha_fin));
+        
+        if ($fecha_inicio_ymd === $fecha_fin_ymd) {
+            $fecha_dmy = date('d/m/Y', strtotime($fecha_inicio));
+            $pickup_date_filter = "AND EXISTS(
+                SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+                WHERE pm_pickup.post_id = p.ID 
+                AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+                AND pm_pickup.meta_value = '{$fecha_dmy}'
+            )";
+        } else {
+            $pickup_date_filter = "AND EXISTS(
+                SELECT 1 FROM {$wpdb->postmeta} pm_pickup 
+                WHERE pm_pickup.post_id = p.ID 
+                AND pm_pickup.meta_key = 'wpcargo_pickup_date_picker'
+                AND (
+                    STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%Y-%m-%d')
+                    AND STR_TO_DATE(pm_pickup.meta_value, '%d/%m/%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%Y-%m-%d')
+                )
+            )";
+        }
+    }
+    
+    $driver_query = $filtro_motorizado > 0 ? $wpdb->prepare( 'AND pm_entrega.meta_value = %s', $filtro_motorizado ) : '';
+
+    $drivers_sql = "
+        SELECT pm_entrega.meta_value AS driver_id,
+               COUNT(DISTINCT p.ID) AS total_entregas
+        FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} pm_entrega
+            ON p.ID = pm_entrega.post_id
+            AND pm_entrega.meta_key = 'wpcargo_motorizo_entrega'
+        WHERE p.post_type = 'wpcargo_shipment'
+        AND p.post_status = 'publish'
+        AND pm_entrega.meta_value IS NOT NULL
+        $pickup_date_filter
+        $driver_query
+        GROUP BY pm_entrega.meta_value
+    ";
+
+    $drivers = $wpdb->get_results( $drivers_sql );
+    $total_sum = 0;
+    
+    if ( ! empty( $drivers ) ) {
+        foreach ( $drivers as $driver ) {
+            $driver_user = get_user_by( 'ID', $driver->driver_id );
+            if ( $driver_user ) {
+                $total_sum += intval( $driver->total_entregas );
+            }
+        }
+    }
+    
+    return $total_sum;
+}
+
 add_shortcode( 'merc_panel_admin', 'merc_panel_admin_shortcode' );
 function merc_panel_admin_shortcode() {
     if ( ! current_user_can( 'manage_options' ) ) {
@@ -4054,6 +4118,8 @@ function merc_panel_admin_shortcode() {
     $filtro_motorizado = isset( $_GET['filtro_motorizado'] ) ? intval( $_GET['filtro_motorizado'] ) : 0;
     $filtro_cliente    = isset( $_GET['filtro_cliente'] ) ? intval( $_GET['filtro_cliente'] ) : 0;
     $vista_detalle     = isset( $_GET['vista_detalle'] ) ? sanitize_text_field( $_GET['vista_detalle'] ) : '';
+    
+    $total_motorizados_shipments = merc_get_total_motorizados_shipments( $fecha_inicio, $fecha_fin, $filtro_motorizado );
     
     ob_start();
     ?>
@@ -4095,7 +4161,7 @@ function merc_panel_admin_shortcode() {
         <ul class="nav nav-tabs" id="adminTabs" role="tablist">
             <li class="nav-item">
                 <a class="nav-link active" id="motorizados-tab" data-toggle="tab" href="#motorizados" role="tab">
-                    🚗 Motorizados
+                    🚗 Motorizados (<?php echo esc_html( $total_motorizados_shipments ); ?>)
                 </a>
             </li>
             <li class="nav-item">
@@ -11352,6 +11418,7 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
     $shipments_query = "
         SELECT p.ID, p.post_title,
                pm_destino.meta_value         AS destino,
+               pm_receiver.meta_value        AS destinatario,
                pm_included.meta_value        AS estado_pago_remitente,
                pm_pickup_date.meta_value     AS pickup_date,
                pm_status.meta_value          AS wpcargo_status,
@@ -11363,6 +11430,8 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
             ON p.ID = pm_envio.post_id AND pm_envio.meta_key = 'wpcargo_costo_envio'
         LEFT JOIN {$wpdb->postmeta} pm_destino
             ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
+        LEFT JOIN {$wpdb->postmeta} pm_receiver
+            ON p.ID = pm_receiver.post_id AND pm_receiver.meta_key = 'wpcargo_receiver_name'
         LEFT JOIN {$wpdb->postmeta} pm_included
             ON p.ID = pm_included.post_id AND pm_included.meta_key = 'wpcargo_included_in_liquidation'
         LEFT JOIN {$wpdb->postmeta} pm_status
@@ -11401,6 +11470,7 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
         <thead>
             <tr>
                 <th>#Pedido</th>
+                <th>Destinatario</th>
                 <th>Destino</th>
                 <th>Efectivo</th>
                 <th>Pago MERC</th>
@@ -11454,6 +11524,7 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
             <tr <?php if ($is_sin_costo) echo 'style="opacity:.6;"'; ?>>
                 <?php $tracking_url = home_url( '/dashboard/?wpcfe=track&num=' . rawurlencode($shipment->post_title) ); ?>
                 <td><strong><a href="<?php echo esc_url($tracking_url); ?>" target="_blank" style="text-decoration: underline; color: inherit;">#<?php echo esc_html($shipment->post_title); ?></a></strong></td>
+                <td><?php echo esc_html($shipment->destinatario ?: '-'); ?></td>
                 <td style="white-space:nowrap;"><?php echo esc_html($shipment->destino ?: '-'); ?></td>
                 <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['efectivo'], 2); ?></td>
                 <td><?php echo $is_sin_costo ? '-' : 'S/. ' . number_format($totales['pago_merc'], 2); ?></td>
@@ -11476,7 +11547,7 @@ function merc_cliente_envios( $client_id, $fecha_caja = '' ) {
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2" style="text-align:right;font-weight:700;">TOTAL:</td>
+                <td colspan="3" style="text-align:right;font-weight:700;">TOTAL:</td>
                 <td>S/. <?php echo number_format($total_efectivo_sum, 2); ?></td>
                 <td>S/. <?php echo number_format($total_pago_merc_sum, 2); ?></td>
                 <td>S/. <?php echo number_format($total_pago_marca_sum, 2); ?></td>
@@ -12861,6 +12932,14 @@ function merc_dual_motorizado_js() {
                 }
             }
             
+            // Asegurar que las opciones existan antes de seleccionarlas (para emprendedores, etc.)
+            if (motorizo_entrega_val && !$entrega.find('option[value="' + motorizo_entrega_val + '"]').length) {
+                $entrega.append($('<option/>', { value: motorizo_entrega_val, text: 'Motorizado #' + motorizo_entrega_val }));
+            }
+            if (isNormal && $recojo && motorizo_recojo_val && !$recojo.find('option[value="' + motorizo_recojo_val + '"]').length) {
+                $recojo.append($('<option/>', { value: motorizo_recojo_val, text: 'Motorizado #' + motorizo_recojo_val }));
+            }
+
             // Asignar valores a cada select explícitamente
             $entrega.val(motorizo_entrega_val);
             if (isNormal && $recojo) {
@@ -16486,6 +16565,17 @@ function merc_update_delivery_status_ajax() {
         wp_die();
     }
     
+    // Validar cobros si es un motorizado
+    $current_user = wp_get_current_user();
+    if (in_array('wpcargo_driver', (array)$current_user->roles)) {
+        $validacion = merc_validar_pagos_shipment($shipment_id, $new_status);
+        if (is_wp_error($validacion)) {
+            error_log('❌ [UPDATE_STATUS] Validación de cobro fallida para motorizado: ' . $validacion->get_error_message());
+            wp_send_json_error(['message' => $validacion->get_error_message()], 400);
+            wp_die();
+        }
+    }
+    
     // Validar que si es ENTREGADO, se requiere firma
     $signature_data = '';
     if (isset($_POST['signature'])) {
@@ -18185,3 +18275,181 @@ function merc_sync_from_wpcargo_driver_meta($meta_id, $post_id, $meta_key, $meta
         }
     }
 }
+
+/**
+ * Valida los pagos para una entrega antes de cambiar su estado a ENTREGADO.
+ * Exige registro de métodos de pago válidos que cubran el total si no es "NO COBRAR" y el cobro > 0.
+ *
+ * @param int $shipment_id ID del envío.
+ * @param string $nuevo_estado Estado al que se intenta cambiar.
+ * @return true|WP_Error Devuelve true si la validación pasa, o un WP_Error en caso contrario.
+ */
+function merc_validar_pagos_shipment($shipment_id, $nuevo_estado) {
+    if (empty($shipment_id)) {
+        return true;
+    }
+    
+    $nuevo_estado_clean = strtoupper(trim((string)$nuevo_estado));
+    if ($nuevo_estado_clean !== 'ENTREGADO') {
+        return true;
+    }
+    
+    // 1. Verificar Modo de Pago
+    $modo_pago = get_post_meta($shipment_id, 'payment_wpcargo_mode_field', true);
+    $modo_pago_clean = strtoupper(trim((string)$modo_pago));
+    
+    // Si el modo de pago es NO COBRAR, permitimos entregar libremente sin métodos de pago
+    if ($modo_pago_clean === 'NO COBRAR') {
+        return true;
+    }
+    
+    // 2. Verificar si hay un total a cobrar mayor a 0
+    $monto_total = floatval(get_post_meta($shipment_id, 'wpcargo_total_cobrar', true));
+    if ($monto_total <= 0) {
+        return true;
+    }
+    
+    // 3. Buscar métodos de pago en el request (pod_payment_methods)
+    $payment_methods_json = '';
+    
+    // a) Buscar directo en $_POST
+    if (isset($_POST['pod_payment_methods']) && !empty($_POST['pod_payment_methods'])) {
+        $payment_methods_json = $_POST['pod_payment_methods'];
+    }
+    
+    // b) Buscar en candidatos de formData serializado (enviados por AJAX de WPCargo POD)
+    if (empty($payment_methods_json)) {
+        $candidates = array('formData', 'form_data', 'formdata');
+        foreach ($candidates as $c) {
+            if (isset($_POST[$c])) {
+                $fd = $_POST[$c];
+                // Puede venir como string JSON o como array serializado de jQuery
+                if (is_string($fd)) {
+                    $maybe = json_decode(wp_unslash($fd), true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($maybe)) {
+                        $fd = $maybe;
+                    }
+                }
+                if (is_array($fd)) {
+                    foreach ($fd as $entry) {
+                        if (is_array($entry) && isset($entry['name']) && $entry['name'] === 'pod_payment_methods' && !empty($entry['value'])) {
+                            $payment_methods_json = $entry['value'];
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (empty($payment_methods_json) || $payment_methods_json === '[]') {
+        error_log("❌ [VALIDAR_PAGO] Rechazado shipment #{$shipment_id}: No se enviaron métodos de pago y el cobro es S/. " . number_format($monto_total, 2));
+        return new WP_Error(
+            'sin_metodos_pago', 
+            'Debe registrar los métodos de pago completos para pedidos que requieran cobro (Total a cobrar: S/. ' . number_format($monto_total, 2) . ').'
+        );
+    }
+    
+    // c) Decodificar y validar el JSON
+    $methods = json_decode(wp_unslash($payment_methods_json), true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $payment_methods_json = stripslashes($payment_methods_json);
+        $methods = json_decode($payment_methods_json, true);
+    }
+    
+    if (!is_array($methods) || empty($methods)) {
+        error_log("❌ [VALIDAR_PAGO] Presencia de error al decodificar métodos de pago para shipment #{$shipment_id}");
+        return new WP_Error('metodos_invalidos', 'Los métodos de pago registrados no son válidos.');
+    }
+    
+    // 4. Sumar los montos brutos ingresados en el formulario
+    $suma_pagos = 0.0;
+    foreach ($methods as $m) {
+        if (isset($m['monto'])) {
+            $suma_pagos += floatval($m['monto']);
+        }
+    }
+    
+    // 5. Comparar con el monto total a cobrar (permitiendo tolerancia por redondeo de centavos)
+    $tolerancia = 0.05;
+    $diferencia = abs($suma_pagos - $monto_total);
+    if ($diferencia > $tolerancia) {
+        error_log("❌ [VALIDAR_PAGO] Rechazado shipment #{$shipment_id}: Suma de pagos S/. " . number_format($suma_pagos, 2) . " no coincide con el total S/. " . number_format($monto_total, 2));
+        return new WP_Error(
+            'monto_incompleto', 
+            'El monto registrado (S/. ' . number_format($suma_pagos, 2) . ') no coincide con el total a cobrar de este envío (S/. ' . number_format($monto_total, 2) . ').'
+        );
+    }
+    
+    error_log("✅ [VALIDAR_PAGO] Aprobado shipment #{$shipment_id}: Suma de pagos S/. " . number_format($suma_pagos, 2) . " coincide con S/. " . number_format($monto_total, 2));
+    return true;
+}
+
+/**
+ * Filtro a nivel de base de datos para impedir que los motorizados registren ENTREGADO sin pagos válidos.
+ */
+add_filter('update_post_metadata', 'merc_forzar_validacion_pagos_db_driver', 10, 5);
+function merc_forzar_validacion_pagos_db_driver($null, $object_id, $meta_key, $meta_value, $prev_value) {
+    if ($meta_key !== 'wpcargo_status') {
+        return $null;
+    }
+    
+    $nuevo_estado = strtoupper(trim((string)$meta_value));
+    if ($nuevo_estado !== 'ENTREGADO') {
+        return $null;
+    }
+    
+    // Verificar rol del usuario actual
+    $current_user = wp_get_current_user();
+    $is_driver = in_array('wpcargo_driver', (array)$current_user->roles);
+    
+    if ($is_driver) {
+        if (function_exists('merc_validar_pagos_shipment')) {
+            $validacion = merc_validar_pagos_shipment($object_id, $meta_value);
+            if (is_wp_error($validacion)) {
+                error_log("🚨 [DB_SECURITY_BLOCK] Motorizado bloqueado en DB al intentar actualizar shipment #{$object_id} a ENTREGADO sin pagos válidos. Error: " . $validacion->get_error_message());
+                return false; // Aborta la operación de guardado en la base de datos
+            }
+        }
+    }
+    
+    return $null;
+}
+
+
+/**
+ * Ajusta el tamaño del papel de etiqueta térmica a 50mm × 75mm (en puntos tipográficos para DOMPDF)
+ */
+add_filter( 'wpcfe_print_paper_size', function( $sizes ) {
+    $sizes['label']['size']    = [ 0, 0, 141.73, 212.60 ];
+    $sizes['label']['orient']  = 'portrait';
+    $sizes['waybill']['size']  = [ 0, 0, 141.73, 212.60 ];
+    $sizes['waybill']['orient'] = 'portrait';
+    return $sizes;
+} );
+
+/**
+ * Deshabilitar paginación PDF para etiquetas (causa página en blanco)
+ */
+add_filter( 'wpcfe_has_pdf_pagination', function( $val ) {
+    // El filtro recibe '__return_true' como string, devolver false lo desactiva
+    return false;
+}, 20 );
+
+/**
+ * Forzar márgenes 0 en DOMPDF para etiquetas térmicas
+ */
+add_filter( 'wpcfe_print_paper_size', function( $sizes ) {
+    // Ya está definido el size, agregamos defaultPaperSize limpio
+    return $sizes;
+}, 5 );
+
+add_action( 'wpcfe_before_dompdf_render', function( $dompdf, $print_type ) {
+    if ( $print_type === 'label' || $print_type === 'waybill' ) {
+        $dompdf->set_option( 'defaultPaperSize', [0, 0, 141.73, 212.60] );
+        $dompdf->set_option( 'margin_top', 0 );
+        $dompdf->set_option( 'margin_right', 0 );
+        $dompdf->set_option( 'margin_bottom', 0 );
+        $dompdf->set_option( 'margin_left', 0 );
+    }
+}, 10, 2 );

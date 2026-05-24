@@ -216,6 +216,7 @@ function wpcfe_print_shipment_ajax_callback(){
     $wpcfe_pdf_dpi  = apply_filters( 'wpcfe_pdf_dpi', 160 );
     $shipment_id    = $_POST['shipmentID'];
     $print_type     = $_POST['printType'];
+    error_log( 'MERCOURIER DEBUG print_type=' . $print_type );
 
     $print_paper    = wpcfe_print_paper()[$print_type];
     $directory      = WPCFE_PATH.'admin/includes/file-container/';

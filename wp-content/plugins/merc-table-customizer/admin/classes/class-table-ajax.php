@@ -74,6 +74,18 @@ class MERC_Table_Ajax {
             update_post_meta( $shipment_id, 'wpcargo_status_anterior', $estado_anterior );
         }
 
+        // Validar cobros si es un motorizado
+        $current_user = wp_get_current_user();
+        if ( in_array( 'wpcargo_driver', (array) $current_user->roles ) ) {
+            if ( function_exists( 'merc_validar_pagos_shipment' ) ) {
+                $validacion = merc_validar_pagos_shipment( $shipment_id, $nuevo_estado );
+                if ( is_wp_error( $validacion ) ) {
+                    error_log('❌ [AJAX_TABLE_UPDATE] Validación de cobro fallida para motorizado: ' . $validacion->get_error_message());
+                    wp_send_json_error( $validacion->get_error_message() );
+                }
+            }
+        }
+
         update_post_meta( $shipment_id, 'wpcargo_status', $nuevo_estado );
         merc_sync_service_cost_by_status( $shipment_id );
 
@@ -714,6 +726,7 @@ class MERC_Table_Ajax {
 if ( class_exists( 'MERC_Table_Ajax' ) ) {
     new MERC_Table_Ajax();
 }
+
 
 
 

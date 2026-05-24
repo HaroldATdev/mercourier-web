@@ -14,8 +14,8 @@ function wpcfe_pdf_helper(){
     global $WPCCF_Fields, $wpcargo;
     if( isset( $_GET['wpcfe-waybill'] ) && is_wpcfe_shipment( $_GET['wpcfe-waybill'] ) && is_user_shipment( (int)$_GET['wpcfe-waybill'] ) ){
         $shipment_id 	= $_GET['wpcfe-waybill'];	
-        $paper_size     = 'A4';	
-        $paper_orient   = 'landscape';
+        $paper_size     = [0, 0, 141.73, 212.60];
+        $paper_orient   = 'portrait';
         // instantiate and use the dompdf class
         $options 		= new Options();
         $options->setDpi(150);

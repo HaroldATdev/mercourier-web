@@ -596,8 +596,8 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	$sql_recojo .= " AND tbl2.meta_key = 'shipment_container_recojo' ";
 	$sql_recojo .= " AND tbl2.meta_value = %s ";
 	// Lógica: Los envíos tipo 'normal' SOLO aparecen en recojo cuando están en PENDIENTE, RECOGIDO o NO RECOGIDO
-	// MODIFICACIÓN: Deshabilitado para mantener los envíos entregados/finalizados en el contenedor para auditorías.
-	// $sql_recojo .= " AND (tbl4.meta_value != 'normal' OR tbl3.meta_value IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO')) ";
+	// MODIFICACIÓN: Se agrega el filtro para excluir reprogramados y otros estados no deseados en recojo
+	$sql_recojo .= " AND (tbl3.meta_value IS NULL OR UPPER(TRIM(tbl3.meta_value)) IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO')) ";
 	$assigned_shipments_recojo = $wpdb->get_col($wpdb->prepare($sql_recojo, $postID));
 	
 	foreach ((array)$assigned_shipments_recojo as $shipment_id) {
@@ -619,6 +619,21 @@ function wpc_shipment_container_get_assigned_shipment_with_type($postID)
 	
 	foreach ((array)$assigned_shipments_entrega as $shipment_id) {
 		$result[$shipment_id] = 'entrega';
+	}
+	
+	// Filtro adicional para limpiar la lista de 'legacy' que puedan estar interfiriendo
+	// Si un legacy está en un estado que el usuario no quiere ver en recojos (como Anulado, Reprogramado),
+	// y NO está en la lista de entregas, entonces lo ocultamos para que no salga sin etiqueta en el modal.
+	$terminal_states = array('ANULADO', 'REPROGRAMADO', 'ENTREGADO', 'DELIVERED', 'COMPLETE', 'FINALIZED');
+	foreach ($result as $shipment_id => $type) {
+		if ($type === 'legacy') {
+			$status = get_post_meta($shipment_id, 'wpcargo_status', true);
+			$status_upper = strtoupper(trim((string)$status));
+			// Si es legacy y tiene un estado terminal, se oculta para no contaminar la lista de recojos
+			if (in_array($status_upper, $terminal_states)) {
+				unset($result[$shipment_id]);
+			}
+		}
 	}
 	
 	return $result;

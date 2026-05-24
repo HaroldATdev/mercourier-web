@@ -215,20 +215,18 @@ function wpcsc_container_list_data( $container_id ){
                           AND pm.meta_value = %d 
                           AND p.post_status = 'publish' 
                           AND p.post_type = 'wpcargo_shipment'
-                          AND (pm_status.meta_value IS NULL OR pm_status.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED'))
+                          AND (pm_status.meta_value IS NULL OR UPPER(TRIM(pm_status.meta_value)) IN ('PENDIENTE', 'RECOGIDO', 'NO RECOGIDO'))
                     ", $container_id);
                     $recojo_posts = $wpdb->get_col($recojo_sql);
                     
-                    // Bug fix: excluir estados terminales/avanzados para que envíos ya entregados no aparezcan como pendientes
+                    // Para entregas, se muestran todos los estados según el requerimiento
                     $entrega_sql = $wpdb->prepare("
                         SELECT pm.post_id FROM {$wpdb->postmeta} pm
                         JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-                        LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
                         WHERE pm.meta_key = 'shipment_container_entrega' 
                           AND pm.meta_value = %d 
                           AND p.post_status = 'publish' 
                           AND p.post_type = 'wpcargo_shipment'
-                          AND (pm_status.meta_value IS NULL OR pm_status.meta_value NOT IN ('ENTREGADO', 'EN RUTA', 'NO RECIBIDO', 'ANULADO', 'DELIVERED', 'COMPLETE', 'FINALIZED'))
                     ", $container_id);
                     $entrega_posts = $wpdb->get_col($entrega_sql);
 
@@ -1252,6 +1250,7 @@ function modified_fied_keys( $structured_meta_keys ){
 
     return $structured_meta_keys;
 }
+
 
 
 

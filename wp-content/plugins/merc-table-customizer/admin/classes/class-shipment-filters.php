@@ -49,6 +49,8 @@ class MERC_Shipment_Filters {
         // Ambas variantes del nombre (WPCargo tiene un typo en versiones distintas)
         remove_filter( 'wpcfe_dashboard_arguments', 'wpcfe_shipment_created_date_query_args_callback' );
         remove_filter( 'wpcfe_dashboard_arguments', 'wpcfe_shipment_created_date_quuery_args_callback' );
+        // Quitar filtro de fecha redundante de blocksy-child para evitar duplicación y JOINs lentos
+        remove_filter( 'wpcfe_dashboard_meta_query', 'wpcfe_shipping_date_meta_query_callback' );
     }
 
     /* ── Ocultar controles AJAX nativos rotos (shipper/receiver Select2) ── */
@@ -282,8 +284,6 @@ class MERC_Shipment_Filters {
         $to   = isset( $_GET['shipping_date_end'] )
             ? sanitize_text_field( $_GET['shipping_date_end'] )   : '';
 
-
-
         if ( empty( $from ) && empty( $to ) ) {
             $from = current_time( 'Y-m-d' );
             $to   = current_time( 'Y-m-d' );
@@ -293,61 +293,104 @@ class MERC_Shipment_Filters {
         $has_to   = $to   && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $to );
 
         if ( $has_from || $has_to ) {
-            // Día único → comparación directa (usa índice en meta_value sin STR_TO_DATE)
-            if ( $has_from && $has_to && $from === $to ) {
-                $d        = \DateTime::createFromFormat( 'Y-m-d', $from );
-                $date_dmy = $d ? $d->format( 'd/m/Y' ) : null;
+            $keys_in = "'wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_calendarenvio','wpcargo_fecha_envio'";
+            $date_cond = '';
 
-
-                if ( $date_dmy ) {
-                    // Buscar AMBOS formatos: ISO (YYYY-MM-DD) o Legacy (DD/MM/YYYY)
-                    $date_cond = $wpdb->prepare( 
-                        'pm_dt.meta_value = %s OR pm_dt.meta_value = %s', 
-                        $from,      // YYYY-MM-DD (nuevo formato)
-                        $date_dmy   // DD/MM/YYYY (formato antiguo)
-                    );
+            if ( $has_from && $has_to ) {
+                if ( $from === $to ) {
+                    // Día único → comparación directa (usa índice en meta_value sin STR_TO_DATE)
+                    $d = \DateTime::createFromFormat( 'Y-m-d', $from );
+                    if ( $d ) {
+                        // Buscar en formatos: ISO (YYYY-MM-DD) o Legacy (DD/MM/YYYY, etc.)
+                        $formats = [
+                            $from, // YYYY-MM-DD
+                            $d->format( 'd/m/Y' ),
+                            $d->format( 'j/n/Y' ),
+                            $d->format( 'd-m-Y' ),
+                            $d->format( 'j-n-Y' )
+                        ];
+                        $formats = array_unique( $formats );
+                        $placeholders = implode( ',', array_fill( 0, count( $formats ), '%s' ) );
+                        $date_cond = $wpdb->prepare( "pm_dt.meta_value IN ($placeholders)", ...$formats );
+                    } else {
+                        $date_cond = $wpdb->prepare( "pm_dt.meta_value = %s", $from );
+                    }
                 } else {
-                    $date_cond = $wpdb->prepare(
-                        "STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE(%s, '%%Y-%%m-%%d') OR pm_dt.meta_value = %s",
-                        $from,
-                        $from
-                    );
+                    // Rango de fechas
+                    try {
+                        $start_dt = new \DateTime( $from );
+                        $end_dt   = new \DateTime( $to );
+                        if ( $start_dt > $end_dt ) {
+                            $temp = $start_dt;
+                            $start_dt = $end_dt;
+                            $end_dt = $temp;
+                            
+                            $temp_str = $from;
+                            $from = $to;
+                            $to = $temp_str;
+                        }
+
+                        $diff = $start_dt->diff( $end_dt )->days;
+
+                        if ( $diff <= 366 ) {
+                            // Generar todos los formatos tradicionales para el rango
+                            $legacy_dates = [];
+                            $end_dt_inclusive = clone $end_dt;
+                            $end_dt_inclusive->modify( '+1 day' );
+                            $interval = new \DateInterval( 'P1D' );
+                            $period   = new \DatePeriod( $start_dt, $interval, $end_dt_inclusive );
+
+                            foreach ( $period as $date ) {
+                                $legacy_dates[] = $date->format( 'd/m/Y' );
+                                $legacy_dates[] = $date->format( 'j/n/Y' );
+                                $legacy_dates[] = $date->format( 'd-m-Y' );
+                                $legacy_dates[] = $date->format( 'j-n-Y' );
+                            }
+                            $legacy_dates = array_unique( $legacy_dates );
+
+                            if ( ! empty( $legacy_dates ) ) {
+                                $placeholders = implode( ',', array_fill( 0, count( $legacy_dates ), '%s' ) );
+                                $date_cond = $wpdb->prepare(
+                                    "(pm_dt.meta_value BETWEEN %s AND %s) OR pm_dt.meta_value IN ($placeholders)",
+                                    ...array_merge( [ $from, $to ], $legacy_dates )
+                                );
+                            } else {
+                                $date_cond = $wpdb->prepare( "pm_dt.meta_value BETWEEN %s AND %s", $from, $to );
+                            }
+                        } else {
+                            // Rango muy grande: usamos STR_TO_DATE de respaldo para evitar una lista IN gigantesca
+                            $date_cond = $wpdb->prepare(
+                                "( (pm_dt.meta_value BETWEEN %s AND %s) OR (STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') BETWEEN STR_TO_DATE(%s, '%%Y-%%m-%%d') AND STR_TO_DATE(%s, '%%Y-%%m-%%d')) )",
+                                $from, $to, $from, $to
+                            );
+                        }
+                    } catch ( \Exception $e ) {
+                        // Respaldo en caso de error
+                        $date_cond = $wpdb->prepare( "pm_dt.meta_value BETWEEN %s AND %s", $from, $to );
+                    }
                 }
+            } elseif ( $has_from ) {
+                // Solo fecha inicio
+                $date_cond = $wpdb->prepare(
+                    "(pm_dt.meta_value >= %s OR STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE(%s, '%%Y-%%m-%%d'))",
+                    $from, $from
+                );
             } else {
-                // Rango de fechas
-                
-                $parts = [];
-                if ( $has_from ) {
-                    // Buscar ISO format direct comparison O legacy with STR_TO_DATE
-                    $from_dmy = \DateTime::createFromFormat( 'Y-m-d', $from )->format( 'd/m/Y' );
-                    $from_cond = $wpdb->prepare(
-                        "(pm_dt.meta_value >= %s OR STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE(%s, '%%Y-%%m-%%d'))",
-                        $from,      // YYYY-MM-DD format
-                        $from       // para STR_TO_DATE
-                    );
-                    $parts[] = $from_cond;
-                }
-                if ( $has_to ) {
-                    $to_dmy = \DateTime::createFromFormat( 'Y-m-d', $to )->format( 'd/m/Y' );
-                    $to_cond = $wpdb->prepare(
-                        "(pm_dt.meta_value <= %s OR STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE(%s, '%%Y-%%m-%%d'))",
-                        $to,        // YYYY-MM-DD format
-                        $to         // para STR_TO_DATE
-                    );
-                    $parts[] = $to_cond;
-                }
-                $date_cond = implode( ' AND ', $parts );
+                // Solo fecha fin
+                $date_cond = $wpdb->prepare(
+                    "(pm_dt.meta_value <= %s OR STR_TO_DATE(pm_dt.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE(%s, '%%Y-%%m-%%d'))",
+                    $to, $to
+                );
             }
 
-            $keys_in = "'wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_calendarenvio','wpcargo_fecha_envio'";
+            // Usamos subconsulta IN no correlacionada para máximo rendimiento
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $final_condition = "EXISTS (
-                SELECT 1 FROM {$wpdb->postmeta} pm_dt
-                WHERE pm_dt.post_id = {$wpdb->posts}.ID
-                  AND pm_dt.meta_key IN ({$keys_in})
+            $final_condition = "{$wpdb->posts}.ID IN (
+                SELECT pm_dt.post_id FROM {$wpdb->postmeta} pm_dt
+                WHERE pm_dt.meta_key IN ({$keys_in})
                   AND ( {$date_cond} )
             )";
-            
+
             $this->custom_where_conds[] = $final_condition;
         }
 
@@ -356,14 +399,13 @@ class MERC_Shipment_Filters {
         $is_admin_or_driver = in_array( 'administrator', (array) $current_user->roles ) ||
                               in_array( 'wpcargo_admin', (array) $current_user->roles ) ||
                               in_array( 'wpcargo_driver', (array) $current_user->roles );
-        
+
         if ( ! empty( $_GET['wpcargo_tiendaname'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "EXISTS (
-                    SELECT 1 FROM {$wpdb->postmeta} pm_mc
-                    WHERE pm_mc.post_id = {$wpdb->posts}.ID
-                      AND pm_mc.meta_key = 'wpcargo_tiendaname'
+                "{$wpdb->posts}.ID IN (
+                    SELECT pm_mc.post_id FROM {$wpdb->postmeta} pm_mc
+                    WHERE pm_mc.meta_key = 'wpcargo_tiendaname'
                       AND pm_mc.meta_value = %s
                 )",
                 sanitize_text_field( $_GET['wpcargo_tiendaname'] )
@@ -374,10 +416,9 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['celular_destinatario'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "EXISTS (
-                    SELECT 1 FROM {$wpdb->postmeta} pm_cl
-                    WHERE pm_cl.post_id = {$wpdb->posts}.ID
-                      AND pm_cl.meta_key = 'wpcargo_receiver_phone'
+                "{$wpdb->posts}.ID IN (
+                    SELECT pm_cl.post_id FROM {$wpdb->postmeta} pm_cl
+                    WHERE pm_cl.meta_key = 'wpcargo_receiver_phone'
                       AND pm_cl.meta_value = %s
                 )",
                 sanitize_text_field( $_GET['celular_destinatario'] )
@@ -388,10 +429,9 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "EXISTS (
-                    SELECT 1 FROM {$wpdb->postmeta} pm_mr
-                    WHERE pm_mr.post_id = {$wpdb->posts}.ID
-                      AND pm_mr.meta_key = 'wpcargo_motorizo_recojo'
+                "{$wpdb->posts}.ID IN (
+                    SELECT pm_mr.post_id FROM {$wpdb->postmeta} pm_mr
+                    WHERE pm_mr.meta_key = 'wpcargo_motorizo_recojo'
                       AND pm_mr.meta_value = %s
                 )",
                 intval( $_GET['wpcargo_motorizo_recojo'] )
@@ -402,10 +442,9 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['wpcargo_motorizo_entrega'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "EXISTS (
-                    SELECT 1 FROM {$wpdb->postmeta} pm_me
-                    WHERE pm_me.post_id = {$wpdb->posts}.ID
-                      AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
+                "{$wpdb->posts}.ID IN (
+                    SELECT pm_me.post_id FROM {$wpdb->postmeta} pm_me
+                    WHERE pm_me.meta_key = 'wpcargo_motorizo_entrega'
                       AND pm_me.meta_value = %s
                 )",
                 intval( $_GET['wpcargo_motorizo_entrega'] )
@@ -416,10 +455,9 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['filter_wpcargoclient'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "EXISTS (
-                    SELECT 1 FROM {$wpdb->postmeta} pm_cl
-                    WHERE pm_cl.post_id = {$wpdb->posts}.ID
-                      AND pm_cl.meta_key = 'registered_shipper'
+                "{$wpdb->posts}.ID IN (
+                    SELECT pm_cl.post_id FROM {$wpdb->postmeta} pm_cl
+                    WHERE pm_cl.meta_key = 'registered_shipper'
                       AND pm_cl.meta_value = %s
                 )",
                 intval( $_GET['filter_wpcargoclient'] )
@@ -428,7 +466,6 @@ class MERC_Shipment_Filters {
 
         if ( ! empty( $this->custom_where_conds ) ) {
             add_filter( 'posts_where', [ $this, 'inject_custom_where' ], 99, 2 );
-        } else {
         }
 
         return $args;
@@ -531,6 +568,7 @@ class MERC_Shipment_Filters {
 if ( class_exists( 'MERC_Shipment_Filters' ) ) {
     new MERC_Shipment_Filters();
 }
+
 
 
 

@@ -24,7 +24,6 @@ if (!function_exists('get_maps_url')) {
     function get_maps_url($shipment_id) {
         $link_maps = trim(get_post_meta($shipment_id, 'link_maps', true));
         if (!empty($link_maps)) return $link_maps;
-
         $address = trim(get_post_meta($shipment_id, 'wpcargo_receiver_address', true));
         if (!empty($address)) {
             $long_url = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($address);
@@ -34,192 +33,220 @@ if (!function_exists('get_maps_url')) {
     }
 }
 ?>
-
 <style>
 @page {
-    size: 50mm 76mm;
-    margin: 0;
+    size: 50mm 75mm portrait !important;
+    margin: 0 !important;
 }
 
 @media print {
     html, body {
-        width: 50mm;
-        height: 76mm;
+        width: 50mm !important;
+        height: 75mm !important;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: hidden;
+    }
+    .thermal-label {
+        margin: 0 !important;
+        padding: 1mm 1.5mm !important;
+        width: 50mm !important;
+        height: 75mm !important;
     }
 }
 
-* { box-sizing: border-box; }
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 7px;
-    color: #000;
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-/* CONTENEDOR */
-.thermal-label {
-    width: 48mm;        /* margen simétrico */
-    margin: 0 auto;    /* centra izquierda / derecha */
+html, body {
+    width: 50mm !important;
+    max-width: 50mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000;
     background: #fff;
-    position: relative;
-    overflow: hidden;
+}
+
+/* ── ETIQUETA ── */
+.thermal-label {
+    width: 50mm !important;
+    height: 75mm !important;
+    overflow: hidden !important;
+    position: static !important;
+    background: #fff !important;
+    padding: 1mm 1.5mm !important;
+    margin: 0 !important;
+    display: block !important;
 }
 
 /* MARCA DE AGUA */
 .watermark-logo {
     position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0.09;
-    pointer-events: none;
+    top: 25%;
+    left: 5%;
+    opacity: 0.08;
+    z-index: 0;
+    width: 90%;
+    text-align: center;
 }
-
-.watermark-logo img {
-    width: 150px;
-}
+.watermark-logo img { width: 90px; }
 
 /* CONTENIDO */
-.label-content { position: relative; }
+.label-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
 
 .label-header {
-    display: flex;
-    flex-direction: column;   /* ← clave */
-    align-items: center;
-    justify-content: center;
-    padding: 2px;
-    border-bottom: 2px solid #000;
     text-align: center;
+    padding-bottom: 1.5px;
+    border-bottom: 1.5px solid #000;
+    margin-bottom: 1.5px;
 }
 .logo-wrap {
-    width: 100%;
-    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 3px;
-    text-align: center;
+    margin-bottom: 1.5px;
 }
-
-.logo-wrap {
-    width: 100%;
-    display: block !important;
-    text-align: center !important;
-    margin-bottom: 2px;
-}
-
 .logo-wrap img {
-    display: inline-block !important;
-    max-height: 20px !important;
+    max-height: 18px !important;
     width: auto !important;
     height: auto !important;
-    margin: 0 auto !important;
-    float: none !important;
 }
-
-.company-info {
-    width: 100%;
-    text-align: center;
-}
-
-/* NOMBRE EMPRESA */
 .brand-name {
-    font-size: 7px;
-    font-weight: bold;
-    text-transform: uppercase;
-    line-height: 1.1;
-    word-wrap: break-word;
-    white-space: normal;
-}
-
-/* DATOS EMPRESA */
-.company-data {
-    font-size: 6.5px;
-    line-height: 1.1;
-    word-break: normal;       /* no romper palabras */
-    overflow-wrap: break-word;
-    white-space: normal;
-}
-
-
-/* TRACKING */
-.tracking-section {
-    text-align: center;
-    padding: 2px;
-    border-bottom: 2px solid #000;
-}
-
-.barcode-container img {
-    max-width: 100%;
-    max-height: 20px;
-}
-
-.tracking-number {
-    font-size: 9px;
-    font-weight: bold;
-}
-
-/* DESTINO */
-.destination-section {
-    background: transparent;
-    color: #000;
-    text-align: center;
-    padding: 2px;
-    border-bottom: 2px solid #000;
-}
-
-.destination-value {
     font-size: 10px;
     font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1.2;
     word-wrap: break-word;
-    white-space: normal;
 }
 
-/* DATOS */
+.tracking-section {
+    text-align: center;
+    padding-bottom: 1.5px;
+    border-bottom: 1.5px solid #000;
+    margin-bottom: 1.5px;
+}
+.barcode-container img {
+    max-width: 100%;
+    max-height: 18px;
+    display: block;
+    margin: 0 auto;
+}
+.tracking-number {
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 1px;
+    line-height: 1.1;
+}
+
+.destination-section {
+    text-align: center;
+    padding-bottom: 1.5px;
+    border-bottom: 1.5px solid #000;
+    margin-bottom: 1.5px;
+}
+.destination-value {
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.1;
+    word-wrap: break-word;
+}
+
 .receiver-section {
-    padding: 2px;
-    border-bottom: 2px solid #000;
+    padding-bottom: 1.5px;
+    border-bottom: 1.5px solid #000;
+    margin-bottom: 1.5px;
 }
-.receiver-section div {
-    line-height: 1;
-    margin-bottom: 1px;
-}
+.receiver-section > div { margin-bottom: 2px; }
+.receiver-section > div:last-child { margin-bottom: 0; }
 
 .field-label {
-    font-size: 5.5px;
+    font-size: 7px;
     font-weight: bold;
     text-transform: uppercase;
+    display: block;
+    line-height: 1;
 }
-
 .field-value {
-    font-size: 7px;
+    font-size: 10px;
     font-weight: bold;
     display: block;
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: normal;
+    line-height: 1.2;
 }
 
-/* QR */
 .qr-section {
     text-align: center;
-    padding: 2px;
+    padding-top: 1px;
 }
-
 .qr-code {
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
+    display: block;
+    margin: 0 auto 1px;
 }
-
 .qr-label {
-    font-size: 5px;
-    line-height: 1;
-    margin-top: 1px;   /* espacio seguro, no rompe página */
+    font-size: 6px;
+    line-height: 1.2;
+    word-wrap: break-word;
 }
 </style>
+
+<script>
+(function () {
+    /* 1. Forzar viewport angosto */
+    var mv = document.querySelector('meta[name="viewport"]');
+    if (mv) mv.remove();
+    var m = document.createElement('meta');
+    m.name = 'viewport';
+    m.content = 'width=189,initial-scale=1';
+    document.head.appendChild(m);
+
+    function resetWrappers() {
+        /* 2. Resetear html y body */
+        var s = 'width:50mm!important;max-width:50mm!important;margin:0!important;padding:0!important;overflow:hidden!important;';
+        document.documentElement.setAttribute('style', s + 'height:75mm!important;');
+        document.body.setAttribute('style', s + 'height:75mm!important;max-height:75mm!important;');
+
+        /* 3. Ocultar / neutralizar todos los hijos del body excepto .thermal-label */
+        var kids = document.body.children;
+        for (var i = 0; i < kids.length; i++) {
+            var el = kids[i];
+            if (!el.classList.contains('thermal-label')) {
+                el.setAttribute('style',
+                    'display:none!important;width:0!important;height:0!important;' +
+                    'margin:0!important;padding:0!important;overflow:hidden!important;' +
+                    'position:absolute!important;top:0!important;left:0!important;');
+            } else {
+                el.setAttribute('style',
+                    'width:50mm!important;height:75mm!important;max-height:75mm!important;' +
+                    'overflow:hidden!important;position:relative!important;' +
+                    'background:#fff!important;padding:1mm 1.5mm!important;' +
+                    'margin:0!important;display:block!important;');
+            }
+        }
+    }
+
+    /* Ejecutar en DOMContentLoaded y antes de imprimir */
+    document.addEventListener('DOMContentLoaded', resetWrappers);
+    window.addEventListener('beforeprint', resetWrappers);
+
+    /* MutationObserver: re-aplica si WPCargo modifica el DOM después */
+    var obs = new MutationObserver(resetWrappers);
+    document.addEventListener('DOMContentLoaded', function () {
+        obs.observe(document.body, { childList: true, subtree: false, attributes: true });
+    });
+})();
+</script>
 
 <div class="thermal-label">
 
@@ -228,16 +255,13 @@ body {
     </div>
 
     <div class="label-content">
-        
+
         <div class="label-header">
             <div class="logo-wrap">
                 <?php echo $shipmentDetails['logo']; ?>
             </div>
-        
-            <div class="company-info">
-                <div class="brand-name">
-                    <?php echo get_post_meta($shipment_id, 'wpcargo_tiendaname', true); ?>
-                </div>
+            <div class="brand-name">
+                <?php echo get_post_meta($shipment_id, 'wpcargo_tiendaname', true); ?>
             </div>
         </div>
 
@@ -258,22 +282,16 @@ body {
 
         <div class="receiver-section">
             <div>
-                <span class="field-label">Destinatario</span><br>
-                <span class="field-value">
-                    <?php echo get_post_meta($shipment_id, 'wpcargo_receiver_name', true); ?>
-                </span>
+                <span class="field-label">Destinatario</span>
+                <span class="field-value"><?php echo get_post_meta($shipment_id, 'wpcargo_receiver_name', true); ?></span>
             </div>
             <div>
-                <span class="field-label">Teléfono</span><br>
-                <span class="field-value">
-                    <?php echo get_post_meta($shipment_id, 'wpcargo_receiver_phone', true); ?>
-                </span>
+                <span class="field-label">Teléfono</span>
+                <span class="field-value"><?php echo get_post_meta($shipment_id, 'wpcargo_receiver_phone', true); ?></span>
             </div>
             <div>
-                <span class="field-label">Dirección</span><br>
-                <span class="field-value">
-                    <?php echo get_post_meta($shipment_id, 'wpcargo_receiver_address', true); ?>
-                </span>
+                <span class="field-label">Dirección</span>
+                <span class="field-value"><?php echo get_post_meta($shipment_id, 'wpcargo_receiver_address', true); ?></span>
             </div>
         </div>
 
@@ -290,5 +308,3 @@ body {
 
     </div>
 </div>
-
-
