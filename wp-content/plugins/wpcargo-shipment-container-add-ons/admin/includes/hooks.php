@@ -45,6 +45,44 @@ function wpcsc_dashboard_filters_callback(){
         return false;
     }
 
+    $search_term = isset( $_GET['num'] ) ? trim( sanitize_text_field( wp_unslash( $_GET['num'] ) ) ) : '';
+    if ( ! empty( $search_term ) ) {
+        // Si el usuario escanea el código de seguimiento (ej: MERC-009137), redirigir al tracking en dashboard
+        if ( preg_match('/^MERC-\d+/i', $search_term) ) {
+            wp_safe_redirect( add_query_arg( array( 'wpcfe' => 'track', 'num' => rawurlencode( $search_term ) ), home_url( '/dashboard/' ) ) );
+            exit;
+        }
+        $existing_container_id = 0;
+        if ( function_exists( 'wpcsc_get_container_id' ) ) {
+            $existing_container_id = intval( wpcsc_get_container_id( $search_term ) );
+        }
+
+        if ( $existing_container_id <= 0 ) {
+            $shipment_id = 0;
+            if ( function_exists( 'wpcsc_get_shipment_id' ) ) {
+                $shipment_id = intval( wpcsc_get_shipment_id( $search_term ) );
+            } else {
+                global $wpdb;
+                $shipment_id = intval( $wpdb->get_var( $wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE post_status LIKE 'publish' AND post_type LIKE 'wpcargo_shipment' AND post_title LIKE %s LIMIT 1", $search_term) ) );
+            }
+
+            if ( $shipment_id > 0 ) {
+                if ( function_exists( 'wpcsc_get_shipment_container' ) ) {
+                    $container_id = intval( wpcsc_get_shipment_container( $shipment_id ) );
+                } else {
+                    global $wpdb;
+                    $container_meta = $wpdb->get_var( $wpdb->prepare("SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key IN ('shipment_container','shipment_container_recojo','shipment_container_entrega') LIMIT 1", $shipment_id) );
+                    $container_id = intval( $container_meta );
+                }
+
+                if ( $container_id > 0 ) {
+                    wp_safe_redirect( add_query_arg( array( 'wpcsc' => 'edit', 'id' => $container_id ), get_the_permalink( wpc_container_frontend_page() ) ) );
+                    exit;
+                }
+            }
+        }
+    }
+
     $page_url       = get_the_permalink( wpc_container_frontend_page() );
     $user_wpcfesort = get_user_meta( get_current_user_id(), 'user_wpcfesort', true );
     $date_start     = date('Y-m-d', strtotime('today - '.wpcsc_date_filter_range().' days'));

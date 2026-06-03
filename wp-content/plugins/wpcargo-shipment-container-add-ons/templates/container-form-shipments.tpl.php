@@ -219,7 +219,7 @@
                     </div>
                     <div class="merc-table-scroll-wrapper">
                     <table id="shipment-list-recojo" class="table table-hover table-sm shipment-collapse-table" data-type="recojo" style="border-radius: 0; border-top: none; margin-bottom: 0;">
-                        <thead>
+                        <thead style="position: relative;z-index: 0;">
                             <tr>
                                 <th style="white-space: nowrap;width: 1%;">
                                     <input type="checkbox" class="form-check-input select-all-type" data-type="recojo">
@@ -378,7 +378,7 @@
                     </div>
                     <div class="merc-table-scroll-wrapper">
                     <table id="shipment-list-entrega" class="table table-hover table-sm shipment-collapse-table" data-type="entrega" style="border-radius: 0; border-top: none; margin-bottom: 0;">
-                        <thead>
+                        <thead style="position: relative;z-index: 0;">
                             <tr>
                                 <th style="white-space: nowrap;width: 1%;">
                                     <input type="checkbox" class="form-check-input select-all-type" data-type="entrega">

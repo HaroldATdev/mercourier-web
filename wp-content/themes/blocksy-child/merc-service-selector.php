@@ -50,7 +50,7 @@ if ( $bloq_full )    $avisos[] = 'Full Fitment';
                 onclick="<?php echo $bloq_normal ? 'return false;' : "selectShipmentType('normal')"; ?>">
                 <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-normal.png" alt="Normal" class="img-fluid mb-3">
                 <h4>MERC EMPRENDEDOR</h4>
-                <p>Usa este modo para registrar un envío estándar.</p>
+                <p>Solicita un servicio programado de recojo y entrega </p>
                 <?php if ( $bloq_normal ) : ?>
                     <small class="text-danger"><i class="fa fa-lock mr-1"></i>Bloqueado hasta las <?php echo esc_html($hora_duro); ?></small>
                 <?php endif; ?>
@@ -62,7 +62,7 @@ if ( $bloq_full )    $avisos[] = 'Full Fitment';
                 onclick="<?php echo $bloq_agencia ? 'return false;' : "selectShipmentType('express')"; ?>">
                 <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/envio-express.png" alt="Express" class="img-fluid mb-3">
                 <h4>MERC AGENCIA</h4>
-                <p>Ideal para entregas urgentes o de prioridad alta.</p>
+                <p>Deja tu producto en nuestra agencia y programa tu entrega</p>
                 <?php if ( $bloq_agencia ) : ?>
                     <small class="text-danger"><i class="fa fa-lock mr-1"></i>Bloqueado hasta las <?php echo esc_html($hora_duro); ?></small>
                 <?php endif; ?>
@@ -86,7 +86,7 @@ if ( $bloq_full )    $avisos[] = 'Full Fitment';
                 onclick="window.open('https://wa.me/51931430389', '_blank')">
                 <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/whatsapp.png" alt="WhatsApp" class="img-fluid mb-3">
                 <h4>MERC EXPRESS</h4>
-                <p>Consulta o solicita ayuda directa por chat.</p>
+                <p>Ideal para entregas urgentes, cotiza directo por chat</p>
             </div>
 
         </div>

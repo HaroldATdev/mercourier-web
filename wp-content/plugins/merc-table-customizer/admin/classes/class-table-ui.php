@@ -1405,17 +1405,18 @@ class MERC_Table_UI {
                         const tipoEnvio = $tipoCell.length > 0 ? $tipoCell.attr('data-tipo-envio').toLowerCase() : '';
                         if (tipoEnvio.indexOf('full') !== -1 || tipoEnvio.indexOf('fit') !== -1) return;
                         $.post(AJAX_URL, { action: 'merc_get_shipment_data', shipment_id: shipmentId, nonce: NONCE_ACTUALIZAR_ESTADO }, function(resp) {
-                            const data     = (resp && resp.success) ? (resp.data || {}) : {};
-                            const clienteId = data.customer_id || '';
-                            crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, clienteId, data);
-                        }, 'json').fail(function() { crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, '', ''); });
+                            const data        = (resp && resp.success) ? (resp.data || {}) : {};
+                            const clienteId   = data.customer_id || '';
+                            const clienteName = data.customer_name || '';
+                            crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, clienteId, clienteName, data);
+                        }, 'json').fail(function() { crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, '', '', {}); });
                     });
                 }, 500);
 
-                function crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, clienteId, data) {
+                function crearBotonProducto($row, $celdaAcciones, shipmentId, shipmentNumber, clienteId, clienteName, data) {
                     if ($row.find('.merc-btn-crear-producto').length > 0) return;
                     const $btnCrear = $('<button class="merc-btn-crear-producto" data-shipment-id="' + shipmentId + '" data-shipment-number="' + shipmentNumber + '" style="margin-left:8px;background:#1976d2;color:#fff;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;white-space:nowrap;">🛒 Crear Producto</button>');
-                    $btnCrear.on('click', function(e) { e.preventDefault(); mostrarModalProductoDesdeEnvio($(this).data('shipment-id'), clienteId, $row.find('td').first().text().trim()); });
+                    $btnCrear.on('click', function(e) { e.preventDefault(); mostrarModalProductoDesdeEnvio($(this).data('shipment-id'), clienteId, clienteName, $row.find('td').first().text().trim()); });
                     $celdaAcciones.append($btnCrear);
                 }
             }
@@ -1473,7 +1474,7 @@ class MERC_Table_UI {
             });
         }
 
-        function mostrarModalProductoDesdeEnvio(shipmentId, clienteId, shipmentTitle) {
+        function mostrarModalProductoDesdeEnvio(shipmentId, clienteId, clienteName, shipmentTitle) {
             const modalHTML = `
 <div id="modal-producto-envio" class="modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; align-items: center; justify-content: center;">
     <div class="modal-backdrop" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);"></div>
@@ -1539,7 +1540,12 @@ class MERC_Table_UI {
 </div>`;
             $('body').append(modalHTML);
             const $modal = $('#modal-producto-envio');
-            if (clienteId) $modal.find('#prod-cliente-id').val(clienteId);
+            if (clienteId) {
+                $modal.find('#prod-cliente-id').val(clienteId);
+            }
+            if (clienteName) {
+                $modal.find('#prod-cliente-buscador').val(clienteName);
+            }
             $modal.find('.modal-close-envio, .modal-backdrop').on('click', function() { $modal.remove(); });
             $modal.find('#form-producto-envio').on('submit', function(e) {
                 e.preventDefault();
