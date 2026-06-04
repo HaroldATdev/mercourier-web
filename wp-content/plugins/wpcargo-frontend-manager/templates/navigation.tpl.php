@@ -7,7 +7,7 @@ $unseen  = $unseen_shipments > 9 ? '9&#43;' : $unseen_shipments ;
 ?>
 <header>
     <!-- Navbar -->
-    <nav class="navbar fixed-top navbar-expand-lg navbar-light white scrolling-navbar <?php echo is_rtl() ? 'rtl' : ''; ?>" style="z-index:0;">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light white scrolling-navbar <?php echo is_rtl() ? 'rtl' : ''; ?>">
         <div class="container-fluid">
 			<!-- Brand -->
 			<a class="navbar-brand waves-effect d-sm-inline-block d-md-inline-block d-lg-none" href="<?php echo esc_url( add_query_arg( 'noredirect', '1', home_url( '/' ) ) ); ?>">
@@ -132,7 +132,7 @@ $unseen  = $unseen_shipments > 9 ? '9&#43;' : $unseen_shipments ;
     </nav>
     <!-- Navbar -->
     <!-- Sidebar -->
-    <div class="sidebar-fixed position-fixed" style="z-index: 0;">
+    <div class="sidebar-fixed position-fixed">
 		<a class="logo-wrapper waves-effect d-block text-center" href="<?php echo esc_url( add_query_arg( 'noredirect', '1', home_url( '/' ) ) ); ?>">
         	<img src="<?php echo wpcfe_dashboard_logo_url(); ?>" class="img-fluid" alt="<?php esc_html_e( 'Site Logo', 'wpcargo-frontend-manager' ); ?>" style="width: auto; margin:0 auto" />
         </a>
@@ -230,8 +230,8 @@ $unseen  = $unseen_shipments > 9 ? '9&#43;' : $unseen_shipments ;
     }
     
     .account-dropdown li a:hover {
-        background: rgba(41, 128, 185, 0.08);
-        color: #2980b9;
+        background: #8e0205;
+        color: white;
         padding-left: 20px;
     }
     

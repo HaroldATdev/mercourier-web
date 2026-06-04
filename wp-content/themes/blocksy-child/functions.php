@@ -10461,6 +10461,16 @@ function merc_planificador_con_link_maps() {
     
     $shipments = $shipments_para_hoy;
     
+    // Ordenar shipments alfabéticamente por nombre de cliente (display_name)
+    // para que en el planificador se muestren en orden A-Z
+    usort($shipments, function($a, $b) {
+        $user_a = get_user_by('ID', $a->post_author ?? $a->author_id ?? null);
+        $user_b = get_user_by('ID', $b->post_author ?? $b->author_id ?? null);
+        $name_a = $user_a ? strtolower($user_a->display_name) : '';
+        $name_b = $user_b ? strtolower($user_b->display_name) : '';
+        return strcoll($name_a, $name_b);
+    });
+    
     if (empty($shipments)) {
         wp_send_json([
             'status' => 'error',
@@ -10703,8 +10713,10 @@ function merc_planificador_pickup_con_filtro() {
     $like_ymd = $wpdb->esc_like($fecha_ymd) . '%';
 
     // Añadir join para tipo_envio y forzar que sea 'normal'
-    $sql = "SELECT DISTINCT p.ID, p.post_title
+    // Ordenar alfabéticamente por nombre del cliente (desde users.display_name)
+    $sql = "SELECT DISTINCT p.ID, p.post_title, u.display_name as client_name
         FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->users} u ON p.post_author = u.ID
         LEFT JOIN {$wpdb->postmeta} pm_driver ON p.ID = pm_driver.post_id AND pm_driver.meta_key = 'wpcargo_driver'
         LEFT JOIN {$wpdb->postmeta} pm_pickup ON p.ID = pm_pickup.post_id AND pm_pickup.meta_key IN ({$meta_pickup_keys})
         LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
@@ -10719,7 +10731,7 @@ function merc_planificador_pickup_con_filtro() {
         )
         AND LOWER(IFNULL(pm_tipo.meta_value, '')) = 'normal'
         AND UPPER(IFNULL(pm_status.meta_value, '')) = 'PENDIENTE'
-        ORDER BY p.ID ASC";
+        ORDER BY IFNULL(u.display_name, p.post_title) ASC";
 
     $query = $wpdb->prepare($sql, $driver_id, $fecha_ymd, $fecha_ymd, $like_dmy);
     error_log('MERC_PLANIFICADOR_SQL - ' . $query);

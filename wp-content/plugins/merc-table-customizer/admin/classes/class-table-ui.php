@@ -150,12 +150,29 @@ class MERC_Table_UI {
     }
 
     tr.merc-estado-reprogramado {
-        background-color: #fff3e0 !important;
-        border-left: 5px solid #ff9800 !important;
+        background: linear-gradient(135deg, #ffb74d 0%, #ffa726 100%) !important;
+        border-left: 5px solid #e65100 !important;
+        box-shadow: inset 0 0 8px rgba(255,152,0,0.3) !important;
     }
-    tr.merc-estado-reprogramado:hover { background-color: #ffe0b2 !important; }
-    tr.merc-estado-reprogramado td { color: #bf360c !important; font-weight: 600 !important; }
-    tr.merc-estado-reprogramado td:first-child::before { content: '📅 '; font-size: 16px; margin-right: 5px; }
+    tr.merc-estado-reprogramado:hover { 
+        background: linear-gradient(135deg, #ffcc80 0%, #ffb74d 100%) !important;
+        box-shadow: inset 0 0 12px rgba(255,152,0,0.5), 0 2px 8px rgba(0,0,0,0.2) !important;
+    }
+    tr.merc-estado-reprogramado td { 
+        color: #e65100 !important; 
+        font-weight: 700 !important;
+        letter-spacing: 0.3px !important;
+    }
+    tr.merc-estado-reprogramado td:first-child::before { 
+        content: '📅 '; 
+        font-size: 18px; 
+        margin-right: 6px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
 
     /* Fila RECEPCIONADO que proviene de una reprogramación → fondo naranja */
     tr.merc-estado-recepcionado-reprogramado {
@@ -860,26 +877,18 @@ class MERC_Table_UI {
         function setRowStateClass($row, estado) {
             if (!$row || !$row.length) return;
             const text = (estado || '').toUpperCase();
-            // Estados finales en los que se quita el naranja de reprogramado
-            const ESTADOS_FINALES = ['ENTREGADO', 'ANULADO', 'NO RECIBIDO', 'REPROGRAMADO', 'ELIMINADO'];
             $row.removeClass('merc-estado-reprogramado merc-estado-no-contesta merc-estado-anulado merc-estado-recepcionado-reprogramado');
             if (text.includes('ANULADO') || text.includes('CANCEL')) { $row.addClass('merc-estado-anulado'); return; }
             if (text.includes('NO CONTESTA'))                         { $row.addClass('merc-estado-no-contesta'); return; }
-            if (text.includes('REPROGRAMADO') || text.includes('RESCHEDULE')) { $row.addClass('merc-estado-reprogramado'); return; }
-            // Si el envío es reprogramado y el nuevo estado NO es final → mantener naranja
+            // Aplicar estilo SOLO si: es_reprogramado=1 AND estado=RECEPCIONADO
             const esReprog = parseInt($row.find('td.shipment-status').data('es-reprogramado')) === 1;
-            if (esReprog) {
-                const esFinal = ESTADOS_FINALES.some(function(e) { return text.includes(e); });
-                if (!esFinal) {
-                    $row.addClass('merc-estado-recepcionado-reprogramado');
-                }
+            if (esReprog && (text.includes('RECEPCIONADO') || text === 'RECEPCIONADO')) {
+                $row.addClass('merc-estado-reprogramado');
+                return;
             }
         }
 
         function resaltarFilasReprogramadas() {
-            // Estados finales en los que se quita el naranja de reprogramado
-            const ESTADOS_FINALES = ['ENTREGADO', 'ANULADO', 'NO RECIBIDO', 'REPROGRAMADO', 'ELIMINADO'];
-
             $('td.shipment-status').each(function() {
                 const $estadoCell = $(this);
                 let estadoActual  = $estadoCell.text().trim();
@@ -891,14 +900,9 @@ class MERC_Table_UI {
                 const upper = estadoActual.toUpperCase();
                 if (upper.includes('ANULADO') || upper.includes('CANCEL')) { $row.addClass('merc-estado-anulado'); }
                 else if (upper.includes('NO CONTESTA')) { $row.addClass('merc-estado-no-contesta'); }
-                else if (upper.includes('REPROGRAMADO') || upper.includes('RESCHEDULE')) { $row.addClass('merc-estado-reprogramado'); }
-                else if (esReprog) {
-                    // Si el envío está marcado como reprogramado y NO está en estado final
-                    // ni en estado "REPROGRAMADO" textual → pintar naranja en todos los estados intermedios
-                    const esFinal = ESTADOS_FINALES.some(function(e) { return upper.includes(e); });
-                    if (!esFinal) {
-                        $row.addClass('merc-estado-recepcionado-reprogramado');
-                    }
+                // Aplicar estilo SOLO si: es_reprogramado=1 AND estado=RECEPCIONADO
+                else if (esReprog && (upper.includes('RECEPCIONADO') || upper === 'RECEPCIONADO')) {
+                    $row.addClass('merc-estado-reprogramado');
                 }
             });
         }
