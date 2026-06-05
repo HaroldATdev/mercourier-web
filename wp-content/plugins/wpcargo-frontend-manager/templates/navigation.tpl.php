@@ -230,8 +230,8 @@ $unseen  = $unseen_shipments > 9 ? '9&#43;' : $unseen_shipments ;
     }
     
     .account-dropdown li a:hover {
-        background: rgba(41, 128, 185, 0.08);
-        color: #2980b9;
+        background: #8e0205;
+        color: white;
         padding-left: 20px;
     }
     

@@ -398,7 +398,10 @@
         if (pickups.length === 0) {
             listHTML += '<div class="alert alert-warning" style="padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; text-align: center;">⚠️ No se encontraron recojos PENDIENTES para hoy</div>';
         } else {
-            Object.keys(groupedByUser).forEach((shipperId) => {
+            const sortedShipperIds = Object.keys(groupedByUser).sort((a, b) => {
+                return groupedByUser[a].name.localeCompare(groupedByUser[b].name, 'es', { sensitivity: 'base' });
+            });
+            sortedShipperIds.forEach((shipperId) => {
                 const userGroup    = groupedByUser[shipperId];
                 const shipperName  = userGroup.name;
                 const pickupCount  = userGroup.pickups.length;

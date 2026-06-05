@@ -158,8 +158,33 @@ class MERC_Table_Ajax {
             $monto = 0;
         }
 
+        $customer_id = get_post_meta( $shipment_id, 'wpcargo_customer_id', true );
+        if ( empty( $customer_id ) ) {
+            $customer_id = get_post_meta( $shipment_id, 'registered_shipper', true );
+        }
+        if ( empty( $customer_id ) ) {
+            $shipment_post = get_post( $shipment_id );
+            $customer_id = $shipment_post ? $shipment_post->post_author : 0;
+        }
+        $customer_id = intval( $customer_id );
+
+        $customer_name = '';
+        if ( $customer_id > 0 ) {
+            $customer_user = get_userdata( $customer_id );
+            if ( $customer_user ) {
+                $first_name = trim( get_user_meta( $customer_id, 'first_name', true ) );
+                $last_name  = trim( get_user_meta( $customer_id, 'last_name', true ) );
+                $customer_name = trim( $first_name . ' ' . $last_name );
+                if ( empty( $customer_name ) ) {
+                    $customer_name = $customer_user->display_name;
+                }
+            }
+        }
+
         wp_send_json_success( [
-            'monto' => floatval( $monto ),
+            'monto'         => floatval( $monto ),
+            'customer_id'   => $customer_id,
+            'customer_name' => $customer_name,
         ] );
     }
 
