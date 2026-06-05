@@ -1063,6 +1063,24 @@ function merc_cliente_pagar_voucher_ajax() {
 }
 
 // Inicializar Select2 en el campo de tiendas
+add_action( 'wp_footer', 'merc_init_cliente_select2', 999 );
+function merc_init_cliente_select2() {
+    if ( ! is_page(3639) && ! is_page('panel-admin') ) return;
+    ?>
+    <script>
+    jQuery(document).ready(function($) {
+        if (typeof $.fn.select2 !== 'undefined' && $('#merc-filtro-cliente').length) {
+            $('#merc-filtro-cliente').select2({
+                placeholder: 'Buscar cliente...',
+                allowClear: true,
+                width: '100%',
+                language: { noResults: function() { return 'Sin resultados'; } }
+            });
+        }
+    });
+    </script>
+    <?php
+}
 add_action( 'wp_footer', 'init_tiendaname_select2', 999 );
 function init_tiendaname_select2() {
     // Verificar que el usuario NO sea wpcargo_client
@@ -2235,12 +2253,11 @@ function merc_producto_selector_envio($shipment_id) {
 /*
 add_action('wp_enqueue_scripts', 'merc_enqueue_select2_scripts');
 function merc_enqueue_select2_scripts() {
-    // Solo cargar en la página de crear envío
-    if (isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add') {
-        // Select2 CSS
+    // Cargar en la página de crear envío Y en el panel admin
+    $is_add     = isset($_GET['wpcfe']) && $_GET['wpcfe'] === 'add';
+    $is_panel   = is_page('panel-admin') || is_page(3639) || (isset($_GET['wpcfe']) && in_array($_GET['wpcfe'], ['dashboard', 'admin']));
+    if ( $is_add || $is_panel ) {
         wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', array(), '4.1.0');
-        
-        // Select2 JS
         wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array('jquery'), '4.1.0', true);
     }
 }
@@ -3410,8 +3427,14 @@ if ( ! function_exists( 'get_payment_totals_by_method' ) ) {
      * @param bool $solo_liquidado Si true, solo cuenta efectivo si está liquidado
      * @return array Totales por método
      */
-    function get_payment_totals_by_method( $shipment_id, $solo_liquidado = false ) {
-        $json   = get_post_meta( $shipment_id, 'pod_payment_methods', true );
+    function get_payment_totals_by_method( $shipment_id, $solo_liquidado = false, $pod_json = null, $status = null, $modo_pago = null ) {
+        static $cache = [];
+        $cache_key = $shipment_id . '_' . ($solo_liquidado ? '1' : '0');
+        if ( isset($cache[$cache_key]) ) {
+            return $cache[$cache_key];
+        }
+
+        $json   = $pod_json !== null ? $pod_json : get_post_meta( $shipment_id, 'pod_payment_methods', true );
         $totals = [
             'efectivo'   => 0.0,
             'pago_merc'  => 0.0,
@@ -3429,7 +3452,6 @@ if ( ! function_exists( 'get_payment_totals_by_method' ) ) {
                         $amount = (float) $item['monto'];
                         if ( array_key_exists( $method, $totals ) ) {
                             $totals[ $method ] += $amount;
-                            // El total solo suma efectivo, pago_merc y pos. NO suma pago_marca.
                             if ( in_array( $method, ['efectivo', 'pago_merc', 'pos'] ) ) {
                                 $totals['total'] += $amount;
                             }
@@ -3438,13 +3460,13 @@ if ( ! function_exists( 'get_payment_totals_by_method' ) ) {
                 }
             }
         }
-        // Si no hay pod_payment_methods, no hay cobro registrado → todo queda en cero.
-        // (No usar wpcargo_total_cobrar como fallback: es el monto esperado, no el cobrado.)
 
-        // --- REGLAS FINANCIERAS SEGÚN ESTADO ---
-        $status = strtoupper(trim(get_post_meta( $shipment_id, 'wpcargo_status', true )));
+        if ( $status === null ) {
+            $status = strtoupper(trim(get_post_meta( $shipment_id, 'wpcargo_status', true )));
+        } else {
+            $status = strtoupper(trim($status));
+        }
 
-        // Estados pre-entrega: aunque hubiera algo en el JSON, se muestra cero
         $estados_pre_entrega = ['EN BASE MERCOURIER', 'PENDIENTE', 'RECOGIDO', 'NO RECOGIDO', 'EN RUTA', 'LISTO PARA SALIR', 'NO CONTESTA'];
         if ( in_array( $status, $estados_pre_entrega ) ) {
             $totals['efectivo']   = 0.0;
@@ -3453,19 +3475,19 @@ if ( ! function_exists( 'get_payment_totals_by_method' ) ) {
             $totals['pos']        = 0.0;
             $totals['total']      = 0.0;
         } elseif ( in_array( $status, ['ANULADO', 'REPROGRAMADO'] ) ) {
-
-
-            // Si es anulado, reprogramado o no recibido, no se recaudó nada
             $totals['efectivo']   = 0.0;
             $totals['pago_merc']  = 0.0;
             $totals['pago_marca'] = 0.0;
             $totals['pos']        = 0.0;
             $totals['total']      = 0.0;
         } else {
-            // Si es NO COBRAR, no se debe contar el efectivo ni el pago recaudado
-            $modo_pago = strtolower(trim(get_post_meta($shipment_id, 'payment_wpcargo_mode_field', true)));
-            if ( empty($modo_pago) ) {
-                $modo_pago = strtolower(trim(get_post_meta($shipment_id, 'modo_pago', true)));
+            if ( $modo_pago === null ) {
+                $modo_pago = strtolower(trim(get_post_meta($shipment_id, 'payment_wpcargo_mode_field', true)));
+                if ( empty($modo_pago) ) {
+                    $modo_pago = strtolower(trim(get_post_meta($shipment_id, 'modo_pago', true)));
+                }
+            } else {
+                $modo_pago = strtolower(trim($modo_pago));
             }
             if ( $modo_pago === 'no cobrar' || $modo_pago === '1' ) {
                 $totals['efectivo']   = 0.0;
@@ -3476,18 +3498,15 @@ if ( ! function_exists( 'get_payment_totals_by_method' ) ) {
             }
         }
         
-        // Si solo queremos efectivo liquidado, verificamos el estado de liquidación
         if ( $solo_liquidado && $totals['efectivo'] > 0 ) {
             $estado_motorizado = get_post_meta( $shipment_id, 'wpcargo_estado_pago_motorizado', true );
             if ( $estado_motorizado !== 'liquidado' ) {
                 $totals['efectivo'] = 0.0;
-                // Ojo: si se quita el efectivo por no estar liquidado, ¿se resta del total general?
-                // Depende de dónde se use get_payment_totals_by_method.
-                // Generalmente 'total' se asume bruto, pero ajustémoslo por coherencia si se pidió solo_liquidado:
                 $totals['total'] = $totals['pago_merc'] + $totals['pos'];
             }
         }
         
+        $cache[$cache_key] = $totals;
         return $totals;
     }
 }
@@ -3690,9 +3709,10 @@ function merc_is_shipment_liquidation_verified( $shipment_id ) {
     if ( $liq_verified_map === null ) {
         $liq_verified_map = array();
         // Build a map of liq_id => verified status from all users in one shot
-        $users = get_users( array( 'fields' => array('ID') ) );
-        foreach ( $users as $u ) {
-            $history = get_user_meta( $u->ID, 'merc_liquidations', true );
+        global $wpdb;
+        $all_hist = $wpdb->get_col( "SELECT meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'merc_liquidations'" );
+        foreach ( $all_hist as $meta ) {
+            $history = maybe_unserialize( $meta );
             if ( ! is_array( $history ) ) continue;
             foreach ( $history as $entry ) {
                 if ( isset( $entry['id'] ) ) {
@@ -3913,48 +3933,56 @@ function merc_motorizado_resumen( $driver_id ) {
 
 function merc_motorizado_entregas( $driver_id ) {
     global $wpdb;
-    // Restringir a la fecha de envio (meta) — usar fecha de envío en vez de post_date
-    $now = current_time('timestamp');
-    $start_date = date('Y-m-d', $now);
-    $end_date   = date('Y-m-d', $now);
 
-    // Mostrar solo envíos donde este usuario está asignado COMO motorizado de ENTREGA
+    // Leer fechas del filtro GET (igual que merc_motorizado_resumen)
+    $fecha_inicio = isset($_GET['fecha_inicio']) ? sanitize_text_field($_GET['fecha_inicio']) : date('Y-m-d');
+    $fecha_fin    = isset($_GET['fecha_fin'])    ? sanitize_text_field($_GET['fecha_fin'])    : date('Y-m-d');
+
+    $fecha_inicio_ymd = date('Y-m-d', strtotime($fecha_inicio));
+    $fecha_fin_ymd    = date('Y-m-d', strtotime($fecha_fin));
+
+    // Construir condición de fecha compatible con ambos formatos (DD/MM/YYYY e YYYY-MM-DD)
+    if ($fecha_inicio_ymd === $fecha_fin_ymd) {
+        // Un solo día: comparar directo en ambos formatos
+        $fecha_dmy = date('d/m/Y', strtotime($fecha_inicio));
+        $date_condition = "(
+            pm_pickup_date.meta_value = '{$fecha_dmy}'
+            OR pm_pickup_date.meta_value = '{$fecha_inicio_ymd}'
+            OR STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') = STR_TO_DATE('{$fecha_inicio_ymd}', '%%Y-%%m-%%d')
+        )";
+    } else {
+        // Rango de fechas
+        $date_condition = "(
+            (STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('{$fecha_fin_ymd}', '%%Y-%%m-%%d'))
+            OR (STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') >= STR_TO_DATE('{$fecha_inicio_ymd}', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') <= STR_TO_DATE('{$fecha_fin_ymd}', '%%Y-%%m-%%d'))
+        )";
+    }
+
     $query = "
         SELECT p.ID, p.post_title,
                pm_estado_motorizado.meta_value as estado_motorizado,
-             pm_status.meta_value as estado_envio,
-             pm_tienda.meta_value as tienda_name,
-             pm_shipper_name.meta_value as shipper_name,
+               pm_status.meta_value as estado_envio,
+               pm_tienda.meta_value as tienda_name,
+               pm_shipper_name.meta_value as shipper_name,
                pm_destino.meta_value as destino,
                pm_pickup_date.meta_value as envio_fecha
         FROM {$wpdb->posts} p
         LEFT JOIN {$wpdb->postmeta} pm_me ON p.ID = pm_me.post_id AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
         LEFT JOIN {$wpdb->postmeta} pm_estado_motorizado ON p.ID = pm_estado_motorizado.post_id AND pm_estado_motorizado.meta_key = 'wpcargo_estado_pago_motorizado'
-         LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
-         LEFT JOIN {$wpdb->postmeta} pm_tienda ON p.ID = pm_tienda.post_id AND pm_tienda.meta_key = 'wpcargo_tiendaname'
-         LEFT JOIN {$wpdb->postmeta} pm_shipper_name ON p.ID = pm_shipper_name.post_id AND pm_shipper_name.meta_key = 'wpcargo_shipper_name'
+        LEFT JOIN {$wpdb->postmeta} pm_status ON p.ID = pm_status.post_id AND pm_status.meta_key = 'wpcargo_status'
+        LEFT JOIN {$wpdb->postmeta} pm_tienda ON p.ID = pm_tienda.post_id AND pm_tienda.meta_key = 'wpcargo_tiendaname'
+        LEFT JOIN {$wpdb->postmeta} pm_shipper_name ON p.ID = pm_shipper_name.post_id AND pm_shipper_name.meta_key = 'wpcargo_shipper_name'
         LEFT JOIN {$wpdb->postmeta} pm_destino ON p.ID = pm_destino.post_id AND pm_destino.meta_key = 'wpcargo_distrito_destino'
         LEFT JOIN {$wpdb->postmeta} pm_pickup_date ON p.ID = pm_pickup_date.post_id AND pm_pickup_date.meta_key IN ('wpcargo_pickup_date_picker','wpcargo_pickup_date','wpcargo_fecha_envio')
         WHERE p.post_type = 'wpcargo_shipment'
         AND p.post_status = 'publish'
-        AND pm_me.meta_value = %s";
-    
-    if ( $start_date === $end_date ) {
-        $dmy = date('d/m/Y', strtotime($start_date));
-        $query .= " AND pm_pickup_date.meta_value = '{$dmy}'";
-    } else {
-        $query .= " AND (
-            (STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') >= STR_TO_DATE('%s', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%d/%%m/%%Y') <= STR_TO_DATE('%s', '%%Y-%%m-%%d'))
-            OR
-            (STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') >= STR_TO_DATE('%s', '%%Y-%%m-%%d') AND STR_TO_DATE(pm_pickup_date.meta_value, '%%Y-%%m-%%d') <= STR_TO_DATE('%s', '%%Y-%%m-%%d'))
-        )";
-    }
-    
-    $query .= " ORDER BY p.post_date DESC
-        LIMIT 50
+        AND pm_me.meta_value = %s
+        AND {$date_condition}
+        ORDER BY p.post_date DESC
+        LIMIT 200
     ";
 
-    $shipments = $wpdb->get_results( $wpdb->prepare( $query, $driver_id, $start_date, $end_date ) );
+    $shipments = $wpdb->get_results( $wpdb->prepare( $query, $driver_id ) );
 
     if ( empty( $shipments ) ) {
         echo '<div class="alert alert-warning">No tienes entregas asignadas.</div>';
@@ -5592,8 +5620,19 @@ function merc_admin_vista_detalle($tipo_vista, $fecha_inicio, $fecha_fin, $filtr
 }
 
 function merc_admin_filtros( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_motorizado, $filtro_cliente ) {
-    $motorizados = get_users( array( 'role' => 'wpcargo_driver' ) );
+    $motorizados = get_users( array( 'role' => 'wpcargo_driver', 'orderby' => 'display_name', 'order' => 'ASC' ) );
     $clientes    = get_users( array( 'role' => 'wpcargo_client' ) );
+
+    // Construir array de clientes con nombre visible y ordenar alfabéticamente
+    $clientes_options = [];
+    foreach ( $clientes as $c ) {
+        $billing_company = get_user_meta( $c->ID, 'billing_company', true );
+        $nombre = ! empty( $billing_company )
+            ? $billing_company
+            : trim( get_user_meta( $c->ID, 'billing_first_name', true ) . ' ' . get_user_meta( $c->ID, 'billing_last_name', true ) );
+        $clientes_options[$c->ID] = $nombre ?: $c->display_name;
+    }
+    natcasesort($clientes_options);
     
     // Obtener la URL actual sin parámetros
     $current_url = strtok($_SERVER["REQUEST_URI"], '?');
@@ -5627,17 +5666,11 @@ function merc_admin_filtros( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro_
 		</div>
 		<div class="form-group">
 			<label>Cliente</label>
-			<select name="filtro_cliente" class="form-control">
+			<select name="filtro_cliente" id="merc-filtro-cliente" class="form-control merc-select2-cliente">
 				<option value="0">Todos</option>
-				<?php foreach ( $clientes as $cliente ) : ?>
-					<option value="<?php echo esc_attr( $cliente->ID ); ?>" <?php selected( $filtro_cliente, $cliente->ID ); ?>>
-						<?php 
-						$billing_company = get_user_meta( $cliente->ID, 'billing_company', true );
-						$nombre = ! empty( $billing_company ) 
-							? $billing_company 
-							: trim( get_user_meta( $cliente->ID, 'billing_first_name', true ) . ' ' . get_user_meta( $cliente->ID, 'billing_last_name', true ) );
-						echo esc_html( $nombre ?: $cliente->display_name );
-						?>
+				<?php foreach ( $clientes_options as $cid => $cnombre ) : ?>
+					<option value="<?php echo esc_attr( $cid ); ?>" <?php selected( $filtro_cliente, $cid ); ?>>
+						<?php echo esc_html( $cnombre ); ?>
 					</option>
 				<?php endforeach; ?>
 			</select>
@@ -8308,11 +8341,12 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
     if ( $_liq_map_clientes === null ) {
         $_liq_map_clientes = array(); // liq_id => verified
         $_liq_user_history = array(); // client_id => array of entries
-        $all_users = get_users( array('fields' => array('ID')) );
-        foreach ( $all_users as $u ) {
-            $hist = get_user_meta( $u->ID, 'merc_liquidations', true );
+        global $wpdb;
+        $all_hist = $wpdb->get_results( "SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'merc_liquidations'" );
+        foreach ( $all_hist as $row ) {
+            $hist = maybe_unserialize( $row->meta_value );
             if ( is_array($hist) ) {
-                $_liq_user_history[ $u->ID ] = $hist;
+                $_liq_user_history[ $row->user_id ] = $hist;
                 foreach ($hist as $entry) {
                     if ( isset($entry['id']) ) {
                         $_liq_map_clientes[ $entry['id'] ] = !empty($entry['verified']);
@@ -8322,10 +8356,13 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
         }
     } else {
         $_liq_user_history = array();
-        $all_users = get_users( array('fields' => array('ID')) );
-        foreach ( $all_users as $u ) {
-            $hist = get_user_meta( $u->ID, 'merc_liquidations', true );
-            if ( is_array($hist) ) $_liq_user_history[ $u->ID ] = $hist;
+        global $wpdb;
+        $all_hist = $wpdb->get_results( "SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'merc_liquidations'" );
+        foreach ( $all_hist as $row ) {
+            $hist = maybe_unserialize( $row->meta_value );
+            if ( is_array($hist) ) {
+                $_liq_user_history[ $row->user_id ] = $hist;
+            }
         }
     }
 
@@ -8497,7 +8534,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                 if ( empty( $entry['verified'] ) && !empty($entry['fecha_caja']) && date('Y-m-d', strtotime($entry['fecha_caja'])) === $fecha_caja_ymd_loop ) {
                     $has_pending_voucher = true;
                     if ( !empty($entry['attachment_id']) ) {
-                        $pending_verification_url = wp_get_attachment_url( $entry['attachment_id'] );
+                        $pending_verification_url = wp_get_attachment_image_url( $entry['attachment_id'], 'medium' );
                     }
                     break;
                 }
@@ -8512,7 +8549,7 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
             $has_pending_voucher = true;
             $att_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
             if ( $att_id ) {
-                $pending_verification_url = wp_get_attachment_url( $att_id );
+                $pending_verification_url = wp_get_attachment_image_url( $att_id, 'medium' );
             }
         }
 
@@ -8624,7 +8661,8 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                                     && date('Y-m-d', strtotime($entry['fecha_caja'])) === date('Y-m-d', strtotime($fecha_inicio))
                                     && !empty($entry['attachment_id']) ) {
                                     $liq_id_to_cancel = $entry['id'];
-                                    $voucher_url = wp_get_attachment_url( intval($entry['attachment_id']) );
+                                    $voucher_url = wp_get_attachment_image_url( intval($entry['attachment_id']), 'medium' );
+                                    $voucher_url_full = wp_get_attachment_url( intval($entry['attachment_id']) );
                                     break;
                                 }
                             }
@@ -8635,7 +8673,9 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                             <strong style="color:#27ae60;">✅ <?php echo $msg; ?></strong>
                             <?php if ($voucher_url) : ?>
                                 <div style="margin: 10px 0;">
-                                    <img src="<?php echo esc_url($voucher_url); ?>" style="max-width:200px; max-height:200px; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="window.open(this.src)" title="Comprobante liquidado" />
+                                    <a href="<?php echo esc_url($voucher_url_full); ?>" target="_blank">
+                                        <img src="<?php echo esc_url($voucher_url); ?>" style="max-width:200px; max-height:200px; border-radius:4px; border:1px solid #ddd; cursor:pointer;" title="Comprobante liquidado" />
+                                    </a>
                                 </div>
                             <?php endif; ?>
                             <?php if ( $modo === 'merc_debe' ) : ?>
@@ -8654,13 +8694,16 @@ function merc_admin_clientes( $fecha_inicio, $fecha_fin, $filtro_estado, $filtro
                     <?php elseif ( $has_revision_today ) : 
                         // 3. PAGO EN REVISIÓN (RELOJ DE ARENA)
                         $attachment_id = isset($pago_en_revision['attachment_id']) ? intval($pago_en_revision['attachment_id']) : 0;
-                        $img_url = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
+                        $img_url = $attachment_id ? wp_get_attachment_image_url($attachment_id, 'medium') : '';
+                        $img_url_full = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
                     ?>
                         <div style="background:#fff3cd; padding:15px; border-radius:6px; margin-bottom:15px; border-left:4px solid #f39c12;">
                             <strong style="color:#e67e22;">⚠️ Cliente envió constancia de pago por S/. <?php echo number_format($pago_en_revision['monto'], 2); ?></strong>
                             <?php if ($img_url) : ?>
                                 <div style="margin: 10px 0;">
-                                    <img src="<?php echo esc_url($img_url); ?>" style="max-width:200px; max-height:200px; border-radius:4px; border:1px solid #ddd; cursor:pointer;" onclick="window.open(this.src)" />
+                                    <a href="<?php echo esc_url($img_url_full); ?>" target="_blank">
+                                        <img src="<?php echo esc_url($img_url); ?>" style="max-width:200px; max-height:200px; border-radius:4px; border:1px solid #ddd; cursor:pointer;" />
+                                    </a>
                                 </div>
                             <?php endif; ?>
                             <div style="display:flex; gap:10px; margin-top:10px;">
@@ -10848,30 +10891,41 @@ function merc_sidebar_badges() {
 
     // Badge para motorizado
     if ( in_array( 'wpcargo_driver', $current_user->roles, true ) ) {
-        global $wpdb;
-        $pending_shipments = $wpdb->get_results( $wpdb->prepare( "
-            SELECT p.ID
-            FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm_driver 
-                ON p.ID = pm_driver.post_id 
-                AND pm_driver.meta_key = 'wpcargo_driver'
-            LEFT JOIN {$wpdb->postmeta} pm_estado 
-                ON p.ID = pm_estado.post_id 
-                AND pm_estado.meta_key = 'wpcargo_estado_pago_motorizado'
-            WHERE p.post_type = 'wpcargo_shipment'
-            AND p.post_status = 'publish'
-            AND pm_driver.meta_value = %s
-            AND (pm_estado.meta_value = 'pendiente' OR pm_estado.meta_value IS NULL)
-        ", $current_user->ID ) );
+        $cache_key = 'merc_sidebar_badge_driver_' . $current_user->ID;
+        $badge_html = get_transient( $cache_key );
+        if ( $badge_html === false ) {
+            global $wpdb;
+            $thirty_days_ago = date('Y-m-d', strtotime('-30 days'));
+            $pending_shipments = $wpdb->get_results( $wpdb->prepare( "
+                SELECT p.ID
+                FROM {$wpdb->posts} p
+                LEFT JOIN {$wpdb->postmeta} pm_driver 
+                    ON p.ID = pm_driver.post_id 
+                    AND pm_driver.meta_key = 'wpcargo_driver'
+                LEFT JOIN {$wpdb->postmeta} pm_estado 
+                    ON p.ID = pm_estado.post_id 
+                    AND pm_estado.meta_key = 'wpcargo_estado_pago_motorizado'
+                LEFT JOIN {$wpdb->postmeta} pm_fecha 
+                    ON p.ID = pm_fecha.post_id 
+                    AND pm_fecha.meta_key = 'wpcargo_fecha_envio'
+                WHERE p.post_type = 'wpcargo_shipment'
+                AND p.post_status = 'publish'
+                AND pm_driver.meta_value = %s
+                AND (pm_estado.meta_value = 'pendiente' OR pm_estado.meta_value IS NULL)
+                AND (pm_fecha.meta_value >= %s OR pm_fecha.meta_value IS NULL)
+            ", $current_user->ID, $thirty_days_ago ) );
 
-        $total_pendiente = 0.0;
-        foreach ( $pending_shipments as $row ) {
-            $totales         = get_payment_totals_by_method( $row->ID );
-            $total_pendiente += $totales['total'];
-        }
+            $total_pendiente = 0.0;
+            foreach ( $pending_shipments as $row ) {
+                $totales         = get_payment_totals_by_method( $row->ID );
+                $total_pendiente += $totales['total'];
+            }
 
-        if ( $total_pendiente > 0 ) {
-            $badge_html = '<div class="merc-sidebar-badge merc-badge-driver"><strong>💰 Debes entregar:</strong><br><span class="merc-badge-amount">S/. ' . number_format( $total_pendiente, 2 ) . '</span></div>';
+            $badge_html = '';
+            if ( $total_pendiente > 0 ) {
+                $badge_html = '<div class="merc-sidebar-badge merc-badge-driver"><strong>💰 Debes entregar:</strong><br><span class="merc-badge-amount">S/. ' . number_format( $total_pendiente, 2 ) . '</span></div>';
+            }
+            set_transient( $cache_key, $badge_html, 5 * MINUTE_IN_SECONDS );
         }
     }
 

@@ -433,9 +433,16 @@ class MERC_Shipment_Table {
 
 				// 2. Bulk-print: reemplaza el handler de WPCargo (que usa #shipment-list ya inexistente)
 				if (typeof wpcfeAjaxhandler !== 'undefined') {
-					$('.wpcfe-bulkprint-wrapper').off('click').on('click', '.wpcfe-bulk-print', function(e) {
+					var $bulkWrapper = $('.wpcfe-bulkprint-wrapper');
+					if ($bulkWrapper.length) {
+						var $newBulkBtn = $('<button class="btn btn-default btn-lg m-0 py-1 px-2 merc-bulk-print-direct" data-type="waybill" style="border: 1px solid #ccc; background: #f9f9f9;"><i class="fa fa-print"></i><span class="mx-2">Imprimir</span></button>');
+						$bulkWrapper.replaceWith($newBulkBtn);
+					}
+					
+					$(document).off('click.mercBulkPrint').on('click.mercBulkPrint', '.merc-bulk-print-direct', function(e) {
 						e.preventDefault();
-						var printType = $(this).data('type');
+						e.stopImmediatePropagation();
+						var printType = $(this).data('type') || 'waybill';
 						var selected  = [];
 						$('.merc-ship-ui:checked').each(function() { selected.push($(this).val()); });
 						if (selected.length === 0) { alert('Por favor seleccione al menos un envío'); return; }
@@ -453,7 +460,6 @@ class MERC_Shipment_Table {
 										var a = document.createElement('a');
 										a.href = d.file_url;
 										a.target = '_blank';
-										a.download = (d.file_name || 'etiquetas') + '.pdf';
 										document.body.appendChild(a);
 										a.click();
 										document.body.removeChild(a);
@@ -707,7 +713,7 @@ class MERC_Shipment_Table {
 				});
 
 				// Print por fila: event delegation desde document (sobrevive al accordion)
-				$(document).on('click.mercPrint', '.print-shipment .dropdown-item', function(e) {
+				$(document).on('click.mercPrint', '.print-shipment .merc-print-btn', function(e) {
 					e.preventDefault();
 					e.stopImmediatePropagation();
 					var shipmentID = $(this).data('id');
@@ -727,7 +733,6 @@ class MERC_Shipment_Table {
 									var a = document.createElement('a');
 									a.href = d.file_url;
 									a.target = '_blank';
-									a.download = (d.file_name || 'etiqueta') + '.pdf';
 									document.body.appendChild(a);
 									a.click();
 									document.body.removeChild(a);
@@ -815,6 +820,7 @@ class MERC_Shipment_Table {
 if ( class_exists( 'MERC_Shipment_Table' ) ) {
 	new MERC_Shipment_Table();
 }
+
 
 
 

@@ -1,6 +1,6 @@
 jQuery(document).ready(function($){
 	// Download Shipment Documents (Woocommerce)
-    $('.print-shipment').on('click', '.shipment-checkout', function(e){
+    $('.print-shipment').off('click', '.shipment-checkout').on('click', '.shipment-checkout', function(e){
         e.preventDefault();
         var shipmentID  = $(this).data('id');
         var printType   = $(this).data('type');
@@ -35,8 +35,6 @@ jQuery(document).ready(function($){
             var save = document.createElement('a');
             save.href = fileURL;
             save.target = '_blank';
-            var filename = fileURL.substring(fileURL.lastIndexOf('/')+1);
-            save.download = fileName || filename;
             if ( navigator.userAgent.toLowerCase().match(/(ipad|iphone|safari)/) && navigator.userAgent.search("Chrome") < 0) {
                     document.location = save.href; 
                 // window event not working here
@@ -59,3 +57,4 @@ jQuery(document).ready(function($){
         }
     }
 });
+

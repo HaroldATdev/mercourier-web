@@ -29,6 +29,7 @@ class MERC_Shipment_Filters {
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_celular_filter' ], 102 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_driver_filters' ], 103 );
         add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_filter_cliente' ], 104 );
+        add_action( 'wpcfe_after_shipment_filters', [ $this, 'render_distrito_filter' ],  105 );
 
         // ── Query: todos los filtros via EXISTS (sin JOINs en WP_Query) ───
         // Preparamos las condiciones en wpcfe_dashboard_arguments y las
@@ -169,6 +170,31 @@ class MERC_Shipment_Filters {
 
     /* ── UI: Filtros de Motorizado Recojo y Entrega ─────────────────────── */
 
+    /* ── UI: Filtro de Distrito de Entrega ──────────────────────────────── */
+    public function render_distrito_filter(): void {
+        $current_user = wp_get_current_user();
+        if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
+             ! in_array( 'wpcargo_admin', (array) $current_user->roles ) ) {
+            return;
+        }
+        $selected = isset( $_GET['distrito_destino'] ) ? sanitize_text_field( $_GET['distrito_destino'] ) : '';
+        $distritos = $this->get_distritos();
+        ?>
+        <div class="form-group wpcfe-filter p-0 mx-1">
+            <div class="md-form form-group" style="margin:0;">
+                <select name="distrito_destino" class="form-control form-control-sm wpcfe-select">
+                    <option value="">Distrito Entrega...</option>
+                    <?php foreach ( $distritos as $distrito ) : ?>
+                        <option value="<?php echo esc_attr( $distrito ); ?>" <?php selected( $selected, $distrito ); ?>>
+                            <?php echo esc_html( $distrito ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <?php
+    }
+
     public function render_driver_filters(): void {
         $current_user = wp_get_current_user();
         if ( ! in_array( 'administrator', (array) $current_user->roles ) &&
@@ -184,11 +210,24 @@ class MERC_Shipment_Filters {
             ? esc_attr( $_GET['wpcargo_motorizo_entrega'] )
             : '';
 
-        $drivers = get_users( [
-            'role'    => 'wpcargo_driver',
-            'orderby' => 'display_name',
-            'order'   => 'ASC',
-        ] );
+        $drivers_data = get_transient('merc_driver_filters_data');
+        if ( $drivers_data === false ) {
+            $drivers = get_users( [
+                'role'    => 'wpcargo_driver',
+                'orderby' => 'display_name',
+                'order'   => 'ASC',
+            ] );
+            $drivers_data = [];
+            foreach ( $drivers as $driver ) {
+                $nombre = trim(
+                    get_user_meta( $driver->ID, 'first_name', true ) . ' ' .
+                    get_user_meta( $driver->ID, 'last_name',  true )
+                );
+                $drivers_data[$driver->ID] = $nombre ?: $driver->display_name;
+            }
+            natcasesort($drivers_data); // Ordenar alfabéticamente sin distinguir mayúsculas
+            set_transient('merc_driver_filters_data', $drivers_data, 12 * HOUR_IN_SECONDS);
+        }
         ?>
 
         <!-- MOTORIZADO RECOJO -->
@@ -196,14 +235,9 @@ class MERC_Shipment_Filters {
             <div class="md-form form-group" style="margin:0;">
                 <select name="wpcargo_motorizo_recojo" class="form-control form-control-sm wpcfe-select">
                     <option value="">Motorizado Recojo...</option>
-                    <?php foreach ( $drivers as $driver ) :
-                        $nombre = trim(
-                            get_user_meta( $driver->ID, 'first_name', true ) . ' ' .
-                            get_user_meta( $driver->ID, 'last_name',  true )
-                        );
-                    ?>
-                        <option value="<?php echo esc_attr( $driver->ID ); ?>" <?php selected( $value_recojo, $driver->ID ); ?>>
-                            <?php echo esc_html( $nombre ?: $driver->display_name ); ?>
+                    <?php foreach ( $drivers_data as $id => $display_name ) : ?>
+                        <option value="<?php echo esc_attr( $id ); ?>" <?php selected( $value_recojo, $id ); ?>>
+                            <?php echo esc_html( $display_name ); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -215,14 +249,9 @@ class MERC_Shipment_Filters {
             <div class="md-form form-group" style="margin:0;">
                 <select name="wpcargo_motorizo_entrega" class="form-control form-control-sm wpcfe-select">
                     <option value="">Motorizado Entrega...</option>
-                    <?php foreach ( $drivers as $driver ) :
-                        $nombre = trim(
-                            get_user_meta( $driver->ID, 'first_name', true ) . ' ' .
-                            get_user_meta( $driver->ID, 'last_name',  true )
-                        );
-                    ?>
-                        <option value="<?php echo esc_attr( $driver->ID ); ?>" <?php selected( $value_entrega, $driver->ID ); ?>>
-                            <?php echo esc_html( $nombre ?: $driver->display_name ); ?>
+                    <?php foreach ( $drivers_data as $id => $display_name ) : ?>
+                        <option value="<?php echo esc_attr( $id ); ?>" <?php selected( $value_entrega, $id ); ?>>
+                            <?php echo esc_html( $display_name ); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -242,11 +271,19 @@ class MERC_Shipment_Filters {
             return;
         }
 
-        $clientes = get_users( [
-            'role'    => 'wpcargo_client',
-            'orderby' => 'display_name',
-            'order'   => 'ASC',
-        ] );
+        $clientes_data = get_transient('merc_client_filters_data');
+        if ( $clientes_data === false ) {
+            $clientes = get_users( [
+                'role'    => 'wpcargo_client',
+                'orderby' => 'display_name',
+                'order'   => 'ASC',
+            ] );
+            $clientes_data = [];
+            foreach ( $clientes as $cliente ) {
+                $clientes_data[$cliente->ID] = trim( $cliente->first_name . ' ' . $cliente->last_name ) ?: $cliente->display_name;
+            }
+            set_transient('merc_client_filters_data', $clientes_data, 12 * HOUR_IN_SECONDS);
+        }
 
         $selected = isset( $_GET['filter_wpcargoclient'] ) ? intval( $_GET['filter_wpcargoclient'] ) : 0;
         ?>
@@ -254,9 +291,9 @@ class MERC_Shipment_Filters {
             <div class="md-form form-group" style="margin:0;">
                 <select name="filter_wpcargoclient" class="form-control form-control-sm wpcfe-select">
                     <option value="">Marca por Nombre</option>
-                    <?php foreach ( $clientes as $cliente ) : ?>
-                        <option value="<?php echo esc_attr( $cliente->ID ); ?>" <?php selected( $selected, $cliente->ID ); ?>>
-                            <?php echo esc_html( trim( $cliente->first_name . ' ' . $cliente->last_name ) ?: $cliente->display_name ); ?>
+                    <?php foreach ( $clientes_data as $id => $display_name ) : ?>
+                        <option value="<?php echo esc_attr( $id ); ?>" <?php selected( $selected, $id ); ?>>
+                            <?php echo esc_html( $display_name ); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -332,7 +369,7 @@ class MERC_Shipment_Filters {
 
                         $diff = $start_dt->diff( $end_dt )->days;
 
-                        if ( $diff <= 366 ) {
+                        if ( $diff <= 31 ) {
                             // Generar todos los formatos tradicionales para el rango
                             $legacy_dates = [];
                             $end_dt_inclusive = clone $end_dt;
@@ -383,11 +420,12 @@ class MERC_Shipment_Filters {
                 );
             }
 
-            // Usamos subconsulta IN no correlacionada para máximo rendimiento
+            // Usamos subconsulta EXISTS no correlacionada para máximo rendimiento
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $final_condition = "{$wpdb->posts}.ID IN (
-                SELECT pm_dt.post_id FROM {$wpdb->postmeta} pm_dt
-                WHERE pm_dt.meta_key IN ({$keys_in})
+            $final_condition = "EXISTS (
+                SELECT 1 FROM {$wpdb->postmeta} pm_dt
+                WHERE pm_dt.post_id = {$wpdb->posts}.ID
+                  AND pm_dt.meta_key IN ({$keys_in})
                   AND ( {$date_cond} )
             )";
 
@@ -403,9 +441,10 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['wpcargo_tiendaname'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "{$wpdb->posts}.ID IN (
-                    SELECT pm_mc.post_id FROM {$wpdb->postmeta} pm_mc
-                    WHERE pm_mc.meta_key = 'wpcargo_tiendaname'
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_mc
+                    WHERE pm_mc.post_id = {$wpdb->posts}.ID
+                      AND pm_mc.meta_key = 'wpcargo_tiendaname'
                       AND pm_mc.meta_value = %s
                 )",
                 sanitize_text_field( $_GET['wpcargo_tiendaname'] )
@@ -416,9 +455,10 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['celular_destinatario'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "{$wpdb->posts}.ID IN (
-                    SELECT pm_cl.post_id FROM {$wpdb->postmeta} pm_cl
-                    WHERE pm_cl.meta_key = 'wpcargo_receiver_phone'
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_cl
+                    WHERE pm_cl.post_id = {$wpdb->posts}.ID
+                      AND pm_cl.meta_key = 'wpcargo_receiver_phone'
                       AND pm_cl.meta_value = %s
                 )",
                 sanitize_text_field( $_GET['celular_destinatario'] )
@@ -429,9 +469,10 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['wpcargo_motorizo_recojo'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "{$wpdb->posts}.ID IN (
-                    SELECT pm_mr.post_id FROM {$wpdb->postmeta} pm_mr
-                    WHERE pm_mr.meta_key = 'wpcargo_motorizo_recojo'
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_mr
+                    WHERE pm_mr.post_id = {$wpdb->posts}.ID
+                      AND pm_mr.meta_key = 'wpcargo_motorizo_recojo'
                       AND pm_mr.meta_value = %s
                 )",
                 intval( $_GET['wpcargo_motorizo_recojo'] )
@@ -442,15 +483,29 @@ class MERC_Shipment_Filters {
         if ( ! empty( $_GET['wpcargo_motorizo_entrega'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             $this->custom_where_conds[] = $wpdb->prepare(
-                "{$wpdb->posts}.ID IN (
-                    SELECT pm_me.post_id FROM {$wpdb->postmeta} pm_me
-                    WHERE pm_me.meta_key = 'wpcargo_motorizo_entrega'
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_me
+                    WHERE pm_me.post_id = {$wpdb->posts}.ID
+                      AND pm_me.meta_key = 'wpcargo_motorizo_entrega'
                       AND pm_me.meta_value = %s
                 )",
                 intval( $_GET['wpcargo_motorizo_entrega'] )
             );
         }
 
+        // ── Distrito de Entrega ───────────────────────────────────────────────
+        if ( ! empty( $_GET['distrito_destino'] ) && $is_admin_or_driver ) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $this->custom_where_conds[] = $wpdb->prepare(
+                "EXISTS (
+                    SELECT 1 FROM {$wpdb->postmeta} pm_dd
+                    WHERE pm_dd.post_id = {$wpdb->posts}.ID
+                      AND pm_dd.meta_key = 'wpcargo_distrito_destino'
+                      AND pm_dd.meta_value = %s
+                )",
+                sanitize_text_field( $_GET['distrito_destino'] )
+            );
+        }
         // ── Cliente (Marca por Nombre) ────────────────────────────────────
         if ( ! empty( $_GET['filter_wpcargoclient'] ) && $is_admin_or_driver ) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -493,6 +548,22 @@ class MERC_Shipment_Filters {
 
     /* ── Helpers ─────────────────────────────────────────────────────────── */
 
+    private function get_distritos(): array {
+        global $wpdb;
+        $cached = get_transient( 'merc_distritos_list' );
+        if ( $cached !== false ) return $cached;
+        $rows = $wpdb->get_col(
+            "SELECT DISTINCT meta_value FROM {$wpdb->postmeta}
+             WHERE meta_key = 'wpcargo_distrito_destino'
+             AND meta_value != ''
+             ORDER BY meta_value ASC"
+        );
+        $distritos = array_filter( array_map( 'trim', $rows ) );
+        usort( $distritos, 'strnatcasecmp' );
+        set_transient( 'merc_distritos_list', $distritos, 6 * HOUR_IN_SECONDS );
+        return $distritos;
+    }
+
     private function get_marcas(): array {
         $cached = get_transient( 'merc_marcas_list' );
         if ( $cached !== false ) {
@@ -509,7 +580,7 @@ class MERC_Shipment_Filters {
             ORDER BY meta_value ASC
         " );
         $marcas = array_unique( array_map( 'trim', $results ) );
-        set_transient( 'merc_marcas_list', $marcas, 5 * MINUTE_IN_SECONDS );
+        set_transient( 'merc_marcas_list', $marcas, 30 * MINUTE_IN_SECONDS );
         return $marcas;
     }
 
@@ -529,7 +600,7 @@ class MERC_Shipment_Filters {
             ORDER BY meta_value ASC
         " );
         $celulares = array_unique( array_map( 'trim', $results ) );
-        set_transient( 'merc_celulares_list', $celulares, 5 * MINUTE_IN_SECONDS );
+        set_transient( 'merc_celulares_list', $celulares, 30 * MINUTE_IN_SECONDS );
         return $celulares;
     }
 
@@ -568,6 +639,7 @@ class MERC_Shipment_Filters {
 if ( class_exists( 'MERC_Shipment_Filters' ) ) {
     new MERC_Shipment_Filters();
 }
+
 
 
 
